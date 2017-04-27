@@ -1,0 +1,14 @@
+?a  p3  c2  ?b  p3  c2   => ?a  equals  ?b	0	1	1	1	1	1	?a	0.0	0.0	0.0
+?a  p3  c1  ?b  p3  c1   => ?a  equals  ?b	0	1	1	1	1	1	?a	0.0	0.0	0.0
+?a  p2  b1  ?b  p2  b1  ?a  p3  ?n  ?b  p3  ?n   => ?a  equals  ?b	0	1	1	2	2	2	?a	0.0	0.0	0.0
+?a  p3  ?f  ?b  p3  ?f  ?a  p4  d1  ?b  p4  d1   => ?a  equals  ?b	0	1	1	2	2	2	?a	0.0	0.0	0.0
+?a  p1  aa  ?b  p1  aa  ?a  p2  ?n  ?b  p2  ?n  ?a  p3  c1  ?b  p3  c1   => ?a  equals  ?b	0	1	1	1	1	1	?a	0.0	0.0	0.0
+?a  p1  aa  ?b  p1  aa  ?a  p2  ?n  ?b  p2  ?n  ?a  p3  c2  ?b  p3  c2   => ?a  equals  ?b	0	1	1	1	1	1	?a	0.0	0.0	0.0
+?a  p1  aa  ?b  p1  aa  ?a  p2  b1  ?b  p2  b1  ?a  p3  c2  ?b  p3  c2   => ?a  equals  ?b	0	1	1	1	1	1	?a	0.0	0.0	0.0
+?a  p1  aa  ?b  p1  aa  ?a  p2  b1  ?b  p2  b1  ?a  p3  c1  ?b  p3  c1   => ?a  equals  ?b	0	1	1	1	1	1	?a	0.0	0.0	0.0
+?a  p1  ?f  ?b  p1  ?f  ?a  p2  ?j  ?b  p2  ?j  ?a  p3  c1  ?b  p3  c1   => ?a  equals  ?b	0	1	1	1	1	1	?a	0.0	0.0	0.0
+?a  p1  ?f  ?b  p1  ?f  ?a  p2  ?j  ?b  p2  ?j  ?a  p3  c2  ?b  p3  c2   => ?a  equals  ?b	0	1	1	1	1	1	?a	0.0	0.0	0.0
+?a  p1  ?f  ?b  p1  ?f  ?a  p2  b1  ?b  p2  b1  ?a  p3  c1  ?b  p3  c1   => ?a  equals  ?b	0	1	1	1	1	1	?a	0.0	0.0	0.0
+?a  p1  ?f  ?b  p1  ?f  ?a  p2  b1  ?b  p2  b1  ?a  p3  c2  ?b  p3  c2   => ?a  equals  ?b	0	1	1	1	1	1	?a	0.0	0.0	0.0
+?a  p1  aa  ?b  p1  aa  ?a  p2  ?n  ?b  p2  ?n  ?a  p3  ?r  ?b  p3  ?r  ?a  p4  d1  ?b  p4  d1   => ?a  equals  ?b	0	1	1	2	2	2	?a	0.0	0.0	0.0
+?a  p1  ?f  ?b  p1  ?f  ?a  p2  ?j  ?b  p2  ?j  ?a  p3  ?n  ?b  p3  ?n  ?a  p4  d1  ?b  p4  d1   => ?a  equals  ?b	0	1	1	2	2	2	?a	0.0	0.0	0.0

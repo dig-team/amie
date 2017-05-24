@@ -26,6 +26,7 @@ import amie.data.KB;
 import amie.data.Schema;
 import amie.data.U;
 import amie.typing.heuristics.TypingHeuristic;
+import java.util.HashSet;
 
 public class SeparationClassifier {
 	
@@ -89,7 +90,11 @@ public class SeparationClassifier {
 				
 				int c1c2size = classIntersectionSize.get(class1).get(class2);
 
-				if (c1c2size < classSizeThreshold || c1size - c1c2size < classSizeThreshold) {
+				if (c1c2size < classSizeThreshold) {
+                                    continue;
+					//r.put(class2, Double.NaN);
+				} else if (c1size - c1c2size < classSizeThreshold) {
+                                    continue;
 					/*
 					 *  Ensure the symmetry of the output.
 					 *  
@@ -107,7 +112,7 @@ public class SeparationClassifier {
 					 *  
 					 *  In this case, both side will output 1, ie, they both can OK.
 					 */
-					r.put(class2, 1.);
+					//r.put(class2, 1.);
 				} else {
 					// c1 , q => c2
 					double s = getStandardConfidenceWithThreshold(TypingHeuristic.typeL(class2, variable), clause, variable, -1, true);
@@ -124,15 +129,20 @@ public class SeparationClassifier {
 	
 	public void classify(Map<ByteString, Map<ByteString, Double>> statistics, double eliminationRatio) {
 		// add an unionRatio ?
-		double lratio = Math.log(eliminationRatio);
+		double lratio = Math.abs(Math.log(eliminationRatio));
+                Set<ByteString> V = new HashSet<>(statistics.keySet());
 		for (ByteString class1 : statistics.keySet()) {
 			for (ByteString class2 : statistics.get(class1).keySet()) {
-				if (class1.compareTo(class2) >= 0) continue;
-				String header = "(" + class1.toString() + "," + class2.toString() + "): ";
 				double s1 = Math.log(statistics.get(class1).get(class2));
-				double s2 = Math.log(statistics.get(class2).get(class1));
-				String ss1 = Double.toString(statistics.get(class1).get(class2));
-				String ss2 = Double.toString(statistics.get(class2).get(class1));
+                                if(Double.isNaN(s1)) {
+					continue;
+				}
+                                if (s1 < -lratio)
+                                    V.remove(class1);
+                                if (s1 > lratio)
+                                    V.remove(class2);
+                                
+                                /*
 				if(s1 > lratio) {
 					System.out.println(header + "!1, !2, 1-2\t" + ss1);
 				}
@@ -142,7 +152,7 @@ public class SeparationClassifier {
 				if(s1 < -lratio && s2 < -lratio) {
 					System.out.println(header + "!1, !2, 1^2\t" + ss1 + "," + ss2);
 				}
-				if(s1 < lratio && s1 > -lratio) {
+				if(Double.isNaN(s1) || (s1 > -lratio && s1 < lratio)) {
 					if(s2 < lratio && s2 > -lratio) {
 						System.out.println(header + "1U2\t" + ss1 + "," + ss2);
 					}
@@ -150,11 +160,15 @@ public class SeparationClassifier {
 						System.out.println(header + "1, !2\t" + ss1 + "," + ss2);
 					}
 				}
-				if(s2 < lratio && s2 > -lratio && s1 < -lratio) {
+				if((Double.isNaN(s2) || (s2 < lratio && s2 > -lratio)) && s1 < -lratio) {
 					System.out.println(header + "!1, 2\t" + ss1 + "," + ss2);
 				}
+                                */
 			}
 		}
+                for (ByteString t: V) {
+                    System.out.println(t.toString());
+                }
 	}
 	
 	public SeparationClassifier(KB source) {
@@ -163,20 +177,32 @@ public class SeparationClassifier {
 		classIntersectionSize = Schema.getTypesIntersectionCount(source);
 	}
 	
-	public static void main(String[] args) throws IOException {
-		
-		CommandLine cli = null;
-		Integer classSizeThreshold = 50;
-		Integer supportThreshold = 50;
-		double eliminationRatio = 1.5;
-		String delimiter = "\t";
-		
-		HelpFormatter formatter = new HelpFormatter();
-
-        // create the command line parser
-        CommandLineParser parser = new PosixParser();
-        // create the Options
-        Options options = new Options();
+	public SeparationClassifier(KB source, File countsFile) {
+		db = source;
+		try {
+			classSize = Schema.loadTypesCount(countsFile);
+			classIntersectionSize = Schema.loadTypesIntersectionCount(countsFile);
+		} catch (IOException e) {
+			System.err.println("Counts file import failed, recomputing...");
+			classSize = Schema.getTypesCount(source);
+			classIntersectionSize = Schema.getTypesIntersectionCount(source);
+		}
+	}
+	
+	public SeparationClassifier(KB source, File typeCountFile, File typeIntersectionCountFile) {
+		db = source;
+		try {
+			classSize = Schema.loadTypesCount(typeCountFile);
+			classIntersectionSize = Schema.loadTypesIntersectionCount(typeIntersectionCountFile);
+		} catch (IOException e) {
+			System.err.println("Counts file import failed, recomputing...");
+			classSize = Schema.getTypesCount(source);
+			classIntersectionSize = Schema.getTypesIntersectionCount(source);
+		}
+	}
+	
+	public static Options getOptions() {
+		Options options = new Options();
         Option  popularityOpt = OptionBuilder.withArgName("cst")
                 .hasArg()
                 .withDescription("Class size Threshold. Default: 50")
@@ -185,10 +211,6 @@ public class SeparationClassifier {
                 .hasArg()
                 .withDescription("Support threshold. Default: 50")
                 .create("st");
-        Option eliminationRatioOpt = OptionBuilder.withArgName("er")
-                .hasArg()
-                .withDescription("Elimination ratio. Default: 1.5")
-                .create("er");
         Option delimiterOpt = OptionBuilder
         		.hasArg()
         		.withDescription("Delimiter in KB files")
@@ -201,44 +223,131 @@ public class SeparationClassifier {
                 .hasArg()
                 .withDescription("Queried attribute [-1]")
                 .create("q");
+        Option countFile = OptionBuilder.withArgName("countsF")
+        		.hasArg()
+        		.withDescription("Counts file, type count if intersection count file is set")
+        		.create("cf");
+        Option countIntersectionFile = OptionBuilder.withArgName("iCountF")
+        		.hasArg()
+        		.withDescription("Intersection count file")
+        		.create("icf");
         
         options.addOption(delimiterOpt);
         options.addOption(popularityOpt);
         options.addOption(outputThresholdOpt);
         options.addOption(typeRelationOpt);
         options.addOption(queryOpt);
+        options.addOption(countFile);
+        options.addOption(countIntersectionFile);
         
-        try {
+        return options;
+	}
+	
+	public static class ParsedArguments {
+		public Integer classSizeThreshold = 50;
+		public Integer supportThreshold = 50;
+		public String delimiter = "\t";
+		public String[] leftOverArgs = null;
+		public List<ByteString[]> query;
+		public ByteString variable;
+		public File countFile = null;
+		public File countIntersectionFile = null;
+		
+		public ParsedArguments(CommandLine cli, HelpFormatter formatter, Options options) {
+	        if (cli.hasOption("cst")) {
+	        	try {
+	        		String cstStr = cli.getOptionValue("cst");
+	        		classSizeThreshold = Integer.parseInt(cstStr);
+	            } catch (NumberFormatException e) {
+	                System.err.println("The option -cst (class size threshold) requires an integer as argument");
+	                System.err.println("*Classifier [OPTIONS] <.tsv INPUT FILES>");
+	                formatter.printHelp("*Classifier", options);
+	                System.exit(1);
+	            }
+	        }
+	        
+	        if (cli.hasOption("st")) {
+	        	try {
+	        		String stStr = cli.getOptionValue("st");
+	        		supportThreshold = Integer.parseInt(stStr);
+	            } catch (NumberFormatException e) {
+	                System.err.println("The option -st (support threshold) requires an integer as argument");
+	                System.err.println("*Classifier [OPTIONS] <.tsv INPUT FILES>");
+	                formatter.printHelp("*Classifier", options);
+	                System.exit(1);
+	            }
+	        }
+	        
+	        if (cli.hasOption("tr")) {
+	            Schema.typeRelation = cli.getOptionValue("tr");
+	            Schema.typeRelationBS = ByteString.of(Schema.typeRelation);
+	        }
+	        
+	        leftOverArgs = cli.getArgs();
+	        if (leftOverArgs.length < 1) {
+	            System.err.println("No input file has been provided");
+	            System.err.println("*Classifier [OPTIONS] <.tsv INPUT FILES>");
+	            System.exit(1);
+	        }
+	        
+	        if (cli.hasOption("d")) {
+	        	delimiter = cli.getOptionValue("d");
+	        }
+	        
+	        if (cli.hasOption("cf")) {
+	        	try {
+	        		countFile = new File(cli.getOptionValue("cf"));
+	        	} catch (Exception e) {
+	        		System.err.println("Error while creating countFile object");
+	        	}
+	        	if (cli.hasOption("icf") && countFile != null) {
+	        		try {
+	        			countIntersectionFile = new File(cli.getOptionValue("icf"));
+		        	} catch (Exception e) {
+		        		System.err.println("Error while creating intersection countFile object");
+		        	}
+	        	}
+	        }
+	        
+	        if (!cli.hasOption("q")) {
+	        	System.err.println("Argument query is required");
+	        	formatter.printHelp("Typing", options);
+	            System.exit(1);
+	        }
+	        
+	        String[] attr = cli.getOptionValue("q").split("-1");
+	        query = KB.triples(KB.triple("?x", attr[0], "?y"));
+	        variable = (attr.length == 1) ? ByteString.of("?x") : ByteString.of("?y");
+		}
+	}
+	
+	public static void main(String[] args) throws IOException {
+		
+		CommandLine cli = null;
+		double eliminationRatio = 1.5;
+		
+		HelpFormatter formatter = new HelpFormatter();
+
+        // create the command line parser
+        CommandLineParser parser = new PosixParser();
+        // create the Options
+        Options options = getOptions();
+        
+        Option eliminationRatioOpt = OptionBuilder.withArgName("er")
+                .hasArg()
+                .withDescription("Elimination ratio. Default: 1.5")
+                .create("er");
+        options.addOption(eliminationRatioOpt);
+        
+		try {
             cli = parser.parse(options, args);
         } catch (ParseException e) {
             System.out.println("Unexpected exception: " + e.getMessage());
-            formatter.printHelp("AMIE [OPTIONS] <TSV FILES>", options);
+            formatter.printHelp("SeparationClassifier [OPTIONS] <TSV FILES>", options);
             System.exit(1);
         }
-        
-        if (cli.hasOption("cst")) {
-        	try {
-        		String cstStr = cli.getOptionValue("cst");
-        		classSizeThreshold = Integer.parseInt(cstStr);
-            } catch (NumberFormatException e) {
-                System.err.println("The option -cst (class size threshold) requires an integer as argument");
-                System.err.println("SeparationClassifier [OPTIONS] <.tsv INPUT FILES>");
-                formatter.printHelp("SeparationClassifier", options);
-                System.exit(1);
-            }
-        }
-        
-        if (cli.hasOption("st")) {
-        	try {
-        		String stStr = cli.getOptionValue("st");
-        		supportThreshold = Integer.parseInt(stStr);
-            } catch (NumberFormatException e) {
-                System.err.println("The option -st (support threshold) requires an integer as argument");
-                System.err.println("SeparationClassifier [OPTIONS] <.tsv INPUT FILES>");
-                formatter.printHelp("SeparationClassifier", options);
-                System.exit(1);
-            }
-        }
+		
+		ParsedArguments pa = new ParsedArguments(cli, formatter, options);
         
         if (cli.hasOption("er")) {
         	try {
@@ -246,58 +355,35 @@ public class SeparationClassifier {
         		eliminationRatio = Double.parseDouble(erStr);
             } catch (NumberFormatException e) {
                 System.err.println("The option -er (elimination ratio) requires a double as argument");
-                System.err.println("Typing [OPTIONS] <.tsv INPUT FILES>");
-                formatter.printHelp("Typing", options);
+                System.err.println("SeparationClassifier [OPTIONS] <.tsv INPUT FILES>");
+                formatter.printHelp("SeparationClassifier", options);
                 System.exit(1);
             }
         }
-        if (cli.hasOption("tr")) {
-            Schema.typeRelation = cli.getOptionValue("tr");
-            Schema.typeRelationBS = ByteString.of(Schema.typeRelation);
-        }
-        
-        String[] leftOverArgs = cli.getArgs();
-        List<File> dataFiles = new ArrayList<>();
-        
-        if (leftOverArgs.length < 1) {
-            System.err.println("No input file has been provided");
-            System.err.println("Typing [OPTIONS] <.tsv INPUT FILES>");
-            System.exit(1);
-        }
 
         //Load database
-        for (int i = 0; i < leftOverArgs.length; ++i) {
-                dataFiles.add(new File(leftOverArgs[i]));
+        List<File> dataFiles = new ArrayList<>();
+        for (int i = 0; i < pa.leftOverArgs.length; ++i) {
+                dataFiles.add(new File(pa.leftOverArgs[i]));
         }
-        
         KB dataSource = new KB();
-        
-        if (cli.hasOption("c"))
-        	dataSource.countCacheEnabled = true;
-        
-        if (cli.hasOption("d")) {
-        	delimiter = cli.getOptionValue("d");
-        }
-        
-        if (!cli.hasOption("q")) {
-        	System.err.println("Argument query is required");
-        	formatter.printHelp("Typing", options);
-            System.exit(1);
-        }
-        
-        String[] attr = cli.getOptionValue("q").split("-1");
-        List<ByteString[]> query = KB.triples(KB.triple("?x", attr[0], "?y"));
-        ByteString variable = (attr.length == 1) ? ByteString.of("?x") : ByteString.of("?y");
-        
-        dataSource.setDelimiter(delimiter);
-        long timeStamp1 = System.currentTimeMillis();
+        dataSource.setDelimiter(pa.delimiter);
         dataSource.load(dataFiles);
-        long timeStamp2 = System.currentTimeMillis();
         
-        System.out.print("Computing classes overlap...");
-        SeparationClassifier sc = new SeparationClassifier(dataSource);
-        System.out.println(" Done.");
-        sc.classify(sc.computeStatistics(query, variable, classSizeThreshold, supportThreshold), eliminationRatio);
+        //Load classifier
+        SeparationClassifier sc;
+        if (pa.countFile != null) {
+        	if(pa.countIntersectionFile != null) {
+        		sc = new SeparationClassifier(dataSource, pa.countFile, pa.countIntersectionFile);
+        	} else {
+        		sc = new SeparationClassifier(dataSource, pa.countFile);
+        	}
+        } else {
+            System.out.print("Computing classes overlap...");
+        	sc = new SeparationClassifier(dataSource);
+        	System.out.println(" Done.");
+        }
+        
+        sc.classify(sc.computeStatistics(pa.query, pa.variable, pa.classSizeThreshold, pa.supportThreshold), eliminationRatio);
 	}
-
 }

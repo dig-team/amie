@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -20,6 +21,8 @@ import java.util.Set;
 import javatools.datatypes.ByteString;
 import javatools.datatypes.IntHashMap;
 import javatools.datatypes.MultiMap;
+import javatools.filehandlers.FileLines;
+import javatools.parsers.Char17;
 
 public class Schema {
 	
@@ -556,6 +559,39 @@ public class Schema {
 			result2.put(type2, types2types2Instances.get(type1).get(type2).size());
 		}
 		return result;
+	}
+	
+	public static IntHashMap<ByteString> loadTypesCount(File f) throws IOException {
+		IntHashMap<ByteString> typesCount = new IntHashMap<>();
+		for (String line : new FileLines(f, "UTF-8", null)) {
+			String[] split = line.split("\t");
+			if (split.length == 2) {
+				try {
+					typesCount.put(ByteString.of(split[0]), Integer.parseInt(split[1]));
+				} catch (NumberFormatException e) {}
+			}
+		}
+		System.out.println("Loaded " + typesCount.size() + " classes");
+		return typesCount;
+	}
+	
+	public static Map<ByteString, IntHashMap<ByteString>> loadTypesIntersectionCount(File f) throws IOException {
+		Map<ByteString, IntHashMap<ByteString>> typesIntersectionCount = new HashMap<>();
+		for (String line : new FileLines(f, "UTF-8", null)) {
+			String[] split = line.split("\t");
+			if (split.length == 3) {
+				try {
+					int i = Integer.parseInt(split[2]);
+					IntHashMap<ByteString> tc = typesIntersectionCount.get(ByteString.of(split[0]));
+					if (tc == null) {
+						typesIntersectionCount.put(ByteString.of(split[0]), tc = new IntHashMap<ByteString>());
+					}
+					tc.put(ByteString.of(split[1]), i);
+				} catch (NumberFormatException e) {}
+			}
+		}
+		System.out.println("Loaded " + typesIntersectionCount.size() + " intersection sizes.");
+		return typesIntersectionCount;
 	}
 
 	/**

@@ -31,5 +31,34 @@
       <artifactId>kb</artifactId>
       <version>1.0</version>
     </dependency>
+    <dependency>
+    	<groupId>org.jgrapht</groupId>
+    	<artifactId>jgrapht-core</artifactId>
+    	<version>1.0.1</version>
+    </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+    <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-dependency-plugin</artifactId>
+      <executions>
+	<execution>
+          <id>copy-dependencies</id>
+          <phase>prepare-package</phase>
+          <goals>
+            <goal>copy-dependencies</goal>
+          </goals>
+          <configuration>
+            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+            <overWriteReleases>false</overWriteReleases>
+            <overWriteSnapshots>false</overWriteSnapshots>
+            <overWriteIfNewer>true</overWriteIfNewer>
+          </configuration>
+	</execution>
+      </executions>
+    </plugin>
+    </plugins>
+  </build>
 </project>

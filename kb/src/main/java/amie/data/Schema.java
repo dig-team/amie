@@ -26,6 +26,9 @@ import javatools.parsers.Char17;
 
 public class Schema {
 	
+        public static String top = "owl:Thing";
+        public static ByteString topBS = ByteString.of(top);
+    
 	/** X rdf:type Class **/
 	public static String typeRelation = "rdf:type";
 	
@@ -64,7 +67,7 @@ public class Schema {
 	private static MultiMap<ByteString, ByteString> subClassMaterialized = new MultiMap<>();
 	
 	private static MultiMap<ByteString, ByteString> superClassMaterialized = new MultiMap<>();
-	
+    
 	public static void materializeTaxonomy(KB source) {
 		List<ByteString[]> query = KB.triples(KB.triple("?x", subClassRelationBS, "?y"));
 		allDefinedTypesMaterialized.addAll(source.selectDistinct(ByteString.of("?x"), query));

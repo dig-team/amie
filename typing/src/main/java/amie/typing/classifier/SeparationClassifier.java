@@ -30,7 +30,7 @@ import java.util.HashSet;
 
 public class SeparationClassifier {
 	
-	private KB db;
+	protected KB db;
 	public IntHashMap<ByteString> classSize;
 	public Map<ByteString, IntHashMap<ByteString>> classIntersectionSize;
 	
@@ -200,6 +200,12 @@ public class SeparationClassifier {
 			classIntersectionSize = Schema.getTypesIntersectionCount(source);
 		}
 	}
+        
+        public SeparationClassifier(KB source, IntHashMap<ByteString> cS, Map<ByteString, IntHashMap<ByteString>> cIS) {
+            db = source;
+            classSize = cS;
+            classIntersectionSize = cIS;
+        }
 	
 	public static Options getOptions() {
 		Options options = new Options();
@@ -309,15 +315,12 @@ public class SeparationClassifier {
 	        	}
 	        }
 	        
-	        if (!cli.hasOption("q")) {
-	        	System.err.println("Argument query is required");
-	        	formatter.printHelp("Typing", options);
-	            System.exit(1);
-	        }
+	        if (cli.hasOption("q")) {
 	        
 	        String[] attr = cli.getOptionValue("q").split("-1");
 	        query = KB.triples(KB.triple("?x", attr[0], "?y"));
 	        variable = (attr.length == 1) ? ByteString.of("?x") : ByteString.of("?y");
+                }
 		}
 	}
 	

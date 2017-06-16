@@ -173,17 +173,22 @@ public class Separation extends Thread {
         }
         
         // Populate query queue
-        List<ByteString[]> query = new ArrayList<>(1);
-        query.add(KB.triple(ByteString.of("?x"), ByteString.of("?y"), ByteString.of("?z")));
-        Set<ByteString> relations = dataSource.selectDistinct(ByteString.of("?y"), query);
-        relations.remove(Schema.typeRelationBS);
-        
-        ByteString[] q;
         BlockingQueue queryQ = new LinkedBlockingQueue();
-        for (ByteString r : relations) {
-            q = KB.triple(ByteString.of("?x"), r, ByteString.of("?y"));
-            queryQ.add(new Pair<>(KB.triples(q), ByteString.of("?x")));
-            queryQ.add(new Pair<>(KB.triples(q), ByteString.of("?y")));
+        
+        if (pa.query == null) {
+            List<ByteString[]> query = new ArrayList<>(1);
+            query.add(KB.triple(ByteString.of("?x"), ByteString.of("?y"), ByteString.of("?z")));
+            Set<ByteString> relations = dataSource.selectDistinct(ByteString.of("?y"), query);
+            relations.remove(Schema.typeRelationBS);
+
+            ByteString[] q;
+            for (ByteString r : relations) {
+                q = KB.triple(ByteString.of("?x"), r, ByteString.of("?y"));
+                queryQ.add(new Pair<>(KB.triples(q), ByteString.of("?x")));
+                queryQ.add(new Pair<>(KB.triples(q), ByteString.of("?y")));
+            }
+        } else {
+            queryQ.add(new Pair<>(pa.query, pa.variable));
         }
         for (int i = 0; i < nThreads; i++) {
             queryQ.add(new Pair<>(Collections.EMPTY_LIST, ByteString.of("STOP")));

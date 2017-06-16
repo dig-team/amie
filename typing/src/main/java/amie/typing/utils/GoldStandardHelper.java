@@ -1,0 +1,339 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package amie.typing.utils;
+
+import amie.data.KB;
+import amie.data.Schema;
+import amie.typing.heuristics.TypingHeuristic;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javatools.datatypes.ByteString;
+
+/**
+ * 
+ * @author jlajus
+ */
+public class GoldStandardHelper {
+    
+    protected double getStandardConfidenceWithThreshold(List<ByteString[]> head, List<ByteString[]> body, ByteString variable, int threshold, boolean unsafe) {
+        List<ByteString[]> bodyC = (unsafe) ? new LinkedList<>(body) : body;
+        long bodySize = db.countDistinct(variable, bodyC);
+        bodyC.addAll(head);
+        long support = db.countDistinct(variable, bodyC);
+        if (support < threshold || bodySize == 0) {
+            return 0;
+        }
+        return ((double) support) / bodySize;
+    }
+    
+    public static final int supportThreshold = 50;
+    
+    private String query;
+    private Set<GSnode> marked;
+        
+    private GSnode current;
+    private List<GSnode> ids;
+    private Map<ByteString, GSnode> index;
+    
+    public GoldStandardHelper(KB source) {
+        this.marked = new HashSet<>();
+        this.index = new HashMap<>();
+        db = source;
+        handler = this;
+    }
+    
+    public GoldStandardHelper(String query) {
+        this.marked = new HashSet<>();
+        this.index = new HashMap<>();
+        this.query = query;
+        current = new GSnode(Schema.topBS);
+        index.put(Schema.topBS, current);
+        current.generate(supportThreshold, KB.triples(KB.triple(ByteString.of("?x"), ByteString.of(query.substring(0, query.length()-1)), ByteString.of("?y"))), 
+                ByteString.of("?"+query.substring(query.length()-1)));
+    }
+    
+    public static GoldStandardHelper handler = null;
+    private static KB db;
+
+    public class GSnode implements Comparable {
+        List<GSnode> parents;
+        List<GSnode> children;
+        ByteString className;
+        
+        public GSnode(ByteString className) { this.className = className; }
+        
+        public void generate(int supportThreshold, List<ByteString[]> query, ByteString variable) {
+            for (ByteString subClass : Schema.getSubTypes(db, className)) {
+                GSnode stc = index.get(subClass);
+                if (stc != null) {
+                    children.add(stc);
+                    stc.parents.add(this);
+                } else if (getStandardConfidenceWithThreshold(TypingHeuristic.typeL(subClass, variable), query, variable, supportThreshold, true) != 0) {
+                    stc = new GSnode(subClass);
+                    index.put(subClass, stc);
+                    children.add(stc);
+                    stc.parents.add(this);
+                    stc.generate(supportThreshold, query, variable);
+                }
+            }
+        }
+
+        @Override
+        public int compareTo(Object t) {
+            return className.compareTo(((GSnode) t).className);
+        }
+    }
+    
+    public static void help() {
+        System.out.println();
+        System.out.println(String.join("\n",
+        "identifiers:",
+        "    [0-9]",
+        "    `[0-9]+`",
+        "special:",
+        "    c: current",
+        "    a: all",
+        "directions:",
+        "    p: parents",
+        "    c: children",
+        "    s: siblings",
+        "commands:",
+        "    h: show help",
+        "    m: move [identifier]",
+        "    l: list [a|direction|l]",
+        "    c: print current",
+        "    x: mark [c|identifier]",
+        "    u: unmark [c|identifier]",
+        "    s: search `.+`",
+        "    f: finish",
+        "    q: query `<.*>(x|y)`",
+        "    qq: quit"));
+    }
+    
+    public static void newQuery(String query) {
+        if (query.equals("q")) { quit(); }
+        else {
+            handler = new GoldStandardHelper(query);
+        }
+    }
+    
+    private static String getString() throws IOException {
+        int input = System.in.read();
+        if (input == -1) { quit(); }
+        else {
+            if ((char) input == '`') {
+                String result = "";
+                input = System.in.read();
+                if (input == -1) { quit(); }
+                while((char) input != '`') {
+                    result += Character.toString((char) input);
+                    input = System.in.read();
+                    if (input == -1) { quit(); break; }
+                }
+                return result;
+            } else {
+                return Character.toString((char) input);
+            }
+        }
+        return null;
+    }
+    
+    public static void parse() throws IOException {
+        String arg;
+        while(handler != null) {
+            int input = System.in.read();
+            if (input == -1) { quit(); }
+            else {
+                switch((char) input) {
+                    case 'h': help(); break;
+                    case 'm': 
+                        arg = getString();
+                        if (handler != null) handler.move(arg);
+                        break;
+                    case 'l':
+                        arg = getString();
+                        if (handler != null) handler.list(arg);
+                        break;
+                    case 'c': handler.current(); break;
+                    case 'x':
+                        arg = getString();
+                        if (handler != null) handler.mark(arg);
+                        break;
+                    case 'u':
+                        arg = getString();
+                        if (handler != null) handler.unmark(arg);
+                        break;
+                    case 's':
+                        arg = getString();
+                        if (handler != null) handler.search(arg);
+                        break;
+                    case 'f': handler.finish(); break;
+                    case 'q': 
+                        arg = getString();
+                        if (handler != null) newQuery(arg);
+                        break;
+                    default:
+                        System.out.println(" Invalid command: "+Character.toString((char) input));
+                        System.out.println("Press h for help.");
+                }
+            }
+        }
+    }
+    
+    public static void quit() {
+        handler = null;
+    }
+    
+    private String _markTag(GSnode n) {
+        if (marked.contains(n)) return "\tX";
+        for (GSnode m : marked) {
+            if (Schema.isTransitiveSuperType(db, m.className, n.className)) return "\tx\t"+m.className.toString();
+        }
+        //if (_isMarked(n)) return "\tx";
+        return "";
+    }
+    
+    private boolean _isMarked(GSnode n) {
+        for (GSnode m : marked) {
+            if (n == m || Schema.isTransitiveSuperType(db, m.className, n.className)) return true;
+        }
+        return false;
+    }
+    
+    public void current() {
+        System.out.println();
+        System.out.println(current.className.toString() + _markTag(current));
+    }
+    
+    public void move(String id) {
+        try {
+            current = ids.get(Integer.parseInt(id));
+            System.out.println();
+        } catch (Exception e) {
+            System.out.println(" Invalid id: "+id);
+        }
+    }
+    
+    public void mark(String id) {
+        if (id.equals("c")) {
+            marked.add(current);
+        } else {
+            try {
+                marked.add(ids.get(Integer.parseInt(id)));
+                System.out.println();
+            } catch (Exception e) {
+                System.out.println(" Invalid id: "+id);
+            }
+        }
+    }
+    
+    public void unmark(String id) {
+        if (id.equals("c")) {
+            marked.remove(current);
+        } else {
+            try {
+                marked.remove(ids.get(Integer.parseInt(id)));
+                System.out.println();
+            } catch (Exception e) {
+                System.out.println(" Invalid id: "+id);
+            }
+        }
+    }
+    
+    public void list(String dir) {
+        switch(dir) {
+            case "l": break;
+            case "a":
+                ids = new LinkedList<>(index.values());
+                break;
+            case "p":
+                ids = current.parents;
+                break;
+            case "c":
+                ids = current.children;
+                break;
+            case "s":
+                ids = new LinkedList<>();
+                for (GSnode p: current.parents) {
+                    for (GSnode c: p.children) {
+                        if (c != current && !ids.contains(c)) ids.add(c);
+                    }
+                }
+                break;
+            case "q":
+                listQueries();
+            default:
+                System.out.println(" Invalid list direction: "+dir);
+                return;
+        }
+        _printIds();
+    }
+    
+    public void search(String s) {
+        ids = new LinkedList<>();
+        for (ByteString c: index.keySet()) {
+            if(c.toString().contains(s)) ids.add(index.get(c));
+        }
+        _printIds();
+    }
+    
+    private void _printIds() {
+        Collections.sort(ids);
+        System.out.println();
+        int i = 0;
+        for (GSnode n : ids) {
+            System.out.println("["+Integer.toString(i)+"] "+n.className.toString()+_markTag(n));
+            ++i;
+        }
+    }
+    
+    public void finish() throws IOException {
+        BufferedWriter output = new BufferedWriter(new FileWriter("gs_" + query.replaceAll("<", "").replaceAll(">", "_")));
+        Set<GSnode> cleanedResults = new LinkedHashSet<>(marked);
+        for (GSnode c1 : marked) {
+            for (GSnode c2 : marked) {
+                if (c1 == c2) {
+                    continue;
+                }
+                if (Schema.isTransitiveSuperType(db, c2.className, c1.className)) {
+                    cleanedResults.remove(c1);
+                    break;
+                }
+            }
+        }
+        for (GSnode c : cleanedResults) {
+            output.write(c.className.toString()+"\n");
+        }
+        output.close();
+    }
+    
+    public static void listQueries() {
+        List<ByteString[]> query = new ArrayList<>(1);
+        query.add(KB.triple(ByteString.of("?x"), ByteString.of("?y"), ByteString.of("?z")));
+        Set<ByteString> relations = db.selectDistinct(ByteString.of("?y"), query);
+        relations.remove(Schema.typeRelationBS);
+        
+        System.out.println(" Append x or y to:");
+        for (ByteString r : relations) {
+            System.out.println(r.toString());
+        }
+    }
+    
+    
+    public static void main(String[] args) {
+        
+    }
+}

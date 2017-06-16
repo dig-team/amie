@@ -98,7 +98,6 @@ public class SeparationTreeClassifier extends SeparationClassifier {
     /**
      * Prints class into files
      * Class of node n should be printed in file i if n.thresholdI > -1 and i \in [n.thresholdMask + 1; n.thresholdI]
-     * @param output_f 
      */
     private void export(int i, ByteString className) throws IOException {
         writers.get(i).write(className.toString() + "\n");
@@ -162,7 +161,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
                 } else {
                     Double s = getStandardConfidenceWithThreshold(TypingHeuristic.typeL(class2, variable), clause, variable, -1, true);
                     Double c1c2edge;
-                    c1c2edge = Math.log((double) c1c2size / (c1size - c1c2size)) * (1.0 - s) / s;
+                    c1c2edge = Math.log((double) c1c2size / (c1size - c1c2size) * (1.0 - s) / s);
                     if (c1c2edge < 0) {
                         index.get(class1).separationScore = Math.min(index.get(class1).separationScore, c1c2edge);
                     } else {

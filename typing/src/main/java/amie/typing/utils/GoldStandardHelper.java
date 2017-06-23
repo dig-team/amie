@@ -9,6 +9,7 @@ import amie.data.KB;
 import amie.data.Schema;
 import amie.typing.heuristics.TypingHeuristic;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javatools.datatypes.ByteString;
+import javatools.datatypes.Pair;
 
 /**
  * 
@@ -52,7 +54,7 @@ public class GoldStandardHelper {
         this.marked = new HashSet<>();
         this.index = new HashMap<>();
         db = source;
-        handler = this;
+        //handler = this;
     }
     
     public GoldStandardHelper(String query) {
@@ -61,8 +63,14 @@ public class GoldStandardHelper {
         this.query = query;
         current = new GSnode(Schema.topBS);
         index.put(Schema.topBS, current);
-        current.generate(supportThreshold, KB.triples(KB.triple(ByteString.of("?x"), ByteString.of(query.substring(0, query.length()-1)), ByteString.of("?y"))), 
-                ByteString.of("?"+query.substring(query.length()-1)));
+        Pair<List<ByteString[]>, ByteString> queryPair = queryStrToQuery(query);
+        current.generate(supportThreshold, queryPair.first, queryPair.second);
+    }
+    
+    private Pair<List<ByteString[]>, ByteString> queryStrToQuery(String query) {
+        List<ByteString[]> queryL = KB.triples(KB.triple(ByteString.of("?x"), ByteString.of(query.substring(0, query.length()-1)), ByteString.of("?y")));
+        ByteString variable = ByteString.of("?"+query.substring(query.length()-1));
+        return new Pair<>(queryL, variable);
     }
     
     public static GoldStandardHelper handler = null;
@@ -73,7 +81,11 @@ public class GoldStandardHelper {
         List<GSnode> children;
         ByteString className;
         
-        public GSnode(ByteString className) { this.className = className; }
+        public GSnode(ByteString className) { 
+            this.className = className; 
+            this.children = new LinkedList<>();
+            this.parents = new LinkedList<>();
+        }
         
         public void generate(int supportThreshold, List<ByteString[]> query, ByteString variable) {
             for (ByteString subClass : Schema.getSubTypes(db, className)) {
@@ -126,7 +138,9 @@ public class GoldStandardHelper {
     public static void newQuery(String query) {
         if (query.equals("q")) { quit(); }
         else {
+            System.out.print(" Loading query '"+query+"'... ");
             handler = new GoldStandardHelper(query);
+            System.out.println("Done.");
         }
     }
     
@@ -161,29 +175,29 @@ public class GoldStandardHelper {
                     case 'h': help(); break;
                     case 'm': 
                         arg = getString();
-                        if (handler != null) handler.move(arg);
+                        if (arg != null && handler != null) handler.move(arg);
                         break;
                     case 'l':
                         arg = getString();
-                        if (handler != null) handler.list(arg);
+                        if (arg != null && handler != null) handler.list(arg);
                         break;
                     case 'c': handler.current(); break;
                     case 'x':
                         arg = getString();
-                        if (handler != null) handler.mark(arg);
+                        if (arg != null && handler != null) handler.mark(arg);
                         break;
                     case 'u':
                         arg = getString();
-                        if (handler != null) handler.unmark(arg);
+                        if (arg != null && handler != null) handler.unmark(arg);
                         break;
                     case 's':
                         arg = getString();
-                        if (handler != null) handler.search(arg);
+                        if (arg != null && handler != null) handler.search(arg);
                         break;
                     case 'f': handler.finish(); break;
                     case 'q': 
                         arg = getString();
-                        if (handler != null) newQuery(arg);
+                        if (arg != null && handler != null) newQuery(arg);
                         break;
                     default:
                         System.out.println(" Invalid command: "+Character.toString((char) input));
@@ -194,6 +208,7 @@ public class GoldStandardHelper {
     }
     
     public static void quit() {
+        System.out.println(" Quitting...");
         handler = null;
     }
     
@@ -230,6 +245,7 @@ public class GoldStandardHelper {
     public void mark(String id) {
         if (id.equals("c")) {
             marked.add(current);
+            System.out.println();
         } else {
             try {
                 marked.add(ids.get(Integer.parseInt(id)));
@@ -243,6 +259,7 @@ public class GoldStandardHelper {
     public void unmark(String id) {
         if (id.equals("c")) {
             marked.remove(current);
+            System.out.println();
         } else {
             try {
                 marked.remove(ids.get(Integer.parseInt(id)));
@@ -275,6 +292,7 @@ public class GoldStandardHelper {
                 break;
             case "q":
                 listQueries();
+                return;
             default:
                 System.out.println(" Invalid list direction: "+dir);
                 return;
@@ -318,6 +336,7 @@ public class GoldStandardHelper {
             output.write(c.className.toString()+"\n");
         }
         output.close();
+        System.out.println(" GS of '"+query+"' written to file");
     }
     
     public static void listQueries() {
@@ -332,8 +351,32 @@ public class GoldStandardHelper {
         }
     }
     
-    
-    public static void main(String[] args) {
-        
+    public static void main(String[] args) throws IOException {
+        List<File> dataSource = new ArrayList<>(args.length);
+        for(int i = 0; i < args.length; i++) {
+            dataSource.add(i, new File(args[i]));
+        }
+        KB kb = new KB();
+        kb.load(dataSource);
+        GoldStandardHelper root = new GoldStandardHelper(kb);
+        GoldStandardHelper.handler = root;
+        while(true) {
+            try {
+                GoldStandardHelper.parse();
+                break;
+            } catch (NullPointerException e) {
+                System.out.println();
+                System.err.println("ERROR: NullPointerException catch in main loop");
+                e.printStackTrace();
+                System.err.println("Resuming from empty query !");
+                GoldStandardHelper.handler = root;
+            } catch (Exception e) {
+                System.out.println();
+                System.err.println("ERROR: Unexpected exception "+e.toString());
+                e.printStackTrace();
+                System.err.println("Resuming from empty query !");
+                GoldStandardHelper.handler = root;
+            }
+        }
     }
 }

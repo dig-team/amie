@@ -195,6 +195,7 @@ public class Separation extends Thread {
         }
         
         // Let's thread !
+        long timeStamp1 = System.currentTimeMillis();
         List<Thread> threadList = new ArrayList<>(nThreads);
         for (int i = 0; i < nThreads; i++) {
             threadList.add(new Separation(dataSource, cS, cIS, queryQ, pa.classSizeThreshold, pa.supportThreshold, t));
@@ -207,6 +208,8 @@ public class Separation extends Thread {
         for (Thread thread : threadList) {
             thread.join();
         }
+        long timeStamp2 = System.currentTimeMillis();
+        System.out.println("Processing done with "+Integer.toString(nThreads)+" threads in "+Long.toString(timeStamp2 - timeStamp1)+"ms.");
     }
     
 }

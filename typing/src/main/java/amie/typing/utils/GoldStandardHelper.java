@@ -127,8 +127,8 @@ public class GoldStandardHelper {
         "    m: move [identifier]",
         "    l: list [a|direction|l]",
         "    c: print current",
-        "    x: mark [c|identifier]",
-        "    u: unmark [c|identifier]",
+        "    x: mark [c|identifier|range]",
+        "    u: unmark [c|identifier|range]",
         "    s: search `.+`",
         "    f: finish",
         "    q: query `<.*>(x|y)`",
@@ -246,6 +246,14 @@ public class GoldStandardHelper {
         if (id.equals("c")) {
             marked.add(current);
             System.out.println();
+        } else if (id.contains("-")) {
+            try {
+                String[] rangeStr = id.split("-");
+                marked.addAll(ids.subList(Integer.parseInt(rangeStr[0]), Integer.parseInt(rangeStr[1])+1));
+                System.out.println();
+            } catch (Exception e) {
+                System.out.println(" Invalid range: "+id);
+            }
         } else {
             try {
                 marked.add(ids.get(Integer.parseInt(id)));
@@ -260,6 +268,14 @@ public class GoldStandardHelper {
         if (id.equals("c")) {
             marked.remove(current);
             System.out.println();
+        } else if (id.contains("-")) {
+            try {
+                String[] rangeStr = id.split("-");
+                marked.removeAll(ids.subList(Integer.parseInt(rangeStr[0]), Integer.parseInt(rangeStr[1])+1));
+                System.out.println();
+            } catch (Exception e) {
+                System.out.println(" Invalid range: "+id);
+            }
         } else {
             try {
                 marked.remove(ids.get(Integer.parseInt(id)));

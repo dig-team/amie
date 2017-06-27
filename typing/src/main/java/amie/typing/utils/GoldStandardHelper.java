@@ -127,8 +127,8 @@ public class GoldStandardHelper {
         "    m: move [identifier]",
         "    l: list [a|direction|l]",
         "    c: print current",
-        "    x: mark [c|identifier|range]",
-        "    u: unmark [c|identifier|range]",
+        "    x: mark [c|identifier|range|a]",
+        "    u: unmark [c|identifier|range|a]",
         "    s: search `.+`",
         "    f: finish",
         "    q: query `<.*>(x|y)`",
@@ -246,6 +246,9 @@ public class GoldStandardHelper {
         if (id.equals("c")) {
             marked.add(current);
             System.out.println();
+        } else if (id.equals("a")) {
+            marked.addAll(ids);
+            System.out.println();
         } else if (id.contains("-")) {
             try {
                 String[] rangeStr = id.split("-");
@@ -267,6 +270,9 @@ public class GoldStandardHelper {
     public void unmark(String id) {
         if (id.equals("c")) {
             marked.remove(current);
+            System.out.println();
+        } else if (id.equals("a")) {
+            marked.removeAll(ids);
             System.out.println();
         } else if (id.contains("-")) {
             try {

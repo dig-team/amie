@@ -30,23 +30,41 @@ import javatools.datatypes.IntHashMap;
 public class SeparationTreeClassifier extends SeparationClassifier {
     
     public Map<ByteString, SeparationTreeNode> index = new LinkedHashMap<>();
+    public boolean supportForTarget;
 
     public SeparationTreeClassifier(KB source, IntHashMap<ByteString> cS, Map<ByteString, IntHashMap<ByteString>> cIS) {
         super(source, cS, cIS);
+        supportForTarget = false;
     }
 
     public SeparationTreeClassifier(KB source, File typeCountFile, File typeIntersectionCountFile) {
         super(source, typeCountFile, typeIntersectionCountFile);
+        supportForTarget = false;
+    }
+    
+    public SeparationTreeClassifier(KB source, IntHashMap<ByteString> cS, Map<ByteString, IntHashMap<ByteString>> cIS, boolean supportForTarget) {
+        super(source, cS, cIS);
+        this.supportForTarget = supportForTarget; 
+    }
+
+    public SeparationTreeClassifier(KB source, File typeCountFile, File typeIntersectionCountFile, boolean supportForTarget) {
+        super(source, typeCountFile, typeIntersectionCountFile);
+        this.supportForTarget = supportForTarget;
     }
     
     public void classify(List<ByteString[]> query, ByteString variable, int classSizeThreshold, int supportThreshold, double[] thresholds) throws IOException {
-        SeparationTreeNode root = new SeparationTreeNode(Schema.topBS);
-        index.put(Schema.topBS, root);
-        root.generate(supportThreshold, classSizeThreshold, query, variable);
-        computeStatistics(query, variable, classSizeThreshold);
-        createFiles(query, variable, thresholds);
-        computeClassification(thresholds);
-        close();
+        if (getStandardConfidenceWithThreshold(TypingHeuristic.typeL(Schema.topBS, variable), query, variable, supportThreshold, true) != 0) {
+            SeparationTreeNode root = new SeparationTreeNode(Schema.topBS);
+            index.put(Schema.topBS, root);
+            root.generate(supportThreshold, classSizeThreshold, query, variable);
+            if (index.size() < 2) {
+                return;
+            }
+            computeStatistics(query, variable, classSizeThreshold);
+            createFiles(query, variable, thresholds);
+            computeClassification(thresholds);
+            close();
+        }
     }
 
     private ArrayList<BufferedWriter> writers = new ArrayList<>();
@@ -138,8 +156,9 @@ public class SeparationTreeClassifier extends SeparationClassifier {
 
             List<ByteString[]> clause = TypingHeuristic.typeL(class1, variable);
             clause.addAll(query);
+            Set<ByteString> targetClasses = (supportForTarget) ? relevantClasses : classIntersectionSize.get(class1);
 
-            for (ByteString class2 : relevantClasses) {
+            for (ByteString class2 : targetClasses) {
                 assert (clause.size() == query.size() + 1);
                 if (class1 == class2) {
                     continue;
@@ -164,7 +183,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
                     c1c2edge = Math.log((double) c1c2size / (c1size - c1c2size) * (1.0 - s) / s);
                     if (c1c2edge < 0) {
                         index.get(class1).separationScore = Math.min(index.get(class1).separationScore, c1c2edge);
-                    } else {
+                    } else if (index.containsKey(class2)) {
                         index.get(class2).separationScore = Math.min(index.get(class2).separationScore, -c1c2edge);
                     }
                 }

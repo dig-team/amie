@@ -32,6 +32,11 @@ public class PopularityHeuristic extends TypingHeuristic {
 		}
 		name = "Popularity";
 	}
+        
+        public PopularityHeuristic(KB kb, int popularityThreshold, int supportThreshold) {
+            this(kb, popularityThreshold);
+            this.defaultSupportThreshold = supportThreshold;
+        }
 
 	@Override
 	public double evaluate(ByteString type, List<ByteString[]> clause,

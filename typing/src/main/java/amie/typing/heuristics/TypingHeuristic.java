@@ -12,11 +12,18 @@ import javatools.datatypes.ByteString;
 public abstract class TypingHeuristic {
 	
 	protected KB db;
+        protected int defaultSupportThreshold;
 	public String name = "";
 	
 	public TypingHeuristic(KB kb) {
-		db = kb;
+            db = kb;
+            defaultSupportThreshold = -1;
 	}
+        
+        public TypingHeuristic(KB kb, int supportThreshold) {
+            db = kb;
+            this.defaultSupportThreshold = supportThreshold;
+        }
 	
 	protected double getStandardConfidence(ByteString type, List<ByteString[]> clause, ByteString variable) {
 		return getStandardConfidence(clause, typeL(type, variable), variable, false);
@@ -38,7 +45,7 @@ public abstract class TypingHeuristic {
 	}
 	
 	protected double getStandardConfidence(List<ByteString[]> head, List<ByteString[]> body, ByteString variable, boolean safe) {
-		return getStandardConfidenceWithThreshold(head, body, variable, -1, safe);
+		return getStandardConfidenceWithThreshold(head, body, variable, defaultSupportThreshold, safe);
 	}
 	
 	protected double getStandardConfidenceWithThreshold(List<ByteString[]> head, List<ByteString[]> body, ByteString variable, int threshold, boolean safe) {

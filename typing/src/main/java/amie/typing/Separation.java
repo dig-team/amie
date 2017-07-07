@@ -7,6 +7,7 @@ package amie.typing;
 
 import amie.data.KB;
 import amie.data.Schema;
+import amie.data.SimpleTypingKB;
 import amie.typing.classifier.SeparationClassifier;
 import static amie.typing.classifier.SeparationClassifier.getOptions;
 import amie.typing.classifier.SeparationTreeClassifier;
@@ -46,9 +47,12 @@ public class Separation extends Thread {
     int classSizeThreshold; 
     int supportThreshold; 
     double[] thresholds;
+    boolean supportForTarget;
     
-    public Separation(KB source, IntHashMap<ByteString> cS, Map<ByteString, IntHashMap<ByteString>> cIS,
-            BlockingQueue<Pair<List<ByteString[]>, ByteString>> queryQ, int classSizeThreshold, int supportThreshold, double[] thresholds) {
+    public Separation(KB source, IntHashMap<ByteString> cS, Map<ByteString, 
+            IntHashMap<ByteString>> cIS, BlockingQueue<Pair<List<ByteString[]>, 
+            ByteString>> queryQ, int classSizeThreshold, int supportThreshold, 
+            double[] thresholds, boolean supportForTarget) {
         this.source = source;
         this.cS = cS;
         this.cIS = cIS;
@@ -56,6 +60,7 @@ public class Separation extends Thread {
         this.classSizeThreshold = classSizeThreshold;
         this.supportThreshold = supportThreshold;
         this.thresholds = thresholds;
+        this.supportForTarget = supportForTarget;
     }
     
         @Override
@@ -64,19 +69,23 @@ public class Separation extends Thread {
         while(true) {
             try {
                 q = queryQ.take();
-                if (q.second.equals(ByteString.of("STOP"))) break;
-                SeparationTreeClassifier st = new SeparationTreeClassifier(source, cS, cIS);
+                if (q.second.equals(ByteString.of("STOP"))) { System.out.println("Thread terminating"); break; }
+                System.out.println("Beginning "+q.first.get(0)[1].toString() + " (" + q.second + ") ...");
+                SeparationTreeClassifier st = new SeparationTreeClassifier(source, cS, cIS, supportForTarget);
                 st.classify(q.first, q.second, classSizeThreshold, supportThreshold, thresholds);
+                System.out.println("Finished: "+q.first.get(0)[1].toString() + " (" + q.second + ")");
             } catch (InterruptedException ex) {
                 Logger.getLogger(Separation.class.getName()).log(Level.SEVERE, null, ex);
                 break;
             } catch (IOException ex) {
+                System.err.println("IOException");
                 Logger.getLogger(Separation.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
     
     public static void main(String[] args) throws IOException, InterruptedException {
+        
         CommandLine cli = null;
 		
 	HelpFormatter formatter = new HelpFormatter();
@@ -90,6 +99,9 @@ public class Separation extends Thread {
                 .hasArgs()
                 .withDescription("thresholds")
                 .create("t");
+        Option supportForTargetOpt = OptionBuilder
+                .withDescription("Compare only with classes that meet the support threshold")
+                .create("sft");
         Option coresOpt = OptionBuilder.withArgName("n-threads")
                 .hasArg()
                 .withDescription("Preferred number of cores. Round down to the actual number of cores - 1"
@@ -97,6 +109,7 @@ public class Separation extends Thread {
                 .create("nc");
         options.addOption(thresholdsOpt);
         options.addOption(coresOpt);
+        options.addOption(supportForTargetOpt);
         
 	try {
             cli = parser.parse(options, args);
@@ -142,6 +155,9 @@ public class Separation extends Thread {
             }
         }
         
+        // supportForTargetOpt
+        boolean supportForTarget = cli.hasOption("sft");
+        
         // KB files
         List<File> dataFiles = new ArrayList<>();
         
@@ -156,7 +172,12 @@ public class Separation extends Thread {
         }
         
         // Load the KB
-        KB dataSource = new KB();
+        KB dataSource;
+        if (pa.countFile == null) {
+            dataSource = new KB();
+        } else {
+            dataSource = new SimpleTypingKB();
+        }
         dataSource.setDelimiter(pa.delimiter);
         dataSource.load(dataFiles);
         
@@ -176,10 +197,9 @@ public class Separation extends Thread {
         BlockingQueue queryQ = new LinkedBlockingQueue();
         
         if (pa.query == null) {
-            List<ByteString[]> query = new ArrayList<>(1);
-            query.add(KB.triple(ByteString.of("?x"), ByteString.of("?y"), ByteString.of("?z")));
-            Set<ByteString> relations = dataSource.selectDistinct(ByteString.of("?y"), query);
+            Set<ByteString> relations = dataSource.getRelationSet();
             relations.remove(Schema.typeRelationBS);
+            relations.remove(Schema.subClassRelationBS);
 
             ByteString[] q;
             for (ByteString r : relations) {
@@ -198,7 +218,8 @@ public class Separation extends Thread {
         long timeStamp1 = System.currentTimeMillis();
         List<Thread> threadList = new ArrayList<>(nThreads);
         for (int i = 0; i < nThreads; i++) {
-            threadList.add(new Separation(dataSource, cS, cIS, queryQ, pa.classSizeThreshold, pa.supportThreshold, t));
+            threadList.add(new Separation(dataSource, cS, cIS, queryQ, 
+                    pa.classSizeThreshold, pa.supportThreshold, t, supportForTarget));
         }
         
         for (Thread thread : threadList) {

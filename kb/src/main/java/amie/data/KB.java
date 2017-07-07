@@ -4597,6 +4597,10 @@ public class KB {
 		}
 		return result;
 	}
+        
+        public Set<ByteString> getRelationSet() {
+            return new HashSet<>(relationSize);
+        }
 	
 	public static void main(String[] args) {
 		System.out.println(Arrays.binarySearch(new int[]{3, 4}, 1));

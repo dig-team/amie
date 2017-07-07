@@ -47,7 +47,7 @@ public class GoldStandardHelper {
     private Set<GSnode> marked;
         
     private GSnode current;
-    private List<GSnode> ids;
+    public List<GSnode> ids;
     private Map<ByteString, GSnode> index;
     
     public GoldStandardHelper(KB source) {
@@ -138,6 +138,10 @@ public class GoldStandardHelper {
     public static void newQuery(String query) {
         if (query.equals("q")) { quit(); }
         else {
+            try {
+                int id = Integer.parseInt(query.substring(0, query.length()-1));
+                query = handler.ids.get(id).className.toString() + query.substring(query.length() - 1);
+            } catch (Exception e) {}
             System.out.print(" Loading query '"+query+"'... ");
             handler = new GoldStandardHelper(query);
             System.out.println("Done.");
@@ -314,7 +318,7 @@ public class GoldStandardHelper {
                 break;
             case "q":
                 listQueries();
-                return;
+                break;
             default:
                 System.out.println(" Invalid list direction: "+dir);
                 return;
@@ -361,15 +365,18 @@ public class GoldStandardHelper {
         System.out.println(" GS of '"+query+"' written to file");
     }
     
-    public static void listQueries() {
+    public void listQueries() {
         List<ByteString[]> query = new ArrayList<>(1);
         query.add(KB.triple(ByteString.of("?x"), ByteString.of("?y"), ByteString.of("?z")));
         Set<ByteString> relations = db.selectDistinct(ByteString.of("?y"), query);
         relations.remove(Schema.typeRelationBS);
+        relations.remove(Schema.subClassRelationBS);
         
+        ids = new LinkedList<>();
         System.out.println(" Append x or y to:");
         for (ByteString r : relations) {
-            System.out.println(r.toString());
+            //System.out.println(r.toString());
+            ids.add(new GSnode(r));
         }
     }
     

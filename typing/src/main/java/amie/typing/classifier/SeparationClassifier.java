@@ -3,7 +3,6 @@ package amie.typing.classifier;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -24,7 +23,7 @@ import javatools.datatypes.ByteString;
 import javatools.datatypes.IntHashMap;
 import amie.data.KB;
 import amie.data.Schema;
-import amie.data.U;
+import amie.data.SimpleTypingKB;
 import amie.typing.heuristics.TypingHeuristic;
 import java.util.HashSet;
 
@@ -35,10 +34,31 @@ public class SeparationClassifier {
     public Map<ByteString, IntHashMap<ByteString>> classIntersectionSize;
 
     protected double getStandardConfidenceWithThreshold(List<ByteString[]> head, List<ByteString[]> body, ByteString variable, int threshold, boolean unsafe) {
-        List<ByteString[]> bodyC = (unsafe) ? new LinkedList<>(body) : body;
-        long bodySize = db.countDistinct(variable, bodyC);
-        bodyC.addAll(head);
-        long support = db.countDistinct(variable, bodyC);
+        long support, bodySize;
+        
+        if(db instanceof SimpleTypingKB) {
+            SimpleTypingKB simpledb = (SimpleTypingKB) db;
+            ByteString relation;
+            if (body.size() == 1) {
+                relation = (body.get(0)[0].equals(variable)) ? body.get(0)[1] : ByteString.of(body.get(0)[1].toString() + "-1");
+                bodySize = simpledb.countElements(relation);
+                support = simpledb.countElements(relation, head.get(0)[2]);
+            } else if (body.size() == 2) {
+                relation = (body.get(1)[0].equals(variable)) ? body.get(1)[1] : ByteString.of(body.get(1)[1].toString() + "-1");
+                return simpledb.typingStdConf(relation, body.get(0)[2], head.get(0)[2], threshold);
+                //bodySize = simpledb.countElements(relation, body.get(0)[2]);
+                //support = simpledb.countElements(relation, body.get(0)[2], head.get(0)[2]);
+            } else {
+                throw new UnsupportedOperationException("Simple KB can only deal with simple queries");
+            }
+        } else {
+            List<ByteString[]> bodyC = (unsafe) ? new LinkedList<>(body) : body;
+            bodySize = db.countDistinct(variable, bodyC);
+            bodyC.addAll(head);
+            support = db.countDistinct(variable, bodyC);
+        }
+        
+        
         if (support < threshold || bodySize == 0) {
             return 0;
         }

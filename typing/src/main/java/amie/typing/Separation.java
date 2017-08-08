@@ -10,7 +10,9 @@ import amie.data.Schema;
 import amie.data.SimpleTypingKB;
 import amie.typing.classifier.SeparationClassifier;
 import static amie.typing.classifier.SeparationClassifier.getOptions;
+import amie.typing.classifier.SeparationPTreeClassifier;
 import amie.typing.classifier.SeparationTreeClassifier;
+import amie.typing.classifier.SeparationVTreeClassifier;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,11 +50,12 @@ public class Separation extends Thread {
     int supportThreshold; 
     double[] thresholds;
     boolean supportForTarget;
+    String classifier;
     
     public Separation(KB source, IntHashMap<ByteString> cS, Map<ByteString, 
             IntHashMap<ByteString>> cIS, BlockingQueue<Pair<List<ByteString[]>, 
             ByteString>> queryQ, int classSizeThreshold, int supportThreshold, 
-            double[] thresholds, boolean supportForTarget) {
+            double[] thresholds, boolean supportForTarget, String classifier) {
         this.source = source;
         this.cS = cS;
         this.cIS = cIS;
@@ -61,7 +64,10 @@ public class Separation extends Thread {
         this.supportThreshold = supportThreshold;
         this.thresholds = thresholds;
         this.supportForTarget = supportForTarget;
+        this.classifier = classifier;
     }
+    
+    
     
         @Override
     public void run() {
@@ -71,7 +77,18 @@ public class Separation extends Thread {
                 q = queryQ.take();
                 if (q.second.equals(ByteString.of("STOP"))) { System.out.println("Thread terminating"); break; }
                 System.out.println("Beginning "+q.first.get(0)[1].toString() + " (" + q.second + ") ...");
-                SeparationTreeClassifier st = new SeparationTreeClassifier(source, cS, cIS, supportForTarget);
+                SeparationTreeClassifier st;
+                switch(classifier) {
+                    case "P":
+                        System.out.println("Using probabilistic classifier.");
+                        st = new SeparationPTreeClassifier(source, cS, cIS, supportForTarget); 
+                        break;
+                    case "V": 
+                        System.out.println("Using variance classifier.");
+                        st = new SeparationVTreeClassifier(source, cS, cIS, supportForTarget); 
+                        break;
+                    default: st = new SeparationTreeClassifier(source, cS, cIS, supportForTarget);
+                }
                 st.classify(q.first, q.second, classSizeThreshold, supportThreshold, thresholds);
                 System.out.println("Finished: "+q.first.get(0)[1].toString() + " (" + q.second + ")");
             } catch (InterruptedException ex) {
@@ -107,9 +124,14 @@ public class Separation extends Thread {
                 .withDescription("Preferred number of cores. Round down to the actual number of cores - 1"
                 		+ "in the system if a higher value is provided.")
                 .create("nc");
+        Option classifierOpt = OptionBuilder.withArgName("classifier")
+                .hasArg()
+                .withDescription("Default: PRatio, P: probabilistic, V: variance-based")
+                .create("c");
         options.addOption(thresholdsOpt);
         options.addOption(coresOpt);
         options.addOption(supportForTargetOpt);
+        options.addOption(classifierOpt);
         
 	try {
             cli = parser.parse(options, args);
@@ -138,6 +160,7 @@ public class Separation extends Thread {
         double[] t = new double[thresholds.size()];
         for (int i = 0; i < thresholds.size(); i++) {
             t[i] = thresholds.get(i);
+            //System.out.println(t[i]);
         }
         
         // Get number of threads
@@ -207,6 +230,10 @@ public class Separation extends Thread {
                 queryQ.add(new Pair<>(KB.triples(q), ByteString.of("?x")));
                 queryQ.add(new Pair<>(KB.triples(q), ByteString.of("?y")));
             }
+        } else if (pa.query.get(0)[1].equals(ByteString.of("sexism"))) {
+            nThreads = Math.min(nProcessors, 2);
+            queryQ.add(new Pair<>(KB.triples(KB.triple("?x", "<hasGender>", "<male>")), ByteString.of("?x")));
+            queryQ.add(new Pair<>(KB.triples(KB.triple("?x", "<hasGender>", "<female>")), ByteString.of("?x")));
         } else {
             queryQ.add(new Pair<>(pa.query, pa.variable));
         }
@@ -218,8 +245,14 @@ public class Separation extends Thread {
         long timeStamp1 = System.currentTimeMillis();
         List<Thread> threadList = new ArrayList<>(nThreads);
         for (int i = 0; i < nThreads; i++) {
-            threadList.add(new Separation(dataSource, cS, cIS, queryQ, 
-                    pa.classSizeThreshold, pa.supportThreshold, t, supportForTarget));
+            if (cli.hasOption("c")) {
+                threadList.add(new Separation(dataSource, cS, cIS, queryQ, 
+                    pa.classSizeThreshold, pa.supportThreshold, t, 
+                        supportForTarget, cli.getOptionValue("c")));
+            } else {
+                threadList.add(new Separation(dataSource, cS, cIS, queryQ, 
+                    pa.classSizeThreshold, pa.supportThreshold, t, supportForTarget, "D"));
+            }
         }
         
         for (Thread thread : threadList) {

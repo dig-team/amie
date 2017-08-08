@@ -5,12 +5,15 @@
  */
 package amie.data;
 
-import java.util.Collections;
+import static amie.data.KB.compress;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javatools.datatypes.ByteString;
 
 /**
@@ -18,10 +21,10 @@ import javatools.datatypes.ByteString;
  * @author jlajus
  */
 public class SimpleTypingKB extends KB {
-    protected final Map<ByteString, Set<ByteString>> relations = new HashMap<>();
+    public final Map<ByteString, Set<ByteString>> relations = new HashMap<>();
     //protected final Map<ByteString, Map<ByteString, LazySet>> classIntersection = new HashMap<>();
-    protected final Map<ByteString, Set<ByteString>> classes = new HashMap<>();
-    protected final Set<ByteString> relationSet = new HashSet<>();
+    public final Map<ByteString, Set<ByteString>> classes = new HashMap<>();
+    public final Set<ByteString> relationSet = new HashSet<>();
     
     class LazySet {
         private volatile Set<ByteString> resource = null;
@@ -86,7 +89,7 @@ public class SimpleTypingKB extends KB {
         //return classIntersection.get(c1).get(c2).getResource();
     }
     
-    private long countIntersection(Set<ByteString> s1, Set<ByteString> s2) {
+    public static long countIntersection(Set<ByteString> s1, Set<ByteString> s2) {
         if (s1 == null || s2 == null) { return 0; }
         if (s1.size() > s2.size()) { return countIntersection(s2, s1); }
         long result = 0;
@@ -112,7 +115,7 @@ public class SimpleTypingKB extends KB {
     
     public double typingStdConf(ByteString relation, ByteString bodyType, ByteString headType, int supportThreshold) {
         Set<ByteString> body = new LinkedHashSet<>(relations.get(relation));
-        body.retainAll(classes.get(headType));
+        body.retainAll(classes.get(bodyType));
         long bodySize = body.size();
         long support = countIntersection(body, classes.get(headType));
         if (support < supportThreshold || bodySize == 0) {

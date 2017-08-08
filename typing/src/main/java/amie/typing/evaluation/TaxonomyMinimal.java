@@ -34,14 +34,14 @@ public class TaxonomyMinimal {
         
         for (int i = 1; i < args.length; i++) {
             Set<ByteString> results = new LinkedHashSet<>();
-            boolean clean = true;
+            boolean clean = false;
 
             File resultFile = new File(args[i]);
             for (String line : new FileLines(resultFile, "UTF-8", null)) {
                 ByteString t = ByteString.of(line.trim());
                 if (results.contains(t)) {
                     clean = false;
-                    System.err.println("ERROR:"+Integer.toString(i)+": Duplicates found");
+                    System.err.println("ERROR:"+args[i]+": Duplicates found");
                 }
                 results.add(t);
             }
@@ -54,14 +54,14 @@ public class TaxonomyMinimal {
                     }
                     if (Schema.isTransitiveSuperType(taxo, c2, c1)) {
                         clean = false;
-                        System.err.println("ERROR:"+Integer.toString(i)+": "+ c1.toString() + " in " + c2.toString());
+                        System.err.println("ERROR:"+args[i]+": "+ c1.toString() + " in " + c2.toString());
                         cleanedResults.remove(c1);
                         break;
                     }
                 }
             }
             if (!clean) {
-                BufferedWriter w = new BufferedWriter(new FileWriter(args[i]+"-cleaned"));
+                BufferedWriter w = new BufferedWriter(new FileWriter(args[i]+"_cleaned"));
                 for (ByteString c : cleanedResults) {
                     w.write(c.toString()+"\n");
                 }

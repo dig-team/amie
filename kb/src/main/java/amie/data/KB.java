@@ -545,11 +545,11 @@ public class KB {
 		for (String line : new FileLines(f, "UTF-8", message)) {
 			if (line.endsWith("."))
 				line = Char17.cutLast(line);
-			String[] split = line.split(delimiter);
+			String[] split = line.trim().split(">" + delimiter);
 			if (split.length == 3) {
-				add(split[0].trim(), split[1].trim(), split[2].trim());
+				add(split[0].trim() + ">", split[1].trim() + ">", split[2].trim());
 			} else if (split.length == 4)
-				add(split[1].trim(), split[2].trim(), split[3].trim());
+				add(split[1].trim() + ">", split[2].trim() + ">", split[3].trim());
 		}
 
 		if (message != null)
@@ -3468,6 +3468,16 @@ public class KB {
 		return (b.toString());
 	}
 
+        private static final Pattern uri = Pattern.compile("<http(.*/)?(.*)>");
+    
+        public static CharSequence shortURI(CharSequence longURI) {
+            Matcher m = uri.matcher(longURI);
+            if(m.matches()) {
+                return "<" + m.group(2) + ">";
+            }
+            return longURI;
+        }
+        
 	/** Compresses a string to an internal string */
 	public static ByteString compress(CharSequence s) {
 		if (s instanceof ByteString)
@@ -3476,7 +3486,7 @@ public class KB {
 		int pos = str.indexOf("\"^^");
 		if (pos != -1)
 			str = str.substring(0, pos + 1);
-		return (ByteString.of(str));
+		return (ByteString.of(shortURI(str)));
 	}
 
 	/** Makes a list of triples */

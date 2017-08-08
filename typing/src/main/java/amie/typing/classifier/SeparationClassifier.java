@@ -252,6 +252,14 @@ public class SeparationClassifier {
                 .hasArg()
                 .withDescription("Type relation used in this KB. Default: rdf:type")
                 .create("tr");
+        Option subClassRelationOpt = OptionBuilder.withArgName("subClassRelation")
+                .hasArg()
+                .withDescription("Sub Class relation used in this KB. Default: rdfs:subClassOf")
+                .create("scr");
+        Option topOpt = OptionBuilder.withArgName("topClass")
+                .hasArg()
+                .withDescription("Top class used in this KB. Default: owl:Thing")
+                .create("top");
         Option queryOpt = OptionBuilder.withArgName("query")
                 .hasArg()
                 .withDescription("Queried attribute [-1]")
@@ -264,15 +272,24 @@ public class SeparationClassifier {
                 .hasArg()
                 .withDescription("Intersection count file")
                 .create("icf");
+        Option wikidataOpt = OptionBuilder.withDescription("Assume wikidata setup")
+                .create("w");
 
-        options.addOption(delimiterOpt);
+        // Parameters
         options.addOption(popularityOpt);
         options.addOption(outputThresholdOpt);
-        options.addOption(typeRelationOpt);
+        // Query
         options.addOption(queryOpt);
+        // Count files options
         options.addOption(countFile);
         options.addOption(countIntersectionFile);
-
+        // KB related options
+        options.addOption(delimiterOpt);
+        options.addOption(typeRelationOpt);
+        options.addOption(topOpt);
+        options.addOption(subClassRelationOpt);
+        options.addOption(wikidataOpt);
+        
         return options;
     }
 
@@ -312,20 +329,42 @@ public class SeparationClassifier {
                 }
             }
 
+            // Schema related options
             if (cli.hasOption("tr")) {
                 Schema.typeRelation = cli.getOptionValue("tr");
                 Schema.typeRelationBS = ByteString.of(Schema.typeRelation);
             }
+            if (cli.hasOption("scr")) {
+                Schema.subClassRelation = cli.getOptionValue("scr");
+                Schema.subClassRelationBS = ByteString.of(Schema.subClassRelation);
+            }
+            if (cli.hasOption("top")) {
+                Schema.top = cli.getOptionValue("top");
+                Schema.topBS = ByteString.of(Schema.top);
+            }
+            
+            // Delimiter
+            if (cli.hasOption("d")) {
+                delimiter = cli.getOptionValue("d");
+            }
+            
+            // Wikidata setup overrides Schema + delimiter
+            if (cli.hasOption("w")) {
+                Schema.typeRelation = "<P106>";
+                Schema.typeRelationBS = ByteString.of(Schema.typeRelation);
+                Schema.subClassRelation = "<P279>";
+                Schema.subClassRelationBS = ByteString.of(Schema.subClassRelation);
+                Schema.top = "<Q35120>";
+                Schema.topBS = ByteString.of(Schema.top);
+                delimiter = " ";
+            }
+            
 
             leftOverArgs = cli.getArgs();
             if (leftOverArgs.length < 1) {
                 System.err.println("No input file has been provided");
                 System.err.println("*Classifier [OPTIONS] <.tsv INPUT FILES>");
                 System.exit(1);
-            }
-
-            if (cli.hasOption("d")) {
-                delimiter = cli.getOptionValue("d");
             }
 
             if (cli.hasOption("cf")) {

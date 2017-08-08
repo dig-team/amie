@@ -140,6 +140,8 @@ public class Typing {
                 .hasArg()
                 .withDescription("Number of core")
                 .create("nc");
+        Option wikidataOpt = OptionBuilder.withDescription("Assume wikidata setup")
+                .create("w");
 
         options.addOption(delimiterOpt);
         options.addOption(heuristicOpt);
@@ -150,6 +152,7 @@ public class Typing {
         options.addOption(typesOpt);
         options.addOption(nThreadOpt);
         options.addOption(supportThresholdOpt);
+        options.addOption(wikidataOpt);
 
         try {
             cli = parser.parse(options, args);
@@ -237,6 +240,16 @@ public class Typing {
         if (cli.hasOption("d")) {
             delimiter = cli.getOptionValue("d");
         }
+        
+        if (cli.hasOption("w")) {
+                Schema.typeRelation = "<P106>";
+                Schema.typeRelationBS = ByteString.of(Schema.typeRelation);
+                Schema.subClassRelation = "<P279>";
+                Schema.subClassRelationBS = ByteString.of(Schema.subClassRelation);
+                Schema.top = "<Q35120>";
+                Schema.topBS = ByteString.of(Schema.top);
+                delimiter = " ";
+            }
 
         dataSource.setDelimiter(delimiter);
         long timeStamp1 = System.currentTimeMillis();

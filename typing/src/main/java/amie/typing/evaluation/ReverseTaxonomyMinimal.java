@@ -23,7 +23,7 @@ import javatools.filehandlers.FileLines;
  * Write minimal result to a new file otherwise.
  * @author jlajus
  */
-public class TaxonomyMinimal {
+public class ReverseTaxonomyMinimal {
     public static void main(String[] args) throws IOException {
         if (args.length < 2) {
             System.err.println("usage: TaxonomyMinimal <taxonomyFile> <resultFile1> ...");
@@ -32,7 +32,7 @@ public class TaxonomyMinimal {
         KB taxo = new KB();
         taxo.setDelimiter(" ");
         Schema.subClassRelation = "<P279>";
-                Schema.subClassRelationBS = ByteString.of(Schema.subClassRelation);
+        Schema.subClassRelationBS = ByteString.of(Schema.subClassRelation);
         taxo.load(new File(args[0]));
         
         for (int i = 1; i < args.length; i++) {
@@ -55,9 +55,9 @@ public class TaxonomyMinimal {
                     if (c1 == c2) {
                         continue;
                     }
-                    if (Schema.isTransitiveSuperType(taxo, c2, c1)) {
+                    if (Schema.isTransitiveSuperType(taxo, c1, c2)) {
                         clean = false;
-                        System.err.println("ERROR:"+args[i]+": "+ c1.toString() + " in " + c2.toString());
+                        System.err.println("ERROR:"+args[i]+": "+ c2.toString() + " in " + c1.toString());
                         cleanedResults.remove(c1);
                         break;
                     }

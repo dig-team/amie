@@ -41,6 +41,7 @@ public class ImpliedFactsEvaluator {
 
     private KB db;
     public Set<ByteString> queried;
+    public Set<String> querySet;
     public BlockingQueue<Pair<ByteString, String>> queryQ = new LinkedBlockingQueue<>();
     public BlockingQueue<Pair<Pair<ByteString, String>, ImpliedFacts>> resultQ = new LinkedBlockingQueue<>();
 
@@ -57,6 +58,7 @@ public class ImpliedFactsEvaluator {
     public ImpliedFactsEvaluator(KB db) {
         this.db = db;
         queried = new HashSet<>();
+        querySet = new HashSet<>();
     }
     
 //    public ImpliedFactsEvaluator(KB db, Map<ByteString, Set<ByteString>> goldStandard,
@@ -82,20 +84,28 @@ public class ImpliedFactsEvaluator {
 //    }
     
     public void addGS(ByteString relation, Set<ByteString> classes) {
-        queried.add(relation);
         for (ByteString rtClass : classes) {
-            for (ByteString e : Schema.getAllEntitiesForType(db, rtClass)) {
+            addGS(relation, rtClass);
+        }
+    }
+        
+    public void addGS(ByteString relation, ByteString rtClass) {
+        queried.add(relation);
+        for (ByteString e : Schema.getAllEntitiesForType(db, rtClass)) {
                 db.add(e, gsRelation, relation);
-            }
         }
     }
     
     public void addResult(ByteString relation, String method, Set<ByteString> classes) {
-        queryQ.add(new Pair<>(relation, method));
         for (ByteString rtClass : classes) {
-            for (ByteString e : Schema.getAllEntitiesForType(db, rtClass)) {
+            addResult(relation, method, classes);
+        }
+    }
+        
+    public void addResult(ByteString relation, String method, ByteString rtClass) {
+        querySet.add(method);
+        for (ByteString e : Schema.getAllEntitiesForType(db, rtClass)) {
                 db.add(e, rwtr(method), relation);
-            }
         }
     }
     
@@ -192,6 +202,21 @@ public class ImpliedFactsEvaluator {
         return res;
     }
     
+    public void readFile(String path) throws IOException {
+        for (String line : new FileLines(new File(path), "UTF-8", null)) {
+            String[] s = line.split("\t");
+            if (s.length == 2) {
+                addGS(ByteString.of(s[0]), ByteString.of(s[1]));
+            } else if (s.length == 4) {
+                addResult(ByteString.of(s[2]), s[0]+"_"+s[1], ByteString.of(s[3]));
+            } else if (s.length == 5) {
+                addResult(ByteString.of(s[3]), s[1]+"_"+s[2]+"_"+s[0], ByteString.of(s[4]));
+            } else {
+                throw new IllegalArgumentException("Not well formatted file");
+            }
+        }
+    }
+    
     public static void main(String[] args) throws IOException, InterruptedException {
         Map<ByteString, Set<ByteString>> relation2classGS = new HashMap<>();
         
@@ -276,13 +301,27 @@ public class ImpliedFactsEvaluator {
         // Load the counts
         String[] gsFiles = cli.getOptionValues("gs");
         for (int i = 0; i < gsFiles.length; i++) {
-            eval.addGS(ByteString.of("<" + gsFiles[i].split("_")[1] + ((gsFiles[i].split("_")[2].equals("y")) ? "-1" : "") + ">"), readClassFile(gsFiles[i]));
+            try {
+                eval.readFile(gsFiles[i]);
+            } catch (IllegalArgumentException e) {
+                eval.addGS(ByteString.of("<" + gsFiles[i].split("_")[1] + ((gsFiles[i].split("_")[2].equals("y")) ? "-1" : "") + ">"), readClassFile(gsFiles[i]));
+            }
         }
         
         String[] rsFiles = cli.getOptionValues("r");
         for (int i = 0; i < rsFiles.length; i++) {
-            Pair<ByteString, String> rm = extractQueryArgs(rsFiles[i]);
-            eval.addResult(rm.first, rm.second, readClassFile(rsFiles[i]));
+            try {
+                eval.readFile(rsFiles[i]);
+            } catch (IllegalArgumentException e) {
+                Pair<ByteString, String> rm = extractQueryArgs(rsFiles[i]);
+                eval.addResult(rm.first, rm.second, readClassFile(rsFiles[i]));
+            }
+        }
+        
+        for (String method : eval.querySet) {
+            for (ByteString relation : eval.queried) {
+                eval.queryQ.add(new Pair<>(relation, method));
+            }
         }
         
         System.err.println("Data loaded, beginning evaluation...");

@@ -21,7 +21,7 @@ import javatools.datatypes.Pair;
  * @author jlajus
  */
 public abstract class SeparationSimpleClassifier extends SimpleClassifier {
-
+    
     public SeparationSimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock) {
         super(db, thresholds, output, outputLock);
     }
@@ -73,10 +73,15 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
             Set<ByteString> c1phi = new HashSet<>(db.relations.get(relation));
             c1phi.retainAll(db.classes.get(class1));
             if (c1phi.size() == c1size) {
+                index.get(class1).thresholdI = -1;
                 continue;
             }
+            double conf = ((double) index.get(class1).support) / index.get(class1).bodySize;
            
-            Set<ByteString> targetClasses = (!supportForTarget || classIntersectionSize == null) ? relevantClasses : classIntersectionSize.get(class1);
+            Set<ByteString> targetClasses = (supportForTarget || classIntersectionSize == null) ? relevantClasses : classIntersectionSize.get(class1);
+            if (targetClasses == null) {
+                continue;
+            }
 
             for (ByteString class2 : targetClasses) {
                 if (class1 == class2) {
@@ -87,24 +92,47 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
                     if (s.length == 2 && s[0].equals(relation.toString())) { 
                         continue; 
                     }
-                }   
-                if (cs(class2) < classSizeThreshold) {
-                    continue;
                 }
-
+                
                 int c1c2size = getIntersectionSize(class1, class2);
-
-                if (c1c2size < classSizeThreshold) {
-                    continue;
-                } else if (c1size - c1c2size < classSizeThreshold) {
-                    continue;
-                } else {
+                /**
+                 * TODO: what happens for subclasses ? 
+                 * what happens if a class is always skipped ?
+                 * separationScore = 0 and is always true if support > st.
+                 */
+                if (classSizeThreshold >= 0) {
+                    if (cs(class2) < classSizeThreshold) {
+                        continue;
+                    }
+                    if (c1c2size < classSizeThreshold) {
+                        continue;
+                    } else if (c1size - c1c2size < classSizeThreshold) {
+                        continue;
+                    }
+                }
+                if (true) {
                     int c1c2phisize = (int) SimpleTypingKB.countIntersection(c1phi, db.classes.get(class2));
+                    /**
+                     * If classSizeThreshold is relative we don't consider 
+                     * intersections nor differences such that:
+                     * * Support less than threshold and,
+                     * * Expected support less than threshold.
+                     */
+                    if (classSizeThreshold < 0 && ( //relative
+                            (c1c2phisize < -classSizeThreshold && conf*c1c2size < -classSizeThreshold)
+                            // Condition for intersection
+                            || (c1phi.size() - c1c2phisize < -classSizeThreshold && conf*(c1size - c1c2size) < -classSizeThreshold)
+                            // Condition for difference
+                            )) {
+                        continue;
+                    }
                     Pair<Double, Double> s = classesScore(c1size, c1c2size, c1phi.size(), c1c2phisize);
                     //System.err.println(class1.toString() + "\t" + class2.toString() + "\t" + Double.toString(s.first) + "\t" + Double.toString(s.second));
                     index.get(class1).separationScore = Math.min(index.get(class1).separationScore, s.first);
+                    index.get(class1).thresholdI = -1;
                     if (index.containsKey(class2)) {
                         index.get(class2).separationScore = Math.min(index.get(class2).separationScore, s.second);
+                        index.get(class2).thresholdI = -1;
                     }
                 }
             }

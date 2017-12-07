@@ -8,6 +8,7 @@ package amie.typing;
 import amie.data.CardinalitySimpleTypingKB;
 import amie.data.Schema;
 import amie.data.SimpleTypingKB;
+import amie.data.WikidataSimpleTypingKB;
 import amie.typing.classifier.simple.B2SimpleClassifier;
 import amie.typing.classifier.simple.B3SimpleClassifier;
 import amie.typing.classifier.simple.FisherSeparationSimpleClassifier;
@@ -50,24 +51,26 @@ import org.apache.commons.cli.PosixParser;
  * @author jlajus
  */
 public class SimpleTyping extends Thread {
-    private BlockingQueue<Pair<ByteString, SimpleClassifier>> queryQ;
-    public int classSizeThreshold, supportThreshold;
+    private BlockingQueue<Pair<Pair<Integer, ByteString>, SimpleClassifier>> queryQ;
+    //public Iterable<Integer> classSizeThresholds; 
+    public int supportThreshold;
     
-    public SimpleTyping(BlockingQueue<Pair<ByteString, SimpleClassifier>> queryQ,
-            int classSizeThreshold, int supportThreshold) {
+    public SimpleTyping(BlockingQueue<Pair<Pair<Integer, ByteString>, SimpleClassifier>> queryQ,
+            //Iterable<Integer> classSizeThresholds, 
+            int supportThreshold) {
         this.queryQ = queryQ;
-        this.classSizeThreshold = classSizeThreshold;
+        //this.classSizeThresholds = classSizeThresholds;
         this.supportThreshold = supportThreshold;
     }
     
     @Override
     public void run() {
-        Pair<ByteString, SimpleClassifier> q;
+        Pair<Pair<Integer, ByteString>, SimpleClassifier> q;
         while(true) {
             try {
                 q = queryQ.take();
-                if (q.first.equals(ByteString.of("STOP"))) { break; }
-                q.second.classify(q.first, classSizeThreshold, supportThreshold);
+                if (q.first == null) { break; }
+                q.second.classify(q.first.second, q.first.first, supportThreshold);
             } catch (InterruptedException ex) {
                 Logger.getLogger(Separation.class.getName()).log(Level.SEVERE, null, ex);
                 break;
@@ -89,7 +92,7 @@ public class SimpleTyping extends Thread {
     
     public static void main(String[] args) throws IOException, InterruptedException {
         
-        int classSizeThreshold = 50;
+        ArrayList<Integer> classSizeThresholds = null;
         int supportThreshold = 50;
         String delimiter = "\t";
         String[] leftOverArgs;
@@ -108,8 +111,8 @@ public class SimpleTyping extends Thread {
         CommandLineParser parser = new PosixParser();
         
         Option classSizeThresholdOpt = OptionBuilder.withArgName("cst")
-                .hasArg()
-                .withDescription("Class size Threshold. Default: 50")
+                .hasArgs()
+                .withDescription("Class size Thresholds. Default: 50")
                 .create("cst");
         Option supportThresholdOpt = OptionBuilder.withArgName("st")
                 .hasArg()
@@ -210,13 +213,19 @@ public class SimpleTyping extends Thread {
         
         if (cli.hasOption("cst")) {
             try {
-                String cstStr = cli.getOptionValue("cst");
-                classSizeThreshold = Integer.parseInt(cstStr);
+                String[] cstStr = cli.getOptionValues("cst");
+                classSizeThresholds = new ArrayList<>(cstStr.length);
+                for (String cst : cstStr) {
+                    classSizeThresholds.add(Integer.parseInt(cst));
+                }
             } catch (NumberFormatException e) {
-                System.err.println("The option -cst (class size threshold) requires an integer as argument");
+                System.err.println("The option -cst (class size thresholds) requires integers as argument");
                 formatter.printHelp("SimpleTyping [OPTIONS] <KB FILES>", options);
                 System.exit(1);
             }
+        } else {
+            classSizeThresholds = new ArrayList<>(1);
+            classSizeThresholds.add(50);
         }
 
         if (cli.hasOption("st")) {
@@ -412,6 +421,8 @@ public class SimpleTyping extends Thread {
         
         if (cli.hasOption("card")) {
             dataSource = new CardinalitySimpleTypingKB();
+        } else if (cli.hasOption("w")) {
+            dataSource = new WikidataSimpleTypingKB();
         } else {
             dataSource = new SimpleTypingKB();
         }
@@ -421,6 +432,22 @@ public class SimpleTyping extends Thread {
         if (dataSource instanceof CardinalitySimpleTypingKB) {
             ((CardinalitySimpleTypingKB) dataSource).computeCardinalities();
         }
+        
+        // Populate query queue
+        BlockingQueue queryQ = new LinkedBlockingQueue();
+        
+        Set<ByteString> relations;
+        if (queries != null && queries.length > 0) {
+            relations = new LinkedHashSet<>();
+            for (int i = 0; i < queries.length; i++) {
+                relations.add(ByteString.of(queries[i]));
+            }
+        } else {
+            relations = dataSource.relations.keySet();
+        }
+        /*for (ByteString r : relations) {
+            System.err.println(r.toString());
+        }*/
         
         // Create the SimpleClassifier objects
         List<SimpleClassifier> classifiersO = new ArrayList(classifiers.size());
@@ -443,52 +470,65 @@ public class SimpleTyping extends Thread {
             }
             switch(cn.first) {
                 case "b2":
-                    c = new B2SimpleClassifier(dataSource, tf, outputQ, outputLock, countIntersectionMap);
+                    for (ByteString r : relations) {
+                        for (Integer classSizeThreshold : classSizeThresholds) {
+                            queryQ.add(new Pair<>(
+                                new Pair<>(classSizeThreshold, r), 
+                                new B2SimpleClassifier(dataSource, tf, outputQ, outputLock, countIntersectionMap)));
+                        }
+                    }
                     break;
                 case "b3":
-                    c = new B3SimpleClassifier(dataSource, tf, outputQ, outputLock, countIntersectionMap);
+                    for (ByteString r : relations) {
+                        for (Integer classSizeThreshold : classSizeThresholds) {
+                            queryQ.add(new Pair<>(
+                                new Pair<>(classSizeThreshold, r), 
+                                new B3SimpleClassifier(dataSource, tf, outputQ, outputLock, countIntersectionMap)));
+                        }
+                    }
                     break;
                 case "strict":
-                    c = new StrictSeparationSimpleClassifier(dataSource, tf, outputQ, outputLock, countIntersectionMap);
+                    for (ByteString r : relations) {
+                        for (Integer classSizeThreshold : classSizeThresholds) {
+                            queryQ.add(new Pair<>(
+                                new Pair<>(classSizeThreshold, r), 
+                                new StrictSeparationSimpleClassifier(dataSource, tf, outputQ, outputLock, countIntersectionMap)));
+                        }
+                    }
                     break;
                 case "relaxed":
-                    c = new RelaxedSeparationSimpleClassifier(dataSource, tf, outputQ, outputLock, countIntersectionMap);
+                    for (ByteString r : relations) {
+                        for (Integer classSizeThreshold : classSizeThresholds) {
+                            queryQ.add(new Pair<>(
+                                new Pair<>(classSizeThreshold, r), 
+                                new RelaxedSeparationSimpleClassifier(dataSource, tf, outputQ, outputLock, countIntersectionMap)));
+                        }
+                    }
                     break;
                 case "fisher":
-                    c = new FisherSeparationSimpleClassifier(dataSource, tf, outputQ, outputLock, countIntersectionMap);
+                    for (ByteString r : relations) {
+                        for (Integer classSizeThreshold : classSizeThresholds) {
+                            queryQ.add(new Pair<>(
+                                new Pair<>(classSizeThreshold, r), 
+                                new FisherSeparationSimpleClassifier(dataSource, tf, outputQ, outputLock, countIntersectionMap)));
+                        }
+                    }
                     break;
             }
             classifiersO.add(c);
         }
-        
-        // Populate query queue
-        BlockingQueue queryQ = new LinkedBlockingQueue();
-        
-        Set<ByteString> relations;
-        if (queries != null && queries.length > 0) {
-            relations = new LinkedHashSet<>();
-            for (int i = 0; i < queries.length; i++) {
-                relations.add(ByteString.of(queries[i]));
-            }
-        } else {
-            relations = dataSource.relations.keySet();
-        }
-        
-        for (ByteString r : relations) {
-            for (SimpleClassifier c : classifiersO) {
-                queryQ.add(new Pair<>(r, c));
-            }
-        }
+        //System.err.println(queryQ.size());
+        //System.exit(0);
         
         for (int i = 0; i < nThreads; i++) {
-            queryQ.add(new Pair<>(ByteString.of("STOP"), null));
+            queryQ.add(new Pair<>(null, null));
         }
         
         long timeStamp1 = System.currentTimeMillis();
         List<Thread> threadList = new ArrayList<>(nThreads);
         
         for (int i = 0; i < nThreads; i++) {
-                threadList.add(new SimpleTyping(queryQ, classSizeThreshold, supportThreshold));
+                threadList.add(new SimpleTyping(queryQ, supportThreshold));
         }
         
         for (Thread thread : threadList) {
@@ -502,7 +542,7 @@ public class SimpleTyping extends Thread {
         System.out.println("Processing done with "+Integer.toString(nThreads)+" threads in "+Long.toString(timeStamp2 - timeStamp1)+"ms.");
         
         for (SimpleClassifierOutput r : outputQ) {
-            output.println(r.method + "\t" + Double.toString(r.threshold) + "\t" + r.relation.toString() + "\t" + r.resultClass.toString());
+            output.println(r.classSizeThreshold + "\t" + r.method + "\t" + Double.toString(r.threshold) + "\t" + r.relation.toString() + "\t" + r.resultClass.toString());
         }
         
         try {

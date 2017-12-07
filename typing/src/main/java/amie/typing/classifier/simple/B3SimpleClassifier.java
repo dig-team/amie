@@ -50,6 +50,7 @@ public class B3SimpleClassifier extends SimpleClassifier {
         int bodySize = index.get(Schema.topBS).support;
         for (SimpleTreeNode n : index.values()) {
             n.separationScore = ((double) n.support) / bodySize;
+            n.thresholdI = -1;
         }
     }
     
@@ -57,7 +58,7 @@ public class B3SimpleClassifier extends SimpleClassifier {
     /**
      * Compute the lowest classes in the taxonomy meeting the threshold.
      */
-    public void computeClassification(ByteString relation) {
+    public void computeClassification(ByteString relation, int classSizeThreshold) {
         for (SimpleTreeNode n : index.values()) {
             int i = 0;
             while(i < thresholds.length && meetThreshold(n.separationScore, thresholds[i])) { i++; }
@@ -71,10 +72,13 @@ public class B3SimpleClassifier extends SimpleClassifier {
             if (n.thresholdI > -1 || n.thresholdMask == 0) continue;
             maxMask = 0;
             for (SimpleTreeNode c : n.children) {
+                /**
+                 * Should work as revConf can only decrease going down in the taxonomy
+                 */
                 maxMask = Math.max(maxMask, c.thresholdMask);
             }
             for (i = maxMask; i < n.thresholdMask; i++) {
-                export(relation, thresholds[i], n.className);
+                export(relation, thresholds[i], n.className, classSizeThreshold);
             }
             n.thresholdI = n.thresholdMask;
             if (maxMask > 0) { q.addAll(n.children); }

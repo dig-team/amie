@@ -54,6 +54,7 @@ public class SimpleTypingKB extends KB {
     @Override
     protected boolean add(ByteString subject, ByteString relation, ByteString object) {
         if (relation.equals(Schema.typeRelationBS)) {
+            //System.err.println(object);
             synchronized (classes) {
                 Set<ByteString> eS = classes.get(object);
                 if (eS == null) {
@@ -64,6 +65,7 @@ public class SimpleTypingKB extends KB {
         } else if (relation.equals(Schema.subClassRelationBS)) {
             return super.add(subject, relation, object);
         } else {
+            //System.err.println(relation);
             synchronized (relations) {
                 Set<ByteString> eS = relations.get(relation);
                 if (eS == null) {
@@ -134,5 +136,10 @@ public class SimpleTypingKB extends KB {
 //            }
 //        }
         return new HashSet<>(relationSet);
+    }
+    
+    @Override
+    public Set<ByteString> getClassSet() {
+        return new HashSet<>(classes.keySet());
     }
 }

@@ -535,14 +535,27 @@ public class Schema {
 	 * @return
 	 */
 	public static IntHashMap<ByteString> getTypesCount(KB kb) {
-		List<ByteString[]> query = KB.triples(KB.triple("?s", typeRelation, "?o"));
-		Map<ByteString, IntHashMap<ByteString>> types2Instances = 
-				kb.selectDistinct(ByteString.of("?o"), ByteString.of("?s"), query);
-		IntHashMap<ByteString> result = new IntHashMap<>();
-		for (ByteString type : types2Instances.keySet()) {
+                Map<ByteString, Set<ByteString>> types2Instances = null;
+                if (kb instanceof SimpleTypingKB) {
+                    System.err.print("Computing type counts... ");
+                    types2Instances = ((SimpleTypingKB) kb).classes;
+                    IntHashMap<ByteString> result = new IntHashMap<>();
+                    for (ByteString type : types2Instances.keySet()) {
 			result.put(type, types2Instances.get(type).size());
-		}
-		return result;
+                    }
+                    System.err.println(Integer.toString(result.size()) + " classes found");
+                    return result;
+                } else {
+                    List<ByteString[]> query = KB.triples(KB.triple("?s", typeRelation, "?o"));
+                    types2Instances = new HashMap<>();
+                    Map<ByteString, IntHashMap<ByteString>> ts = 
+                            kb.selectDistinct(ByteString.of("?o"), ByteString.of("?s"), query);
+                    IntHashMap<ByteString> result = new IntHashMap<>();
+                    for (ByteString type : ts.keySet()) {
+			result.put(type, ts.get(type).size());
+                    }
+                    return result;
+                }
 	}
 	
 	/**
@@ -551,10 +564,26 @@ public class Schema {
 	 * @return
 	 */
 	public static Map<ByteString, IntHashMap<ByteString>> getTypesIntersectionCount(KB kb) {
+            Map<ByteString, IntHashMap<ByteString>> result = new LinkedHashMap<>();
+            System.err.println("Count class size required");
+            if (kb instanceof SimpleTypingKB) {
+                System.err.print("Computing type intersection counts... ");
+                SimpleTypingKB db = (SimpleTypingKB) kb;
+                for (ByteString type1 : db.classes.keySet()) {
+			IntHashMap<ByteString> result2 = new IntHashMap<>();
+			result.put(type1, result2);
+			for (ByteString type2 : db.classes.keySet()) {
+                            int is = (int) SimpleTypingKB.countIntersection(db.classes.get(type1), db.classes.get(type2));
+                            result2.put(type2, is);
+                        }
+                }
+                System.err.println();
+		return result;
+            }
 		List<ByteString[]> query = KB.triples(KB.triple("?s", typeRelation, "?o1"), KB.triple("?s", typeRelation, "?o2"));
 		Map<ByteString, Map<ByteString, IntHashMap<ByteString>>> types2types2Instances = 
 				kb.selectDistinct(ByteString.of("?o1"), ByteString.of("?o2"), ByteString.of("?s"), query);
-		Map<ByteString, IntHashMap<ByteString>> result = new LinkedHashMap<>();
+		
 		for (ByteString type1 : types2types2Instances.keySet()) {
 			IntHashMap<ByteString> result2 = new IntHashMap<>();
 			result.put(type1, result2);

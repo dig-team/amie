@@ -191,7 +191,7 @@ public class KB {
 	// Loading
 	// ---------------------------------------------------------------------------
 
-	private String delimiter = "\t";
+	protected String delimiter = "\t";
 	
 	public void setDelimiter(String newDelimiter) {
 		delimiter = newDelimiter;
@@ -545,11 +545,16 @@ public class KB {
 		for (String line : new FileLines(f, "UTF-8", message)) {
 			if (line.endsWith("."))
 				line = Char17.cutLast(line);
-			String[] split = line.trim().split(">" + delimiter);
+                        String[] split = line.trim().split(delimiter);
 			if (split.length == 3) {
-				add(split[0].trim() + ">", split[1].trim() + ">", split[2].trim());
+				add(split[0].trim(), split[1].trim(), split[2].trim());
 			} else if (split.length == 4)
-				add(split[1].trim() + ">", split[2].trim() + ">", split[3].trim());
+				add(split[1].trim(), split[2].trim(), split[3].trim());
+			/*String[] split = line.trim().split(">" + delimiter);
+			if (split.length == 3) {
+				add(split[0].trim() +">", split[1].trim()+">", split[2].trim());
+			} else if (split.length == 4)
+				add(split[0].trim() +">", split[1].trim()+">", split[2].trim()+">");*/
 		}
 
 		if (message != null)
@@ -4610,6 +4615,10 @@ public class KB {
         
         public Set<ByteString> getRelationSet() {
             return new HashSet<>(relationSize);
+        }
+        
+        public Set<ByteString> getClassSet() {
+            return null;
         }
 	
 	public static void main(String[] args) {

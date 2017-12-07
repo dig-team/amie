@@ -35,6 +35,8 @@ public abstract class SimpleClassifier {
     protected Queue<SimpleClassifierOutput> outputQueue;
     protected Lock outputLock;
     
+    protected int supportThreshold;
+    
     public SimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock) {
         this.db = db;
         this.classIntersectionSize = null;
@@ -67,11 +69,13 @@ public abstract class SimpleClassifier {
         public double threshold;
         public ByteString relation;
         public ByteString resultClass;
-        public SimpleClassifierOutput(String method, double threshold, ByteString relation, ByteString resultClass) {
+        public int classSizeThreshold;
+        public SimpleClassifierOutput(String method, double threshold, ByteString relation, ByteString resultClass, int classSizeThreshold) {
             this.method = method;
             this.threshold = threshold;
             this.relation = relation;
             this.resultClass = resultClass;
+            this.classSizeThreshold = classSizeThreshold;
         }
     }
     
@@ -91,7 +95,7 @@ public abstract class SimpleClassifier {
     
         public ByteString className;
         public Double separationScore = 0.0;
-        public int thresholdI = -1;
+        public int thresholdI = 0;
         public int thresholdMask = 0;
         public Collection<SimpleTreeNode> children = new LinkedList<>();
         
@@ -138,21 +142,23 @@ public abstract class SimpleClassifier {
     
     public void classify(ByteString relation, int classSizeThreshold, 
             int supportThreshold) throws IOException {
+        index.clear();
+        this.supportThreshold = supportThreshold;
         SimpleTreeNode root = new SimpleTreeNode(supportThreshold, classSizeThreshold, relation);
-        if (index.get(Schema.topBS).equals(root)) {
+        if (index.containsKey(Schema.topBS)) {
             root.generate(supportThreshold, classSizeThreshold, relation);
             //System.err.println(index.size());
             if (index.size() > 1) {
                 computeStatistics(relation, classSizeThreshold);
                 //printTree();
-                computeClassification(relation);
+                computeClassification(relation, classSizeThreshold);
                 flush();
             }
         }
     }
     
-    protected void export(ByteString relation, double threshold, ByteString className) {
-        this.bufferQueue.add(new SimpleClassifierOutput(name + ((supportForTarget)? "-sft" : ""), threshold, relation, className));
+    protected void export(ByteString relation, double threshold, ByteString className, int classSizeThreshold) {
+        this.bufferQueue.add(new SimpleClassifierOutput(name + ((supportForTarget)? "-sft" : ""), threshold, relation, className, classSizeThreshold));
     }
     
     protected void flush() {
@@ -169,7 +175,7 @@ public abstract class SimpleClassifier {
      * Thresholds must be ordered from more laxist to stricter according to meetThreshold method.
      * @param relation
      */
-    public void computeClassification(ByteString relation) {
+    public void computeClassification(ByteString relation, int classSizeThreshold) {
         Queue<SimpleTreeNode> q = new LinkedList<>();
         q.add(index.get(Schema.topBS));
         int i;
@@ -179,7 +185,7 @@ public abstract class SimpleClassifier {
             for(i = n.thresholdMask; i < thresholds.length; i++) {
                 //System.err.println(n.className.toString() + "\n" + Double.toString(n.separationScore) + "\t" + Double.toString(thresholds[i]) + "\t" + Integer.toString(i));
                 if(!meetThreshold(n.separationScore, thresholds[i])) break;
-                export(relation, thresholds[i], n.className);
+                export(relation, thresholds[i], n.className, classSizeThreshold);
             }
             n.thresholdI = i;
             n.propagateMask(i);

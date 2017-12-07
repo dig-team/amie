@@ -47,6 +47,7 @@ public class B2SimpleClassifier extends SimpleClassifier {
     public void computeStatistics(ByteString relation, int classSizeThreshold) {
         for (SimpleTreeNode n : index.values()) {
             n.separationScore = ((double) n.support) / n.bodySize;
+            n.thresholdI = -1;
         }
     }
 }

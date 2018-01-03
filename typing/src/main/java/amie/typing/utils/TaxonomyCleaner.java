@@ -29,10 +29,10 @@ public class TaxonomyCleaner {
         DirectedGraph<ByteString, DefaultEdge> g 
                 = new SimpleDirectedGraph<ByteString, DefaultEdge>(DefaultEdge.class);
         for (String line : new FileLines(new File(args[0]), "UTF-8", null)) {
-            String[] split = line.split(" ");
-            if (split.length == 3) {
-                ByteString s = ByteString.of(split[0]);
-                ByteString o = ByteString.of(split[2]);
+            String[] split = line.split("/t");
+            if (split.length == 4) {
+                ByteString s = ByteString.of(split[1]);
+                ByteString o = ByteString.of(split[3]);
                 if (s.equals(o)) {
                     System.err.println(s.toString());
                 } else {

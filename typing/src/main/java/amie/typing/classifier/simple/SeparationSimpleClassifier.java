@@ -118,14 +118,31 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
                      * * Support less than threshold and,
                      * * Expected support less than threshold.
                      */
+                    /*
                     if (classSizeThreshold < 0 && ( //relative
-                            (c1c2phisize < -classSizeThreshold && conf*c1c2size < -classSizeThreshold)
+                               (c1c2size == 0)
+                            || (c1c2size == c1size)
+                            || (c1c2phisize < -classSizeThreshold && conf*c1c2size < -classSizeThreshold)
                             // Condition for intersection
                             || (c1phi.size() - c1c2phisize < -classSizeThreshold && conf*(c1size - c1c2size) < -classSizeThreshold)
                             // Condition for difference
                             )) {
                         continue;
                     }
+                    */
+                    
+                    if (classSizeThreshold < 0 && ( //relative
+                               (c1c2size == 0)
+                            || (c1c2size == c1size)
+                            || (c1c2phisize < -classSizeThreshold && (c1phi.size() - c1c2phisize) * c1c2size / (c1size - c1c2size) < -classSizeThreshold)
+                            // Condition for intersection
+                            || (c1phi.size() - c1c2phisize < -classSizeThreshold && c1c2phisize * (c1size - c1c2size) / c1c2size < -classSizeThreshold)
+                            // Condition for difference
+                            )) {
+                        continue;
+                    }
+                    
+                    
                     Pair<Double, Double> s = classesScore(c1size, c1c2size, c1phi.size(), c1c2phisize);
                     //System.err.println(class1.toString() + "\t" + class2.toString() + "\t" + Double.toString(s.first) + "\t" + Double.toString(s.second));
                     index.get(class1).separationScore = Math.min(index.get(class1).separationScore, s.first);

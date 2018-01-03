@@ -6,6 +6,7 @@
 package amie.typing.testing;
 
 import amie.data.KB;
+import amie.data.SimpleTypingKB;
 import amie.typing.classifier.SeparationClassifier;
 import static amie.typing.classifier.SeparationClassifier.getOptions;
 import java.io.File;
@@ -60,7 +61,7 @@ public class PrintStatistics {
         for (int i = 0; i < pa.leftOverArgs.length; ++i) {
                 dataFiles.add(new File(pa.leftOverArgs[i]));
         }
-        KB dataSource = new KB();
+        KB dataSource = new SimpleTypingKB();
         dataSource.setDelimiter(pa.delimiter);
         dataSource.load(dataFiles);
         
@@ -81,7 +82,7 @@ public class PrintStatistics {
         Map<ByteString, Map<ByteString, Double>> stats = sc.computeStatistics(pa.query, pa.variable, pa.classSizeThreshold, pa.supportThreshold);
         for(ByteString t1: stats.keySet()) {
             for(ByteString t2:stats.get(t1).keySet()) {
-                System.out.println(t1.toString() + "\t" + Double.toString(Math.log(stats.get(t1).get(t2))));
+                System.out.println(t1.toString() + "\t" + t2.toString() + "\t" + Double.toString(stats.get(t1).get(t2)));
             }
         }
     }

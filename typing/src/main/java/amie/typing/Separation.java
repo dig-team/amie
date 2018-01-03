@@ -7,10 +7,12 @@ package amie.typing;
 
 import amie.data.KB;
 import amie.data.Schema;
+import amie.data.SexismSimpleTypingKB;
 import amie.data.SimpleTypingKB;
 import amie.typing.classifier.SeparationClassifier;
 import static amie.typing.classifier.SeparationClassifier.getOptions;
 import amie.typing.classifier.SeparationPTreeClassifier;
+import amie.typing.classifier.SeparationSTreeClassifier;
 import amie.typing.classifier.SeparationTreeClassifier;
 import amie.typing.classifier.SeparationVTreeClassifier;
 import java.io.File;
@@ -86,6 +88,10 @@ public class Separation extends Thread {
                     case "V": 
                         System.out.println("Using variance classifier.");
                         st = new SeparationVTreeClassifier(source, cS, cIS, supportForTarget); 
+                        break;
+                    case "S": 
+                        System.out.println("Using strict CR classifier.");
+                        st = new SeparationSTreeClassifier(source, cS, cIS, supportForTarget); 
                         break;
                     default: st = new SeparationTreeClassifier(source, cS, cIS, supportForTarget);
                 }
@@ -196,8 +202,8 @@ public class Separation extends Thread {
         
         // Load the KB
         KB dataSource;
-        if (pa.countFile == null) {
-            dataSource = new KB();
+        if (pa.query != null && pa.query.get(0)[1].equals(ByteString.of("sexism"))) {
+            dataSource = new SexismSimpleTypingKB();
         } else {
             dataSource = new SimpleTypingKB();
         }
@@ -232,8 +238,9 @@ public class Separation extends Thread {
             }
         } else if (pa.query.get(0)[1].equals(ByteString.of("sexism"))) {
             nThreads = Math.min(nProcessors, 2);
-            queryQ.add(new Pair<>(KB.triples(KB.triple("?x", "<hasGender>", "<male>")), ByteString.of("?x")));
-            queryQ.add(new Pair<>(KB.triples(KB.triple("?x", "<hasGender>", "<female>")), ByteString.of("?x")));
+            // Note: KB instanceof SexismSimpleTypingKB
+            queryQ.add(new Pair<>(KB.triples(KB.triple("?x", "<male>", "?y")), ByteString.of("?x")));
+            queryQ.add(new Pair<>(KB.triples(KB.triple("?x", "<female>", "?y")), ByteString.of("?x")));
         } else {
             queryQ.add(new Pair<>(pa.query, pa.variable));
         }

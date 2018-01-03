@@ -20,6 +20,7 @@ import org.apache.commons.cli.PosixParser;
 
 import amie.data.KB;
 import amie.data.Schema;
+import amie.data.SimpleTypingKB;
 import amie.typing.heuristics.*;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -28,7 +29,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javatools.datatypes.Pair;
 import javatools.datatypes.Triple;
 
 public class Typing {
@@ -231,7 +231,7 @@ public class Typing {
             dataFiles.add(new File(leftOverArgs[i]));
         }
 
-        KB dataSource = new KB();
+        KB dataSource = new SimpleTypingKB();
 
         if (cli.hasOption("c")) {
             dataSource.countCacheEnabled = true;
@@ -250,11 +250,6 @@ public class Typing {
                 Schema.topBS = ByteString.of(Schema.top);
                 delimiter = " ";
             }
-
-        dataSource.setDelimiter(delimiter);
-        long timeStamp1 = System.currentTimeMillis();
-        dataSource.load(dataFiles);
-        long timeStamp2 = System.currentTimeMillis();
 
         List<TypingHeuristic> typingHeuristics = new LinkedList<>();
 
@@ -336,16 +331,21 @@ public class Typing {
                     throw new UnsupportedOperationException("Custom heuristics support not yet implemented");
             }
         }
+        
+        dataSource.setDelimiter(delimiter);
+        long timeStamp1 = System.currentTimeMillis();
+        dataSource.load(dataFiles);
+        long timeStamp2 = System.currentTimeMillis();
 
         List<ByteString[]> query = new ArrayList<>(1);
         query.add(KB.triple(ByteString.of("?x"), ByteString.of("?y"), ByteString.of("?z")));
-        Set<ByteString> relations = dataSource.selectDistinct(ByteString.of("?y"), query);
+        Set<ByteString> relations = dataSource.getRelationSet(); //dataSource.selectDistinct(ByteString.of("?y"), query);
         relations.remove(Schema.typeRelationBS);
         relations.remove(PopularityHeuristic.popularityRelationBS);
         relations.remove(TrueType.trueTypeBS);
 
         query.get(0)[1] = Schema.typeRelationBS;
-        Set<ByteString> classes = dataSource.selectDistinct(ByteString.of("?z"), query);
+        Set<ByteString> classes = dataSource.getClassSet(); //dataSource.selectDistinct(ByteString.of("?z"), query);
         List<ByteString[]> clause = new LinkedList<>();
 
         if (typingHeuristics.isEmpty()) {

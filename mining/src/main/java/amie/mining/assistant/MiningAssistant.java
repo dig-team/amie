@@ -591,7 +591,7 @@ public class MiningAssistant {
 		
 		//Then do it for all values
 		if(rule.isClosed(true)){
-			joinVariables = rule.getVariables();
+			joinVariables = rule.getOpenableVariables();
 		}else{
 			joinVariables = rule.getOpenVariables();
 		}
@@ -694,11 +694,11 @@ public class MiningAssistant {
 			return;
 		
 		List<ByteString> sourceVariables = null;
-		List<ByteString> allVariables = rule.getVariables();
+		List<ByteString> allVariables = rule.getOpenableVariables();
 		List<ByteString> openVariables = rule.getOpenVariables();
 		
 		if(rule.isClosed(true)){
-			sourceVariables = rule.getVariables();
+			sourceVariables = rule.getOpenableVariables();
 		}else{
 			sourceVariables = openVariables; 
 		}

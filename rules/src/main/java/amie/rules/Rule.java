@@ -518,10 +518,10 @@ public class Rule {
      * @return the mustBindVariables
      */
     public List<ByteString> getOpenVariables() {
-        IntHashMap<ByteString> histogram = variablesHistogram(true);
+        IntHashMap<ByteString> histogram = variablesHistogram(false);
         List<ByteString> variables = new ArrayList<ByteString>();
         for (ByteString var : histogram) {
-            if (histogram.get(var) < 2) {
+            if (histogram.get(var) < 2 && KB.isOpenableVariable(var)) {
                 variables.add(var);
             }
         }
@@ -968,6 +968,25 @@ public class Rule {
             }
 
             if (KB.isVariable(triple[2])) {
+                if (!variables.contains(triple[2])) {
+                    variables.add(triple[2]);
+                }
+            }
+        }
+
+        return variables;
+    }
+    
+    public List<ByteString> getOpenableVariables() {
+        List<ByteString> variables = new ArrayList<ByteString>();
+        for (ByteString[] triple : triples) {
+            if (KB.isOpenableVariable(triple[0])) {
+                if (!variables.contains(triple[0])) {
+                    variables.add(triple[0]);
+                }
+            }
+
+            if (KB.isOpenableVariable(triple[2])) {
                 if (!variables.contains(triple[2])) {
                     variables.add(triple[2]);
                 }

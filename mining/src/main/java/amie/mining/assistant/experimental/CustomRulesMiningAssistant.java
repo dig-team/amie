@@ -18,7 +18,7 @@ import javatools.datatypes.ByteString;
  *
  * @author jlajus
  */
-public class CustomRulesMiningAssistant extends MiningAssistant {
+public class CustomRulesMiningAssistant extends DefaultMiningAssistant {
 
     protected Rule ruleParser(String s) {
         Rule candidate = AMIEParser.rule(s);

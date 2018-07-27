@@ -28,6 +28,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
 import amie.data.KB;
+import amie.data.MultilingualKB;
 import amie.data.Schema;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.mining.assistant.MiningAssistant;
@@ -759,6 +760,10 @@ public class AMIE {
         Option optimAdaptiveInstantiations = OptionBuilder.withArgName("adaptive-instantiations")
         		.withDescription("Prune instantiated rules that decrease too much the support of their parent rule (ratio 0.2)")
         		.create("optimai");
+        
+        Option multilingual = OptionBuilder.withArgName("multilingual")
+        		.withDescription("Parse labels language as new facts")
+        		.create("mlg");
 
         options.addOption(stdConfThresholdOpt);
         options.addOption(supportOpt);
@@ -792,6 +797,7 @@ public class AMIE {
         options.addOption(calculateStdConfidenceOp);
         options.addOption(enableCountCache);
         options.addOption(optimAdaptiveInstantiations);
+        options.addOption(multilingual);
 
         try {
             cli = parser.parse(options, args);
@@ -978,6 +984,9 @@ public class AMIE {
             }
         }
         KB dataSource = new KB();
+        if (cli.hasOption("mlg")) {
+            dataSource = new MultilingualKB();
+        }
         long timeStamp1 = System.currentTimeMillis();
         dataSource.load(dataFiles);
         long timeStamp2 = System.currentTimeMillis();

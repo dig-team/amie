@@ -374,6 +374,10 @@ public class KB {
 		return (s.length() > 0 && s.charAt(0) == VariableSign);
 	}
 	
+        
+        public static boolean isOpenableVariable(CharSequence s) {
+            return (s.length() > 1 && s.charAt(0) == VariableSign && s.charAt(1) != '_');
+        }
 
 	/**
 	 * It clears the overlap tables and rebuilds them. Recommended when new facts has been added

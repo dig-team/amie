@@ -116,7 +116,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		List<ByteString> sourceVariables = null;
 		List<ByteString> targetVariables = null;
 		List<ByteString> openVariables = rule.getOpenVariables();
-		List<ByteString> allVariables = rule.getVariables();
+		List<ByteString> allVariables = rule.getOpenableVariables();
 		
 		if (allVariables.size() < 2) {
 			return;
@@ -269,7 +269,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		
 		//Then do it for all values
 		if(query.isClosed(true)) {				
-			joinVariables = query.getVariables();
+			joinVariables = query.getOpenableVariables();
 		} else {
 			joinVariables = openVariables;
 		}

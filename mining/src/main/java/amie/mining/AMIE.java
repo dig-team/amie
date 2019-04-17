@@ -795,7 +795,7 @@ public class AMIE {
         options.addOption(extraFileOp);
         options.addOption(datalogNotationOpt);
         options.addOption(calculateStdConfidenceOp);
-        options.addOption(enableCountCache);
+        //options.addOption(enableCountCache);
         options.addOption(optimAdaptiveInstantiations);
         options.addOption(multilingual);
 
@@ -990,11 +990,7 @@ public class AMIE {
         long timeStamp1 = System.currentTimeMillis();
         dataSource.load(dataFiles);
         long timeStamp2 = System.currentTimeMillis();
-        if (cli.hasOption("optimfh")) {
-            Announce.message("Building overlap tables for confidence approximation.");
-            dataSource.buildOverlapTables();
-            Announce.done("Overlap tables were built.");
-        }
+        
         sourcesLoadingTime = timeStamp2 - timeStamp1;
 
         if (!targetFiles.isEmpty()) {
@@ -1007,9 +1003,6 @@ public class AMIE {
             schemaSource.load(schemaFiles);
         }
         
-        if (cli.hasOption("cc")) {
-        	dataSource.countCacheEnabled = true;
-        }
 
         if (cli.hasOption("pm")) {
             switch (cli.getOptionValue("pm")) {
@@ -1054,10 +1047,6 @@ public class AMIE {
         }
 
         enableFunctionalityHeuristic = cli.hasOption("optimfh");
-        if (enableFunctionalityHeuristic) {
-            System.out.println("Enabling functionality heuristic with ratio "
-            		+ "for pruning of low confident rules [EXPERIMENTAL]");
-        }
 
         switch (bias) {    	
         	case "oneVar" :
@@ -1140,6 +1129,14 @@ public class AMIE {
             enableConfidenceUpperBounds = true;
             enableFunctionalityHeuristic = true;
             minPCAConf = DEFAULT_PCA_CONFIDENCE;
+        }
+        
+        if (enableFunctionalityHeuristic) {
+            System.out.println("Enabling functionality heuristic with ratio "
+            		+ "for pruning of low confident rules [EXPERIMENTAL]");
+            Announce.message("Building overlap tables for confidence approximation.");
+            dataSource.buildOverlapTables();
+            Announce.done("Overlap tables were built.");
         }
 
         mineAssistant.setKbSchema(schemaSource);
@@ -1254,11 +1251,13 @@ public class AMIE {
 	    Announce.done("Total time " + NumberFormatter.formatMS(miningTime + loadingTime));
 	    System.out.println(rules.size() + " rules mined.");
 	      
-	      System.out.println("MRT calls: " + String.valueOf(KB.STAT_NUMBER_OF_CALL_TO_MRT.get()));
-	      if (assistant.kb.countCacheEnabled)
-	    	  System.out.println("Queries: " + String.valueOf(KB.queryCache.queryCount.get()));
-	          System.out.println("Matches: " + String.valueOf(KB.countCacheMatch.get()));
-	    	  System.out.println("Collisions: " + String.valueOf(KB.queryCache.collisionCount.get()));
+	      
+//	    if (assistant.kb.countCacheEnabled) {
+//                System.out.println("MRT calls: " + String.valueOf(KB.STAT_NUMBER_OF_CALL_TO_MRT.get()));
+//	    	System.out.println("Queries: " + String.valueOf(KB.queryCache.queryCount.get()));
+//	        System.out.println("Matches: " + String.valueOf(KB.countCacheMatch.get()));
+//	    	System.out.println("Collisions: " + String.valueOf(KB.queryCache.collisionCount.get()));
+//          }
     }
 
 }

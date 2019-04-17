@@ -57,13 +57,13 @@ public class KB {
 	protected final Map<ByteString, Map<ByteString, IntHashMap<ByteString>>> subject2relation2object = new IdentityHashMap<ByteString, Map<ByteString, IntHashMap<ByteString>>>();
 
 	/** Index */
-	protected final Map<ByteString, Map<ByteString, IntHashMap<ByteString>>> relation2object2subject = new IdentityHashMap<ByteString, Map<ByteString, IntHashMap<ByteString>>>();
+	public final Map<ByteString, Map<ByteString, IntHashMap<ByteString>>> relation2object2subject = new IdentityHashMap<ByteString, Map<ByteString, IntHashMap<ByteString>>>();
 
 	/** Index */
 	protected final Map<ByteString, Map<ByteString, IntHashMap<ByteString>>> object2subject2relation = new IdentityHashMap<ByteString, Map<ByteString, IntHashMap<ByteString>>>();
 
 	/** Index */
-	protected final Map<ByteString, Map<ByteString, IntHashMap<ByteString>>> relation2subject2object = new IdentityHashMap<ByteString, Map<ByteString, IntHashMap<ByteString>>>();
+	public final Map<ByteString, Map<ByteString, IntHashMap<ByteString>>> relation2subject2object = new IdentityHashMap<ByteString, Map<ByteString, IntHashMap<ByteString>>>();
 
 	/** Index */
 	protected final Map<ByteString, Map<ByteString, IntHashMap<ByteString>>> object2relation2subject = new IdentityHashMap<ByteString, Map<ByteString, IntHashMap<ByteString>>>();
@@ -78,7 +78,7 @@ public class KB {
 	protected final IntHashMap<ByteString> objectSize = new IntHashMap<ByteString>();
 
 	/** Number of facts per relation */
-	protected final IntHashMap<ByteString> relationSize = new IntHashMap<ByteString>();
+	public final IntHashMap<ByteString> relationSize = new IntHashMap<ByteString>();
 
 	// ---------------------------------------------------------------------------
 	// Statistics
@@ -87,17 +87,17 @@ public class KB {
 	/**
 	 * Subject-subject overlaps
 	 */
-	protected final Map<ByteString, IntHashMap<ByteString>> subject2subjectOverlap = new IdentityHashMap<ByteString, IntHashMap<ByteString>>();
+	public final Map<ByteString, IntHashMap<ByteString>> subject2subjectOverlap = new IdentityHashMap<ByteString, IntHashMap<ByteString>>();
 
 	/**
 	 * Subject-object overlaps
 	 */
-	protected final Map<ByteString, IntHashMap<ByteString>> subject2objectOverlap = new IdentityHashMap<ByteString, IntHashMap<ByteString>>();
+	public final Map<ByteString, IntHashMap<ByteString>> subject2objectOverlap = new IdentityHashMap<ByteString, IntHashMap<ByteString>>();
 
 	/**
 	 * Object-object overlaps
 	 */
-	protected final Map<ByteString, IntHashMap<ByteString>> object2objectOverlap = new IdentityHashMap<ByteString, IntHashMap<ByteString>>();
+	public final Map<ByteString, IntHashMap<ByteString>> object2objectOverlap = new IdentityHashMap<ByteString, IntHashMap<ByteString>>();
 
 	/** Number of facts */
 	protected long size;
@@ -454,7 +454,7 @@ public class KB {
 	 * @param s2
 	 * @return
 	 */
-	private static int computeOverlap(Set<ByteString> s1, Set<ByteString> s2) {
+	public static int computeOverlap(Set<ByteString> s1, Set<ByteString> s2) {
 		int overlap = 0;
 		for (ByteString r : s1) {
 			if (s2.contains(r))

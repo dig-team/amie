@@ -19,12 +19,15 @@ import javatools.datatypes.ByteString;
  * @author jlajus
  */
 public class CustomRulesMiningAssistant extends DefaultMiningAssistant {
+    
+    private static final boolean _debug_ = true;
 
     protected Rule ruleParser(String s) {
         Rule candidate = AMIEParser.rule(s);
         candidate.setSupport(this.kb.countDistinctPairs(candidate.getHead()[0], candidate.getHead()[2], candidate.getTriples()));
         candidate.setFunctionalVariablePosition(0);
         registerHeadRelation(candidate);
+        System.err.println(candidate.toString() + "\t" + Double.toString(candidate.getSupport()));
         return candidate;
     }
     
@@ -40,48 +43,48 @@ public class CustomRulesMiningAssistant extends DefaultMiningAssistant {
     
     @Override
     public boolean shouldBeOutput(Rule candidate) {
-	return candidate.isClosed(false);
+	return _debug_ || candidate.isClosed(false);
     }
     
     @Override
     public Collection<Rule> getInitialAtoms(double minSupportThreshold) {
         Collection<Rule> output = new ArrayList<>();
         output.add(ruleParser(
-                "skos:prefLabel(?x, ?_y) & skos:prefLabel(?x, ?_z)"
-                + " & <label@>(?_y, ?_lbl1) & <label@>(?_z, ?_lbl2)"
-                + " & <@lang>(?_y, ?lg1) & <@lang>(?_z, ?lg2)"
-                + " & differentFrom(?lg1, ?lg2)"
-                + " => equals(?_lbl1, ?_lbl2)"));
+                "?x skos:prefLabel ?_y & ?x skos:prefLabel ?_z"
+                + " & ?_y <label> ?_lbl1 & ?_z <label> ?_lbl2"
+                + " & ?_y <lang> ?lg1 & ?_z <lang> ?lg2"
+                + " & ?lg1 differentFrom ?lg2"
+                + " => ?_lbl1 equals ?_lbl2"));
         output.add(ruleParser(
-                "skos:prefLabel(?x, ?_y) & skos:prefLabel(?x, ?_z)"
-                + " & <label@>(?_y, ?_lbl1)"
-                + " & <@lang>(?_y, ?lg1) & <@lang>(?_z, ?lg2)"
-                + " & differentFrom(?lg1, ?lg2)"
-                + " => <label@>(?_z, ?_lbl1)"));
+                "?x skos:prefLabel ?_y & ?x skos:prefLabel ?_z"
+                + " & ?_y <label> ?_lbl1"
+                + " & ?_y <lang> ?lg1 & ?_z <lang> ?lg2"
+                + " & ?lg1 differentFrom ?lg2"
+                + " => & ?_z <label> ?_lbl1"));
         output.add(ruleParser(
-                "skos:prefLabel(?x, ?_y)"
-                + " & <label@>(?_y, ?_lbl1) & <label@>(?_z, ?_lbl1)"
-                + " & <@lang>(?_y, ?lg1) & <@lang>(?_z, ?lg2)"
-                + " & differentFrom(?lg1, ?lg2)"
-                + " => skos:prefLabel(?x, ?_z)"));
+                "?x skos:prefLabel ?_y"
+                + " & ?_y <label> ?_lbl1 & ?_z <label> ?_lbl2"
+                + " & ?_y <lang> ?lg1 & ?_z <lang> ?lg2"
+                + " & ?lg1 differentFrom ?lg2"
+                + " => ?x skos:prefLabel ?_z"));
         output.add(ruleParser(
-                "rdfs:label(?x, ?_y) & rdfs:label(?x, ?_z)"
-                + " & <label@>(?_y, ?_lbl1) & <label@>(?_z, ?_lbl2)"
-                + " & <@lang>(?_y, ?lg1) & <@lang>(?_z, ?lg2)"
-                + " & differentFrom(?lg1, ?lg2)"
-                + " => equals(?_lbl1, ?_lbl2)"));
+                "?x rdfs:label ?_y & ?x rdfs:label ?_z"
+                + " & ?_y <label> ?_lbl1 & ?_z <label> ?_lbl2"
+                + " & ?_y <lang> ?_lg1 & ?_z <lang> ?_lg2"
+                + " & ?_lg1 differentFrom ?_lg2"
+                + " => ?_lbl1 equals ?_lbl2"));
         output.add(ruleParser(
-                "rdfs:label(?x, ?_y) & rdfs:label(?x, ?_z)"
-                + " & <label@>(?_y, ?_lbl1)"
-                + " & <@lang>(?_y, ?lg1) & <@lang>(?_z, ?lg2)"
-                + " & differentFrom(?lg1, ?lg2)"
-                + " => <label@>(?_z, ?_lbl1)"));
+                "?x rdfs:label ?_y & ?x rdfs:label ?_z"
+                + " & ?_y <label> ?_lbl1"
+                + " & ?_y <lang> ?_lg1 & ?_z <lang> ?_lg2"
+                + " & ?_lg1 differentFrom ?_lg2"
+                + " => & ?_z <label> ?_lbl1"));
         output.add(ruleParser(
-                "rdfs:label(?x, ?_y)"
-                + " & <label@>(?_y, ?_lbl1) & <label@>(?_z, ?_lbl1)"
-                + " & <@lang>(?_y, ?lg1) & <@lang>(?_z, ?lg2)"
-                + " & differentFrom(?lg1, ?lg2)"
-                + " => rdfs:label(?x, ?_z)"));
+                "?x rdfs:label ?_y"
+                + " & ?_y <label> ?_lbl1 & ?_z <label> ?_lbl2"
+                + " & ?_y <lang> ?_lg1 & ?_z <lang> ?_lg2"
+                + " & ?_lg1 differentFrom ?_lg2"
+                + " => ?x rdfs:label ?_z"));
         return output;
     }
     

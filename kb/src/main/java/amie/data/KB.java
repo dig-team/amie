@@ -1702,6 +1702,13 @@ public class KB {
 		return triple[0].equals(var) || triple[1].equals(var)
 				|| triple[2].equals(var);
 	}
+        
+        private boolean contains(ByteString var, List<ByteString[]> triples) {
+		for (ByteString[] triple : triples) {
+                    if (contains(var, triple)) return true;
+                }
+                return false;
+	}
 
 	/** 
 	 * Returns the position of a variable in a triple.
@@ -1957,11 +1964,15 @@ public class KB {
 
 		// If the variable is not in the most restrictive triple...
 		List<ByteString[]> others = remove(bestPos, query);
+                Map<ByteString, IntHashMap<ByteString>> instantiations;
 		switch (numVariables(best)) {
 		case 0:
 			return (selectDistinct(variable, others));
 		case 1:
 			ByteString var = best[firstVariablePos(best)];
+                        /*if (!contains(var, others)) {
+                            return (selectDistinct(variable, others));
+                        }*/
 			try (Instantiator insty = new Instantiator(others, var)) {
 				for (ByteString inst : resultsOneVariable(best)) {
 					result.addAll(selectDistinct(variable,
@@ -1972,19 +1983,34 @@ public class KB {
 		case 2:
 			int firstVar = firstVariablePos(best);
 			int secondVar = secondVariablePos(best);
-			Map<ByteString, IntHashMap<ByteString>> instantiations = resultsTwoVariables(
-					firstVar, secondVar, best);
-			try (Instantiator insty1 = new Instantiator(others, best[firstVar]);
+                        if (contains(best[firstVar], others)) {
+                            instantiations = resultsTwoVariables(firstVar, secondVar, best);
+                            try (Instantiator insty1 = new Instantiator(others, best[firstVar]);
 					Instantiator insty2 = new Instantiator(others,
 							best[secondVar])) {
 				for (ByteString val1 : instantiations.keySet()) {
-					insty1.instantiate(val1);
-					for (ByteString val2 : instantiations.get(val1)) {
-						result.addAll(selectDistinct(variable,
+					
+                                        if (contains(best[secondVar], others)) {
+                                            insty1.instantiate(val1);
+                                            for (ByteString val2 : instantiations.get(val1)) {
+                                            	result.addAll(selectDistinct(variable,
 								insty2.instantiate(val2)));
-					}
+                                            }
+                                        } else {
+                                            result.addAll(selectDistinct(variable,
+								insty1.instantiate(val1)));
+                                        }
 				}
-			}
+                            }
+			} else {
+                            instantiations = resultsTwoVariables(secondVar, firstVar, best);
+                            try (Instantiator insty1 = new Instantiator(others, best[secondVar])) {
+                                for (ByteString val1 : instantiations.keySet()) {
+                                    result.addAll(selectDistinct(variable,
+					insty1.instantiate(val1)));
+                                }
+                            }
+                        }
 			break;
 		case 3:
 		default:

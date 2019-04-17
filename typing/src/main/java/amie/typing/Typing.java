@@ -148,7 +148,6 @@ public class Typing {
         options.addOption(popularityOpt);
         options.addOption(outputThresholdOpt);
         options.addOption(snapshotOpt);
-        options.addOption(cacheOpt);
         options.addOption(typesOpt);
         options.addOption(nThreadOpt);
         options.addOption(supportThresholdOpt);
@@ -233,9 +232,6 @@ public class Typing {
 
         KB dataSource = new SimpleTypingKB();
 
-        if (cli.hasOption("c")) {
-            dataSource.countCacheEnabled = true;
-        }
 
         if (cli.hasOption("d")) {
             delimiter = cli.getOptionValue("d");

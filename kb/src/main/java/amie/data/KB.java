@@ -2760,6 +2760,7 @@ public class KB {
 				if (!t1[1].equals(t2[1]) || numVariables(t1) != 2
 						|| numVariables(t2) != 2)
 					return null;
+                                        //continue;
 
 				if (!t1[0].equals(t2[0]) && t1[2].equals(t2[2])) {
 					return new int[] { 2, 0, idx1, idx2 };

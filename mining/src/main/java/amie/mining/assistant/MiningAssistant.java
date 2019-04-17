@@ -972,7 +972,7 @@ public class MiningAssistant {
 		double estimatedPCA = (double)candidate.getSupport() / denominator;
 		candidate.setPcaEstimation(estimatedPCA);
 		if (estimatedPCA < this.minPcaConfidence) {
-			if (!this.verbose) {
+			if (this.verbose) {
 				System.err.println("Query " + candidate + " discarded by functionality heuristic with ratio " + estimatedPCA);
 			}							
 			return false;

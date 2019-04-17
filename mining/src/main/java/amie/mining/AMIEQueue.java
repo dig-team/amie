@@ -44,6 +44,7 @@ public final class AMIEQueue {
 		}
 		this.generation++;
 		this.next = new LinkedHashSet<>();
+               this.done = false;
 	}
 	
 	/**
@@ -75,7 +76,11 @@ public final class AMIEQueue {
 	 * @return An object or null if the queue is empty.
 	 * @throws InterruptedException
 	 */
-	public Rule dequeue() throws InterruptedException {
+	/*
+        // Warning: This version is not protected against spurious wakeup and
+        // will kill thread if a new generation is too small (even if the next
+        // may be larger)
+        public Rule dequeue() throws InterruptedException {
 		lock.lock();
 		Rule item = null;
 	    if (current.isEmpty()) {
@@ -100,7 +105,36 @@ public final class AMIEQueue {
 		lock.unlock();
 	    return item;
 	}
+        */
+        
+        private boolean done = false;
 	
+        public Rule dequeue() throws InterruptedException {
+            lock.lock();
+            Rule item = null;
+            while (current.isEmpty() && !done) {
+                ++waitingThreads;
+                if (waitingThreads < maxThreads) {
+                    empty.await();
+                    --waitingThreads;
+                } else {
+                    if (next.isEmpty()) {
+                        done = true;
+                    } else {
+                        nextGeneration();
+                    }
+                    --waitingThreads;
+                    empty.signalAll();
+                }
+            }
+            if (done) {
+                item = null;
+            } else {
+                item = poll();
+            }
+            lock.unlock();
+            return item;
+        }
 	/**
 	 * Retrieves and removes an item from the current queue.
 	 * @return

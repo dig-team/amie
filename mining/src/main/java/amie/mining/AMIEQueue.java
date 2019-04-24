@@ -20,6 +20,7 @@ import amie.rules.Rule;
  */
 public final class AMIEQueue {
 	private final Lock lock = new ReentrantLock(); 
+        private final Lock qlock = new ReentrantLock();
 	
 	private final Condition empty = lock.newCondition(); 
 	
@@ -52,10 +53,10 @@ public final class AMIEQueue {
 	 * @param o
 	 */
 	public void queue(Rule o) {
-		lock.lock();
+		qlock.lock();
 		o.setGeneration(generation);
 		next.add(o);
-		lock.unlock();		
+		qlock.unlock();
 	}
 	
 	/**
@@ -63,12 +64,12 @@ public final class AMIEQueue {
 	 * @param rules
 	 */
 	public void queueAll(Collection<Rule> rules) {
-		lock.lock();
+		qlock.lock();
 		for (Rule r : rules) {
 			r.setGeneration(generation);
 			next.add(r);			
 		}
-		lock.unlock();					
+		qlock.unlock();
 	}
 	
 	/**

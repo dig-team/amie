@@ -1960,7 +1960,7 @@ public class KB {
 	 * @param query The list of triple patterns 
 	 **/
 	public long countDistinct(CharSequence variable, List<CharSequence[]> query) {
-		return (countDistinct(compress(variable), triples(query)));
+		return (long) (selectDistinct(variable, query).size());
 	}
 
 	/** returns the number of instances that fulfill a certain condition */
@@ -2829,13 +2829,34 @@ public class KB {
 		case 1:
 			return (new IntHashMap<ByteString>(resultsOneVariable(triple)));
 		case 2:
-			int pos2 = -1;
-			switch (pos) {
-			case 0: pos2 = (isVariable(triple[2])) ? 2 : 1; break; // We want the most frequent subjects
-			case 1: pos2 = (isVariable(triple[2])) ? 2 : 0; break; // We want the most frequent predicates
-			case 2: pos2 = (isVariable(triple[1])) ? 1 : 0; break; // we want the most frequent objects
-			}
-			return (new IntHashMap<ByteString>(resultsTwoVariables(pos, pos2, triple)));
+                        switch (pos) {
+			case 0: // We want the most frequent subjects
+ 				// ?x loves ?y
+ 				if (isVariable(triple[2]))
+ 					return (new IntHashMap<ByteString>(get(
+ 							relation2subject2object, triple[1])));
+ 				// ?x ?r Elvis
+ 				else
+ 					return (new IntHashMap<ByteString>(get(
+ 							object2subject2relation, triple[2])));
+ 			case 1: // We want the most frequent predicates
+ 				// Elvis ?r ?y
+ 				if (isVariable(triple[2]))
+ 					return (new IntHashMap<ByteString>(get(
+ 							subject2relation2object, triple[0])));
+ 				// ?x ?r Elvis
+ 				else
+ 					return new IntHashMap<ByteString>(get(
+ 							object2relation2subject, triple[2]));
+ 			case 2: // we want the most frequent objects
+ 				// Elvis ?r ?y
+ 				if (isVariable(triple[1]))
+ 					return new IntHashMap<ByteString>(get(
+ 							subject2object2relation, triple[0]));
+ 				// ?x loves ?y
+ 				return (new IntHashMap<ByteString>(get(
+ 						relation2object2subject, triple[1])));
+                    }
 		case 3:
 			return (pos == 0 ? subjectSize : pos == 1 ? relationSize
 					: objectSize);

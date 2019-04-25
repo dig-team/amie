@@ -358,9 +358,6 @@ public class AMIE {
                     // Check if the rule meets the language bias and confidence thresholds and
                     // decide whether to output it.
                     boolean outputRule = false;
-                    if (currentRule.getBodySize() > 0 && (currentRule.getHeadRelation().equals(KB.EXISTSstr) || currentRule.getHeadRelation().equals(KB.EXISTSINVstr))) {
-                    	assert true;
-                    }
                     if (assistant.shouldBeOutput(currentRule)) {
                         boolean ruleSatisfiesConfidenceBounds
                                 = assistant.calculateConfidenceBoundsAndApproximations(currentRule);

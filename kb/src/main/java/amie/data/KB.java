@@ -1808,21 +1808,33 @@ public class KB {
 		case 2:
 			int firstVar = firstVariablePos(best);
 			int secondVar = secondVariablePos(best);
-			Map<ByteString, IntHashMap<ByteString>> instantiations = resultsTwoVariables(
-					firstVar, secondVar, best);
 			List<ByteString[]> otherTriples = remove(bestPos, triples);
-			try (Instantiator insty1 = new Instantiator(otherTriples,
-					best[firstVar]);
-					Instantiator insty2 = new Instantiator(otherTriples,
-							best[secondVar])) {
+                        Map<ByteString, IntHashMap<ByteString>> instantiations;
+                        if (contains(best[firstVar], otherTriples) && contains(best[secondVar], otherTriples)) {
+                            instantiations = resultsTwoVariables(firstVar, secondVar, best);
+                            try (Instantiator insty1 = new Instantiator(otherTriples,
+                                            best[firstVar]);
+                                            Instantiator insty2 = new Instantiator(otherTriples,
+                                                            best[secondVar])) {
 				for (ByteString val1 : instantiations.keySet()) {
-					insty1.instantiate(val1);
-					for (ByteString val2 : instantiations.get(val1)) {
-						if (existsBS1(insty2.instantiate(val2)))
-							return (true);
-					}
+                                    insty1.instantiate(val1);
+                                    for (ByteString val2 : instantiations.get(val1)) {
+					if (existsBS1(insty2.instantiate(val2)))
+                                            return (true);
+                                    }
 				}
-			}
+                            }
+                        } else {
+                            int nonExistentialVariablePos = (contains(best[firstVar], otherTriples)) ? firstVar : secondVar;
+                            int existentialVariablePos = (contains(best[firstVar], otherTriples)) ? secondVar : firstVar;
+                            instantiations = resultsTwoVariables(nonExistentialVariablePos, existentialVariablePos, best);
+                            try (Instantiator insty1 = new Instantiator(otherTriples, best[nonExistentialVariablePos])) {
+                                for (ByteString val1 : instantiations.keySet()) {
+                                    if (existsBS1(insty1.instantiate(val1)))
+					return (true);
+                                }
+                            }
+                        }
 			return (false);
 		case 3:
 		default:
@@ -1922,7 +1934,10 @@ public class KB {
 						.equals(variable) ? resultsTwoVariables(firstVar,
 						secondVar, best) : resultsTwoVariables(secondVar,
 						firstVar, best);
-				try (Instantiator insty = new Instantiator(query, variable)) {
+                                int otherVariable = best[firstVar].equals(variable) ? secondVar : firstVar;
+                                List<ByteString[]> otherTriples = remove(bestPos, query);
+				try (Instantiator insty = new Instantiator(
+                                        (contains(best[otherVariable], otherTriples)) ? query : otherTriples, variable)) {
 					for (ByteString val : instantiations.keySet()) {
 						if (existsBS1(insty.instantiate(val)))
 							result.add(val);
@@ -1963,8 +1978,8 @@ public class KB {
 		}
 
 		// If the variable is not in the most restrictive triple...
-		List<ByteString[]> others = remove(bestPos, query);
                 Map<ByteString, IntHashMap<ByteString>> instantiations;
+                List<ByteString[]> others = remove(bestPos, query);
 		switch (numVariables(best)) {
 		case 0:
 			return (selectDistinct(variable, others));
@@ -1981,30 +1996,26 @@ public class KB {
 			}
 			break;
 		case 2:
-			int firstVar = firstVariablePos(best);
-			int secondVar = secondVariablePos(best);
-                        if (contains(best[firstVar], others)) {
+                        int firstVar = firstVariablePos(best);
+                        int secondVar = secondVariablePos(best);
+                        if (contains(best[firstVar], others) && contains(best[secondVar], others)) {
                             instantiations = resultsTwoVariables(firstVar, secondVar, best);
                             try (Instantiator insty1 = new Instantiator(others, best[firstVar]);
-					Instantiator insty2 = new Instantiator(others,
-							best[secondVar])) {
-				for (ByteString val1 : instantiations.keySet()) {
-					
-                                        if (contains(best[secondVar], others)) {
-                                            insty1.instantiate(val1);
-                                            for (ByteString val2 : instantiations.get(val1)) {
-                                            	result.addAll(selectDistinct(variable,
-								insty2.instantiate(val2)));
-                                            }
-                                        } else {
-                                            result.addAll(selectDistinct(variable,
-								insty1.instantiate(val1)));
-                                        }
-				}
+                                    Instantiator insty2 = new Instantiator(others,
+                                         best[secondVar])) {
+                                for (ByteString val1 : instantiations.keySet()) {
+                                    insty1.instantiate(val1);
+                                    for (ByteString val2 : instantiations.get(val1)) {
+                                        result.addAll(selectDistinct(variable,
+                                                insty2.instantiate(val2)));
+                                    }
+                                }
                             }
 			} else {
-                            instantiations = resultsTwoVariables(secondVar, firstVar, best);
-                            try (Instantiator insty1 = new Instantiator(others, best[secondVar])) {
+                            int nonExistentialVariablePos = (contains(best[firstVar], others)) ? firstVar : secondVar;
+                            int existentialVariablePos = (contains(best[firstVar], others)) ? secondVar : firstVar;
+                            instantiations = resultsTwoVariables(nonExistentialVariablePos, existentialVariablePos, best);
+                            try (Instantiator insty1 = new Instantiator(others, best[nonExistentialVariablePos])) {
                                 for (ByteString val1 : instantiations.keySet()) {
                                     result.addAll(selectDistinct(variable,
 					insty1.instantiate(val1)));

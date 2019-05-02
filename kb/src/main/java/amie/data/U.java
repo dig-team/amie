@@ -105,16 +105,20 @@ public class U {
 		}		
 	}
 		
-	
+	public static KB loadFiles(String args[]) throws IOException {
+            return loadFiles(args, "\t");
+        }
 	/**
 	 * Returns a KB with the content of all the files referenced in the string array.
 	 * @param args
+         * @param delimiter
 	 * @return
 	 * @throws IOException
 	 */
-	public static KB loadFiles(String args[]) throws IOException {
+	public static KB loadFiles(String args[], String delimiter) throws IOException {
 		// Load the data
 		KB kb = new KB();
+                kb.setDelimiter(delimiter);
 		List<File> files = new ArrayList<File>();
 		for (int i = 0; i < args.length; ++i) {
 			files.add(new File(args[i]));

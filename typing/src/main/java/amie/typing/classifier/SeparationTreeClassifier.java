@@ -7,13 +7,17 @@ package amie.typing.classifier;
 
 import amie.data.KB;
 import amie.data.Schema;
+import amie.data.SimpleTypingKB;
 import amie.typing.heuristics.TypingHeuristic;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,23 +34,56 @@ import javatools.datatypes.IntHashMap;
 public class SeparationTreeClassifier extends SeparationClassifier {
     
     public Map<ByteString, SeparationTreeNode> index = new LinkedHashMap<>();
+    public boolean supportForTarget;
+    
+    public SimpleTypingKB localdb = null;
 
     public SeparationTreeClassifier(KB source, IntHashMap<ByteString> cS, Map<ByteString, IntHashMap<ByteString>> cIS) {
         super(source, cS, cIS);
+        supportForTarget = false;
+        if (db instanceof SimpleTypingKB) {
+            localdb = (SimpleTypingKB) db;
+        }
     }
 
     public SeparationTreeClassifier(KB source, File typeCountFile, File typeIntersectionCountFile) {
         super(source, typeCountFile, typeIntersectionCountFile);
+        supportForTarget = false;
+        if (db instanceof SimpleTypingKB) {
+            localdb = (SimpleTypingKB) db;
+        }
+    }
+    
+    public SeparationTreeClassifier(KB source, IntHashMap<ByteString> cS, Map<ByteString, IntHashMap<ByteString>> cIS, boolean supportForTarget) {
+        super(source, cS, cIS);
+        this.supportForTarget = supportForTarget;
+        if (db instanceof SimpleTypingKB) {
+            localdb = (SimpleTypingKB) db;
+        }
+    }
+
+    public SeparationTreeClassifier(KB source, File typeCountFile, File typeIntersectionCountFile, boolean supportForTarget) {
+        super(source, typeCountFile, typeIntersectionCountFile);
+        this.supportForTarget = supportForTarget;
+        if (db instanceof SimpleTypingKB) {
+            localdb = (SimpleTypingKB) db;
+        }
     }
     
     public void classify(List<ByteString[]> query, ByteString variable, int classSizeThreshold, int supportThreshold, double[] thresholds) throws IOException {
-        SeparationTreeNode root = new SeparationTreeNode(Schema.topBS);
-        index.put(Schema.topBS, root);
-        root.generate(supportThreshold, classSizeThreshold, query, variable);
-        computeStatistics(query, variable, classSizeThreshold);
-        createFiles(query, variable, thresholds);
-        computeClassification(thresholds);
-        close();
+        if (getStandardConfidenceWithThreshold(TypingHeuristic.typeL(Schema.topBS, variable), query, variable, supportThreshold, true) != 0) {
+            SeparationTreeNode root = new SeparationTreeNode(Schema.topBS);
+            index.put(Schema.topBS, root);
+            root.generate(supportThreshold, classSizeThreshold, query, variable);
+            if (index.size() < 2) {
+                return;
+            }
+            computeStatistics(query, variable, classSizeThreshold);
+            //printTree();
+            createFiles(query, variable, thresholds);
+            computeClassification(thresholds);
+            close();
+        }
     }
 
     private ArrayList<BufferedWriter> writers = new ArrayList<>();
@@ -55,6 +92,8 @@ public class SeparationTreeClassifier extends SeparationClassifier {
         if (query.size() > 1) throw new UnsupportedOperationException("Not supported yet.");
         ByteString[] singleton = query.get(0);
         String fnb = singleton[1].toString().substring(1, singleton[1].toString().length()-1) + ((singleton[2].equals(variable)) ? "-1" : "") + "_";
+        // Hack for sexism query
+        if (!KB.isVariable(singleton[2])) { fnb = singleton[2].toString().substring(1, singleton[2].toString().length()-1) + "_"; }
         for (int i = 0; i < thresholds.length; i++) {
             writers.add(new BufferedWriter(new FileWriter(fnb + Double.toString(Math.exp(-thresholds[i])))));
         }
@@ -88,10 +127,18 @@ public class SeparationTreeClassifier extends SeparationClassifier {
         }
         
         public void propagateMask(int mask) {
+            //System.err.println(className.toString());
             for (SeparationTreeNode c : children) {
                 c.thresholdMask = Math.max(c.thresholdMask, mask);
                 c.propagateMask(mask);
             }
+        }
+        
+        public void resetMask() {
+           for (SeparationTreeNode c : children) {
+                c.thresholdMask = 0;
+                c.resetMask();
+            } 
         }
     }
     
@@ -117,6 +164,9 @@ public class SeparationTreeClassifier extends SeparationClassifier {
         int i;
         while(!q.isEmpty()) {
             SeparationTreeNode n = q.poll();
+            //if (n.className.equals(Schema.topBS)) {
+            //    System.err.println("TOP sc: " + Double.toString(n.separationScore) + "\t" + Integer.toString(index.size()));
+            //}
             if (n.thresholdI > -1) continue;
             for(i = n.thresholdMask; i < thresholds.length; i++) {
                 if(n.separationScore < thresholds[i]) break;
@@ -130,16 +180,50 @@ public class SeparationTreeClassifier extends SeparationClassifier {
         }
     }
     
+    public void printTree() {
+        Deque<SeparationTreeNode> q = new LinkedList<>();
+        q.add(index.get(Schema.topBS));
+        String str = "";
+        int i;
+        while(!q.isEmpty()) {
+            str = "";
+            SeparationTreeNode n = q.pollLast();
+            if (n.thresholdMask > 80) System.exit(2);
+            for (i = 0; i < n.thresholdMask; i++) {
+                str += " ";
+            }
+            str += "|" + n.className.toString() + ": " + Double.toString(n.separationScore) + "\n";
+            System.err.println(str);
+            for (SeparationTreeNode c : n.children) {
+                c.thresholdMask = n.thresholdMask + 1;
+            }
+            //n.propagateMask(n.thresholdMask + 1);
+            q.addAll(n.children);
+        }
+        index.get(Schema.topBS).resetMask();
+    }
+    
     public void computeStatistics(List<ByteString[]> query, ByteString variable, int classSizeThreshold) {
         Set<ByteString> relevantClasses = index.keySet();
+        ByteString relation = (query.get(0)[0].equals(variable)) ? query.get(0)[1] : ByteString.of(query.get(0)[1].toString() + "-1");
 
         for (ByteString class1 : relevantClasses) {
             int c1size = classSize.get(class1);
+            Set<ByteString> c1phi = null;
+            
+            if (localdb != null) {
+                c1phi = new HashSet<>(localdb.relations.get(relation));
+                c1phi.retainAll(localdb.classes.get(class1));
+                if (c1phi.size() == c1size) {
+                    continue;
+                }
+            }
 
             List<ByteString[]> clause = TypingHeuristic.typeL(class1, variable);
             clause.addAll(query);
+            Set<ByteString> targetClasses = (supportForTarget) ? relevantClasses : classIntersectionSize.get(class1);
 
-            for (ByteString class2 : relevantClasses) {
+            for (ByteString class2 : targetClasses) {
                 assert (clause.size() == query.size() + 1);
                 if (class1 == class2) {
                     continue;
@@ -159,12 +243,12 @@ public class SeparationTreeClassifier extends SeparationClassifier {
                 } else if (c1size - c1c2size < classSizeThreshold) {
                     continue;
                 } else {
-                    Double s = getStandardConfidenceWithThreshold(TypingHeuristic.typeL(class2, variable), clause, variable, -1, true);
+                    Double s = (localdb == null) ? getStandardConfidenceWithThreshold(TypingHeuristic.typeL(class2, variable), clause, variable, -1, true) : 1.0 * SimpleTypingKB.countIntersection(c1phi, localdb.classes.get(class2)) / c1phi.size();
                     Double c1c2edge;
                     c1c2edge = Math.log((double) c1c2size / (c1size - c1c2size) * (1.0 - s) / s);
                     if (c1c2edge < 0) {
                         index.get(class1).separationScore = Math.min(index.get(class1).separationScore, c1c2edge);
-                    } else {
+                    } else if (index.containsKey(class2)) {
                         index.get(class2).separationScore = Math.min(index.get(class2).separationScore, -c1c2edge);
                     }
                 }

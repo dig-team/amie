@@ -17,7 +17,6 @@ import javatools.datatypes.Pair;
 import amie.data.KB;
 import amie.data.TransitiveTypesKB;
 import amie.data.Schema;
-import amie.data.KB.queryCache;
 import amie.mining.assistant.*;
 import amie.rules.Rule;
 
@@ -284,7 +283,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 		return true;
 	}
 	
-	public static ConcurrentHashMap<queryCache, Boolean> instantiationsCache = new ConcurrentHashMap<>(10000, (float)0.75, 40);
+	//public static ConcurrentHashMap<queryCache, Boolean> instantiationsCache = new ConcurrentHashMap<>(10000, (float)0.75, 40);
 	
 	public void getInstantiatedAtoms(Rule rule, double minSupportThreshold, Collection<Rule> output) {
 		if (!canAddInstantiatedAtoms()) {
@@ -306,11 +305,11 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 			return;
 		}
 		
-		queryCache qC = new queryCache(rule.getTriples(), Arrays.asList(lastTriplePattern[danglingPosition]));
-		if(instantiationsCache.containsKey(qC)) {
-			return;
-		}
-		instantiationsCache.put(qC, true);
+		//queryCache qC = new queryCache(rule.getTriples(), Arrays.asList(lastTriplePattern[danglingPosition]));
+		//if(instantiationsCache.containsKey(qC)) {
+		//	return;
+		//}
+		//instantiationsCache.put(qC, true);
 		
 		getInstantiatedAtoms(rule, rule, lastTriplePatternIndex, danglingPosition,
 					minSupportThreshold, output);

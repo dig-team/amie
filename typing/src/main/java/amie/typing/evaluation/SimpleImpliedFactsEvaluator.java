@@ -7,23 +7,23 @@ package amie.typing.evaluation;
 
 import amie.data.KB;
 import amie.data.Schema;
+import amie.data.SimpleTypingKB;
 import static amie.typing.classifier.SeparationClassifier.getOptions;
+import amie.typing.evaluation.ImpliedFactsEvaluator;
+import static amie.typing.evaluation.ImpliedFactsEvaluator.extractQueryArgs;
+import static amie.typing.evaluation.ImpliedFactsEvaluator.gsRelation;
+import static amie.typing.evaluation.ImpliedFactsEvaluator.readClassFile;
+import static amie.typing.evaluation.ImpliedFactsEvaluator.rwtr;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javatools.datatypes.ByteString;
 import javatools.datatypes.Pair;
-import javatools.filehandlers.FileLines;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -37,164 +37,64 @@ import org.apache.commons.cli.PosixParser;
  *
  * @author jlajus
  */
-public class ImpliedFactsEvaluator {
-
-    private KB db;
-    public Set<ByteString> queried;
-    public BlockingQueue<Pair<ByteString, String>> queryQ = new LinkedBlockingQueue<>();
-    public BlockingQueue<Pair<Pair<ByteString, String>, ImpliedFacts>> resultQ = new LinkedBlockingQueue<>();
-
-    public static final ByteString gsRelation = ByteString.of("<inGoldStandardOf>");
-
-    public static ByteString resultWithThresholdRelation(String method) {
-        return ByteString.of("<inResult_" + method + ">");
-    }
-
-    public static ByteString rwtr(String t) {
-        return resultWithThresholdRelation(t);
-    }
-
-    public ImpliedFactsEvaluator(KB db) {
+public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
+    
+    private SimpleTypingKB db;
+    public Map<ByteString, Set<ByteString>> gs;
+    public Map<ByteString, Map<String, Set<ByteString>>> query2classes;
+    
+    public SimpleImpliedFactsEvaluator(SimpleTypingKB db) {
+        super(db);
         this.db = db;
-        queried = new HashSet<>();
+        this.gs = new HashMap<>();
+        this.query2classes = new HashMap<>();
     }
     
-//    public ImpliedFactsEvaluator(KB db, Map<ByteString, Set<ByteString>> goldStandard,
-//            Map<ByteString, Map<String, Set<ByteString>>> results) {
-//        this.db = db;
-//        queried = new HashSet<>(goldStandard.keySet());
-//        for (ByteString q : queried) {
-//            for (ByteString gsResult : goldStandard.get(q)) {
-//                for (ByteString e : Schema.getAllEntitiesForType(db, gsResult)) {
-//                    db.add(e, gsRelation, q);
-//                }
-//            }
-//            if (!results.containsKey(q)) { continue; }
-//            for (String t : results.get(q).keySet()) {
-//                queryQ.add(new Pair<>(q, t));
-//                for (ByteString rtClass : results.get(q).get(t)) {
-//                    for (ByteString e : Schema.getAllEntitiesForType(db, rtClass)) {
-//                        db.add(e, rwtr(t), q);
-//                    }
-//                }
-//            }
-//        }
-//    }
-    
+    @Override
     public void addGS(ByteString relation, Set<ByteString> classes) {
         queried.add(relation);
+        Set<ByteString> gsr = new HashSet<>();
+        gs.put(relation, gsr);
         for (ByteString rtClass : classes) {
-            for (ByteString e : Schema.getAllEntitiesForType(db, rtClass)) {
-                db.add(e, gsRelation, relation);
-            }
+            gsr.addAll(db.classes.get(rtClass));
         }
     }
     
+    @Override
     public void addResult(ByteString relation, String method, Set<ByteString> classes) {
         queryQ.add(new Pair<>(relation, method));
-        for (ByteString rtClass : classes) {
-            for (ByteString e : Schema.getAllEntitiesForType(db, rtClass)) {
-                db.add(e, rwtr(method), relation);
-            }
+        Map<String, Set<ByteString>> method2classes = query2classes.get(relation);
+        if (method2classes == null) {
+            query2classes.put(relation, method2classes = new HashMap<>());
         }
+        method2classes.put(method, classes);
     }
     
-    /**
-     * TP: True Positive
-     * PS: Predicted size (TP + FP)
-     * GS: Gold Standard size (TP + FN)
-     * NFx: same with only new facts deduced.
-     */
-    public class ImpliedFacts {
-        public long TP, PS, GS, NFTP, NFPS, NFGS;
-        public ImpliedFacts(long tp, long ps, long gs, long nftp, long nfps, long nfgs) {
-            TP=tp; PS=ps; GS=gs; 
-            NFTP=nftp; NFPS=nfps; NFGS=nfgs; }
-    }
-    
+    @Override
     public ImpliedFacts computeImpliedFacts(ByteString query, String method) {
-        throw new UnsupportedOperationException("No longer...");
-//        if (!queried.contains(query)) {
-//            //return new ImpliedFacts(0, 0, 0, 0);
-//        }
-//        final ByteString x = ByteString.of("?x");
-//        List<ByteString[]> gsSizeQ = KB.triples(KB.triple(x, gsRelation, query));
-//        List<ByteString[]> rtSizeQ = KB.triples(KB.triple(x, rwtr(method), query));
-//        long gsSize = db.countDistinct(x, gsSizeQ);
-//        long rtSize = db.countDistinct(x, rtSizeQ);
-//        gsSizeQ.addAll(rtSizeQ);
-//        long tp = db.countDistinct(x, gsSizeQ);
-//        String[] q = query.toString().split("-1");
-//        if (q.length == 1) {
-//            gsSizeQ.add(KB.triple(x, ByteString.of(query), ByteString.of("?y")));
-//        } else {
-//            gsSizeQ.add(KB.triple(ByteString.of("?y"), ByteString.of(q[0]), x));
-//        }
-//        long oldFacts = db.countDistinct(x, gsSizeQ);
-//        //return new ImpliedFacts(tp, rtSize - tp, gsSize - tp, tp - oldFacts);
-    }
-    
-    public class ImpliedFactsMTEvaluator extends Thread {
-        @Override
-        public void run() {
-            Pair<ByteString, String> qP;
-            while(true) {
-                try {
-                    qP = queryQ.take();
-                    if (qP.first.equals(ByteString.of("STOP"))) break;
-                    resultQ.put(new Pair<>(qP, computeImpliedFacts(qP.first, qP.second)));
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(ImpliedFactsEvaluator.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
+        System.err.println("Computing " + query.toString() + ":" + method);
+        if (!queried.contains(query)) {
+            return new ImpliedFacts(0, 0, 0, 0, 0, 0);
         }
-    }
-
-    public void computeImpliedFactsMT(int nThreads) throws InterruptedException {
-        int nProcessors = Runtime.getRuntime().availableProcessors();
-        nThreads = Math.max(1, Math.min(nThreads, nProcessors - 1));
-        
-        List<Thread> threadList = new ArrayList<>(nThreads);
-        for (int i = 0; i < nThreads; i++) {
-            queryQ.add(new Pair<>(ByteString.of("STOP"), ""));
-            threadList.add(new ImpliedFactsMTEvaluator());
+        long gsSize = gs.get(query).size();
+        long oldGSFacts = SimpleTypingKB.countIntersection(gs.get(query), db.relations.get(query));
+        if (!query2classes.containsKey(query) || !query2classes.get(query).containsKey(method)) {
+            return new ImpliedFacts(0, 0, gsSize, 0, 0, gsSize - oldGSFacts);
         }
-        
-        for (Thread thread : threadList) {
-            thread.start();
+        Set<ByteString> rtSet = new HashSet<>((int) gsSize);
+        for (ByteString c : query2classes.get(query).get(method)) {
+            rtSet.addAll(db.classes.get(c));
         }
-        
-        for (Thread thread : threadList) {
-            thread.join();
-        }
-    }
-    
-    public static Pair<ByteString, String> extractQueryArgs(String path) {
-        String[] t = path.split("/");
-        String filename = t[t.length - 1];
-        filename = filename.replace("_cleaned", "");
-        String[] fns = filename.split("_");
-        if (fns.length == 2 && t.length > 1) {
-            return new Pair<>(ByteString.of("<" + (fns[0].contains("-1")? (fns[0].replace("-1", "") + ">-1") : (fns[0] + ">"))), t[t.length - 2] + "_" + fns[1]);
-        } else if (fns.length == 3) {
-            return new Pair<>(ByteString.of("<" + (fns[1].contains("-1")? (fns[1].replace("-1", "") + ">-1") : (fns[1] + ">"))), fns[0] + "_" + fns[2]);
-        } else {
-            System.err.println("ERROR parsing \"" + path + "\"");
-            return null;
-        }
-    }
-    
-    public static Set<ByteString> readClassFile(String path) throws IOException {
-        Set<ByteString> res = new LinkedHashSet<>();
-        for (String line : new FileLines(new File(path), "UTF-8", null)) {
-            res.add(ByteString.of(line.trim()));
-        }
-        return res;
+        long rtSize = rtSet.size();
+        Set<ByteString> tpSet = new HashSet<>((rtSize < gsSize) ? rtSet : gs.get(query));
+        tpSet.retainAll((rtSize >= gsSize) ? rtSet : gs.get(query));
+        long tp = tpSet.size();
+        long oldTPFacts = SimpleTypingKB.countIntersection(tpSet, db.relations.get(query));
+        long oldPSFacts = SimpleTypingKB.countIntersection(rtSet, db.relations.get(query));
+        return new ImpliedFacts(tp, rtSize, gsSize, tp - oldTPFacts, rtSize - oldPSFacts, gsSize - oldGSFacts);
     }
     
     public static void main(String[] args) throws IOException, InterruptedException {
-        Map<ByteString, Set<ByteString>> relation2classGS = new HashMap<>();
-        
 
         CommandLine cli = null;
 	HelpFormatter formatter = new HelpFormatter();
@@ -268,15 +168,15 @@ public class ImpliedFactsEvaluator {
         }
         
         // Load the KB
-        KB dataSource = new KB();
+        SimpleTypingKB dataSource = new SimpleTypingKB();
         dataSource.setDelimiter(delimiter);
         dataSource.load(dataFiles);
-        ImpliedFactsEvaluator eval = new ImpliedFactsEvaluator(dataSource);
+        SimpleImpliedFactsEvaluator eval = new SimpleImpliedFactsEvaluator(dataSource);
         
         // Load the counts
         String[] gsFiles = cli.getOptionValues("gs");
         for (int i = 0; i < gsFiles.length; i++) {
-            eval.addGS(ByteString.of("<" + gsFiles[i].split("_")[1] + ((gsFiles[i].split("_")[2].equals("y")) ? "-1" : "") + ">"), readClassFile(gsFiles[i]));
+            eval.addGS(ByteString.of("<" + gsFiles[i].split("_")[1] + ">" + ((gsFiles[i].split("_")[2].equals("y")) ? "-1" : "")), readClassFile(gsFiles[i]));
         }
         
         String[] rsFiles = cli.getOptionValues("r");

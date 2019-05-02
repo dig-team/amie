@@ -12,6 +12,12 @@ public class StdConfHeuristic extends TypingHeuristic {
 		name = "StdConf";
 		// TODO Auto-generated constructor stub
 	}
+        
+        public StdConfHeuristic(KB kb, int supportThreshold) {
+		super(kb, supportThreshold);
+		name = "StdConf";
+		// TODO Auto-generated constructor stub
+	}
 
 	@Override
 	public double evaluate(ByteString type, List<ByteString[]> clause,

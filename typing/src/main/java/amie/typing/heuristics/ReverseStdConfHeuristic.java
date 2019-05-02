@@ -14,6 +14,12 @@ public class ReverseStdConfHeuristic extends TypingHeuristic {
 		name = "RevConf";
 		// TODO Auto-generated constructor stub
 	}
+        
+        public ReverseStdConfHeuristic(KB kb, int supportThreshold) {
+		super(kb, supportThreshold);
+		name = "RevConf";
+		// TODO Auto-generated constructor stub
+	}
 
 	@Override
 	public double evaluate(ByteString type, List<ByteString[]> clause,

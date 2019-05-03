@@ -764,6 +764,11 @@ public class AMIE {
         Option multilingual = OptionBuilder.withArgName("multilingual")
         		.withDescription("Parse labels language as new facts")
         		.create("mlg");
+        
+        Option delimOpt = OptionBuilder.withArgName("delimiter")
+        		.withDescription("Separator in input files (default: TAB)")
+                        .hasArg()
+        		.create("d");
 
         options.addOption(stdConfThresholdOpt);
         options.addOption(supportOpt);
@@ -798,6 +803,7 @@ public class AMIE {
         //options.addOption(enableCountCache);
         options.addOption(optimAdaptiveInstantiations);
         options.addOption(multilingual);
+        options.addOption(delimOpt);
 
         try {
             cli = parser.parse(options, args);
@@ -987,6 +993,11 @@ public class AMIE {
         if (cli.hasOption("mlg")) {
             dataSource = new MultilingualKB();
         }
+        
+        if (cli.hasOption("d")) {
+            dataSource.setDelimiter(cli.getOptionValue("d"));
+        }
+        
         long timeStamp1 = System.currentTimeMillis();
         dataSource.load(dataFiles);
         long timeStamp2 = System.currentTimeMillis();

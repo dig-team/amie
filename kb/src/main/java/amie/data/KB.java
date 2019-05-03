@@ -3027,16 +3027,6 @@ public class KB {
 		return (b.toString());
 	}
 
-        private static final Pattern uri = Pattern.compile("<http(.*/)?(.*)>");
-    
-        public static CharSequence shortURI(CharSequence longURI) {
-            Matcher m = uri.matcher(longURI);
-            if(m.matches()) {
-                return "<" + m.group(2) + ">";
-            }
-            return longURI;
-        }
-        
 	/** Compresses a string to an internal string */
 	public static ByteString compress(CharSequence s) {
 		if (s instanceof ByteString)
@@ -3045,7 +3035,7 @@ public class KB {
 		int pos = str.indexOf("\"^^");
 		if (pos != -1)
 			str = str.substring(0, pos + 1);
-		return (ByteString.of(shortURI(str)));
+		return (ByteString.of(str));
 	}
 
 	/** Makes a list of triples */

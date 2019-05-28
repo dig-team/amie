@@ -2956,6 +2956,28 @@ public class KB {
 
         return (result);
     }
+    
+    /**
+     * returns the number of distinct pairs (var1,var2) for the query
+     */
+    public long countDistinctPairsUpTo(long upperBound, ByteString var1, ByteString var2,
+            List<ByteString[]> query) {
+
+        // Go for the standard plan
+        long result = 0;
+
+        try (Instantiator insty1 = new Instantiator(query, var1)) {
+            Set<ByteString> bindings = selectDistinct(var1, query);
+            for (ByteString val1 : bindings) {
+                result += countDistinct(var2, insty1.instantiate(val1));
+                if (result > upperBound) {
+                    break;
+                }
+            }
+        }
+
+        return (result);
+    }
 
 	/** Can instantiate a variable in a query with a value */
 	public static class Instantiator implements Closeable {

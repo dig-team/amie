@@ -3,3 +3,5 @@
 *~
 .project
 .settings/
+bin/
+kb/nb-configuration.xml

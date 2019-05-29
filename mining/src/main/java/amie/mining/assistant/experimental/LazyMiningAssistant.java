@@ -148,4 +148,9 @@ public class LazyMiningAssistant extends DefaultMiningAssistant {
         return rule.getPcaConfidence();
     }
 
+    	@Override
+	public String getDescription() {
+       	return "Lazy mining assistant that stops counting "
+       			+ "when the denominator gets too high";
+	}
 }

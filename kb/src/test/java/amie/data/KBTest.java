@@ -3,7 +3,7 @@ package amie.data;
 import java.util.Map;
 import java.util.Set;
 
-import amie.data.KB;
+import java.util.List;
 import javatools.datatypes.ByteString;
 import javatools.datatypes.IntHashMap;
 import junit.framework.TestCase;
@@ -87,5 +87,30 @@ public class KBTest extends TestCase {
 		assertTrue(values.containsKey(ByteString.of("<wasBornIn>")));
 		assertTrue(values.get(ByteString.of("<wasBornIn>")).containsKey(ByteString.of("<Paris>")));
 	}
+        
+        public void testConnectedComponent() {
+            ByteString[] atom1, atom2, atom3;
+            atom1 = KB.triple("?x", "a", "?y");
+            atom2 = KB.triple("?x", "b", "?z");
+            atom3 = KB.triple("?y", "c", "E");
+            
+            List<ByteString[]> query = KB.triples(atom1, atom2, atom3);
+            assertEquals(KB.connectedComponent(query, ByteString.of("?y"), ByteString.of("?x")),
+                    KB.triples(atom1, atom3));
+            assertEquals(KB.connectedComponent(query, ByteString.of("?y"), ByteString.of("?z")),
+                    KB.triples(atom1, atom2, atom3));
+            assertEquals(KB.connectedComponent(query, ByteString.of("?x"), ByteString.of("?y")),
+                    KB.triples(atom1, atom2));
+            assertEquals(KB.connectedComponent(query, ByteString.of("?x"), ByteString.of("?z")),
+                    KB.triples(atom1, atom2, atom3));
+            assertEquals(KB.connectedComponent(query, ByteString.of("?z"), ByteString.of("?x")),
+                    KB.triples(atom2));
+            assertEquals(KB.connectedComponent(query, ByteString.of("?z"), ByteString.of("?y")),
+                    KB.triples(atom1, atom2));
+            assertEquals(KB.connectedComponent(query, ByteString.of("?w"), ByteString.of("a")),
+                    KB.triples());
+            assertEquals(KB.connectedComponent(query, ByteString.of("?x"), ByteString.of("?w")),
+                    KB.triples(atom1, atom2, atom3));
+        }
 
 }

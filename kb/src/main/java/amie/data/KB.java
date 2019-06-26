@@ -2937,7 +2937,55 @@ public class KB {
 
 		return result;
 	}
-
+        
+        /**
+         * Rewrite the query removing atoms connected to fromVariable only via 
+         * removeVariable.
+         * 
+         * In selectDistinctPair we first select all the possible instantiation
+         * of the first variable and then the instantiations of the second.
+         * During this second step we can ignore atoms connected only through 
+         * the first variable.
+         * 
+         * A test-case exist in amie.data.KBTest
+         * @param query The query to rewrite (unaltered)
+         * @param fromVariable 
+         * @param removeVariable
+         * @return New rewritten query
+         */
+    public static List<ByteString[]> connectedComponent(List<ByteString[]> query, 
+            ByteString fromVariable, ByteString removeVariable) {
+        Set<ByteString> connectedVariables = new HashSet<>();
+        connectedVariables.add(fromVariable);
+        boolean fixedpoint;
+        do {
+            fixedpoint = true;
+            for (ByteString[] atom : query) {
+                for (int conpos = 0; conpos < 3; conpos++) {
+                    if (connectedVariables.contains(atom[conpos])) {
+                        for (int newpos = 0; newpos < 3; newpos++) {
+                            if (newpos != conpos && isVariable(atom[newpos])
+                                    && !connectedVariables.contains(atom[newpos])
+                                    && !removeVariable.equals(atom[newpos])) {
+                                connectedVariables.add(atom[newpos]);
+                                fixedpoint = false;
+                            }
+                        }
+                    }
+                }
+            }
+        } while (!fixedpoint);
+        List<ByteString[]> result = new ArrayList<>();
+        for (ByteString[] atom : query) {
+            for (int pos=0; pos < 3; pos++) {
+                if (connectedVariables.contains(atom[pos])) {
+                    result.add(atom);
+                    break;
+                }
+            }
+        }
+        return result;
+    }
     /**
      * returns the number of distinct pairs (var1,var2) for the query
      */
@@ -2947,12 +2995,20 @@ public class KB {
         // Go for the standard plan
         long result = 0;
 
-        try (Instantiator insty1 = new Instantiator(query, var1)) {
+        //System.err.println("countDistinctPair (" + var1.toString() + "," + var2.toString() + "): " + toString(query));
+        try (Instantiator insty1 = new Instantiator(connectedComponent(query, var2, var1), var1)) {
             Set<ByteString> bindings = selectDistinct(var1, query);
             for (ByteString val1 : bindings) {
+                //System.err.println(var1.toString() + "=" + val1.toString() + ": " + toString(query));
+                //Set<ByteString> values = selectDistinct(var2, insty1.instantiate(val1));
+                //for (ByteString v : values) {
+                //    System.err.println("(" + var1.toString() + "," + var2.toString() + ") = (" + val1.toString() + "," + v.toString() + ")");
+                //}
                 result += countDistinct(var2, insty1.instantiate(val1));
+                //System.err.println("currentResult: " + Long.toString(result));
             }
         }
+        //System.err.println("countDistinctPair (" + var1.toString() + "," + var2.toString() + "): " + toString(query) + "= " + Long.toString(result));
 
         return (result);
     }

@@ -6,6 +6,7 @@
 package amie.typing.classifier;
 
 import amie.data.KB;
+import amie.data.SetU;
 import amie.data.SimpleTypingKB;
 import java.io.File;
 import java.util.HashSet;
@@ -14,7 +15,6 @@ import java.util.Map;
 import java.util.Set;
 import javatools.datatypes.ByteString;
 import javatools.datatypes.IntHashMap;
-import jsc.contingencytables.*;
 import org.apache.commons.math3.distribution.HypergeometricDistribution;
 
 /**
@@ -136,7 +136,7 @@ public class SeparationPTreeClassifier extends SeparationTreeClassifier {
                 } else if (c1size - c1c2size < classSizeThreshold) {
                     continue;
                 } else {
-                    int c1c2phi = (int) SimpleTypingKB.countIntersection(c1phi, localdb.classes.get(class2));
+                    int c1c2phi = (int) SetU.countIntersection(c1phi, localdb.classes.get(class2));
                     assert(c1c2size > 0);
                     assert(c1size > c1c2size);
 //                    if (Double.isNaN(Math.log(fisherTest(c1c2phi, c1phi.size(), c1size - c1phi.size(), c1c2size, true))) 

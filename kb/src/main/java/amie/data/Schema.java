@@ -547,7 +547,7 @@ public class Schema {
                 } else {
                     List<ByteString[]> query = KB.triples(KB.triple("?s", typeRelation, "?o"));
                     types2Instances = new HashMap<>();
-                    Map<ByteString, IntHashMap<ByteString>> ts = 
+                    Map<ByteString, Set<ByteString>> ts = 
                             kb.selectDistinct(ByteString.of("?o"), ByteString.of("?s"), query);
                     IntHashMap<ByteString> result = new IntHashMap<>();
                     for (ByteString type : ts.keySet()) {
@@ -580,7 +580,7 @@ public class Schema {
 		return result;
             }
 		List<ByteString[]> query = KB.triples(KB.triple("?s", typeRelation, "?o1"), KB.triple("?s", typeRelation, "?o2"));
-		Map<ByteString, Map<ByteString, IntHashMap<ByteString>>> types2types2Instances = 
+		Map<ByteString, Map<ByteString, Set<ByteString>>> types2types2Instances = 
 				kb.selectDistinct(ByteString.of("?o1"), ByteString.of("?o2"), ByteString.of("?s"), query);
 		
 		for (ByteString type1 : types2types2Instances.keySet()) {

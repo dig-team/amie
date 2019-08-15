@@ -80,13 +80,13 @@ public class FactsFilter {
 			subjects.addAll(factsSource.selectDistinct(triple[2], KB.triples(KB.triple(triple))));
 		
 		for(ByteString subject: subjects){
-			Map<ByteString, IntHashMap<ByteString>> subjectsMap = 
+			Map<ByteString, Set<ByteString>> subjectsMap = 
 					trimSource.resultsTwoVariables(ByteString.of("?p"), ByteString.of("?o"),
 							KB.triple(subject, ByteString.of("?p"), ByteString.of("?o")));
 			if(subjectsMap == null) continue;			
 			Set<ByteString> predicates = subjectsMap.keySet(); 
 			for(ByteString predicate: predicates){
-				IntHashMap<ByteString> objects = subjectsMap.get(predicate);
+				Set<ByteString> objects = subjectsMap.get(predicate);
 				for(ByteString object: objects){
 					out.append(subject);
 					out.append('\t');

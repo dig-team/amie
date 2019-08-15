@@ -135,7 +135,7 @@ public class PCAFalseFactsSampler {
 			query.add(triple.clone());
 		
 		if(KB.numVariables(rule.getHead()) == 2){
-			Map<ByteString, IntHashMap<ByteString>> bindingsTwoVars = db.difference(head[0], head[2], query, rule.getTriples());
+			Map<ByteString, Set<ByteString>> bindingsTwoVars = db.difference(head[0], head[2], query, rule.getTriples());
 			for(ByteString subject: bindingsTwoVars.keySet()){
 				for(ByteString object: bindingsTwoVars.get(subject)){
 					result.add(new Triple<ByteString, ByteString, ByteString>(subject, relation, object));

@@ -26,7 +26,7 @@ public class QueryKB {
 			System.out.println(result);
 			System.out.println(result.size() + " results");
 		} else if (variableParts.length == 2) {
-			Map<ByteString, IntHashMap<ByteString>> result = kb.selectDistinct(ByteString.of(variableParts[0].trim()), 
+			Map<ByteString, Set<ByteString>> result = kb.selectDistinct(ByteString.of(variableParts[0].trim()), 
 					ByteString.of(variableParts[1].trim()), selectionAtoms);
 			System.out.println(result);
 			System.out.println(KB.aggregate(result) + " results");			

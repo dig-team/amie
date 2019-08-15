@@ -72,21 +72,21 @@ public class EntityFilter {
 			line = bufferedReader.readLine();
 		}
 				
-		Map<ByteString, Map<ByteString, IntHashMap<ByteString>>> factSourcesMap = 
+		Map<ByteString, Map<ByteString, Set<ByteString>>> factSourcesMap = 
 				factsSource.resultsThreeVariables(ByteString.of("?s"), ByteString.of("?p"), ByteString.of("o"), 
 						KB.triple("?s", "?p", "?o"));
 		Set<ByteString> subjects = factSourcesMap.keySet();
 		for(ByteString subject: subjects){
 			if(seeds.contains(subject)){
 				//Then produce the facts
-				Map<ByteString, IntHashMap<ByteString>> subjectsMap = factSourcesMap.get(subject);
+				Map<ByteString, Set<ByteString>> subjectsMap = factSourcesMap.get(subject);
 				if(subjectsMap == null) continue;
 				
 				Set<ByteString> predicates = subjectsMap.keySet(); 
 				for(ByteString predicate: predicates){
-					IntHashMap<ByteString> objects = subjectsMap.get(predicate);
+					Set<ByteString> objects = subjectsMap.get(predicate);
 					for(ByteString object: objects){
-						int nTimes = objects.get(object);
+						int nTimes = 1;
 						for(int k = 0; k < nTimes; ++k){
 							out.append(subject);
 							out.append('\t');

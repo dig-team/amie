@@ -53,7 +53,7 @@ public class EntitiesRelationSampler {
 			
 			//Now take all the triples about this entity
 			List<ByteString[]> query = KB.triples(KB.triple(entity, ByteString.of("?p"), ByteString.of("?o")));
-			Map<ByteString, IntHashMap<ByteString>> predicateObjects = db.selectDistinct(ByteString.of("?p"), ByteString.of("?o"), query);
+			Map<ByteString, Set<ByteString>> predicateObjects = db.selectDistinct(ByteString.of("?p"), ByteString.of("?o"), query);
 			
 			for(ByteString relation: predicateObjects.keySet()){				
 				if(relationEntityCount.get(relation) >= maxOccurrencePerRelation){

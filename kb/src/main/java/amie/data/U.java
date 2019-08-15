@@ -38,8 +38,8 @@ public class U {
 		sourceEntities.addAll(source1.objectSize);
 		for(ByteString entity: sourceEntities){
 			//Print all facts of the source ontology
-			Map<ByteString, IntHashMap<ByteString>> tail1 = source1.subject2relation2object.get(entity);
-			Map<ByteString, IntHashMap<ByteString>> tail2 = source2.subject2relation2object.get(entity);
+			Map<ByteString, Set<ByteString>> tail1 = source1.subject2relation2object.get(entity);
+			Map<ByteString, Set<ByteString>> tail2 = source2.subject2relation2object.get(entity);
 			if(tail2 == null)
 				continue;
 						
@@ -60,7 +60,7 @@ public class U {
 			for(ByteString entity: source2.objectSize){
 				if(sourceEntities.contains(entity)) continue;
 				
-				Map<ByteString, IntHashMap<ByteString>> tail2 = source2.subject2relation2object.get(entity);
+				Map<ByteString, Set<ByteString>> tail2 = source2.subject2relation2object.get(entity);
 				if(tail2 == null) continue;
 				
 				//Print all facts in the target ontology
@@ -264,9 +264,9 @@ public class U {
 	public static int numberOfFacts(KB kb, ByteString entity, Collection<ByteString> omittedRelations) {
 		ByteString[] querySubject = KB.triple(entity, ByteString.of("?r"), ByteString.of("?o")); 
 		ByteString[] queryObject = KB.triple(ByteString.of("?s"), ByteString.of("?r"), entity); 
-		Map<ByteString, IntHashMap<ByteString>> relationsSubject = 
+		Map<ByteString, Set<ByteString>> relationsSubject = 
 				kb.resultsTwoVariables(ByteString.of("?r"), ByteString.of("?o"), querySubject);
-		Map<ByteString, IntHashMap<ByteString>> relationsObject = 
+		Map<ByteString, Set<ByteString>> relationsObject = 
 				kb.resultsTwoVariables(ByteString.of("?r"), ByteString.of("?s"), queryObject);
 		int count1 = 0;
 		int count2 = 0;
@@ -310,7 +310,7 @@ public class U {
 	 * @return
 	 */
 	public static Set<ByteString> getEntitiesWithCardinality(KB kb, ByteString relation, int cardinality) {
-		Map<ByteString, IntHashMap<ByteString>> results = null;
+		Map<ByteString, Set<ByteString>> results = null;
 		List<ByteString[]> query = KB.triples(KB.triple(ByteString.of("?s"), 
 				relation, ByteString.of("?o")));
 		if (kb.isFunctional(relation)) {

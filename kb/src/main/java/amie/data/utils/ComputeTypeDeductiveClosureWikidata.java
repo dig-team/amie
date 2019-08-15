@@ -33,7 +33,7 @@ public class ComputeTypeDeductiveClosureWikidata {
         Schema.topBS = ByteString.of(Schema.top);
         System.out.println("Assuming " + Schema.typeRelation + " as type relation");
         KB kb = U.loadFiles(args, " ");
-        Map<ByteString, IntHashMap<ByteString>> allEntitiesAndTypes
+        Map<ByteString, Set<ByteString>> allEntitiesAndTypes
                 = kb.resultsTwoVariables("?s", "?o", new String[]{"?s", amie.data.Schema.typeRelation, "?o"});
         PrintWriter pw  = new PrintWriter(new File("wikidataTransitiveTypes.tsv"));
         PrintWriter pw2 = new PrintWriter(new File("wikidataTypedEntities.tsv"));

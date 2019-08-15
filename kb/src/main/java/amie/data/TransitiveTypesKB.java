@@ -6,11 +6,12 @@ package amie.data;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
 
 /**
  * Class Transitive Types KB
@@ -43,8 +44,8 @@ public class TransitiveTypesKB extends KB {
 	@Override
 	protected long countTwoVariables(ByteString... triple) {
 		if (triple[1].equals(TRANSITIVETYPEbs)) {
-			Map<ByteString, IntHashMap<ByteString>> resultTwoVars = 
-					resultsTwoVariables(0, 2, triple);
+			Map<ByteString, Set<ByteString>> resultTwoVars = 
+					resultsTwoVariablesByPos(0, 2, triple);
 			long count = 0;
 			for (ByteString subject : resultTwoVars.keySet()) {
 				count += resultTwoVars.get(subject).size();
@@ -56,13 +57,13 @@ public class TransitiveTypesKB extends KB {
 	}
 	
 	@Override
-	public IntHashMap<ByteString> resultsOneVariable(ByteString... triple) {
+	public Set<ByteString> resultsOneVariable(ByteString... triple) {
 		if (triple[1].equals(TRANSITIVETYPEbs)) {
 			if (isVariable(triple[0])) {
 				/*
 				 * Return all the entities in subclasses of triple[2]
 				 */
-				IntHashMap<ByteString> result = new IntHashMap<>();
+				Set<ByteString> result = new HashSet<>();
 				for (ByteString subtype : Schema.getAllSubTypes(this, triple[2])) {
 					result.addAll(get(relation2object2subject, Schema.typeRelationBS, subtype));
 				}
@@ -80,10 +81,10 @@ public class TransitiveTypesKB extends KB {
 	}
 	
 	@Override
-	public Map<ByteString, IntHashMap<ByteString>> resultsTwoVariables(
+	public Map<ByteString, Set<ByteString>> resultsTwoVariablesByPos(
 			int pos1, int pos2, ByteString[] triple) {
 		if (triple[1].equals(TRANSITIVETYPEbs)) {
-			Map<ByteString, IntHashMap<ByteString>> result = new LinkedHashMap<>();
+			Map<ByteString, Set<ByteString>> result = new LinkedHashMap<>();
 			switch(pos1) {
 			case 0:
 				/*
@@ -107,7 +108,7 @@ public class TransitiveTypesKB extends KB {
 						+ " should be a variable");
 			}
 		} else {
-			return super.resultsTwoVariables(pos1, pos2, triple);
+			return super.resultsTwoVariablesByPos(pos1, pos2, triple);
 		}
 	}
 	

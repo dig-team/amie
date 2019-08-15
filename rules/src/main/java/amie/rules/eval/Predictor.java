@@ -177,7 +177,7 @@ public class Predictor {
 		return source.difference(rule.getFunctionalVariable(), rule.getAntecedent(), rule.getTriples());
 	}
 	
-	private Map<ByteString, IntHashMap<ByteString>> predictBindingsForTwoVariables(Rule rule) {
+	private Map<ByteString, Set<ByteString>> predictBindingsForTwoVariables(Rule rule) {
 		return source.difference(rule.getFunctionalVariable(), 
 				rule.getNonFunctionalVariable(), rule.getAntecedent(), rule.getTriples());
 	}

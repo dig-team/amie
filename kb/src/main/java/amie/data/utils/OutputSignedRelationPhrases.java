@@ -12,8 +12,8 @@ import java.util.Map;
 import java.util.Set;
 
 import amie.data.KB;
+import java.util.HashSet;
 import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
 import javatools.datatypes.Pair;
 import javatools.datatypes.Triple;
 
@@ -117,26 +117,26 @@ public class OutputSignedRelationPhrases {
 		= new HashMap<Triple<ByteString, ByteString, ByteString>, Set<Pair<ByteString, ByteString>>>();
 		ByteString typeRelation = ByteString.of("<rdf:type>");
 		ByteString defaultStr = ByteString.of("default");
-		Map<ByteString, Map<ByteString, IntHashMap<ByteString>>> map =
+		Map<ByteString, Map<ByteString, Set<ByteString>>> map =
 				db.resultsThreeVariables(ByteString.of("?p"), ByteString.of("?s"), ByteString.of("o"), 
 						KB.triple("?s", "?p", "?o"));
 		for (ByteString relation : map.keySet()) {
 			if (!relation.equals(typeRelation)) {
-				Map<ByteString, IntHashMap<ByteString>> tail = map.get(relation);
+				Map<ByteString, Set<ByteString>> tail = map.get(relation);
 				for (ByteString subject : tail.keySet()) {
 					for (ByteString object : tail.get(subject)) {
 						// Get the types
-						IntHashMap<ByteString> subjectTypes = 
+						Set<ByteString> subjectTypes = 
 								map.get(typeRelation).get(subject);
-						IntHashMap<ByteString> objectTypes = 
+						Set<ByteString> objectTypes = 
 								map.get(typeRelation).get(object);
 						if (subjectTypes == null) {
-							subjectTypes = new IntHashMap<>();
+							subjectTypes = new HashSet<>();
 							subjectTypes.add(defaultStr);
 						}
 						
 						if (objectTypes == null) {
-							objectTypes = new IntHashMap<>();
+							objectTypes = new HashSet<>();
 							objectTypes.add(defaultStr);
 						}
 						

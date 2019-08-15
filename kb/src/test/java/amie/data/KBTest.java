@@ -80,17 +80,17 @@ public class KBTest extends TestCase {
 		kb.add(KB.triple("<Ambar>", "<rdf:type>", "<Person>"));		
 		kb.add(KB.triple("<Oana>", "<rdf:type>", "<Person>"));	
 		kb.add(KB.triple("<Thomas>", "<rdf:type>", "<Person>"));
-		Map<ByteString, IntHashMap<ByteString>> values = kb.selectDistinct(ByteString.of("?x"), ByteString.of("?y"),
+		Map<ByteString, Set<ByteString>> values = kb.selectDistinct(ByteString.of("?x"), ByteString.of("?y"),
 				KB.triples(KB.triple("?x", KB.NOTEXISTSbs, "?y"),
 						KB.triple("?y", "<rdf:type>", "<Person>")));
 		assertTrue(values.containsKey(ByteString.of("<wasBornIn>")));
-		assertTrue(values.get(ByteString.of("<wasBornIn>")).containsKey(ByteString.of("<Ambar>")));
+		assertTrue(values.get(ByteString.of("<wasBornIn>")).contains(ByteString.of("<Ambar>")));
 		
 		values = kb.selectDistinct(ByteString.of("?x"), ByteString.of("?y"),
 				KB.triples(KB.triple("?x", KB.NOTEXISTSINVbs, "?y"),
 						KB.triple("?y", "<rdf:type>", "<City>")));
 		assertTrue(values.containsKey(ByteString.of("<wasBornIn>")));
-		assertTrue(values.get(ByteString.of("<wasBornIn>")).containsKey(ByteString.of("<Paris>")));
+		assertTrue(values.get(ByteString.of("<wasBornIn>")).contains(ByteString.of("<Paris>")));
 	}
         
         public void testSelectIterator() {

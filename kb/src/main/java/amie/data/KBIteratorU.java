@@ -35,7 +35,7 @@ public class KBIteratorU {
         public void close();
     }
     
-    public static class addNotInIfExistsIterator extends SetU.addNotInIterator<ByteString> implements Iterator<ByteString>, CloseableNoThrow {
+    public static class addNotInIfExistsIterator extends SetU.addNotInIterator<ByteString> implements IntIterator, CloseableNoThrow {
         
         KB kb;
         KB.Instantiator insty;
@@ -68,9 +68,10 @@ public class KBIteratorU {
         }
     }
     
-    public static class recursiveSelectForOneVarIterator extends addNotInIfExistsIterator implements Iterator<ByteString>, CloseableNoThrow {
+    
+    public static class recursiveSelectForOneVarIterator extends addNotInIfExistsIterator implements IntIterator, CloseableNoThrow {
         
-        Iterator<ByteString> subIterator;
+        IntIterator subIterator;
         ByteString variable;
         
         public recursiveSelectForOneVarIterator(KB kb, KB.Instantiator insty, ByteString variable, IntSet toIterate, IntSet addTo) {
@@ -106,13 +107,13 @@ public class KBIteratorU {
         }
     }
 
-    public static class recursiveSelectForTwoVarIterator implements Iterator<ByteString>, CloseableNoThrow {
+    public static class recursiveSelectForTwoVarIterator implements IntIterator, CloseableNoThrow {
         
         Iterator<Int2ObjectMap.Entry<IntSet>> it1;
-        Iterator<ByteString> it2;
+        IntIterator it2;
         KB kb;
         KB.Instantiator insty1, insty2;
-        Iterator<ByteString> subIterator;
+        IntIterator subIterator;
         ByteString variable, next;
         IntSet addTo;
         
@@ -167,14 +168,14 @@ public class KBIteratorU {
         }
     }
     
-    public static class recursiveSelectForThreeVarIterator implements Iterator<ByteString>, CloseableNoThrow {
+    public static class recursiveSelectForThreeVarIterator implements IntIterator, CloseableNoThrow {
         
         Iterator<Int2ObjectMap.Entry<Int2ObjectMap<IntSet>>> it1;
         Iterator<Int2ObjectMap.Entry<IntSet>> it2;
-        Iterator<ByteString> it3;
+        IntIterator it3;
         KB kb;
         KB.Instantiator insty1, insty2, insty3;
-        Iterator<ByteString> subIterator;
+        IntIterator subIterator;
         ByteString variable, next;
         IntSet addTo;
         
@@ -235,5 +236,4 @@ public class KBIteratorU {
             insty3.close();
             it1 = null;
         }
-    }
 }

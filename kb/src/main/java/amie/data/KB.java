@@ -2209,7 +2209,7 @@ public class KB {
      * the iterator is empty or by calling the close() method on the iterator.
      * A closed iterator can no longer be iterated upon.
      */
-    public Iterator<ByteString> selectDistinctIterator(IntSet result,
+    public IntIterator selectDistinctIterator(IntSet result,
             ByteString variable, List<ByteString[]> query) {
         // Only one triple
         if (query.size() == 1) {
@@ -3362,9 +3362,9 @@ public class KB {
         try (Instantiator insty1 = new Instantiator(
                 (optimConnectedComponent) ? connectedComponent(U.deepClone(query), var2, var1) : U.deepClone(query), var1)) {
             bindings = new IntOpenHashSet();
-            for (Iterator<ByteString> bindingsIt = selectDistinctIterator(bindings, var1, query); bindingsIt.hasNext(); ) {
+            for (IntIterator bindingsIt = selectDistinctIterator(bindings, var1, query); bindingsIt.hasNext(); ) {
                 bindings2 = new IntOpenHashSet();
-                for (Iterator<ByteString> bindingsIt2 = selectDistinctIterator(bindings2, var2, 
+                for (IntIterator bindingsIt2 = selectDistinctIterator(bindings2, var2, 
                         insty1.instantiate(bindingsIt.next())); bindingsIt2.hasNext(); ) {
                     result += 1;
                     bindingsIt2.next();

@@ -111,7 +111,7 @@ public class KBTest extends TestCase {
             assertTrue(values.contains(ByteString.of("<Luis>")));
             IntSet result = new IntOpenHashSet();
             IntSet resultIterator = new IntOpenHashSet();
-            for (Iterator<ByteString> it = kb.selectDistinctIterator(result, ByteString.of("?x"), query); it.hasNext(); ) {
+            for (IntIterator it = kb.selectDistinctIterator(result, ByteString.of("?x"), query); it.hasNext(); ) {
                 ByteString e = it.next();
                 assertFalse(resultIterator.contains(e));
                 resultIterator.add(e);

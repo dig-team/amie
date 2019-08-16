@@ -19,7 +19,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 
 	protected long subjectSchemaCount;
 	
-	private Set<ByteString> allSubjects;
+	private IntSet allSubjects;
 	
 	public SeedsCountMiningAssistant(KB dataSource, KB schemaSource) {
 		super(dataSource);
@@ -157,7 +157,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 	
 	private int seedsCardinality(Rule query) {
 		// TODO Auto-generated method stub
-		Set<ByteString> subjects = new HashSet<ByteString>(
+		IntSet subjects = new IntOpenHashSet(
 				kb.selectDistinct(query.getFunctionalVariable(), query.getTriples()));
 		subjects.retainAll(allSubjects);
 		return subjects.size();

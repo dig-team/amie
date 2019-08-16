@@ -29,9 +29,9 @@ public class CardinalitySimpleTypingKB extends SimpleTypingKB {
         if (relation.equals(Schema.typeRelationBS)) {
             //System.err.println(object);
             synchronized (classes) {
-                Set<ByteString> eS = classes.get(object);
+                IntSet eS = classes.get(object);
                 if (eS == null) {
-                    classes.put(object, eS = new LinkedHashSet<>());
+                    classes.put(object, eS = new IntOpenHashSet());
                 }
                 return eS.add(subject);
             }
@@ -40,15 +40,15 @@ public class CardinalitySimpleTypingKB extends SimpleTypingKB {
         } else {
             //System.err.println(relation);
             synchronized (relations) {
-                Set<ByteString> eS = relations.get(relation);
+                IntSet eS = relations.get(relation);
                 if (eS == null) {
-                    relations.put(relation, eS = new LinkedHashSet<>());
+                    relations.put(relation, eS = new IntOpenHashSet());
                 }
                 eS.add(subject);
                 ByteString relationy = ByteString.of(relation.toString() + "-1");
                 eS = relations.get(relationy);
                 if (eS == null) {
-                    relations.put(relationy, eS = new LinkedHashSet<>());
+                    relations.put(relationy, eS = new IntOpenHashSet());
                 }
                 IntHashMap<ByteString> eS2 = relationsCard.get(relation);
                 if (eS2 == null) {
@@ -68,12 +68,12 @@ public class CardinalitySimpleTypingKB extends SimpleTypingKB {
     
     public void computeCardinalities() {
         for (Map.Entry<ByteString, IntHashMap<ByteString>> entry : relationsCard.entrySet()) {
-            Map<Integer, Set<ByteString>> t = new HashMap<>(entry.getValue().findMax());
+            Map<Integer, IntSet> t = new HashMap<>(entry.getValue().findMax());
             for (ByteString e : entry.getValue()) {
                 Integer i = entry.getValue().get(e);
-                Set<ByteString> rs = t.get(i);
+                IntSet rs = t.get(i);
                 if (rs == null) {
-                    t.put(i, rs = new LinkedHashSet<>());
+                    t.put(i, rs = new IntOpenHashSet());
                 }
                 rs.add(e);
             }

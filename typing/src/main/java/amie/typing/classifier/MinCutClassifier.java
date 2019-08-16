@@ -56,7 +56,7 @@ public class MinCutClassifier extends SeparationClassifier {
 			}
 		}
 		PushRelabelMFImpl<ByteString, DefaultWeightedEdge> mf = new PushRelabelMFImpl<>(graph);
-		Set<ByteString> result = Collections.emptySet();
+		IntSet result = Collections.emptySet();
 		double mcMinVal = Double.POSITIVE_INFINITY, mcVal;
 		for (ByteString t1 : graph.vertexSet()) {
 			for (ByteString t2 : graph.vertexSet()) {

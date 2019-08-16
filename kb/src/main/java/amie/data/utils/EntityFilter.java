@@ -64,7 +64,7 @@ public class EntityFilter {
 		
 		FileReader fileReader = new FileReader(entities);
 		BufferedReader bufferedReader = new BufferedReader(fileReader);
-		Set<ByteString> seeds = new HashSet<ByteString>();
+		IntSet seeds = new IntOpenHashSet();
 		//reading file line by line
 		String line = bufferedReader.readLine().trim();
 		while(line != null){
@@ -72,19 +72,19 @@ public class EntityFilter {
 			line = bufferedReader.readLine();
 		}
 				
-		Map<ByteString, Map<ByteString, Set<ByteString>>> factSourcesMap = 
+		Map<ByteString, Map<ByteString, IntSet>> factSourcesMap = 
 				factsSource.resultsThreeVariables(ByteString.of("?s"), ByteString.of("?p"), ByteString.of("o"), 
 						KB.triple("?s", "?p", "?o"));
-		Set<ByteString> subjects = factSourcesMap.keySet();
+		IntSet subjects = factSourcesMap.keySet();
 		for(ByteString subject: subjects){
 			if(seeds.contains(subject)){
 				//Then produce the facts
-				Map<ByteString, Set<ByteString>> subjectsMap = factSourcesMap.get(subject);
+				Map<ByteString, IntSet> subjectsMap = factSourcesMap.get(subject);
 				if(subjectsMap == null) continue;
 				
-				Set<ByteString> predicates = subjectsMap.keySet(); 
+				IntSet predicates = subjectsMap.keySet(); 
 				for(ByteString predicate: predicates){
-					Set<ByteString> objects = subjectsMap.get(predicate);
+					IntSet objects = subjectsMap.get(predicate);
 					for(ByteString object: objects){
 						int nTimes = 1;
 						for(int k = 0; k < nTimes; ++k){

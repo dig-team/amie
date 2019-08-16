@@ -46,14 +46,14 @@ public class KBTest extends TestCase {
 	}
 	
 	public void testValuesOneVar1() {
-		Set<ByteString> values = kb.resultsOneVariable(KB.triple("<worksAt>", KB.NOTEXISTSbs, "?x"));
+		IntSet values = kb.resultsOneVariable(KB.triple("<worksAt>", KB.NOTEXISTSbs, "?x"));
 		assertEquals(2, values.size());
 		assertTrue(values.contains(ByteString.of("<Oana>")));
 		assertTrue(values.contains(ByteString.of("<Telecom>")));
 	}
 	
 	public void testValuesOneVar2() {
-		Set<ByteString> values = kb.resultsOneVariable(KB.triple("?x", KB.NOTEXISTSbs, "<Luis>"));
+		IntSet values = kb.resultsOneVariable(KB.triple("?x", KB.NOTEXISTSbs, "<Luis>"));
 		assertEquals(1, values.size());
 		assertTrue(values.contains(ByteString.of("<isLocatedIn>")));
 	}
@@ -63,7 +63,7 @@ public class KBTest extends TestCase {
 		kb.add(KB.triple("<Munich>", "<rdf:type>", "<City>"));
 		kb.add(KB.triple("<Colmar>", "<rdf:type>", "<City>"));		
 		kb.add(KB.triple("<Paris>", "<rdf:type>", "<City>"));		
-		Set<ByteString> values = kb.selectDistinct(ByteString.of("?x"), 
+		IntSet values = kb.selectDistinct(ByteString.of("?x"), 
 				KB.triples(KB.triple("<wasBornIn>", KB.NOTEXISTSINVbs, "?x"),
 						KB.triple("?x", "<rdf:type>", "<City>")));
 		assertEquals(1, values.size());
@@ -80,7 +80,7 @@ public class KBTest extends TestCase {
 		kb.add(KB.triple("<Ambar>", "<rdf:type>", "<Person>"));		
 		kb.add(KB.triple("<Oana>", "<rdf:type>", "<Person>"));	
 		kb.add(KB.triple("<Thomas>", "<rdf:type>", "<Person>"));
-		Map<ByteString, Set<ByteString>> values = kb.selectDistinct(ByteString.of("?x"), ByteString.of("?y"),
+		Map<ByteString, IntSet> values = kb.selectDistinct(ByteString.of("?x"), ByteString.of("?y"),
 				KB.triples(KB.triple("?x", KB.NOTEXISTSbs, "?y"),
 						KB.triple("?y", "<rdf:type>", "<Person>")));
 		assertTrue(values.containsKey(ByteString.of("<wasBornIn>")));
@@ -104,13 +104,13 @@ public class KBTest extends TestCase {
                     KB.triple("?x", "<worksAt>", "?t"),
                     KB.triple("?t", "<isLocatedIn>", "?c"),
                     KB.triple("?x", "<livesIn>", "?c"));
-            Set<ByteString> values = kb.selectDistinct(ByteString.of("?x"), query);
+            IntSet values = kb.selectDistinct(ByteString.of("?x"), query);
             assertEquals(3, values.size());
             assertTrue(values.contains(ByteString.of("<Thomas>")));
             assertTrue(values.contains(ByteString.of("<Antoine>")));
             assertTrue(values.contains(ByteString.of("<Luis>")));
-            Set<ByteString> result = new HashSet<>();
-            Set<ByteString> resultIterator = new HashSet<>();
+            IntSet result = new IntOpenHashSet();
+            IntSet resultIterator = new IntOpenHashSet();
             for (Iterator<ByteString> it = kb.selectDistinctIterator(result, ByteString.of("?x"), query); it.hasNext(); ) {
                 ByteString e = it.next();
                 assertFalse(resultIterator.contains(e));

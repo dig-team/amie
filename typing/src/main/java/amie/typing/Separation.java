@@ -226,7 +226,7 @@ public class Separation extends Thread {
         BlockingQueue queryQ = new LinkedBlockingQueue();
         
         if (pa.query == null) {
-            Set<ByteString> relations = dataSource.getRelationSet();
+            IntSet relations = dataSource.getRelationSet();
             relations.remove(Schema.typeRelationBS);
             relations.remove(Schema.subClassRelationBS);
 

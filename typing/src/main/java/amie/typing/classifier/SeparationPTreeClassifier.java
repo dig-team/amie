@@ -100,12 +100,12 @@ public class SeparationPTreeClassifier extends SeparationTreeClassifier {
     
     @Override
     public void computeStatistics(List<ByteString[]> query, ByteString variable, int classSizeThreshold) {
-        Set<ByteString> relevantClasses = index.keySet();
+        IntSet relevantClasses = index.keySet();
         ByteString relation = (query.get(0)[0].equals(variable)) ? query.get(0)[1] : ByteString.of(query.get(0)[1].toString() + "-1");
 
         for (ByteString class1 : relevantClasses) {
             int c1size = classSize.get(class1);
-            Set<ByteString> c1phi = new HashSet<>(localdb.relations.get(relation));
+            IntSet c1phi = new IntOpenHashSet(localdb.relations.get(relation));
             c1phi.retainAll(localdb.classes.get(class1));
             if (c1phi.size() == c1size) {
                 continue;
@@ -115,7 +115,7 @@ public class SeparationPTreeClassifier extends SeparationTreeClassifier {
             assert(c1phi.size() < c1size);
             assert(c1phi.size() > 0);
 
-            Set<ByteString> targetClasses = (supportForTarget) ? relevantClasses : classIntersectionSize.get(class1);
+            IntSet targetClasses = (supportForTarget) ? relevantClasses : classIntersectionSize.get(class1);
 
             for (ByteString class2 : targetClasses) {
                 if (class1 == class2) {

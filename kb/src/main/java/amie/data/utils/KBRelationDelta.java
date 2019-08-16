@@ -91,7 +91,7 @@ public class KBRelationDelta {
 							relationlabel = relation.toString().replace(">", "-inv>");
 						}
 						System.out.println("Getting the values for the domain");
-						Set<ByteString> entities = new LinkedHashSet<>(Schema.getAllEntitiesForType(ddb2, domain));					
+						IntSet entities = new IntOpenHashSet(Schema.getAllEntitiesForType(ddb2, domain));					
 						entities.addAll(ddb2.selectDistinct(qVariable, query));
 						System.out.println("Checking those that appear in the old database");
 						entities.retainAll(allEntitiesOldKB);			
@@ -104,8 +104,8 @@ public class KBRelationDelta {
 								query2[2] = entity;
 								query2[0] = ByteString.of("?s");
 							}
-							Set<ByteString> s1 = ddb1.resultsOneVariable(query2);
-							Set<ByteString> s2 = ddb2.resultsOneVariable(query2);
+							IntSet s1 = ddb1.resultsOneVariable(query2);
+							IntSet s2 = ddb2.resultsOneVariable(query2);
 							String outcome = null;
 							if (s1.equals(s2)) {
 								outcome = "No change";

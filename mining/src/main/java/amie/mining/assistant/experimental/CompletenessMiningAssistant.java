@@ -286,7 +286,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		
 		atom1[0] = countVar;
 		atom1[1] = Schema.typeRelationBS;
-		Set<ByteString> subtypes = Schema.getSubTypes(this.kbSchema, lastAtom[2]);
+		IntSet subtypes = Schema.getSubTypes(this.kbSchema, lastAtom[2]);
 		ByteString[] atom2 = KB.triple(atom1[2], KB.DIFFERENTFROMbs, lastAtom[2]);
 		long baseCardinality = Schema.getNumberOfEntitiesForType(this.kb, lastAtom[2]);
 		List<ByteString[]> parentRuleTriples = parentRule.getTriples();
@@ -297,8 +297,8 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 				continue;
 			
 			atom2[2] = subtype;
-			Set<ByteString> supportSet = new LinkedHashSet<>(kb.selectDistinct(countVar, parentRuleTriples));
-			Set<ByteString> subTypeSet = Schema.getAllEntitiesForType(this.kb, subtype);
+			IntSet supportSet = new IntOpenHashSet(kb.selectDistinct(countVar, parentRuleTriples));
+			IntSet subTypeSet = Schema.getAllEntitiesForType(this.kb, subtype);
 			supportSet.removeAll(subTypeSet);
 			long cardinality = supportSet.size();
 			if (cardinality >= minSupportThreshold) {
@@ -599,9 +599,9 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 			ByteString[] typeAtom = negativeRule.getTriples().get(typeIdx);
 			negativeRule.getTriples().remove(differentAtom);
 			negativeRule.getTriples().remove(typeAtom);
-			Set<ByteString> negativeSupportSet = new LinkedHashSet<>(kb.selectDistinct(succedent[0], 
+			IntSet negativeSupportSet = new IntOpenHashSet(kb.selectDistinct(succedent[0], 
 					negativeRule.getTriples()));
-			Set<ByteString> typeSet = Schema.getAllEntitiesForType(this.kb, differentAtom[2]);
+			IntSet typeSet = Schema.getAllEntitiesForType(this.kb, differentAtom[2]);
 			negativeSupportSet.removeAll(typeSet);
 			counterEvidence = negativeSupportSet.size();
 		}

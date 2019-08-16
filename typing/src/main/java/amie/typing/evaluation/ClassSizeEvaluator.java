@@ -20,7 +20,7 @@ public class ClassSizeEvaluator {
     protected KB taxo;
     protected IntHashMap<ByteString> classSize;
     
-    public Pair<Integer, Integer> evaluatePrecisionPair(Set<ByteString> answer, Set<ByteString> goldStandard) {
+    public Pair<Integer, Integer> evaluatePrecisionPair(IntSet answer, IntSet goldStandard) {
         int TP = 0;
         int FP = 0;
         for (ByteString c : answer) {
@@ -40,7 +40,7 @@ public class ClassSizeEvaluator {
         return new Pair<>(TP, FP);
     }
     
-    public Pair<Integer, Integer> evaluateRecallPair(Set<ByteString> answer, Set<ByteString> goldStandard) {
+    public Pair<Integer, Integer> evaluateRecallPair(IntSet answer, IntSet goldStandard) {
         return evaluatePrecisionPair(goldStandard, answer);
     }
     
@@ -49,11 +49,11 @@ public class ClassSizeEvaluator {
         return (double) TPFP.first / (TPFP.first + TPFP.second);
     }
     
-    public double evaluatePrecision(Set<ByteString> answer, Set<ByteString> goldStandard) {
+    public double evaluatePrecision(IntSet answer, IntSet goldStandard) {
         return pairToPrecision(evaluatePrecisionPair(answer, goldStandard));
     }
     
-    public double evaluateRecall(Set<ByteString> answer, Set<ByteString> goldStandard) {
+    public double evaluateRecall(IntSet answer, IntSet goldStandard) {
         return evaluatePrecision(goldStandard, answer);
     }
 }

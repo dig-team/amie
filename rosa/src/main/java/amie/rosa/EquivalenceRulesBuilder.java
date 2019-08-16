@@ -82,8 +82,8 @@ public class EquivalenceRulesBuilder {
 		head = rule.getHead();
 		body = rule.getBody().get(0);
 		if(KB.numVariables(head) == 2){
-			Map<ByteString, Set<ByteString>> headBindings = source.selectDistinct(head[0], head[2], KB.triples(head));		
-			Map<ByteString, Set<ByteString>> bodyBindings = source.selectDistinct(head[0], head[2], KB.triples(body));		
+			Map<ByteString, IntSet> headBindings = source.selectDistinct(head[0], head[2], KB.triples(head));		
+			Map<ByteString, IntSet> bodyBindings = source.selectDistinct(head[0], head[2], KB.triples(body));		
 			Set<Pair<ByteString, ByteString> > pairs = new HashSet<Pair<ByteString, ByteString>>();
 			
 			for(ByteString key1: headBindings.keySet()){
@@ -101,7 +101,7 @@ public class EquivalenceRulesBuilder {
 			return pairs.size();
 		}else{
 			//Case for one variable
-			Set<ByteString> headBindings = source.selectDistinct(head[KB.firstVariablePos(head)], KB.triples(head));
+			IntSet headBindings = source.selectDistinct(head[KB.firstVariablePos(head)], KB.triples(head));
 			headBindings.addAll(source.selectDistinct(head[KB.firstVariablePos(head)], KB.triples(body)));			
 			return headBindings.size();
 		}

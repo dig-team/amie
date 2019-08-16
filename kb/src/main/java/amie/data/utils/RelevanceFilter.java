@@ -66,7 +66,7 @@ public class RelevanceFilter {
 		List<ByteString[]> query =  KB.triples(KB.triple(s, r, o));
 		for (ByteString relation : kb.selectDistinct(ByteString.of("?r"), query)) {			
 			ByteString[] query2 = KB.triple(s, relation, o);
-			Map<ByteString, Set<ByteString>> bindings = null;
+			Map<ByteString, IntSet> bindings = null;
 			boolean inversed = false;
 			if (kb.isFunctional(relation) || relation.equals(amie.data.Schema.typeRelationBS)) {				
 				bindings = kb.resultsTwoVariables(s, o, query2);
@@ -94,7 +94,7 @@ public class RelevanceFilter {
 	 * @param inversed If true, then the object is fixed, otherwise the subject
 	 */
 	private static void outputEntry(ByteString argument, ByteString relation, 
-			Set<ByteString> values, boolean inversed) {
+			IntSet values, boolean inversed) {
 		if (inversed) {
 			for (ByteString value : values) {
 				System.out.println(value + "\t" + relation + "\t" + argument);

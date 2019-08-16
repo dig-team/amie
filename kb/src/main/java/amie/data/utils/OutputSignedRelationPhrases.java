@@ -52,14 +52,14 @@ public class OutputSignedRelationPhrases {
 			if (seti.size() < 3) {
 				continue;
 			}
-			Set<ByteString> subjectsI = projectPairSet(seti);
+			IntSet subjectsI = projectPairSet(seti);
 			for (int j = i + 1; j < signatures.size(); ++j) {
 				Set<Pair<ByteString, ByteString>> setj = signedRelations.get(signatures.get(j));				
 				if (setj.size() < 3) {
 					continue;
 				}
 				int intsr = intersectionSize(seti, setj);
-				Set<ByteString> subjectsJ = projectPairSet(setj);
+				IntSet subjectsJ = projectPairSet(setj);
 				int pcaCount1 = pcaIntersection(seti, subjectsJ); // ri => rj
 				int pcaCount2 = pcaIntersection(setj, subjectsI); // rj => ri
 				if (intsr > 1) {
@@ -75,7 +75,7 @@ public class OutputSignedRelationPhrases {
 
 	private static int pcaIntersection(
 			Set<Pair<ByteString, ByteString>> seti,
-			Set<ByteString> subjectsJ) {
+			IntSet subjectsJ) {
 		int count = 0;
 		for (Pair<ByteString, ByteString> pair : seti) {
 			if (subjectsJ.contains(pair.first)) {
@@ -86,9 +86,9 @@ public class OutputSignedRelationPhrases {
 		return count;
 	}
 
-	private static Set<ByteString> projectPairSet(
+	private static IntSet projectPairSet(
 			Set<Pair<ByteString, ByteString>> seti) {
-		Set<ByteString> result = new LinkedHashSet<>();
+		IntSet result = new IntOpenHashSet();
 		for (Pair<ByteString, ByteString> pair : seti) {
 			result.add(pair.first);
 		}
@@ -117,26 +117,26 @@ public class OutputSignedRelationPhrases {
 		= new HashMap<Triple<ByteString, ByteString, ByteString>, Set<Pair<ByteString, ByteString>>>();
 		ByteString typeRelation = ByteString.of("<rdf:type>");
 		ByteString defaultStr = ByteString.of("default");
-		Map<ByteString, Map<ByteString, Set<ByteString>>> map =
+		Map<ByteString, Map<ByteString, IntSet>> map =
 				db.resultsThreeVariables(ByteString.of("?p"), ByteString.of("?s"), ByteString.of("o"), 
 						KB.triple("?s", "?p", "?o"));
 		for (ByteString relation : map.keySet()) {
 			if (!relation.equals(typeRelation)) {
-				Map<ByteString, Set<ByteString>> tail = map.get(relation);
+				Map<ByteString, IntSet> tail = map.get(relation);
 				for (ByteString subject : tail.keySet()) {
 					for (ByteString object : tail.get(subject)) {
 						// Get the types
-						Set<ByteString> subjectTypes = 
+						IntSet subjectTypes = 
 								map.get(typeRelation).get(subject);
-						Set<ByteString> objectTypes = 
+						IntSet objectTypes = 
 								map.get(typeRelation).get(object);
 						if (subjectTypes == null) {
-							subjectTypes = new HashSet<>();
+							subjectTypes = new IntOpenHashSet();
 							subjectTypes.add(defaultStr);
 						}
 						
 						if (objectTypes == null) {
-							objectTypes = new HashSet<>();
+							objectTypes = new IntOpenHashSet();
 							objectTypes.add(defaultStr);
 						}
 						

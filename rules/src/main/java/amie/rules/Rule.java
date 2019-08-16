@@ -2036,14 +2036,14 @@ public class Rule {
         ByteString[] canonicalHead = canonicalHeadRule.getHead().clone();
         ByteString canonicalSubjectExp = canonicalHead[0];
         ByteString canonicalObjectExp = canonicalHead[2];
-        Set<ByteString> nonHeadVariables = new LinkedHashSet<>();
+        IntSet nonHeadVariables = new IntOpenHashSet();
         int varCount = 0;
         List<ByteString[]> commonAntecendent = new ArrayList<>();
 
         for (Rule rule : rules) {
             List<ByteString[]> antecedentClone = rule.getAntecedentClone();
 
-            Set<ByteString> otherVariables = rule.getNonHeadVariables();
+            IntSet otherVariables = rule.getNonHeadVariables();
             for (ByteString var : otherVariables) {
                 Rule.bind(var, ByteString.of("?v" + varCount), antecedentClone);
                 ++varCount;
@@ -2077,9 +2077,9 @@ public class Rule {
     /**
      * The set of variables that are not in the conclusion of the rule.
      */
-    private Set<ByteString> getNonHeadVariables() {
+    private IntSet getNonHeadVariables() {
         ByteString[] head = getHead();
-        Set<ByteString> nonHeadVars = new LinkedHashSet<>();
+        IntSet nonHeadVars = new IntOpenHashSet();
         for (ByteString[] triple : getAntecedent()) {
             if (KB.isVariable(triple[0])
                     && KB.varpos(triple[0], head) == -1) {
@@ -2242,9 +2242,9 @@ public class Rule {
      * head.
      * @return
      */
-    public Set<ByteString> getBodyVariables() {
+    public IntSet getBodyVariables() {
         List<ByteString> headVariables = getHeadVariables();
-        Set<ByteString> result = new LinkedHashSet<>();
+        IntSet result = new IntOpenHashSet();
         for (ByteString[] triple : getBody()) {
             if (KB.isVariable(triple[2])
                     && !headVariables.contains(triple[2])) {

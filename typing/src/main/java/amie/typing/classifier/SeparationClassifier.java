@@ -74,8 +74,8 @@ public class SeparationClassifier {
      * @param supportThreshold
      * @return
      */
-    public Set<ByteString> getRelevantClasses(List<ByteString[]> query, ByteString variable, int supportThreshold) {
-        Set<ByteString> result = new LinkedHashSet<>();
+    public IntSet getRelevantClasses(List<ByteString[]> query, ByteString variable, int supportThreshold) {
+        IntSet result = new IntOpenHashSet();
         for (ByteString c : classSize) {
             if (getStandardConfidenceWithThreshold(TypingHeuristic.typeL(c, variable), query, variable, supportThreshold, true) != 0) {
                 result.add(c);
@@ -86,7 +86,7 @@ public class SeparationClassifier {
 
     public Map<ByteString, Map<ByteString, Double>> computeStatistics(List<ByteString[]> query, ByteString variable, int classSizeThreshold, int supportThreshold) {
         Map<ByteString, Map<ByteString, Double>> result = new LinkedHashMap<>();
-        Set<ByteString> relevantClasses = getRelevantClasses(query, variable, supportThreshold);
+        IntSet relevantClasses = getRelevantClasses(query, variable, supportThreshold);
 
         for (ByteString class1 : relevantClasses) {
             int c1size = classSize.get(class1);
@@ -155,7 +155,7 @@ public class SeparationClassifier {
     public void classify(Map<ByteString, Map<ByteString, Double>> statistics, double eliminationRatio) {
         // add an unionRatio ?
         double lratio = Math.abs(Math.log(eliminationRatio));
-        Set<ByteString> V = new HashSet<>(statistics.keySet());
+        IntSet V = new IntOpenHashSet(statistics.keySet());
         for (ByteString class1 : statistics.keySet()) {
             for (ByteString class2 : statistics.get(class1).keySet()) {
                 double s1 = Math.log(statistics.get(class1).get(class2));

@@ -60,7 +60,7 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
     
     @Override
     public void computeStatistics(ByteString relation, int classSizeThreshold) {
-        Set<ByteString> relevantClasses = index.keySet();
+        IntSet relevantClasses = index.keySet();
 
         for (ByteString class1 : relevantClasses) {
             if (db instanceof CardinalitySimpleTypingKB) {
@@ -71,7 +71,7 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
                 }
             }  
             int c1size = cs(class1);
-            Set<ByteString> c1phi = new HashSet<>(db.relations.get(relation));
+            IntSet c1phi = new IntOpenHashSet(db.relations.get(relation));
             c1phi.retainAll(db.classes.get(class1));
             if (c1phi.size() == c1size) {
                 index.get(class1).thresholdI = -1;
@@ -79,7 +79,7 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
             }
             double conf = ((double) index.get(class1).support) / index.get(class1).bodySize;
            
-            Set<ByteString> targetClasses = (supportForTarget || classIntersectionSize == null) ? relevantClasses : classIntersectionSize.get(class1);
+            IntSet targetClasses = (supportForTarget || classIntersectionSize == null) ? relevantClasses : classIntersectionSize.get(class1);
             if (targetClasses == null) {
                 continue;
             }

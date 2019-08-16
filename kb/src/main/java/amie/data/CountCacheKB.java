@@ -64,7 +64,7 @@ public class CountCacheKB extends KB {
         long result = 0;
 
         try (Instantiator insty1 = new Instantiator(query, var1)) {
-            Set<ByteString> bindings = selectDistinct(var1, query);
+            IntSet bindings = selectDistinct(var1, query);
             for (ByteString val1 : bindings) {
                 result += countDistinct(var2, insty1.instantiate(val1));
             }
@@ -146,7 +146,7 @@ public long countPairs(ByteString var1, ByteString var2,
 		private int[][] repr;
 		public int ncol;
 		public int nline;
-		public Set<ByteString> headers, constants;
+		public IntSet headers, constants;
 		public Set<Integer> xorLines, xorCols;
 		public long hashLines, hashCols;
 		
@@ -161,14 +161,14 @@ public long countPairs(ByteString var1, ByteString var2,
 			queryRep = stringRepresentation(query, countVariables);
 			queryCount.incrementAndGet();
 			ncol = query.size() + 2;
-			LinkedHashSet<ByteString> args = new LinkedHashSet<ByteString>();
+			IntSet args = new IntOpenHashSet();
 			for (ByteString[] atom : query) {
 				args.add(atom[0]);
 				args.add(atom[2]);
 			}
 			nline = args.size();
-			headers = new HashSet<ByteString>(query.size());
-			constants = new HashSet<ByteString>();
+			headers = new IntOpenHashSet(query.size());
+			constants = new IntOpenHashSet();
 			repr = new int[nline][ncol];
 			for (ByteString[] atom : query) {
 				headers.add(atom[1]);

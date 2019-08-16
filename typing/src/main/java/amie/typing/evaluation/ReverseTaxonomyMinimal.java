@@ -36,7 +36,7 @@ public class ReverseTaxonomyMinimal {
         taxo.load(new File(args[0]));
         
         for (int i = 1; i < args.length; i++) {
-            Set<ByteString> results = new LinkedHashSet<>();
+            IntSet results = new IntOpenHashSet();
             boolean clean = false;
 
             File resultFile = new File(args[i]);
@@ -49,7 +49,7 @@ public class ReverseTaxonomyMinimal {
                 results.add(t);
             }
 
-            Set<ByteString> cleanedResults = new LinkedHashSet<>(results);
+            IntSet cleanedResults = new IntOpenHashSet(results);
             for (ByteString c1 : results) {
                 for (ByteString c2 : results) {
                     if (c1 == c2) {

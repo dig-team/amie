@@ -45,7 +45,7 @@ public class MinCutMaxClassifierTest extends TestCase {
         t1.put(v1, m1);
         t1.put(v2, m2);
         t1.put(v3, m3);
-        Set<ByteString> result = new HashSet<>();
+        IntSet result = new IntOpenHashSet();
         
         // from v1
         result.add(v2);

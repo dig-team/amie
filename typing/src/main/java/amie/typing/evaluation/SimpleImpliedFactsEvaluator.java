@@ -39,9 +39,9 @@ import org.apache.commons.cli.PosixParser;
 public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
     
     private SimpleTypingKB db;
-    public Map<ByteString, Set<ByteString>> gs;
-    public Map<ByteString, Set<ByteString>> gsClasses;
-    public Map<ByteString, Map<String, Set<ByteString>>> query2classes;
+    public Map<ByteString, IntSet> gs;
+    public Map<ByteString, IntSet> gsClasses;
+    public Map<ByteString, Map<String, IntSet>> query2classes;
     
     public SimpleImpliedFactsEvaluator(SimpleTypingKB db) {
         super(db);
@@ -51,12 +51,12 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
     }
     
     @Override
-    public void addGS(ByteString relation, Set<ByteString> classes) {
+    public void addGS(ByteString relation, IntSet classes) {
         //System.err.println(relation);
         queried.add(relation);
-        Set<ByteString> gsr = gs.get(relation);
+        IntSet gsr = gs.get(relation);
         if (gsr == null) {
-            gs.put(relation, gsr = new HashSet<>());
+            gs.put(relation, gsr = new IntOpenHashSet());
         }
         for (ByteString rtClass : classes) {
             System.err.println(rtClass);
@@ -68,9 +68,9 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
     public void addGS(ByteString relation, ByteString gsClass) {
         //System.err.println(relation);
         queried.add(relation);
-        Set<ByteString> gsr = gs.get(relation);
+        IntSet gsr = gs.get(relation);
         if (gsr == null) {
-            gs.put(relation, gsr = new HashSet<>());
+            gs.put(relation, gsr = new IntOpenHashSet());
         }
         gsr.addAll(db.classes.get(gsClass));
     }
@@ -78,21 +78,21 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
     @Override
     public void addResult(ByteString relation, String method, ByteString rtClass) {
         querySet.add(method);
-        Map<String, Set<ByteString>> method2classes = query2classes.get(relation);
+        Map<String, IntSet> method2classes = query2classes.get(relation);
         if (method2classes == null) {
             query2classes.put(relation, method2classes = new HashMap<>());
         }
-        Set<ByteString> classes = method2classes.get(method);
+        IntSet classes = method2classes.get(method);
         if (classes == null) {
-            method2classes.put(method, classes = new HashSet<>());
+            method2classes.put(method, classes = new IntOpenHashSet());
         }
         classes.add(rtClass);
     }
     
     @Override
-    public void addResult(ByteString relation, String method, Set<ByteString> classes) {
+    public void addResult(ByteString relation, String method, IntSet classes) {
         querySet.add(method);
-        Map<String, Set<ByteString>> method2classes = query2classes.get(relation);
+        Map<String, IntSet> method2classes = query2classes.get(relation);
         if (method2classes == null) {
             query2classes.put(relation, method2classes = new HashMap<>());
         }
@@ -110,12 +110,12 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
         if (!query2classes.containsKey(query) || !query2classes.get(query).containsKey(method)) {
             return new ImpliedFacts(0, 0, gsSize, 0, 0, gsSize - oldGSFacts);
         }
-        Set<ByteString> rtSet = new HashSet<>((int) gsSize);
+        IntSet rtSet = new IntOpenHashSet((int) gsSize);
         for (ByteString c : query2classes.get(query).get(method)) {
             rtSet.addAll(db.classes.get(c));
         }
         long rtSize = rtSet.size();
-        Set<ByteString> tpSet = new HashSet<>((rtSize < gsSize) ? rtSet : gs.get(query));
+        IntSet tpSet = new IntOpenHashSet((rtSize < gsSize) ? rtSet : gs.get(query));
         tpSet.retainAll((rtSize >= gsSize) ? rtSet : gs.get(query));
         long tp = tpSet.size();
         long oldTPFacts = SetU.countIntersection(tpSet, db.relations.get(query));

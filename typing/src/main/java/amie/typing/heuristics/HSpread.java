@@ -25,7 +25,7 @@ public class HSpread extends TypingHeuristic {
 			ByteString variable) {
 		double sc = getStandardConfidence(typeL(type, variable), clause, variable, true);
 		double t,scm = 0;
-		Set<ByteString> subtypes = amie.data.Schema.getSubtypes(db, type);
+		IntSet subtypes = amie.data.Schema.getSubtypes(db, type);
 		clause.add(typeT(type, variable));
 		for (ByteString subType : subtypes) {
 			t = getStandardConfidence(typeL(subType, variable), clause, variable, true);

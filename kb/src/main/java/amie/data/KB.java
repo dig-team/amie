@@ -56,22 +56,22 @@ public class KB {
 	// ---------------------------------------------------------------------------
 
 	/** Index */
-	protected final Map<ByteString, Map<ByteString, Set<ByteString>>> subject2relation2object = new IdentityHashMap<ByteString, Map<ByteString, Set<ByteString>>>();
+	protected final Map<ByteString, Map<ByteString, IntSet>> subject2relation2object = new IdentityHashMap<ByteString, Map<ByteString, IntSet>>();
 
 	/** Index */
-	public final Map<ByteString, Map<ByteString, Set<ByteString>>> relation2object2subject = new IdentityHashMap<ByteString, Map<ByteString, Set<ByteString>>>();
+	public final Map<ByteString, Map<ByteString, IntSet>> relation2object2subject = new IdentityHashMap<ByteString, Map<ByteString, IntSet>>();
 
 	/** Index */
-	protected final Map<ByteString, Map<ByteString, Set<ByteString>>> object2subject2relation = new IdentityHashMap<ByteString, Map<ByteString, Set<ByteString>>>();
+	protected final Map<ByteString, Map<ByteString, IntSet>> object2subject2relation = new IdentityHashMap<ByteString, Map<ByteString, IntSet>>();
 
 	/** Index */
-	public final Map<ByteString, Map<ByteString, Set<ByteString>>> relation2subject2object = new IdentityHashMap<ByteString, Map<ByteString, Set<ByteString>>>();
+	public final Map<ByteString, Map<ByteString, IntSet>> relation2subject2object = new IdentityHashMap<ByteString, Map<ByteString, IntSet>>();
 
 	/** Index */
-	protected final Map<ByteString, Map<ByteString, Set<ByteString>>> object2relation2subject = new IdentityHashMap<ByteString, Map<ByteString, Set<ByteString>>>();
+	protected final Map<ByteString, Map<ByteString, IntSet>> object2relation2subject = new IdentityHashMap<ByteString, Map<ByteString, IntSet>>();
 
 	/** Index */
-	protected final Map<ByteString, Map<ByteString, Set<ByteString>>> subject2object2relation = new IdentityHashMap<ByteString, Map<ByteString, Set<ByteString>>>();
+	protected final Map<ByteString, Map<ByteString, IntSet>> subject2object2relation = new IdentityHashMap<ByteString, Map<ByteString, IntSet>>();
 
 	/** Number of facts per subject */
 	protected final IntHashMap<ByteString> subjectSize = new IntHashMap<ByteString>();
@@ -215,17 +215,17 @@ public class KB {
 	/** Methods to add single facts to the KB **/
 	protected boolean add(ByteString subject, ByteString relation,
 			ByteString object,
-			Map<ByteString, Map<ByteString, Set<ByteString>>> map) {
+			Map<ByteString, Map<ByteString, IntSet>> map) {
 		synchronized (map) {
-			Map<ByteString, Set<ByteString>> relation2object = map
+			Map<ByteString, IntSet> relation2object = map
 					.get(subject);
 			if (relation2object == null)
 				map.put(subject,
-						relation2object = new IdentityHashMap<ByteString, Set<ByteString>>());
-			Set<ByteString> objects = relation2object.get(relation);
+						relation2object = new IdentityHashMap<ByteString, IntSet>());
+			IntSet objects = relation2object.get(relation);
 			if (objects == null)
 				relation2object.put(relation,
-						objects = new HashSet<ByteString>());
+						objects = new IntOpenHashSet());
 			return (objects.add(object));
 		}
 	}
@@ -287,7 +287,7 @@ public class KB {
 		}
 
 		synchronized (subject2subjectOverlap) {
-			Set<ByteString> overlaps = subject2subjectOverlap
+			IntSet overlaps = subject2subjectOverlap
 					.get(relation);
 			if (overlaps == null) {
 				subject2subjectOverlap.put(relation,
@@ -296,7 +296,7 @@ public class KB {
 		}
 
 		synchronized (subject2objectOverlap) {
-			Set<ByteString> overlaps = subject2objectOverlap
+			IntSet overlaps = subject2objectOverlap
 					.get(relation);
 			if (overlaps == null) {
 				subject2objectOverlap.put(relation,
@@ -305,7 +305,7 @@ public class KB {
 		}
 
 		synchronized (object2objectOverlap) {
-			Set<ByteString> overlaps = object2objectOverlap
+			IntSet overlaps = object2objectOverlap
 					.get(relation);
 			if (overlaps == null) {
 				object2objectOverlap.put(relation,
@@ -325,7 +325,7 @@ public class KB {
 	public int add(KB otherKb) {
 		int count = 0;
 		for (ByteString subject: otherKb.subject2relation2object.keySet()) {
-			Map<ByteString, Set<ByteString>> subjectMap = 
+			Map<ByteString, IntSet> subjectMap = 
 					otherKb.subject2relation2object.get(subject);
 			for (ByteString relation : subjectMap.keySet()) {
 				for (ByteString object : subjectMap.get(relation)) {
@@ -377,7 +377,7 @@ public class KB {
 	 * @return
 	 */
 	public long entitiesSize() {
-		Set<ByteString> entities = new HashSet<ByteString>(subjectSize);
+		IntSet entities = new IntOpenHashSet(subjectSize);
 		entities.addAll(objectSize);
 		return entities.size();
 	}
@@ -432,14 +432,14 @@ public class KB {
 	 */
 	public void buildOverlapTables() {
 		for (ByteString r1 : relationSize) {
-			Set<ByteString> subjects1 = relation2subject2object.get(r1)
+			IntSet subjects1 = relation2subject2object.get(r1)
 					.keySet();
-			Set<ByteString> objects1 = relation2object2subject.get(r1)
+			IntSet objects1 = relation2object2subject.get(r1)
 					.keySet();
 			for (ByteString r2 : relationSize) {
-				Set<ByteString> subjects2 = relation2subject2object.get(r2)
+				IntSet subjects2 = relation2subject2object.get(r2)
 						.keySet();
-				Set<ByteString> objects2 = relation2object2subject.get(r2)
+				IntSet objects2 = relation2object2subject.get(r2)
 						.keySet();
 
 				if (!r1.equals(r2)) {
@@ -597,7 +597,7 @@ public class KB {
 	 * @param s2
 	 * @return
 	 */
-	public static int computeOverlap(Set<ByteString> s1, Set<ByteString> s2) {
+	public static int computeOverlap(IntSet s1, IntSet s2) {
 		int overlap = 0;
 		for (ByteString r : s1) {
 			if (s2.contains(r))
@@ -841,7 +841,7 @@ public class KB {
 		double avg = 1.0 / inverseFunctionality(relation);
 		// Now compute the formula
 		double sum = 0.0;
-		Map<ByteString, Set<ByteString>> targetMap = 
+		Map<ByteString, IntSet> targetMap = 
 				relation2object2subject.get(relation);
 		for (ByteString object : targetMap.keySet()) {
 			sum += Math.pow(avg - targetMap.get(object).size(), 2.0);
@@ -861,7 +861,7 @@ public class KB {
 		double avg = 1.0 / functionality(relation);
 		// Now compute the formula
 		double sum = 0.0;
-		Map<ByteString, Set<ByteString>> targetMap = 
+		Map<ByteString, IntSet> targetMap = 
 				relation2subject2object.get(relation);
 		for (ByteString subject : targetMap.keySet()) {
 			sum += Math.pow(avg - targetMap.get(subject).size(), 2.0);
@@ -981,15 +981,15 @@ public class KB {
 	 * @param map A 3-level map 
 	 * @return
 	 * */
-	protected Set<ByteString> get(
-			Map<ByteString, Map<ByteString, Set<ByteString>>> map,
+	protected IntSet get(
+			Map<ByteString, Map<ByteString, IntSet>> map,
 			ByteString key1, ByteString key2) {
-		Map<ByteString, Set<ByteString>> m = map.get(key1);
+		Map<ByteString, IntSet> m = map.get(key1);
 		if (m == null)
-			return (new HashSet<>());
-		Set<ByteString> r = m.get(key2);
+			return (new IntOpenHashSet());
+		IntSet r = m.get(key2);
 		if (r == null)
-			return (new HashSet<>());
+			return (new IntOpenHashSet());
 		return (r);
 	}
 	
@@ -1000,10 +1000,10 @@ public class KB {
 	 * @param map A 3-level map 
 	 * @return
 	 * */
-	protected Map<ByteString, Set<ByteString>> get(
-			Map<ByteString, Map<ByteString, Set<ByteString>>> map,
+	protected Map<ByteString, IntSet> get(
+			Map<ByteString, Map<ByteString, IntSet>> map,
 			ByteString key) {
-		Map<ByteString, Set<ByteString>> m = map.get(key);
+		Map<ByteString, IntSet> m = map.get(key);
 		if (m == null)
 			return (Collections.emptyMap());
 		else
@@ -1014,7 +1014,7 @@ public class KB {
 	 * Returns the results of the triple pattern query, if it contains exactly 1
 	 * variable
 	 */
-	public Set<ByteString> resultsOneVariable(CharSequence... triple) {
+	public IntSet resultsOneVariable(CharSequence... triple) {
 		if (numVariables(triple) != 1)
 			throw new IllegalArgumentException(
 					"Triple should contain exactly one variable: "
@@ -1026,13 +1026,13 @@ public class KB {
 	 * Returns the results of the triple pattern query, if it contains exactly 1
 	 * variable
 	 */
-	public Set<ByteString> resultsOneVariable(ByteString... triple) {
+	public IntSet resultsOneVariable(ByteString... triple) {
 		if (triple[1].equals(TRANSITIVETYPEbs)) {
 			if (isVariable(triple[0])) {
 				/*
 				 * Return all the entities in subclasses of triple[2]
 				 */
-				Set<ByteString> result = new HashSet<>();
+				IntSet result = new IntOpenHashSet();
 				for (ByteString subtype : Schema.getAllSubTypes(this, triple[2])) {
 					result.addAll(get(relation2object2subject, Schema.typeRelationBS, subtype));
 				}
@@ -1048,7 +1048,7 @@ public class KB {
 			throw new IllegalArgumentException("Cannot query differentFrom: "
 					+ toString(triple));
 		if (triple[1].equals(EQUALSbs)) {
-			Set<ByteString> result = new HashSet<>();
+			IntSet result = new IntOpenHashSet();
 			if (isVariable(triple[0]))
 				result.add(triple[2]);
 			else
@@ -1057,19 +1057,19 @@ public class KB {
 		}		
 		if (triple[1].equals(EXISTSbs)) {
 			if (isVariable(triple[0])) 
-				return (new HashSet<ByteString>(get(subject2relation2object, triple[2]).keySet()));
+				return (new IntOpenHashSet(get(subject2relation2object, triple[2]).keySet()));
 			else 
-				return (new HashSet<ByteString>(get(relation2subject2object, triple[0]).keySet()));
+				return (new IntOpenHashSet(get(relation2subject2object, triple[0]).keySet()));
 		}		
 		if (triple[1].equals(EXISTSINVbs)) {
 			if (isVariable(triple[0])) 
-				return (new HashSet<ByteString>(get(object2relation2subject, triple[2]).keySet()));
+				return (new IntOpenHashSet(get(object2relation2subject, triple[2]).keySet()));
 			else 
-				return (new HashSet<ByteString>(get(relation2object2subject, triple[0]).keySet()));
+				return (new IntOpenHashSet(get(relation2object2subject, triple[0]).keySet()));
 		}
 		
 		if (triple[1].equals(NOTEXISTSbs)) {
-			Set<ByteString> values = new LinkedHashSet<>();
+			IntSet values = new IntOpenHashSet();
 			if (isVariable(triple[0])) {
 				values.addAll(relationSize);
 				values.removeAll(get(subject2relation2object, triple[2]).keySet());
@@ -1077,11 +1077,11 @@ public class KB {
 				values.addAll(subjectSize);
 				values.removeAll(get(relation2subject2object, triple[0]).keySet());
 			}			
-			return new HashSet<>(values);
+			return new IntOpenHashSet(values);
 		}
 		
 		if (triple[1].equals(NOTEXISTSINVbs)) {
-			Set<ByteString> values = new LinkedHashSet<>();
+			IntSet values = new IntOpenHashSet();
 			if (isVariable(triple[0])) {
 				values.addAll(relationSize);
 				values.removeAll(get(object2relation2subject, triple[2]).keySet());
@@ -1089,7 +1089,7 @@ public class KB {
 				values.addAll(objectSize);
 				values.removeAll(get(relation2object2subject, triple[0]).keySet());
 			}
-			return new HashSet<>(values);
+			return new IntOpenHashSet(values);
 		}
 		
 		Pair<ByteString, Integer> cardinalityRelation = 
@@ -1099,10 +1099,10 @@ public class KB {
 				throw new UnsupportedOperationException("The relation " + triple[1] 
 						+ " does not support variables in the object position");
 			}
-			Set<ByteString> results = new HashSet<>();
+			IntSet results = new IntOpenHashSet();
 			if (cardinalityRelation.first.equals(hasNumberOfValuesEqualsBS) 
 					|| cardinalityRelation.first.equals(hasNumberOfValuesEqualsInvBS)) {
-				Map<ByteString, Set<ByteString>> map = 
+				Map<ByteString, IntSet> map = 
 						cardinalityRelation.first.equals(hasNumberOfValuesEqualsBS) ?
 								get(relation2subject2object, triple[2]) :
 								get(relation2object2subject, triple[2]);			
@@ -1112,7 +1112,7 @@ public class KB {
 							results.add(entity);
 					}
 				} else {
-					Set<ByteString> set = cardinalityRelation.first.equals(hasNumberOfValuesEqualsBS) ?
+					IntSet set = cardinalityRelation.first.equals(hasNumberOfValuesEqualsBS) ?
 							subjectSize : objectSize;
 					for (ByteString entity : set) {
 						if (!map.containsKey(entity)) {
@@ -1122,13 +1122,13 @@ public class KB {
 				}
 			} else if (cardinalityRelation.first.equals(hasNumberOfValuesGreaterThanBS)
 					|| cardinalityRelation.first.equals(hasNumberOfValuesGreaterThanInvBS)) {
-				Map<ByteString, Set<ByteString>> map = 
+				Map<ByteString, IntSet> map = 
 						cardinalityRelation.first.equals(hasNumberOfValuesGreaterThanBS) ?
 								get(relation2subject2object, triple[2]) :
 								get(relation2object2subject, triple[2]);	
 				
 				if (cardinalityRelation.second.intValue() == 0) {
-					return new HashSet<>(map.keySet());
+					return new IntOpenHashSet(map.keySet());
 				}
 					
 				for (ByteString entity : map.keySet()) {
@@ -1136,9 +1136,9 @@ public class KB {
 						results.add(entity);
 				}
 			} else {
-				Set<ByteString> set = cardinalityRelation.first.equals(hasNumberOfValuesSmallerThanBS) ?
+				IntSet set = cardinalityRelation.first.equals(hasNumberOfValuesSmallerThanBS) ?
 						subjectSize : objectSize;
-				Map<ByteString, Set<ByteString>> map = 
+				Map<ByteString, IntSet> map = 
 						cardinalityRelation.first.equals(hasNumberOfValuesSmallerThanBS) ?
 								get(relation2subject2object, triple[2]) :
 								get(relation2object2subject, triple[2]);	
@@ -1292,7 +1292,7 @@ public class KB {
 	 * Returns the results of a triple query pattern with two variables as a map
 	 * of first value to set of second values.
 	 */
-	public Map<ByteString, Set<ByteString>> resultsTwoVariables(
+	public Map<ByteString, IntSet> resultsTwoVariables(
 			CharSequence var1, CharSequence var2, CharSequence[] triple) {
 		if (varpos(var1, triple) == -1 || varpos(var2, triple) == -1
 				|| var1.equals(var2) || numVariables(triple) != 2)
@@ -1307,7 +1307,7 @@ public class KB {
 	 * Returns the results of a triple query pattern with two variables as a map
 	 * of first value to set of second values.
 	 */
-	public Map<ByteString, Set<ByteString>> resultsTwoVariablesByPos(
+	public Map<ByteString, IntSet> resultsTwoVariablesByPos(
 			int pos1, int pos2, CharSequence[] triple) {
 		if (!isVariable(triple[pos1]) || !isVariable(triple[pos2])
 				|| numVariables(triple) != 2 || pos1 == pos2)
@@ -1321,7 +1321,7 @@ public class KB {
 	 * Returns the results of a triple query pattern with two variables as a map
 	 * of first value to set of second values
 	 */
-	public Map<ByteString, Set<ByteString>> resultsTwoVariables(
+	public Map<ByteString, IntSet> resultsTwoVariables(
 			ByteString var1, ByteString var2, ByteString[] triple) {
 		int varPos1 = varpos(var1, triple);
 		int varPos2 = varpos(var2, triple);
@@ -1333,10 +1333,10 @@ public class KB {
 	 * Returns the results of a triple query pattern with two variables as a map
 	 * of first value to set of second values
 	 */
-	public Map<ByteString, Set<ByteString>> resultsTwoVariablesByPos(
+	public Map<ByteString, IntSet> resultsTwoVariablesByPos(
 			int pos1, int pos2, ByteString[] triple) {
 		if (triple[1].equals(TRANSITIVETYPEbs)) {
-			Map<ByteString, Set<ByteString>> result = new LinkedHashMap<>();
+			Map<ByteString, IntSet> result = new LinkedHashMap<>();
 			switch(pos1) {
 			case 0:
 				/*
@@ -1350,7 +1350,7 @@ public class KB {
 				/*
 				 * Return a map from all types to all entities of sub-classes
 				 */
-				Set<ByteString> allTypes = (Schema.isTaxonomyMaterialized()) ? Schema.getAllDefinedTypes() : get(relation2object2subject, Schema.typeRelationBS).keySet();
+				IntSet allTypes = (Schema.isTaxonomyMaterialized()) ? Schema.getAllDefinedTypes() : get(relation2object2subject, Schema.typeRelationBS).keySet();
 				for (ByteString type : allTypes) {
 					result.put(type, resultsOneVariable(triple(ByteString.of("?s"), TRANSITIVETYPEbs, type)));
 				}
@@ -1365,21 +1365,21 @@ public class KB {
 			throw new IllegalArgumentException(
 					"Cannot query with differentFrom: " + toString(triple));
 		if (triple[1].equals(EQUALSbs)) {
-			Map<ByteString, Set<ByteString>> result = new HashMap<>();
+			Map<ByteString, IntSet> result = new HashMap<>();
 			for (ByteString entity : subject2object2relation.keySet()) {
-				Set<ByteString> innerResult = new HashSet<>();
+				IntSet innerResult = new IntOpenHashSet();
 				innerResult.add(entity);
 				result.put(entity, innerResult);
 			}
 			return (result);
 		}
 		if (triple[1].equals(EXISTSbs) || triple[1].equals(EXISTSINVbs)) {
-			Map<ByteString, Map<ByteString, Set<ByteString>>> map = 
+			Map<ByteString, Map<ByteString, IntSet>> map = 
 					triple[1].equals(EXISTSbs) ? relation2subject2object
 							: relation2object2subject;
-			Map<ByteString, Set<ByteString>> result = new HashMap<>();
+			Map<ByteString, IntSet> result = new HashMap<>();
 			for (ByteString relation : map.keySet()) {
-				Set<ByteString> innerResult = new HashSet<>();
+				IntSet innerResult = new IntOpenHashSet();
 				innerResult.addAll(map.get(relation).keySet());
 				result.put(relation, innerResult);
 			}
@@ -1387,15 +1387,15 @@ public class KB {
 		}
 		
 		if (triple[1].equals(NOTEXISTSbs) || triple[1].equals(NOTEXISTSINVbs)) {
-			Map<ByteString, Map<ByteString, Set<ByteString>>> map = 
+			Map<ByteString, Map<ByteString, IntSet>> map = 
 					triple[1].equals(NOTEXISTSbs) ? relation2subject2object
 							: relation2object2subject;
-			Map<ByteString, Set<ByteString>> result = new HashMap<>();
+			Map<ByteString, IntSet> result = new HashMap<>();
 			for (ByteString relation : map.keySet()) {
-				Set<ByteString> uMap = triple[1].equals(NOTEXISTSbs) ? 
-						new LinkedHashSet<>(subjectSize) : new LinkedHashSet<>(objectSize);				
+				IntSet uMap = triple[1].equals(NOTEXISTSbs) ? 
+						new IntOpenHashSet(subjectSize) : new IntOpenHashSet(objectSize);				
 				uMap.removeAll(map.get(relation).keySet());	
-				result.put(relation, new HashSet<>(uMap));
+				result.put(relation, new IntOpenHashSet(uMap));
 			}	
 			return result;
 		}
@@ -1440,7 +1440,7 @@ public class KB {
 	 * @param triple
 	 * @return
 	 */
-	public Map<ByteString, Map<ByteString, Set<ByteString>>> resultsThreeVariables(
+	public Map<ByteString, Map<ByteString, IntSet>> resultsThreeVariables(
 			ByteString var1, ByteString var2, ByteString var3,
 			ByteString[] triple) {
 		int varPos1 = varpos(var1, triple);
@@ -1459,7 +1459,7 @@ public class KB {
 	 * @param triple
 	 * @return
 	 */
-	private Map<ByteString, Map<ByteString, Set<ByteString>>> resultsThreeVariablesByPos(
+	private Map<ByteString, Map<ByteString, IntSet>> resultsThreeVariablesByPos(
 			int varPos1, int varPos2, int varPos3, ByteString[] triple) {
 		switch (varPos1) {
 		case 0 :
@@ -1558,7 +1558,7 @@ public class KB {
 			if (compositeRelation.first.equals(hasNumberOfValuesEqualsBS)
 					|| compositeRelation.first.equals(hasNumberOfValuesEqualsInv)) {
 				
-				Map<ByteString, Set<ByteString>> map = 
+				Map<ByteString, IntSet> map = 
 						compositeRelation.first.equals(hasNumberOfValuesEqualsBS) ?
 						get(this.relation2subject2object, triple[2]) :
 						get(this.relation2object2subject, triple[2]);				
@@ -1569,7 +1569,7 @@ public class KB {
 							++count; 
 					}
 				} else {
-					Set<ByteString> set =
+					IntSet set =
 					compositeRelation.first.equals(hasNumberOfValuesEqualsBS) ? 
 							subjectSize : objectSize;
 					for (ByteString s : set) {
@@ -1582,7 +1582,7 @@ public class KB {
 			} else if (compositeRelation.first.equals(hasNumberOfValuesGreaterThanBS)
 					|| compositeRelation.first.equals(hasNumberOfValuesGreaterThanInvBS)) {
 				// If it is 0, just return the size of the map
-				Map<ByteString, Set<ByteString>> map = 
+				Map<ByteString, IntSet> map = 
 						compositeRelation.first.equals(hasNumberOfValuesGreaterThanBS) ?
 						get(this.relation2subject2object, triple[2]) :
 						get(this.relation2object2subject, triple[2]);
@@ -1599,12 +1599,12 @@ public class KB {
 					return count;	
 				}
 			} else {
-				Map<ByteString, Set<ByteString>> map = 
+				Map<ByteString, IntSet> map = 
 						compositeRelation.first.equals(hasNumberOfValuesSmallerThanBS) ?
 						get(this.relation2subject2object, triple[2]) :
 						get(this.relation2object2subject, triple[2]);
 				long count = 0;
-				Set<ByteString> set =
+				IntSet set =
 					compositeRelation.first.equals(hasNumberOfValuesSmallerThanBS) ? 
 							subjectSize : objectSize;
 				for (ByteString s : set) {					
@@ -1631,7 +1631,7 @@ public class KB {
 	 **/
 	protected long countTwoVariables(ByteString... triple) {
 		if (triple[1].equals(TRANSITIVETYPEbs)) {
-			Map<ByteString, Set<ByteString>> resultTwoVars = 
+			Map<ByteString, IntSet> resultTwoVars = 
 					resultsTwoVariablesByPos(0, 2, triple);
 			long count = 0;
 			for (ByteString subject : resultTwoVars.keySet()) {
@@ -1658,7 +1658,7 @@ public class KB {
 			return count;
 		}
 		if (triple[1].equals(NOTEXISTSbs) || triple[1].equals(NOTEXISTSINVbs)) {			
-			Map<ByteString, Set<ByteString>> resultTwoVars = 
+			Map<ByteString, IntSet> resultTwoVars = 
 					resultsTwoVariables(triple[0], triple[2], triple);
 			long count = 0;
 			for (ByteString relation : resultTwoVars.keySet()) {
@@ -1958,7 +1958,7 @@ public class KB {
 			int firstVar = firstVariablePos(best);
 			int secondVar = secondVariablePos(best);
 			otherTriples = remove(bestPos, triples);
-                        Map<ByteString, Set<ByteString>> instantiations;
+                        Map<ByteString, IntSet> instantiations;
                         if (!optimExistentialDetection
                                 || (contains(best[firstVar], otherTriples) && contains(best[secondVar], otherTriples))) {
                             instantiations = resultsTwoVariablesByPos(firstVar, secondVar, best);
@@ -2016,13 +2016,13 @@ public class KB {
 	// ---------------------------------------------------------------------------
 
 	/** returns the instances that fulfill a certain condition */
-	public Set<ByteString> selectDistinct(CharSequence variable,
+	public IntSet selectDistinct(CharSequence variable,
 			List<CharSequence[]> query) {
 		return (selectDistinct(compress(variable), triples(query)));
 	}
 
 	/** returns the instances that fulfill a certain condition */
-	public Set<ByteString> selectDistinct(ByteString variable,
+	public IntSet selectDistinct(ByteString variable,
 			List<ByteString[]> query) {
 		// Only one triple
 		if (query.size() == 1) {
@@ -2060,7 +2060,7 @@ public class KB {
 		}
 
 		int bestPos = mostRestrictiveTriple(query);
-		Set<ByteString> result = new HashSet<>();
+		IntSet result = new IntOpenHashSet();
 		if (bestPos == -1)
 			return (result);
 		ByteString[] best = query.get(bestPos);
@@ -2080,7 +2080,7 @@ public class KB {
 			case 2:
 				int firstVar = firstVariablePos(best);
 				int secondVar = secondVariablePos(best);
-				Map<ByteString, Set<ByteString>> instantiations = best[firstVar]
+				Map<ByteString, IntSet> instantiations = best[firstVar]
 						.equals(variable) ? resultsTwoVariablesByPos(firstVar,
 						secondVar, best) : resultsTwoVariablesByPos(secondVar,
 						firstVar, best);
@@ -2128,7 +2128,7 @@ public class KB {
 		}
 
 		// If the variable is not in the most restrictive triple...
-                Map<ByteString, Set<ByteString>> instantiations;
+                Map<ByteString, IntSet> instantiations;
                 List<ByteString[]> others = remove(bestPos, query);
 		switch (numVariables(best)) {
 		case 0:
@@ -2179,7 +2179,7 @@ public class KB {
 		default:
 			firstVar = firstVariablePos(best);
 			secondVar = secondVariablePos(best);
-			Map<ByteString, Map<ByteString, Set<ByteString>>> map = 
+			Map<ByteString, Map<ByteString, IntSet>> map = 
 					resultsThreeVariables(best[0], best[1], best[2], best);
 			try (Instantiator insty1 = new Instantiator(others, best[0]);
 					Instantiator insty2 = new Instantiator(others, best[1]);
@@ -2189,7 +2189,7 @@ public class KB {
 					instantiations = map.get(val1);
 					for (ByteString val2 : instantiations.keySet()) {
 						insty2.instantiate(val2);
-						Set<ByteString> instantiations2 = instantiations.get(val2);
+						IntSet instantiations2 = instantiations.get(val2);
 						for (ByteString val3 : instantiations2) {
 							result.addAll(selectDistinct(variable, insty3.instantiate(val3)));
 						}
@@ -2209,7 +2209,7 @@ public class KB {
      * the iterator is empty or by calling the close() method on the iterator.
      * A closed iterator can no longer be iterated upon.
      */
-    public Iterator<ByteString> selectDistinctIterator(Set<ByteString> result,
+    public Iterator<ByteString> selectDistinctIterator(IntSet result,
             ByteString variable, List<ByteString[]> query) {
         // Only one triple
         if (query.size() == 1) {
@@ -2258,7 +2258,7 @@ public class KB {
         // If the variable is in the most restrictive triple
         if (varpos(variable, best) != -1) {
             Instantiator insty;
-            Set<ByteString> instantiations;
+            IntSet instantiations;
             switch (numVariables(best)) {
                 case 1:
                     insty = new Instantiator(remove(bestPos, query), variable);
@@ -2307,7 +2307,7 @@ public class KB {
         }
 
         // If the variable is not in the most restrictive triple...
-        Map<ByteString, Set<ByteString>> instantiations;
+        Map<ByteString, IntSet> instantiations;
         List<ByteString[]> others = remove(bestPos, query);
         switch (numVariables(best)) {
             case 0:
@@ -2352,23 +2352,23 @@ public class KB {
 	// ---------------------------------------------------------------------------
 
 	/** Returns all (distinct) pairs of values that make the query true */
-	public Map<ByteString, Set<ByteString>> selectDistinct(
+	public Map<ByteString, IntSet> selectDistinct(
 			CharSequence var1, CharSequence var2, List<? extends CharSequence[]> query) {
 		return (selectDistinct(compress(var1), compress(var2), triples(query)));
 	}
 
 	/** Returns all (distinct) pairs of values that make the query true */
-	public Map<ByteString, Set<ByteString>> selectDistinct(
+	public Map<ByteString, IntSet> selectDistinct(
 			ByteString var1, ByteString var2, List<ByteString[]> query) {
 		if (query.isEmpty())
 			return (Collections.emptyMap());
 		if (query.size() == 1) {
 			return (resultsTwoVariables(var1, var2, query.get(0)));
 		}
-		Map<ByteString, Set<ByteString>> result = new HashMap<>();
+		Map<ByteString, IntSet> result = new HashMap<>();
 		try (Instantiator insty1 = new Instantiator(query, var1)) {
 			for (ByteString val1 : selectDistinct(var1, query)) {
-				Set<ByteString> val2s = selectDistinct(var2,
+				IntSet val2s = selectDistinct(var2,
 						insty1.instantiate(val1));
 				if (!val2s.isEmpty())
 					result.put(val1, val2s);
@@ -2382,13 +2382,13 @@ public class KB {
 	// ---------------------------------------------------------------------------
 
 	/** Return all triplets of values that make the query true **/
-	public Map<ByteString, Map<ByteString, Set<ByteString>>> selectDistinct(
+	public Map<ByteString, Map<ByteString, IntSet>> selectDistinct(
 			CharSequence var1, CharSequence var2, CharSequence var3,
 			List<? extends CharSequence[]> query) {
 		return selectDistinct(compress(var1), compress(var2), compress(var3), triples(query));
 	}
 	
-	public Map<ByteString, Map<ByteString, Set<ByteString>>> selectDistinct(
+	public Map<ByteString, Map<ByteString, IntSet>> selectDistinct(
 			ByteString var1, ByteString var2, ByteString var3,
 			List<ByteString[]> query) {
 		if (query.isEmpty()) {
@@ -2406,12 +2406,12 @@ public class KB {
 			}
 		}
 		
-		Map<ByteString, Map<ByteString, Set<ByteString>>> result = 
+		Map<ByteString, Map<ByteString, IntSet>> result = 
 				new HashMap<>();
 		try (Instantiator insty1 = new Instantiator(query, var1)) {
 			for (ByteString val1 : selectDistinct(var1, query)) {
 				insty1.instantiate(val1);
-				Map<ByteString, Set<ByteString>> tail = selectDistinct(var2, var3, query);
+				Map<ByteString, IntSet> tail = selectDistinct(var2, var3, query);
 				if (!tail.isEmpty()) {
 					result.put(val1, tail);
 				}
@@ -2422,27 +2422,27 @@ public class KB {
 	/**
 	 * Turn a result map of 2 levels into a map of 3 levels.
 	 */
-	private Map<ByteString, Map<ByteString, Set<ByteString>>> fixResultMap(
-			Map<ByteString, Set<ByteString>> resultsTwoVars, int fixLevel, ByteString constant) {
-		Map<ByteString, Map<ByteString, Set<ByteString>>> extendedMap = new
-				HashMap<ByteString, Map<ByteString, Set<ByteString>>>();
+	private Map<ByteString, Map<ByteString, IntSet>> fixResultMap(
+			Map<ByteString, IntSet> resultsTwoVars, int fixLevel, ByteString constant) {
+		Map<ByteString, Map<ByteString, IntSet>> extendedMap = new
+				HashMap<ByteString, Map<ByteString, IntSet>>();
 		switch (fixLevel) {
 		case 1:
 			extendedMap.put(constant, resultsTwoVars);
 			break;
 		case 2 :
 			for (ByteString val : resultsTwoVars.keySet()) {
-				Map<ByteString, Set<ByteString>> newMap = 
-						new HashMap<ByteString, Set<ByteString>>();
+				Map<ByteString, IntSet> newMap = 
+						new HashMap<ByteString, IntSet>();
 				newMap.put(constant, resultsTwoVars.get(val));
 				extendedMap.put(val, newMap);
 			}	
 		case 3 : default:
-			Set<ByteString> newMap = new HashSet<ByteString>();
+			IntSet newMap = new IntOpenHashSet();
 			newMap.add(constant);
 			for (ByteString val1 : resultsTwoVars.keySet()) {
-				Map<ByteString, Set<ByteString>> intermediateMap = 
-						new HashMap<ByteString, Set<ByteString>>();
+				Map<ByteString, IntSet> intermediateMap = 
+						new HashMap<ByteString, IntSet>();
 				for (ByteString val2 : resultsTwoVars.get(val1)) {
 					intermediateMap.put(val2, newMap);
 				}
@@ -2453,25 +2453,25 @@ public class KB {
 		return extendedMap;
 	}
 
-	public Map<ByteString, Map<ByteString, Map<ByteString, Set<ByteString>>>> selectDistinct(
+	public Map<ByteString, Map<ByteString, Map<ByteString, IntSet>>> selectDistinct(
 			CharSequence var1, CharSequence var2, CharSequence var3, CharSequence var4,
 			List<? extends CharSequence[]> query) {
 		return selectDistinct(compress(var1), compress(var2), compress(var3), compress(var4), triples(query));
 	}
 	
-	public Map<ByteString, Map<ByteString, Map<ByteString, Set<ByteString>>>> selectDistinct(
+	public Map<ByteString, Map<ByteString, Map<ByteString, IntSet>>> selectDistinct(
 			ByteString var1, ByteString var2, ByteString var3, ByteString var4,
 			List<ByteString[]> query) {
 		if (query.size() < 2) {
 			throw new IllegalArgumentException("The query must have at least 2 atoms");
 		}
 		
-		Map<ByteString, Map<ByteString, Map<ByteString, Set<ByteString>>>> result = 
+		Map<ByteString, Map<ByteString, Map<ByteString, IntSet>>> result = 
 				new HashMap<>();
 		try (Instantiator insty1 = new Instantiator(query, var1)) {
 			for (ByteString val1 : selectDistinct(var1, query)) {
 				insty1.instantiate(val1);
-				Map<ByteString, Map<ByteString, Set<ByteString>>> tail = 
+				Map<ByteString, Map<ByteString, IntSet>> tail = 
 						selectDistinct(var2, var3, var4, query);
 				if (!tail.isEmpty()) {
 					result.put(val1, tail);
@@ -2482,25 +2482,25 @@ public class KB {
 		return result;
 	}
 	
-	public Map<ByteString, Map<ByteString, Map<ByteString, Map<ByteString, Set<ByteString>>>>> selectDistinct(
+	public Map<ByteString, Map<ByteString, Map<ByteString, Map<ByteString, IntSet>>>> selectDistinct(
 			CharSequence var1, CharSequence var2, CharSequence var3, CharSequence var4, CharSequence var5,
 			List<? extends CharSequence[]> query) {
 		return selectDistinct(compress(var1), compress(var2), compress(var3), compress(var4), compress(var5), triples(query));
 	}
 	
-	public Map<ByteString, Map<ByteString, Map<ByteString, Map<ByteString, Set<ByteString>>>>> selectDistinct(
+	public Map<ByteString, Map<ByteString, Map<ByteString, Map<ByteString, IntSet>>>> selectDistinct(
 			ByteString var1, ByteString var2, ByteString var3, ByteString var4, ByteString var5,
 			List<ByteString[]> query) {
 		if (query.size() < 2) {
 			throw new IllegalArgumentException("The query must have at least 2 atoms");
 		}
 		
-		Map<ByteString, Map<ByteString, Map<ByteString, Map<ByteString, Set<ByteString>>>>> result = 
+		Map<ByteString, Map<ByteString, Map<ByteString, Map<ByteString, IntSet>>>> result = 
 				new HashMap<>();
 		try (Instantiator insty1 = new Instantiator(query, var1)) {
 			for (ByteString val1 : selectDistinct(var1, query)) {
 				insty1.instantiate(val1);
-				Map<ByteString, Map<ByteString, Map<ByteString, Set<ByteString>>>> tail = 
+				Map<ByteString, Map<ByteString, Map<ByteString, IntSet>>> tail = 
 						selectDistinct(var2, var3, var4, var5, query);
 				if (!tail.isEmpty()) {
 					result.put(val1, tail);
@@ -2519,7 +2519,7 @@ public class KB {
 	 * Maps each value of the variable to the number of distinct values of the
 	 * projection variable
 	 */
-	public Set<ByteString> frequentBindingsOf(CharSequence variable,
+	public IntSet frequentBindingsOf(CharSequence variable,
 			CharSequence projectionVariable, List<CharSequence[]> query) {
 		return (frequentBindingsOf(compress(variable),
 				compress(projectionVariable), triples(query)));
@@ -2532,13 +2532,13 @@ public class KB {
             }
         }
         
-        public void increase(IntHashMap<ByteString> r, Map<ByteString, Set<ByteString>> p) {
+        public void increase(IntHashMap<ByteString> r, Map<ByteString, IntSet> p) {
             for (ByteString k : p.keySet()) {
                 increase(r, k, p.get(k).size());
             }
         }
         
-        public void increase(IntHashMap<ByteString> r, Set<ByteString> p) {
+        public void increase(IntHashMap<ByteString> r, IntSet p) {
             for (ByteString k : p) {
                 increase(r, k);
             }
@@ -2618,7 +2618,7 @@ public class KB {
 			case 2:
 				int firstVar = firstVariablePos(best);
 				int secondVar = secondVariablePos(best);
-				Map<ByteString, Set<ByteString>> instantiations = best[firstVar]
+				Map<ByteString, IntSet> instantiations = best[firstVar]
 						.equals(variable) ? resultsTwoVariablesByPos(firstVar,
 						secondVar, best) : resultsTwoVariablesByPos(secondVar,
 						firstVar, best);
@@ -2659,7 +2659,7 @@ public class KB {
 			case 2:
 				int firstVar = firstVariablePos(best);
 				int secondVar = secondVariablePos(best);
-				Map<ByteString, Set<ByteString>> instantiations = best[firstVar]
+				Map<ByteString, IntSet> instantiations = best[firstVar]
 						.equals(variable) ? resultsTwoVariablesByPos(firstVar,
 						secondVar, best) : resultsTwoVariablesByPos(secondVar,
 						firstVar, best);
@@ -2696,7 +2696,7 @@ public class KB {
 			case 2:
 				int firstVar = firstVariablePos(best);
 				int secondVar = secondVariablePos(best);
-				Map<ByteString, Set<ByteString>> instantiations = best[firstVar]
+				Map<ByteString, IntSet> instantiations = best[firstVar]
 						.equals(projectionVariable) ? resultsTwoVariablesByPos(
 						firstVar, secondVar, best) : resultsTwoVariablesByPos(
 						secondVar, firstVar, best);
@@ -2776,7 +2776,7 @@ public class KB {
 		case 2:
 			int firstVar = firstVariablePos(projectionTriple);
 			int secondVar = secondVariablePos(projectionTriple);
-			Map<ByteString, Set<ByteString>> instantiations = resultsTwoVariablesByPos(
+			Map<ByteString, IntSet> instantiations = resultsTwoVariablesByPos(
 					firstVar, secondVar, projectionTriple);
 			try (Instantiator insty1 = new Instantiator(otherTriples,
 					projectionTriple[firstVar]);
@@ -2855,7 +2855,7 @@ public class KB {
 			case 2:
 				int firstVar = firstVariablePos(projectionTriple);
 				int secondVar = secondVariablePos(projectionTriple);
-				Map<ByteString, Set<ByteString>> instantiations = resultsTwoVariablesByPos(
+				Map<ByteString, IntSet> instantiations = resultsTwoVariablesByPos(
 						firstVar, secondVar, projectionTriple);
 				try (Instantiator insty1 = new Instantiator(otherTriples,
 						projectionTriple[firstVar]);
@@ -2912,7 +2912,7 @@ public class KB {
 							Instantiator insty3 = new Instantiator(
 									projectionTripleList,
 									projectionTriple[projectionPosition])) {
-						Set<ByteString> instantiations = countBindings(
+						IntSet instantiations = countBindings(
 								posInCommon, mostRestrictive);
 						for (ByteString b1 : instantiations) {
 							increase(result, countProjectionBindings(insty3
@@ -3039,7 +3039,7 @@ public class KB {
 			counter = 0;
 			int firstVar = firstVariablePos(projectionTriple);
 			int secondVar = secondVariablePos(projectionTriple);
-			Map<ByteString, Set<ByteString>> instantiations = resultsTwoVariablesByPos(
+			Map<ByteString, IntSet> instantiations = resultsTwoVariablesByPos(
 					firstVar, secondVar, projectionTriple);
 			try (Instantiator insty1 = new Instantiator(otherTriples,
 					projectionTriple[firstVar])) {
@@ -3280,7 +3280,7 @@ public class KB {
          */
     public static List<ByteString[]> connectedComponent(List<ByteString[]> query, 
             ByteString fromVariable, ByteString removeVariable) {
-        Set<ByteString> connectedVariables = new HashSet<>();
+        IntSet connectedVariables = new IntOpenHashSet();
         connectedVariables.add(fromVariable);
         boolean fixedpoint;
         do {
@@ -3321,7 +3321,7 @@ public class KB {
         long result = 0;
 
         try (Instantiator insty1 = new Instantiator((optimConnectedComponent) ? connectedComponent(query, var2, var1) : query, var1)) {
-            Set<ByteString> bindings = selectDistinct(var1, query);
+            IntSet bindings = selectDistinct(var1, query);
             for (ByteString val1 : bindings) {
                 result += countDistinct(var2, insty1.instantiate(val1));
             }
@@ -3340,7 +3340,7 @@ public class KB {
         long result = 0;
 
         try (Instantiator insty1 = new Instantiator((optimConnectedComponent) ? connectedComponent(query, var2, var1) : query, var1)) {
-            Set<ByteString> bindings = selectDistinct(var1, query);
+            IntSet bindings = selectDistinct(var1, query);
             for (ByteString val1 : bindings) {
                 result += countDistinct(var2, insty1.instantiate(val1));
                 if (result > upperBound) {
@@ -3357,13 +3357,13 @@ public class KB {
 
         // Go for the standard plan
         long result = 0;
-        Set<ByteString> bindings, bindings2;
+        IntSet bindings, bindings2;
 
         try (Instantiator insty1 = new Instantiator(
                 (optimConnectedComponent) ? connectedComponent(U.deepClone(query), var2, var1) : U.deepClone(query), var1)) {
-            bindings = new HashSet<>();
+            bindings = new IntOpenHashSet();
             for (Iterator<ByteString> bindingsIt = selectDistinctIterator(bindings, var1, query); bindingsIt.hasNext(); ) {
-                bindings2 = new HashSet<>();
+                bindings2 = new IntOpenHashSet();
                 for (Iterator<ByteString> bindingsIt2 = selectDistinctIterator(bindings2, var2, 
                         insty1.instantiate(bindingsIt.next())); bindingsIt2.hasNext(); ) {
                     result += 1;
@@ -3580,7 +3580,7 @@ public class KB {
 	 * @param head
 	 * @return
 	 */
-	public Set<ByteString> difference(CharSequence projectionVariable,
+	public IntSet difference(CharSequence projectionVariable,
 			List<? extends CharSequence[]> antecedent, CharSequence[] head) {
 		List<CharSequence[]> headList = new ArrayList<>();
 		headList.add(head);
@@ -3596,12 +3596,12 @@ public class KB {
 	 * @param head
 	 * @return
 	 */
-	public Set<ByteString> difference(ByteString projectionVariable,
+	public IntSet difference(ByteString projectionVariable,
 			List<ByteString[]> antecedent, List<ByteString[]> head) {
 		// TODO Auto-generated method stub
-		Set<ByteString> bodyBindings = new HashSet<ByteString>(selectDistinct(
+		IntSet bodyBindings = new IntOpenHashSet(selectDistinct(
 				projectionVariable, antecedent));
-		Set<ByteString> headBindings = selectDistinct(projectionVariable, head);
+		IntSet headBindings = selectDistinct(projectionVariable, head);
 
 		bodyBindings.removeAll(headBindings);
 		return bodyBindings;
@@ -3621,7 +3621,7 @@ public class KB {
 	 * @param head
 	 * @return
 	 */
-	public Map<ByteString, Set<ByteString>> difference(CharSequence var1,
+	public Map<ByteString, IntSet> difference(CharSequence var1,
 			CharSequence var2, List<? extends CharSequence[]> antecedent, CharSequence[] head) {
 		return difference(compress(var1), compress(var2), triples(antecedent), triple(head));
 	}
@@ -3635,7 +3635,7 @@ public class KB {
 	 * @param head
 	 * @return
 	 */
-	public Map<ByteString, Set<ByteString>> difference(ByteString var1,
+	public Map<ByteString, IntSet> difference(ByteString var1,
 			ByteString var2, List<ByteString[]> antecedent,
 			ByteString[] head) {
 		// Look for all bindings for the variables that appear on the antecedent
@@ -3654,7 +3654,7 @@ public class KB {
 	 * @param head
 	 * @return
 	 */
-	public Map<ByteString, Set<ByteString>> differenceNoVarsInCommon(CharSequence var1,
+	public Map<ByteString, IntSet> differenceNoVarsInCommon(CharSequence var1,
 			CharSequence var2, List<? extends CharSequence[]> antecedent,
 			CharSequence[] head) {
 		return differenceNoVarsInCommon(compress(var1), compress(var2), triples(antecedent), triple(head));
@@ -3670,7 +3670,7 @@ public class KB {
 	 * @param head
 	 * @return
 	 */
-	public Map<ByteString, Set<ByteString>> differenceNoVarsInCommon(ByteString var1,
+	public Map<ByteString, IntSet> differenceNoVarsInCommon(ByteString var1,
 			ByteString var2, List<ByteString[]> antecedent,
 			ByteString[] head) {
 		// Look for all bindings for the variables that appear on the antecedent
@@ -3679,15 +3679,15 @@ public class KB {
 		headList.add(head);
 		List<ByteString[]> wholeQuery = new ArrayList<ByteString[]>(antecedent);
 		wholeQuery.add(head);
-		Map<ByteString, Set<ByteString>> results = new HashMap<ByteString, Set<ByteString>>();
+		Map<ByteString, IntSet> results = new HashMap<ByteString, IntSet>();
 		
-		Map<ByteString, Set<ByteString>> antecedentBindings = 
+		Map<ByteString, IntSet> antecedentBindings = 
 				selectDistinct(var1, var2, antecedent);
 		try(Instantiator insty1 = new Instantiator(wholeQuery, var1);
 				Instantiator insty2 = new Instantiator(wholeQuery, var2)) {
 			for (ByteString val1 : antecedentBindings.keySet()) {
 				insty1.instantiate(val1);
-				Set<ByteString> nestedValues = new HashSet<ByteString>();
+				IntSet nestedValues = new IntOpenHashSet();
 				for(ByteString val2 : antecedentBindings.get(val1)) {
 					insty2.instantiate(val2);
 					if (!existsBS1(wholeQuery)) {
@@ -3712,21 +3712,21 @@ public class KB {
 	 * @param headList
 	 * @return
 	 */
-	public Map<ByteString, Set<ByteString>> difference(ByteString var1,
+	public Map<ByteString, IntSet> difference(ByteString var1,
 			ByteString var2, List<ByteString[]> antecedent,
 			List<ByteString[]> headList) {
-		Map<ByteString, Set<ByteString>> bodyBindings = selectDistinct(
+		Map<ByteString, IntSet> bodyBindings = selectDistinct(
 				var1, var2, antecedent);
-		Map<ByteString, Set<ByteString>> headBindings = selectDistinct(
+		Map<ByteString, IntSet> headBindings = selectDistinct(
 				var1, var2, headList);
-		Map<ByteString, Set<ByteString>> result = new HashMap<ByteString, Set<ByteString>>();
+		Map<ByteString, IntSet> result = new HashMap<ByteString, IntSet>();
 
-		Set<ByteString> keySet = bodyBindings.keySet();
+		IntSet keySet = bodyBindings.keySet();
 		for (ByteString key : keySet) {
 			if (!headBindings.containsKey(key)) {
 				result.put(key, bodyBindings.get(key));
 			} else {
-				Set<ByteString> partialResult = new HashSet<ByteString>();
+				IntSet partialResult = new IntOpenHashSet();
 				for (ByteString value : bodyBindings.get(key)) {
 					if (!headBindings.get(key).contains(value)) {
 						partialResult.add(value);
@@ -3755,7 +3755,7 @@ public class KB {
 	 * @param head
 	 * @return
 	 */
-	public Map<ByteString, Map<ByteString, Set<ByteString>>> difference(
+	public Map<ByteString, Map<ByteString, IntSet>> difference(
 			CharSequence var1, CharSequence var2, CharSequence var3,
 			List<? extends CharSequence[]> antecedent, CharSequence[] head) {
 		return difference(compress(var1), compress(var2), compress(var3), 
@@ -3772,46 +3772,46 @@ public class KB {
 	 * @param head
 	 * @return
 	 */
-	public Map<ByteString, Map<ByteString, Set<ByteString>>> difference(
+	public Map<ByteString, Map<ByteString, IntSet>> difference(
 			ByteString var1, ByteString var2, ByteString var3,
 			List<ByteString[]> antecedent, ByteString[] head) {
-		Map<ByteString, Map<ByteString, Set<ByteString>>> results = null;
+		Map<ByteString, Map<ByteString, IntSet>> results = null;
 		
 		List<ByteString[]> headList = new ArrayList<>(1);
 		headList.add(head);
 		
-		Map<ByteString, Map<ByteString, Set<ByteString>>> bodyBindings = null;
-		Map<ByteString, Map<ByteString, Set<ByteString>>> headBindings = null;
+		Map<ByteString, Map<ByteString, IntSet>> bodyBindings = null;
+		Map<ByteString, Map<ByteString, IntSet>> headBindings = null;
 		
 		if (numVariables(head) == 3) {
-			results = new HashMap<ByteString, Map<ByteString,Set<ByteString>>>();
+			results = new HashMap<ByteString, Map<ByteString,IntSet>>();
 			bodyBindings = selectDistinct(var1, var2, var3, antecedent);
 			headBindings = selectDistinct(var1, var2, var3, headList);
 		
 			for (ByteString val1 : bodyBindings.keySet()) {
 				if (headBindings.containsKey(val1)) {
 					// Check at the next level
-					Map<ByteString, Set<ByteString>> tailBody = 
+					Map<ByteString, IntSet> tailBody = 
 							bodyBindings.get(val1);
-					Map<ByteString, Set<ByteString>> tailHead = 
+					Map<ByteString, IntSet> tailHead = 
 							headBindings.get(val1);
 					for (ByteString val2 : tailBody.keySet()) {
 						if (tailHead.containsKey(val2)) {
-							Set<ByteString> tailBody1 = tailBody.get(val2);
-							Set<ByteString> headBody1 = tailHead.get(val2);
+							IntSet tailBody1 = tailBody.get(val2);
+							IntSet headBody1 = tailHead.get(val2);
 							for (ByteString val3 : tailBody1) {
 								if (!headBody1.contains(val3)) {
-									Map<ByteString, Set<ByteString>> secondLevel = 
+									Map<ByteString, IntSet> secondLevel = 
 											results.get(val1);
 									if (secondLevel == null) {
-										secondLevel = new HashMap<ByteString, Set<ByteString>>();
+										secondLevel = new HashMap<ByteString, IntSet>();
 										results.put(val1, secondLevel);
 									}
 									
-									Set<ByteString> thirdLevel = 
+									IntSet thirdLevel = 
 											secondLevel.get(val2);
 									if (thirdLevel == null) {
-										thirdLevel = new HashSet<ByteString>();
+										thirdLevel = new IntOpenHashSet();
 										secondLevel.put(val2, thirdLevel);
 									}
 									
@@ -3819,10 +3819,10 @@ public class KB {
 								}
 							}
 						} else {
-							Map<ByteString, Set<ByteString>> secondLevel = 
+							Map<ByteString, IntSet> secondLevel = 
 									results.get(val1);
 							if (secondLevel == null) {
-								secondLevel = new HashMap<ByteString, Set<ByteString>>();
+								secondLevel = new HashMap<ByteString, IntSet>();
 								results.put(val1, secondLevel);
 							}
 							secondLevel.put(val2, tailBody.get(val2));
@@ -3834,7 +3834,7 @@ public class KB {
 				}
 			}
 		} else {
-			Map<ByteString, Set<ByteString>> tmpResult = null;
+			Map<ByteString, IntSet> tmpResult = null;
 			int fixLevel = -1;
 			if (varpos(var1, head) == -1) {				
 				tmpResult = difference(var2, var3, antecedent, head);
@@ -3877,7 +3877,7 @@ public class KB {
 	 * @param head
 	 * @return
 	 */
-	public Map<ByteString, Map<ByteString, Map<ByteString, Set<ByteString>>>> difference(
+	public Map<ByteString, Map<ByteString, Map<ByteString, IntSet>>> difference(
 			CharSequence var1, CharSequence var2, CharSequence var3, CharSequence var4,
 			List<? extends CharSequence[]> antecedent, CharSequence[] head) {
 		return difference(compress(var1), compress(var2), compress(var3), compress(var4),
@@ -3894,7 +3894,7 @@ public class KB {
 	 * @param swap
 	 * @return
 	 */
-	public Map<ByteString, Map<ByteString, Map<ByteString, Set<ByteString>>>> difference(
+	public Map<ByteString, Map<ByteString, Map<ByteString, IntSet>>> difference(
 			CharSequence var1, CharSequence var2, CharSequence var3, CharSequence var4,
 			List<? extends CharSequence[]> antecedent, CharSequence[] head, boolean swap) {
 		return difference(compress(var1), compress(var2), compress(var3), compress(var4),
@@ -3910,18 +3910,18 @@ public class KB {
 	 * @param head
 	 * @return
 	 */
-	public Map<ByteString, Map<ByteString, Map<ByteString, Set<ByteString>>>> difference(
+	public Map<ByteString, Map<ByteString, Map<ByteString, IntSet>>> difference(
 			ByteString var1, ByteString var2, ByteString var3, ByteString var4,
 			List<ByteString[]> antecedent, ByteString[] head) {
-		Map<ByteString, Map<ByteString, Map<ByteString, Set<ByteString>>>> results = new
-				HashMap<ByteString, Map<ByteString, Map<ByteString,Set<ByteString>>>>();
+		Map<ByteString, Map<ByteString, Map<ByteString, IntSet>>> results = new
+				HashMap<ByteString, Map<ByteString, Map<ByteString,IntSet>>>();
 		
 		int headNumVars = numVariables(head);
 		if (headNumVars == 3) {
 			try (Instantiator insty = new Instantiator(antecedent, var1)) {
 				for (ByteString val1 : selectDistinct(var1, antecedent)) {
 					insty.instantiate(val1);
-					Map<ByteString, Map<ByteString, Set<ByteString>>> diff = 
+					Map<ByteString, Map<ByteString, IntSet>> diff = 
 							difference(var2, var3, var4, antecedent, head);
 					if (!diff.isEmpty()) {
 						results.put(val1, diff);
@@ -3931,15 +3931,15 @@ public class KB {
 		} else if (headNumVars == 2) {
 			try (Instantiator insty1 = new Instantiator(antecedent, var1)) {
 				try (Instantiator insty2 = new Instantiator(antecedent, var2)) {
-					Map<ByteString, Set<ByteString>> resultsTwoVars =
+					Map<ByteString, IntSet> resultsTwoVars =
 							selectDistinct(var1, var2, antecedent);
 					for (ByteString val1 : resultsTwoVars.keySet()) {
 						insty1.instantiate(val1);
-						Map<ByteString, Map<ByteString, Set<ByteString>>> level1 =
-								new HashMap<ByteString, Map<ByteString,Set<ByteString>>>();
+						Map<ByteString, Map<ByteString, IntSet>> level1 =
+								new HashMap<ByteString, Map<ByteString,IntSet>>();
 						for (ByteString val2 : resultsTwoVars.get(val1)) {
 							insty2.instantiate(val2);
-							Map<ByteString, Set<ByteString>> diff = 
+							Map<ByteString, IntSet> diff = 
 									difference(var3, var4, antecedent, head);
 							if (!diff.isEmpty()) {
 								level1.put(val2, diff);
@@ -3969,7 +3969,7 @@ public class KB {
 	 * @param head
 	 * @return
 	 */
-	public Map<ByteString, Map<ByteString, Map<ByteString, Set<ByteString>>>> differenceNotVarsInCommon(
+	public Map<ByteString, Map<ByteString, Map<ByteString, IntSet>>> differenceNotVarsInCommon(
 			CharSequence var1, CharSequence var2, CharSequence var3, CharSequence var4,
 			List<? extends CharSequence[]> antecedent, CharSequence[] head) {
 		return differenceNotVarsInCommon(compress(var1), compress(var2), 
@@ -3987,12 +3987,12 @@ public class KB {
 	 * @param head
 	 * @return
 	 */
-	public Map<ByteString, Map<ByteString, Map<ByteString, Set<ByteString>>>> differenceNotVarsInCommon(
+	public Map<ByteString, Map<ByteString, Map<ByteString, IntSet>>> differenceNotVarsInCommon(
 			ByteString var1, ByteString var2, ByteString var3, ByteString var4,
 			List<ByteString[]> antecedent, ByteString[] head) {
 		int headNumVars = numVariables(head);
-		Map<ByteString, Map<ByteString, Map<ByteString, Set<ByteString>>>> results = 
-				new HashMap<ByteString, Map<ByteString,Map<ByteString,Set<ByteString>>>>();
+		Map<ByteString, Map<ByteString, Map<ByteString, IntSet>>> results = 
+				new HashMap<ByteString, Map<ByteString,Map<ByteString,IntSet>>>();
 		List<ByteString[]> wholeQuery = new ArrayList<ByteString[]>(antecedent);
 		wholeQuery.add(head);
 		
@@ -4001,7 +4001,7 @@ public class KB {
 				for (ByteString val1 : selectDistinct(var1, antecedent)) {
 					insty.instantiate(val1);
 					if (!existsBS1(wholeQuery)) {
-						Map<ByteString, Map<ByteString, Set<ByteString>>> diff = 
+						Map<ByteString, Map<ByteString, IntSet>> diff = 
 								selectDistinct(var2, var3, var4, antecedent);
 						results.put(val1, diff);
 					}
@@ -4010,15 +4010,15 @@ public class KB {
 		} else if (headNumVars == 2) {
 			try (Instantiator insty1 = new Instantiator(wholeQuery, var1)) {
 				try (Instantiator insty2 = new Instantiator(wholeQuery, var2)) {
-					Map<ByteString, Set<ByteString>> resultsTwoVars = selectDistinct(var1, var2, antecedent);
+					Map<ByteString, IntSet> resultsTwoVars = selectDistinct(var1, var2, antecedent);
 					for (ByteString val1 : resultsTwoVars.keySet()) {
 						insty1.instantiate(val1);
-						Map<ByteString, Map<ByteString, Set<ByteString>>> level1 =
-								new HashMap<ByteString, Map<ByteString,Set<ByteString>>>();
+						Map<ByteString, Map<ByteString, IntSet>> level1 =
+								new HashMap<ByteString, Map<ByteString,IntSet>>();
 						for (ByteString val2 : resultsTwoVars.get(val1)) {
 							insty2.instantiate(val2);
 							if (!existsBS1(wholeQuery)) {
-								Map<ByteString, Set<ByteString>> diff = 
+								Map<ByteString, IntSet> diff = 
 										selectDistinct(var3, var4, antecedent);
 								level1.put(val2, diff);
 							}
@@ -4041,7 +4041,7 @@ public class KB {
 	 * @return
 	 */
 	public static long aggregate(
-			Map<ByteString, Set<ByteString>> bindings) {
+			Map<ByteString, IntSet> bindings) {
 		long result = 0;
 
 		for (ByteString binding : bindings.keySet()) {
@@ -4112,7 +4112,7 @@ public class KB {
 		IntHashMap<ByteString> relationsBiggerThan = new IntHashMap<ByteString>();
 		for (ByteString relation : relation2subject2object.keySet()) {
 			int size = 0;		
-			Map<ByteString, Set<ByteString>> tail = 
+			Map<ByteString, IntSet> tail = 
 					relation2subject2object.get(relation);
 			for (ByteString subject : tail.keySet()) {
 				size += tail.get(subject).size();
@@ -4138,7 +4138,7 @@ public class KB {
 		StringBuilder strBuilder = new StringBuilder();
 		int maxCount = 30;
 		for (ByteString v1 : subject2relation2object.keySet()) {
-			Map<ByteString, Set<ByteString>> tail = subject2relation2object.get(v1);
+			Map<ByteString, IntSet> tail = subject2relation2object.get(v1);
 			for (ByteString v2 : tail.keySet()) {
 				for (ByteString v3 : tail.get(v2)) {
 					strBuilder.append(v1);
@@ -4175,7 +4175,7 @@ public class KB {
 	 * @return
 	 */
 	public int maximalRightCumulativeCardinality(ByteString relation, long threshold, int limit) {
-		Map<ByteString, Set<ByteString>> map = get(relation2subject2object, relation);
+		Map<ByteString, IntSet> map = get(relation2subject2object, relation);
 		return maximalRightCumulativeCardinality(relation, threshold, map, limit);
 	}
 	
@@ -4193,13 +4193,13 @@ public class KB {
 	 * @return
 	 */
 	public int maximalRightCumulativeCardinalityInv(ByteString relation, long threshold, int limit) {
-		Map<ByteString, Set<ByteString>> map = 
+		Map<ByteString, IntSet> map = 
 				get(relation2object2subject, relation);
 		return maximalRightCumulativeCardinality(relation, threshold, map, limit);
 	}
 	
 	private int maximalRightCumulativeCardinality(ByteString relation, long threshold, 
-			Map<ByteString, Set<ByteString>> map, int iMaxThreshold) {
+			Map<ByteString, IntSet> map, int iMaxThreshold) {
 		IntHashMap<Integer> histogram = buildCumulativeHistogram(map);
 		List<Integer> keys = histogram.decreasingKeys();
 		Collections.sort(keys);
@@ -4222,7 +4222,7 @@ public class KB {
 	 * @param map
 	 * @return
 	 */
-	private IntHashMap<Integer> buildCumulativeHistogram(Map<ByteString, Set<ByteString>> map) {
+	private IntHashMap<Integer> buildCumulativeHistogram(Map<ByteString, IntSet> map) {
 		IntHashMap<Integer> histogram = new IntHashMap<>();
 		for (ByteString subject : map.keySet()) {
 			for (int i = 0; i < map.get(subject).size(); ++i) {
@@ -4239,7 +4239,7 @@ public class KB {
 	 * @param map
 	 * @return
 	 */
-	public IntHashMap<Integer> buildHistogram(Map<ByteString, Set<ByteString>> map) {
+	public IntHashMap<Integer> buildHistogram(Map<ByteString, IntSet> map) {
 		IntHashMap<Integer> histogram = new IntHashMap<>();
 		for (ByteString subject : map.keySet()) {
 			histogram.increase(map.get(subject).size());
@@ -4254,7 +4254,7 @@ public class KB {
 	 * @return
 	 */
 	public int maximalCardinality(ByteString relation) {
-		Map<ByteString, Set<ByteString>> map = 
+		Map<ByteString, IntSet> map = 
 				get(relation2subject2object, relation);
 		return maximalCardinality(relation, map);
 	}
@@ -4267,13 +4267,13 @@ public class KB {
 	 * @return
 	 */
 	public int maximalCardinality(ByteString relation, int limit) {
-		Map<ByteString, Set<ByteString>> map = 
+		Map<ByteString, IntSet> map = 
 				get(relation2subject2object, relation);
 		return maximalCardinality(relation, map, limit);
 	}
 	
 	private int maximalCardinality(ByteString relation, 
-			Map<ByteString, Set<ByteString>> map, int limit) {
+			Map<ByteString, IntSet> map, int limit) {
 		IntHashMap<Integer> histogram = buildHistogram(map);
 		List<Integer> keys = histogram.decreasingKeys();
 		Collections.sort(keys);
@@ -4291,18 +4291,18 @@ public class KB {
 	}
 
 	public int maximalCardinalityInv(ByteString relation) {
-		Map<ByteString, Set<ByteString>> map = 
+		Map<ByteString, IntSet> map = 
 				get(relation2object2subject, relation);
 		return maximalCardinality(relation, map);
 	}
 	
 	public int maximalCardinalityInv(ByteString relation, int limit) {
-		Map<ByteString, Set<ByteString>> map = 
+		Map<ByteString, IntSet> map = 
 				get(relation2object2subject, relation);
 		return maximalCardinality(relation, map, limit);
 	}
 	
-	private int maximalCardinality(ByteString relation, Map<ByteString, Set<ByteString>> map) {
+	private int maximalCardinality(ByteString relation, Map<ByteString, IntSet> map) {
 		IntHashMap<Integer> histogram = buildHistogram(map);
 		List<Integer> keys = histogram.decreasingKeys();
 		Collections.sort(keys);
@@ -4325,7 +4325,7 @@ public class KB {
 		KB result = new KB();
 		for (ByteString subject : subject2relation2object.keySet()) {
 			triple[0] = subject;
-			Map<ByteString, Set<ByteString>> tail = subject2relation2object.get(subject);			
+			Map<ByteString, IntSet> tail = subject2relation2object.get(subject);			
 			for (ByteString predicate : tail.keySet()) {
 				triple[1] = predicate;
 				for (ByteString object : tail.get(predicate)) {
@@ -4376,9 +4376,9 @@ public class KB {
 			ByteString s1,
 			ByteString s2,
 			ByteString s3,
-			Map<ByteString, Map<ByteString, Set<ByteString>>> index) {
-		Map<ByteString, Set<ByteString>> imap2 = index.get(s1);
-		Set<ByteString> imap3 = imap2.get(s2);
+			Map<ByteString, Map<ByteString, IntSet>> index) {
+		Map<ByteString, IntSet> imap2 = index.get(s1);
+		IntSet imap3 = imap2.get(s2);
 		if (imap3 == null) {
 			System.out.println("Problem for prediction " + s1 + " " + s2 + " " + s3);
 		}
@@ -4443,7 +4443,7 @@ public class KB {
 			
 			System.out.println(relation);
 			IntHashMap<Integer> distribution = new IntHashMap<>();
-			Map<ByteString, Set<ByteString>> theMap = null;
+			Map<ByteString, IntSet> theMap = null;
 			boolean isFunctional = isFunctional(relation);
 			if (isFunctional) {
 				theMap = relation2subject2object.get(relation);
@@ -4452,7 +4452,7 @@ public class KB {
 			}
 			
 			if (useSignatureTypes) {				
-				Set<ByteString> instances = null;
+				IntSet instances = null;
 				if (isFunctional) {
 					instances = Schema.getDomainSet(this, relation);
 					// We still intersect them with the entities we have in the KB
@@ -4496,7 +4496,7 @@ public class KB {
 	 */
 	public void dump(PrintStream out) {
 		for (ByteString subject : subject2relation2object.keySet()) {
-			Map<ByteString, Set<ByteString>> iMap = subject2relation2object.get(subject);
+			Map<ByteString, IntSet> iMap = subject2relation2object.get(subject);
 			for (ByteString relation : iMap.keySet()) {
 				for (ByteString object : iMap.get(relation)) {
 					out.println(subject + delimiter + relation + delimiter + object);
@@ -4519,7 +4519,7 @@ public class KB {
 	 */
 	public void summarizeTypes() {
 		if (relation2object2subject.containsKey(Schema.typeRelationBS)) {
-			Map<ByteString, Set<ByteString>> map = 
+			Map<ByteString, IntSet> map = 
 					relation2object2subject.get(Schema.typeRelationBS);
 			for (ByteString type : map.keySet()) {
 				System.out.println(type + "\t" + map.get(type).size());
@@ -4557,13 +4557,13 @@ public class KB {
 	 * @param otherKb
 	 * @return
 	 */
-	public KB newEntitiesKB(Set<ByteString> oldEntities) {
-		Set<ByteString> newEntities = relation2subject2object.get(Schema.typeRelationBS).keySet();
+	public KB newEntitiesKB(IntSet oldEntities) {
+		IntSet newEntities = relation2subject2object.get(Schema.typeRelationBS).keySet();
 		ByteString[] triple = new ByteString[3];
 		KB result = new KB();
 		for (ByteString subject : subject2relation2object.keySet()) {
 			triple[0] = subject;
-			Map<ByteString, Set<ByteString>> tail = subject2relation2object.get(subject);			
+			Map<ByteString, IntSet> tail = subject2relation2object.get(subject);			
 			for (ByteString predicate : tail.keySet()) {
 				triple[1] = predicate;
 				for (ByteString object : tail.get(predicate)) {
@@ -4577,7 +4577,7 @@ public class KB {
 		return result;
 	}
         
-    public Map<ByteString, Set<ByteString>> getMap(SignedPredicate sp) {
+    public Map<ByteString, IntSet> getMap(SignedPredicate sp) {
         if (sp.subject) {
             return this.relation2subject2object.get(sp.predicate);
         } else {
@@ -4591,11 +4591,11 @@ public class KB {
         return result;
     }
         
-        public Set<ByteString> getRelationSet() {
-            return new HashSet<>(relationSize);
+        public IntSet getRelationSet() {
+            return new IntOpenHashSet(relationSize);
         }
         
-        public Set<ByteString> getClassSet() {
+        public IntSet getClassSet() {
             return null;
         }
 	

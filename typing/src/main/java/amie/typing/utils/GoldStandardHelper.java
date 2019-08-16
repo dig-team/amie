@@ -368,7 +368,7 @@ public class GoldStandardHelper {
     public void listQueries() {
         List<ByteString[]> query = new ArrayList<>(1);
         query.add(KB.triple(ByteString.of("?x"), ByteString.of("?y"), ByteString.of("?z")));
-        Set<ByteString> relations = db.selectDistinct(ByteString.of("?y"), query);
+        IntSet relations = db.selectDistinct(ByteString.of("?y"), query);
         relations.remove(Schema.typeRelationBS);
         relations.remove(Schema.subClassRelationBS);
         

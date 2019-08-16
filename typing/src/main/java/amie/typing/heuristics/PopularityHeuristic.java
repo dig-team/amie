@@ -24,7 +24,7 @@ public class PopularityHeuristic extends TypingHeuristic {
 		ByteString variable = ByteString.of("?v1");
 		List<ByteString[]> typeClause = new ArrayList<>(1);
 		typeClause.add(KB.triple(variable, amie.data.Schema.typeRelationBS, ByteString.of("?v2")));
-		Set<ByteString> entities = db.selectDistinct(variable, typeClause);
+		IntSet entities = db.selectDistinct(variable, typeClause);
 		for (ByteString e : entities) {
 			if (db.count(KB.triple(e, ByteString.of("?x"), ByteString.of("?y"))) 
 					+ db.count(KB.triple(ByteString.of("?x"), ByteString.of("?y"), e)) > popularityThreshold)

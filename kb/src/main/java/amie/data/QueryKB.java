@@ -22,11 +22,11 @@ public class QueryKB {
 		System.out.println("Projection variables: " + KB.toString(variableParts));
 		System.out.println("Conditions: " + KB.toString(selectionAtoms));
 		if (variableParts.length == 1) {
-			Set<ByteString> result = kb.selectDistinct(ByteString.of(variables.trim()), selectionAtoms);
+			IntSet result = kb.selectDistinct(ByteString.of(variables.trim()), selectionAtoms);
 			System.out.println(result);
 			System.out.println(result.size() + " results");
 		} else if (variableParts.length == 2) {
-			Map<ByteString, Set<ByteString>> result = kb.selectDistinct(ByteString.of(variableParts[0].trim()), 
+			Map<ByteString, IntSet> result = kb.selectDistinct(ByteString.of(variableParts[0].trim()), 
 					ByteString.of(variableParts[1].trim()), selectionAtoms);
 			System.out.println(result);
 			System.out.println(KB.aggregate(result) + " results");			

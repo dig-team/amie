@@ -62,7 +62,7 @@ public class MinCutMaxClassifier extends SeparationClassifier {
 		return r;
 	}
 	
-	private Pair<ByteString, Double> getMaxEdge(Map<ByteString, LinkedList<Map.Entry<ByteString, Double>>> graph, Set<ByteString> CV) {
+	private Pair<ByteString, Double> getMaxEdge(Map<ByteString, LinkedList<Map.Entry<ByteString, Double>>> graph, IntSet CV) {
 		Double maxD = Double.NEGATIVE_INFINITY;
 		ByteString maxN = null;
 		for(ByteString t : CV) {
@@ -85,24 +85,24 @@ public class MinCutMaxClassifier extends SeparationClassifier {
 		return new Pair<>(maxN, maxD);
 	}
 	
-	public Set<ByteString> t_MinCutMax(Map<ByteString, Map<ByteString, Double>> statistics, ByteString t) {
+	public IntSet t_MinCutMax(Map<ByteString, Map<ByteString, Double>> statistics, ByteString t) {
 		Map<ByteString, LinkedList<Map.Entry<ByteString, Double>>> smm = new HashMap<>();
 		for (ByteString t1 : statistics.keySet()) {
 			smm.put(t1, linkSortMap(statistics.get(t1), Collections.reverseOrder()));
 		}
 		// Implement t-MinCutMax algorithm
-		Set<ByteString> V = new HashSet<>(statistics.keySet());
-		Set<ByteString> CV = new LinkedHashSet<>();
+		IntSet V = new IntOpenHashSet(statistics.keySet());
+		IntSet CV = new IntOpenHashSet();
 		V.remove(t);
 		CV.add(t);
-		Set<ByteString> S = null;
+		IntSet S = null;
 		Double currentMin = Double.POSITIVE_INFINITY;
 		while(!V.isEmpty()) {
 			Pair<ByteString, Double> cMax = getMaxEdge(smm, CV);
                         if (cMax.first == null) break;
 			if (cMax.second < currentMin) {
 				currentMin = cMax.second;
-				S = new HashSet<>(V);
+				S = new IntOpenHashSet(V);
 			}
 			CV.add(cMax.first);
 			V.remove(cMax.first);

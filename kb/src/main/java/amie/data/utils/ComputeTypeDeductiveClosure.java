@@ -26,11 +26,11 @@ public class ComputeTypeDeductiveClosure {
 		amie.data.Schema.loadSchemaConf();
 		System.out.println("Assuming " + amie.data.Schema.typeRelation + " as type relation");
 		KB kb = U.loadFiles(args);
-		Map<ByteString, Set<ByteString>> allEntitiesAndTypes = 
+		Map<ByteString, IntSet> allEntitiesAndTypes = 
 				kb.resultsTwoVariables("?s", "?o", new String[]{"?s", amie.data.Schema.typeRelation, "?o"});
 		PrintWriter pw = new PrintWriter(new File("inferredTypes.tsv"));
 		for (ByteString entity : allEntitiesAndTypes.keySet()) {
-			Set<ByteString> superTypes = new LinkedHashSet<>();
+			IntSet superTypes = new IntOpenHashSet();
 			for (ByteString type : allEntitiesAndTypes.get(entity)) {
 				superTypes.addAll(amie.data.Schema.getAllSuperTypes(kb, type));	
 			}
@@ -46,7 +46,7 @@ public class ComputeTypeDeductiveClosure {
 	 * @param superTypes
 	 * @throws FileNotFoundException 
 	 */
-	private static void output(ByteString entity, Set<ByteString> superTypes, PrintWriter pw) {
+	private static void output(ByteString entity, IntSet superTypes, PrintWriter pw) {
 		for (ByteString type : superTypes) {
 			pw.println(entity + "\t" + amie.data.Schema.typeRelation + "\t" + type);
 		}

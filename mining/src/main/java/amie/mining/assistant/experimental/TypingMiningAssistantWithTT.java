@@ -78,7 +78,7 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 		}
 		ByteString[] head = rule.getHead();
 		List<ByteString[]> body = rule.getBody();
-		Set<ByteString> subTypes = amie.data.Schema.getSubTypes(kb, head[2]);
+		IntSet subTypes = amie.data.Schema.getSubTypes(kb, head[2]);
 		int parentTypePos = Rule.firstIndexOfRelation(body, KB.TRANSITIVETYPEbs);
 		for (ByteString subType : subTypes) {
 			Rule succedent = new Rule(rule, rule.getSupport());

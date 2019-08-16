@@ -37,7 +37,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 		
 		// Build all defined classes
 		List<ByteString[]> query = KB.triples(KB.triple("?class", Schema.subClassRelation, "?c"));		
-		Set<ByteString> types = new LinkedHashSet<ByteString>(kb.selectDistinct(ByteString.of("?class"), query));
+		IntSet types = new IntOpenHashSet(kb.selectDistinct(ByteString.of("?class"), query));
 		types.add(topTypeBS);
 		for (ByteString type : types) {
 			ByteString[] query_c = KB.triple(ByteString.of("?x"), Schema.typeRelationBS, type);
@@ -199,7 +199,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 		}
 		ByteString[] head = rule.getHead();
 		List<ByteString[]> body = rule.getBody();
-		Set<ByteString> subTypes = Schema.getSubTypes(kb, head[2]);
+		IntSet subTypes = Schema.getSubTypes(kb, head[2]);
 		int parentTypePos = Rule.firstIndexOfRelation(body, Schema.typeRelationBS);
 		for (ByteString subType : subTypes) {
 			Rule succedent = new Rule(rule, rule.getSupport());

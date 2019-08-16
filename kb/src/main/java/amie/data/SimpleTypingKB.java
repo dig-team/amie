@@ -18,13 +18,13 @@ import javatools.datatypes.ByteString;
  * @author jlajus
  */
 public class SimpleTypingKB extends KB {
-    public final Map<ByteString, Set<ByteString>> relations = new HashMap<>();
+    public final Map<ByteString, IntSet> relations = new HashMap<>();
     //protected final Map<ByteString, Map<ByteString, LazySet>> classIntersection = new HashMap<>();
-    public final Map<ByteString, Set<ByteString>> classes = new HashMap<>();
-    public final Set<ByteString> relationSet = new HashSet<>();
+    public final Map<ByteString, IntSet> classes = new HashMap<>();
+    public final IntSet relationSet = new IntOpenHashSet();
     
     class LazySet {
-        private volatile Set<ByteString> resource = null;
+        private volatile IntSet resource = null;
         private ByteString c1, c2;
         
         public LazySet(ByteString c1, ByteString c2) {
@@ -32,13 +32,13 @@ public class SimpleTypingKB extends KB {
             this.c2 = c2;
         } 
 
-        public Set<ByteString> getResource() {
-            Set<ByteString> resource = this.resource;
+        public IntSet getResource() {
+            IntSet resource = this.resource;
             if (resource == null) {
                 synchronized (this) {
                     resource = this.resource;
                     if (resource == null) {
-                        resource = new LinkedHashSet<>(classes.get(c1));
+                        resource = new IntOpenHashSet(classes.get(c1));
                         resource.retainAll(classes.get(c2));
                         this.resource = resource;
                     }
@@ -53,9 +53,9 @@ public class SimpleTypingKB extends KB {
         if (relation.equals(Schema.typeRelationBS)) {
             //System.err.println(object);
             synchronized (classes) {
-                Set<ByteString> eS = classes.get(object);
+                IntSet eS = classes.get(object);
                 if (eS == null) {
-                    classes.put(object, eS = new LinkedHashSet<>());
+                    classes.put(object, eS = new IntOpenHashSet());
                 }
                 return eS.add(subject);
             }
@@ -64,15 +64,15 @@ public class SimpleTypingKB extends KB {
         } else {
             //System.err.println(relation);
             synchronized (relations) {
-                Set<ByteString> eS = relations.get(relation);
+                IntSet eS = relations.get(relation);
                 if (eS == null) {
-                    relations.put(relation, eS = new LinkedHashSet<>());
+                    relations.put(relation, eS = new IntOpenHashSet());
                 }
                 eS.add(subject);
                 ByteString relationy = ByteString.of(relation.toString() + "-1");
                 eS = relations.get(relationy);
                 if (eS == null) {
-                    relations.put(relationy, eS = new LinkedHashSet<>());
+                    relations.put(relationy, eS = new IntOpenHashSet());
                 }
                 relationSet.add(relation);
                 return eS.add(object);
@@ -80,7 +80,7 @@ public class SimpleTypingKB extends KB {
         }
     }
 
-    private Set<ByteString> lazyIntersectionSet(ByteString c1, ByteString c2) {
+    private IntSet lazyIntersectionSet(ByteString c1, ByteString c2) {
         if (c1.compareTo(c2) < 0) {
             return lazyIntersectionSet(c2, c1);
         }
@@ -103,7 +103,7 @@ public class SimpleTypingKB extends KB {
     }
     
     public double typingStdConf(ByteString relation, ByteString bodyType, ByteString headType, int supportThreshold) {
-        Set<ByteString> body = new LinkedHashSet<>(relations.get(relation));
+        IntSet body = new IntOpenHashSet(relations.get(relation));
         body.retainAll(classes.get(bodyType));
         long bodySize = body.size();
         long support = countIntersection(body, classes.get(headType));
@@ -114,7 +114,7 @@ public class SimpleTypingKB extends KB {
     }
     
     @Override
-    public Set<ByteString> getRelationSet() {
+    public IntSet getRelationSet() {
 //        for(ByteString c1 : classes.keySet()) {
 //            Map<ByteString, LazySet> c1I = new HashMap<>();
 //            classIntersection.put(c1, c1I);
@@ -122,11 +122,11 @@ public class SimpleTypingKB extends KB {
 //                if (c1.compareTo(c2) > 0) c1I.put(c2, new LazySet(c1, c2));
 //            }
 //        }
-        return new HashSet<>(relationSet);
+        return new IntOpenHashSet(relationSet);
     }
     
     @Override
-    public Set<ByteString> getClassSet() {
-        return new HashSet<>(classes.keySet());
+    public IntSet getClassSet() {
+        return new IntOpenHashSet(classes.keySet());
     }
 }

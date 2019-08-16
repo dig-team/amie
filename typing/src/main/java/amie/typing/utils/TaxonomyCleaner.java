@@ -43,8 +43,8 @@ public class TaxonomyCleaner {
             }
         }
         StrongConnectivityAlgorithm<ByteString, DefaultEdge> gi = new KosarajuStrongConnectivityInspector<>(g);
-        List<Set<ByteString>> scc = gi.stronglyConnectedSets();
-        for (Set<ByteString> scs : scc) {
+        List<IntSet> scc = gi.stronglyConnectedSets();
+        for (IntSet scs : scc) {
             if (scs.size() > 1) {
                 for (ByteString v : scs) {
                     System.out.print(v.toString() + " ");

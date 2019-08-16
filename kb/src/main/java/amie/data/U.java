@@ -33,13 +33,13 @@ public class U {
 	 */
 	public static void coalesce(KB source1, 
 			KB source2, boolean withObjs) {
-		Set<ByteString> sourceEntities = new LinkedHashSet<>();
+		IntSet sourceEntities = new IntOpenHashSet();
 		sourceEntities.addAll(source1.subjectSize);
 		sourceEntities.addAll(source1.objectSize);
 		for(ByteString entity: sourceEntities){
 			//Print all facts of the source ontology
-			Map<ByteString, Set<ByteString>> tail1 = source1.subject2relation2object.get(entity);
-			Map<ByteString, Set<ByteString>> tail2 = source2.subject2relation2object.get(entity);
+			Map<ByteString, IntSet> tail1 = source1.subject2relation2object.get(entity);
+			Map<ByteString, IntSet> tail2 = source2.subject2relation2object.get(entity);
 			if(tail2 == null)
 				continue;
 						
@@ -60,7 +60,7 @@ public class U {
 			for(ByteString entity: source2.objectSize){
 				if(sourceEntities.contains(entity)) continue;
 				
-				Map<ByteString, Set<ByteString>> tail2 = source2.subject2relation2object.get(entity);
+				Map<ByteString, IntSet> tail2 = source2.subject2relation2object.get(entity);
 				if(tail2 == null) continue;
 				
 				//Print all facts in the target ontology
@@ -83,8 +83,8 @@ public class U {
 				+ "\tRelation1-objects\tRelation2-subjects\tRelation2-objects"
 				+ "\tSubject-Subject\tSubject-Object\tObject-Subject\tObject-Object");
 		for(ByteString r1: source.relationSize){
-			Set<ByteString> subjects1 = source.relation2subject2object.get(r1).keySet();
-			Set<ByteString> objects1 = source.relation2object2subject.get(r1).keySet();
+			IntSet subjects1 = source.relation2subject2object.get(r1).keySet();
+			IntSet objects1 = source.relation2object2subject.get(r1).keySet();
 			int nSubjectsr1 = subjects1.size();
 			int nObjectsr1 = objects1.size();
 			for(ByteString r2: source.relationSize){
@@ -92,8 +92,8 @@ public class U {
 					continue;				
 				System.out.print(r1 + "\t");
 				System.out.print(r2 + "\t");
-				Set<ByteString> subjects2 = source.relation2subject2object.get(r2).keySet();
-				Set<ByteString> objects2 = source.relation2object2subject.get(r2).keySet();
+				IntSet subjects2 = source.relation2subject2object.get(r2).keySet();
+				IntSet objects2 = source.relation2object2subject.get(r2).keySet();
 				int nSubjectr2 = subjects2.size();
 				int nObjectsr2 = objects2.size();
 				System.out.print(nSubjectsr1 + "\t" + nObjectsr1 + "\t" + nSubjectr2 + "\t" + nObjectsr2 + "\t");
@@ -226,8 +226,8 @@ public class U {
 	 * @param subjects2
 	 * @return
 	 */
-	private static int computeOverlap(Set<ByteString> subjects1,
-			Set<ByteString> subjects2) {
+	private static int computeOverlap(IntSet subjects1,
+			IntSet subjects2) {
 		int overlap = 0; 
 		for(ByteString entity1 : subjects1){
 			if(subjects2.contains(entity1))
@@ -264,9 +264,9 @@ public class U {
 	public static int numberOfFacts(KB kb, ByteString entity, Collection<ByteString> omittedRelations) {
 		ByteString[] querySubject = KB.triple(entity, ByteString.of("?r"), ByteString.of("?o")); 
 		ByteString[] queryObject = KB.triple(ByteString.of("?s"), ByteString.of("?r"), entity); 
-		Map<ByteString, Set<ByteString>> relationsSubject = 
+		Map<ByteString, IntSet> relationsSubject = 
 				kb.resultsTwoVariables(ByteString.of("?r"), ByteString.of("?o"), querySubject);
-		Map<ByteString, Set<ByteString>> relationsObject = 
+		Map<ByteString, IntSet> relationsObject = 
 				kb.resultsTwoVariables(ByteString.of("?r"), ByteString.of("?s"), queryObject);
 		int count1 = 0;
 		int count2 = 0;
@@ -309,8 +309,8 @@ public class U {
 	 * @param cardinality
 	 * @return
 	 */
-	public static Set<ByteString> getEntitiesWithCardinality(KB kb, ByteString relation, int cardinality) {
-		Map<ByteString, Set<ByteString>> results = null;
+	public static IntSet getEntitiesWithCardinality(KB kb, ByteString relation, int cardinality) {
+		Map<ByteString, IntSet> results = null;
 		List<ByteString[]> query = KB.triples(KB.triple(ByteString.of("?s"), 
 				relation, ByteString.of("?o")));
 		if (kb.isFunctional(relation)) {
@@ -318,7 +318,7 @@ public class U {
 		} else {
 			results = kb.selectDistinct(ByteString.of("?o"), ByteString.of("?s"), query);			
 		}
-		Set<ByteString> entities = new LinkedHashSet<>();
+		IntSet entities = new IntOpenHashSet();
 		for (ByteString e : results.keySet()) {
 			if (results.get(e).size() == cardinality) {
 				entities.add(e);

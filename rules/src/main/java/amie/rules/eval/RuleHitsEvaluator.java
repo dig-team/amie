@@ -78,7 +78,7 @@ public class RuleHitsEvaluator {
 			}
 			
 			if(KB.numVariables(head) == 1){
-				Set<ByteString> oneVarBindings = (Set<ByteString>)bindings;
+				IntSet oneVarBindings = (IntSet)bindings;
 				for(ByteString binding: oneVarBindings){
 					Triple<ByteString, ByteString, ByteString> t = 
 							new Triple<>(ByteString.of("?a"), head[1], ByteString.of("?b"));

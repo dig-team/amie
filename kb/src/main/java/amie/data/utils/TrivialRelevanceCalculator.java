@@ -14,7 +14,7 @@ public class TrivialRelevanceCalculator {
 		KB kb = new KB();
 		kb.load(new File(args[0]));
 		List<ByteString[]> query = KB.triples(KB.triple("?s", "?p", "?o"));
-		Set<ByteString> allEntities = kb.selectDistinct(ByteString.of("?s"), query);
+		IntSet allEntities = kb.selectDistinct(ByteString.of("?s"), query);
 		allEntities.addAll(kb.selectDistinct(ByteString.of("?o"), query));
 		for (ByteString entity : allEntities) {			
 			int nFacts = (int) kb.count(entity, ByteString.of("?p"), ByteString.of("?o"));

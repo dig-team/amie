@@ -26,11 +26,11 @@ public class MaterializeInverseFunctions {
 		amie.data.Schema.loadSchemaConf();
 		System.out.println("Type relation: " + amie.data.Schema.typeRelation);
 		KB db = amie.data.U.loadFiles(args);
-		Map<ByteString, Map<ByteString, Set<ByteString>>> map = 
+		Map<ByteString, Map<ByteString, IntSet>> map = 
 				db.resultsThreeVariables(ByteString.of("?s"), ByteString.of("?p"), ByteString.of("?o"),
 						KB.triple("?o", "?p", "?s"));
 		for(ByteString object: map.keySet()){
-			Map<ByteString, Set<ByteString> > predicates = map.get(object);
+			Map<ByteString, IntSet > predicates = map.get(object);
 			for(ByteString predicate: predicates.keySet()){
 				if(db.functionality(predicate) >= db.inverseFunctionality(predicate)){
 					for(ByteString subject: predicates.get(predicate))

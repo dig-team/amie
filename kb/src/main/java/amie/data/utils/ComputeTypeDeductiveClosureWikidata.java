@@ -33,12 +33,12 @@ public class ComputeTypeDeductiveClosureWikidata {
         Schema.topBS = ByteString.of(Schema.top);
         System.out.println("Assuming " + Schema.typeRelation + " as type relation");
         KB kb = U.loadFiles(args, " ");
-        Map<ByteString, Set<ByteString>> allEntitiesAndTypes
+        Map<ByteString, IntSet> allEntitiesAndTypes
                 = kb.resultsTwoVariables("?s", "?o", new String[]{"?s", amie.data.Schema.typeRelation, "?o"});
         PrintWriter pw  = new PrintWriter(new File("wikidataTransitiveTypes.tsv"));
         PrintWriter pw2 = new PrintWriter(new File("wikidataTypedEntities.tsv"));
         for (ByteString entity : allEntitiesAndTypes.keySet()) {
-            Set<ByteString> superTypes = new LinkedHashSet<>(allEntitiesAndTypes.get(entity));
+            IntSet superTypes = new IntOpenHashSet(allEntitiesAndTypes.get(entity));
             for (ByteString type : allEntitiesAndTypes.get(entity)) {
                 superTypes.addAll(amie.data.Schema.getAllSuperTypes(kb, type));
             }
@@ -56,7 +56,7 @@ public class ComputeTypeDeductiveClosureWikidata {
      * @param superTypes
      * @throws FileNotFoundException
      */
-    private static void output(ByteString entity, Set<ByteString> superTypes, PrintWriter pw) {
+    private static void output(ByteString entity, IntSet superTypes, PrintWriter pw) {
         for (ByteString type : superTypes) {
             pw.println(entity + " " + Schema.typeRelation + " " + type);
         }

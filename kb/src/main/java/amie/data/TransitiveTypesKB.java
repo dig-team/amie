@@ -44,7 +44,7 @@ public class TransitiveTypesKB extends KB {
 	@Override
 	protected long countTwoVariables(ByteString... triple) {
 		if (triple[1].equals(TRANSITIVETYPEbs)) {
-			Map<ByteString, Set<ByteString>> resultTwoVars = 
+			Map<ByteString, IntSet> resultTwoVars = 
 					resultsTwoVariablesByPos(0, 2, triple);
 			long count = 0;
 			for (ByteString subject : resultTwoVars.keySet()) {
@@ -57,13 +57,13 @@ public class TransitiveTypesKB extends KB {
 	}
 	
 	@Override
-	public Set<ByteString> resultsOneVariable(ByteString... triple) {
+	public IntSet resultsOneVariable(ByteString... triple) {
 		if (triple[1].equals(TRANSITIVETYPEbs)) {
 			if (isVariable(triple[0])) {
 				/*
 				 * Return all the entities in subclasses of triple[2]
 				 */
-				Set<ByteString> result = new HashSet<>();
+				IntSet result = new IntOpenHashSet();
 				for (ByteString subtype : Schema.getAllSubTypes(this, triple[2])) {
 					result.addAll(get(relation2object2subject, Schema.typeRelationBS, subtype));
 				}
@@ -81,10 +81,10 @@ public class TransitiveTypesKB extends KB {
 	}
 	
 	@Override
-	public Map<ByteString, Set<ByteString>> resultsTwoVariablesByPos(
+	public Map<ByteString, IntSet> resultsTwoVariablesByPos(
 			int pos1, int pos2, ByteString[] triple) {
 		if (triple[1].equals(TRANSITIVETYPEbs)) {
-			Map<ByteString, Set<ByteString>> result = new LinkedHashMap<>();
+			Map<ByteString, IntSet> result = new LinkedHashMap<>();
 			switch(pos1) {
 			case 0:
 				/*

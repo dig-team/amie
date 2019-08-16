@@ -204,15 +204,15 @@ public class SeparationTreeClassifier extends SeparationClassifier {
     }
     
     public void computeStatistics(List<ByteString[]> query, ByteString variable, int classSizeThreshold) {
-        Set<ByteString> relevantClasses = index.keySet();
+        IntSet relevantClasses = index.keySet();
         ByteString relation = (query.get(0)[0].equals(variable)) ? query.get(0)[1] : ByteString.of(query.get(0)[1].toString() + "-1");
 
         for (ByteString class1 : relevantClasses) {
             int c1size = classSize.get(class1);
-            Set<ByteString> c1phi = null;
+            IntSet c1phi = null;
             
             if (localdb != null) {
-                c1phi = new HashSet<>(localdb.relations.get(relation));
+                c1phi = new IntOpenHashSet(localdb.relations.get(relation));
                 c1phi.retainAll(localdb.classes.get(class1));
                 if (c1phi.size() == c1size) {
                     continue;
@@ -221,7 +221,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
 
             List<ByteString[]> clause = TypingHeuristic.typeL(class1, variable);
             clause.addAll(query);
-            Set<ByteString> targetClasses = (supportForTarget) ? relevantClasses : classIntersectionSize.get(class1);
+            IntSet targetClasses = (supportForTarget) ? relevantClasses : classIntersectionSize.get(class1);
 
             for (ByteString class2 : targetClasses) {
                 assert (clause.size() == query.size() + 1);

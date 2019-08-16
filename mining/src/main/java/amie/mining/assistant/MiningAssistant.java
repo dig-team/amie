@@ -453,11 +453,11 @@ public class MiningAssistant {
 		return headCardinalities.get(relation.toString());
 	}
 
-	protected Set<ByteString> getSubClasses(ByteString className){
+	protected IntSet getSubClasses(ByteString className){
 		ByteString[] lastPattern = subclassQuery.getTriples().get(0);
 		ByteString tmpVar = lastPattern[2];
 		lastPattern[2] = className;		
-		Set<ByteString> result = kb.selectDistinct(lastPattern[0], subclassQuery.getTriples());
+		IntSet result = kb.selectDistinct(lastPattern[0], subclassQuery.getTriples());
 		lastPattern[2] = tmpVar;
 		return result;
 	}
@@ -821,7 +821,7 @@ public class MiningAssistant {
 			return;
 		
 		ByteString typeToSpecialize = lastAtom[2];
-		Set<ByteString> subtypes = Schema.getSubTypes(this.kbSchema, typeToSpecialize);
+		IntSet subtypes = Schema.getSubTypes(this.kbSchema, typeToSpecialize);
 		for (ByteString subtype : subtypes) {
 			lastAtom[2] = subtype;
 			long support = kb.countDistinct(rule.getFunctionalVariable(), rule.getTriples());

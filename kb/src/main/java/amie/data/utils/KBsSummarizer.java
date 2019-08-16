@@ -29,13 +29,13 @@ public class KBsSummarizer {
 			db2 = new KB();
 			db2.load(new File(args[1]));	
 		}		
-		Set<ByteString> relationsInCommon = new LinkedHashSet<ByteString>();
+		IntSet relationsInCommon = new IntOpenHashSet();
 		
-		Set<ByteString> relationsDb1 = db1.selectDistinct(ByteString.of("?p"), 
+		IntSet relationsDb1 = db1.selectDistinct(ByteString.of("?p"), 
 				KB.triples(KB.triple(ByteString.of("?s"), 
 						ByteString.of("?p"), ByteString.of("?o"))));
 		if (db2 != null) {
-			Set<ByteString> relationsDb2 = db2.selectDistinct(ByteString.of("?p"), 
+			IntSet relationsDb2 = db2.selectDistinct(ByteString.of("?p"), 
 					KB.triples(KB.triple(ByteString.of("?s"), 
 							ByteString.of("?p"), ByteString.of("?o"))));
 			

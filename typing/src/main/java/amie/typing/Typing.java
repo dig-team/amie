@@ -36,11 +36,11 @@ public class Typing {
     public static class TypingMT extends Thread {
 
         private BlockingQueue<Triple<List<ByteString[]>, ByteString, TypingHeuristic>> queryQ;
-        private Set<ByteString> classes;
+        private IntSet classes;
         private double outputThreshold;
 
         public TypingMT(BlockingQueue<Triple<List<ByteString[]>, ByteString, TypingHeuristic>> queryQ,
-                Set<ByteString> classes, double outputThreshold) {
+                IntSet classes, double outputThreshold) {
             this.queryQ = queryQ;
             this.classes = classes;
             this.outputThreshold = outputThreshold;
@@ -313,7 +313,7 @@ public class Typing {
                         if (cli.hasOption("t")) {
                             diffDB.load(new File(cli.getOptionValue("t")));
                         }
-                        Set<ByteString> oldEntities = diffDB.selectDistinct(ByteString.of("?x"), TypingHeuristic.typeL(ByteString.of("?y"), ByteString.of("?x")));
+                        IntSet oldEntities = diffDB.selectDistinct(ByteString.of("?x"), TypingHeuristic.typeL(ByteString.of("?y"), ByteString.of("?x")));
                         TypingHeuristic newEntities = new StdConfHeuristic(dataSource.newEntitiesKB(oldEntities));
                         newEntities.name = "newEntities";
                         typingHeuristics.add(newEntities);
@@ -335,13 +335,13 @@ public class Typing {
 
         List<ByteString[]> query = new ArrayList<>(1);
         query.add(KB.triple(ByteString.of("?x"), ByteString.of("?y"), ByteString.of("?z")));
-        Set<ByteString> relations = dataSource.getRelationSet(); //dataSource.selectDistinct(ByteString.of("?y"), query);
+        IntSet relations = dataSource.getRelationSet(); //dataSource.selectDistinct(ByteString.of("?y"), query);
         relations.remove(Schema.typeRelationBS);
         relations.remove(PopularityHeuristic.popularityRelationBS);
         relations.remove(TrueType.trueTypeBS);
 
         query.get(0)[1] = Schema.typeRelationBS;
-        Set<ByteString> classes = dataSource.getClassSet(); //dataSource.selectDistinct(ByteString.of("?z"), query);
+        IntSet classes = dataSource.getClassSet(); //dataSource.selectDistinct(ByteString.of("?z"), query);
         List<ByteString[]> clause = new LinkedList<>();
 
         if (typingHeuristics.isEmpty()) {

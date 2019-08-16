@@ -16,7 +16,7 @@ import javatools.filehandlers.FileLines;
 
 public class FrequencyTester {
 
-	private Map<ByteString, Set<ByteString>> attribute2classes = null;
+	private Map<ByteString, IntSet> attribute2classes = null;
 	private Map<String, Map<ByteString, Map<ByteString, Double>>> heuristic2attribute2class2score;
 
 	public void loadResults(File f) throws IOException {
@@ -46,9 +46,9 @@ public class FrequencyTester {
 			String[] split = line.trim().split("\t");
 			if (split.length == 2) {
 				ByteString attribute = ByteString.of(split[0].trim());
-				Set<ByteString> classes = attribute2classes.get(attribute);
+				IntSet classes = attribute2classes.get(attribute);
 				if (classes == null) {
-					classes = new HashSet<ByteString>();
+					classes = new IntOpenHashSet();
 					attribute2classes.put(attribute, classes);
 				}
 				ByteString dclass = ByteString.of("<http://dbpedia.org/ontology/" + split[1].trim() + ">");

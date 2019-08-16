@@ -78,7 +78,7 @@ public class Predictor {
 		ByteString relation = rule.getHead()[1];
 		
 		if (KB.numVariables(rule.getHead()) == 1) {
-			Set<ByteString> constants = (Set<ByteString>) bindings;
+			IntSet constants = (IntSet) bindings;
 			int variablePosition = rule.getFunctionalVariablePosition();
 			for (ByteString constant : constants) {
 				if (variablePosition == 0) {
@@ -172,12 +172,12 @@ public class Predictor {
 			return predictBindingsForTwoVariables(rule);
 	}
 	
-	private Set<ByteString> predictBindingsForSingleVariable(Rule rule) {
+	private IntSet predictBindingsForSingleVariable(Rule rule) {
 		//First get the bindings for the projection variable in the antecedent
 		return source.difference(rule.getFunctionalVariable(), rule.getAntecedent(), rule.getTriples());
 	}
 	
-	private Map<ByteString, Set<ByteString>> predictBindingsForTwoVariables(Rule rule) {
+	private Map<ByteString, IntSet> predictBindingsForTwoVariables(Rule rule) {
 		return source.difference(rule.getFunctionalVariable(), 
 				rule.getNonFunctionalVariable(), rule.getAntecedent(), rule.getTriples());
 	}
@@ -189,8 +189,8 @@ public class Predictor {
 	 * @param rules
 	 */
 	public void runMode1(Collection<Rule> rules) {
-		Map<ByteString, Map<ByteString, Set<ByteString>>> allPredictions = 
-				new HashMap<ByteString, Map<ByteString, Set<ByteString>>>();
+		Map<ByteString, Map<ByteString, IntSet>> allPredictions = 
+				new HashMap<ByteString, Map<ByteString, IntSet>>();
 		
 		for(Rule rule: rules){
 			Object predictions = generatePredictions(rule);
@@ -221,20 +221,20 @@ public class Predictor {
 		if(nVars == 2){
 			return samplePredictionsTwoVariables((Map<ByteString, IntHashMap<ByteString>>)predictions, rule);
 		}else if(nVars == 1){
-			return samplePredictionsOneVariable((Set<ByteString>)predictions, rule);			
+			return samplePredictionsOneVariable((IntSet)predictions, rule);			
 		}
 		
 		return null;
 	}
 
-	private Collection<Triple<ByteString, ByteString, ByteString>> samplePredictionsOneVariable(Set<ByteString> predictions, Rule rule) {
+	private Collection<Triple<ByteString, ByteString, ByteString>> samplePredictionsOneVariable(IntSet predictions, Rule rule) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	private Collection<Triple<ByteString, ByteString, ByteString>> 
 	samplePredictionsTwoVariables(Map<ByteString, IntHashMap<ByteString>> predictions, Rule rule) {
-		Set<ByteString> keySet = predictions.keySet();
+		IntSet keySet = predictions.keySet();
 		ByteString relation = rule.getHead()[1];
 		//Depending on the counting variable the order is different
 		int countingVarPos = rule.getFunctionalVariablePosition();
@@ -277,21 +277,21 @@ public class Predictor {
 	 * @param rule
 	 */
 	private Collection<Triple<ByteString, ByteString, ByteString>> samplePredictions(
-			Object predictions, Rule rule, Map<ByteString, Map<ByteString, Set<ByteString>>> allPredictions) {
+			Object predictions, Rule rule, Map<ByteString, Map<ByteString, IntSet>> allPredictions) {
 		// TODO Auto-generated method stub
 		int nVars = KB.numVariables(rule.getHead());
 		if(nVars == 2){
 			return samplePredictionsTwoVariables((Map<ByteString, IntHashMap<ByteString>>)predictions, rule, allPredictions);
 		}else if(nVars == 1){
-			return samplePredictionsOneVariable((Set<ByteString>)predictions, rule, allPredictions);			
+			return samplePredictionsOneVariable((IntSet)predictions, rule, allPredictions);			
 		}
 		
 		return null;
 	}
 
-	private Collection<Triple<ByteString, ByteString, ByteString>> samplePredictionsOneVariable(Set<ByteString> predictions,
+	private Collection<Triple<ByteString, ByteString, ByteString>> samplePredictionsOneVariable(IntSet predictions,
 			Rule rule,
-			Map<ByteString, Map<ByteString, Set<ByteString>>> allPredictions) {
+			Map<ByteString, Map<ByteString, IntSet>> allPredictions) {
 		// TODO Auto-generated method stub
 		return null;
 		
@@ -299,8 +299,8 @@ public class Predictor {
 
 	private Collection<Triple<ByteString, ByteString, ByteString>> samplePredictionsTwoVariables(
 			Map<ByteString, IntHashMap<ByteString>> predictions, 
-			Rule rule, Map<ByteString, Map<ByteString, Set<ByteString>>> allPredictions){
-		Set<ByteString> keySet = predictions.keySet();
+			Rule rule, Map<ByteString, Map<ByteString, IntSet>> allPredictions){
+		IntSet keySet = predictions.keySet();
 		ByteString relation = rule.getHead()[1];
 		//Depending on the counting variable the order is different
 		int countingVarPos = rule.getFunctionalVariablePosition();
@@ -341,32 +341,32 @@ public class Predictor {
 	 * @param allPredictions
 	 * @param triple
 	 */
-	private void addPrediction(Map<ByteString, Map<ByteString, Set<ByteString>>> allPredictions, 
+	private void addPrediction(Map<ByteString, Map<ByteString, IntSet>> allPredictions, 
 			Triple<ByteString, ByteString, ByteString> triple) {
 		if(allPredictions.containsKey(triple.second)){
-			Map<ByteString, Set<ByteString>> subjects = allPredictions.get(triple.second);
+			Map<ByteString, IntSet> subjects = allPredictions.get(triple.second);
 			if(subjects.containsKey(triple.first)){
 				subjects.get(triple.first).add(triple.third);
 			}else{
-				Set<ByteString> objects = new HashSet<ByteString>();
+				IntSet objects = new IntOpenHashSet();
 				objects.add(triple.third);
 				subjects.put(triple.first, objects);
 			}
 		}else{
-			Set<ByteString> objects = new HashSet<ByteString>();
+			IntSet objects = new IntOpenHashSet();
 			objects.add(triple.third);
-			Map<ByteString, Set<ByteString>> subjects = new HashMap<ByteString, Set<ByteString>>();
+			Map<ByteString, IntSet> subjects = new HashMap<ByteString, IntSet>();
 			subjects.put(triple.first, objects);
 			allPredictions.put(triple.second, subjects);
 		}
 	}
 
-	private boolean containsPrediction(Map<ByteString, Map<ByteString, Set<ByteString>>> allPredictions, 
+	private boolean containsPrediction(Map<ByteString, Map<ByteString, IntSet>> allPredictions, 
 			Triple<ByteString, ByteString, ByteString> triple) {
 		// TODO Auto-generated method stub
-		Map<ByteString, Set<ByteString>> subjects2objects = allPredictions.get(triple.second);
+		Map<ByteString, IntSet> subjects2objects = allPredictions.get(triple.second);
 		if(subjects2objects != null){
-			Set<ByteString> objects = subjects2objects.get(triple.first);
+			IntSet objects = subjects2objects.get(triple.first);
 			if(objects != null){
 				return objects.contains(triple.third);
 			}

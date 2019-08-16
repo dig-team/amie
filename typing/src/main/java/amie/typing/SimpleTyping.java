@@ -436,9 +436,9 @@ public class SimpleTyping extends Thread {
         // Populate query queue
         BlockingQueue queryQ = new LinkedBlockingQueue();
         
-        Set<ByteString> relations;
+        IntSet relations;
         if (queries != null && queries.length > 0) {
-            relations = new LinkedHashSet<>();
+            relations = new IntOpenHashSet();
             for (int i = 0; i < queries.length; i++) {
                 relations.add(ByteString.of(queries[i]));
             }

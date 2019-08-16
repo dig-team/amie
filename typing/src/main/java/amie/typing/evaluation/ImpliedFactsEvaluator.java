@@ -40,7 +40,7 @@ import org.apache.commons.cli.PosixParser;
 public class ImpliedFactsEvaluator {
 
     private KB db;
-    public Set<ByteString> queried;
+    public IntSet queried;
     public Set<String> querySet;
     public BlockingQueue<Pair<ByteString, String>> queryQ = new LinkedBlockingQueue<>();
     public BlockingQueue<Pair<Pair<ByteString, String>, ImpliedFacts>> resultQ = new LinkedBlockingQueue<>();
@@ -57,14 +57,14 @@ public class ImpliedFactsEvaluator {
 
     public ImpliedFactsEvaluator(KB db) {
         this.db = db;
-        queried = new HashSet<>();
+        queried = new IntOpenHashSet();
         querySet = new HashSet<>();
     }
     
-//    public ImpliedFactsEvaluator(KB db, Map<ByteString, Set<ByteString>> goldStandard,
-//            Map<ByteString, Map<String, Set<ByteString>>> results) {
+//    public ImpliedFactsEvaluator(KB db, Map<ByteString, IntSet> goldStandard,
+//            Map<ByteString, Map<String, IntSet>> results) {
 //        this.db = db;
-//        queried = new HashSet<>(goldStandard.keySet());
+//        queried = new IntOpenHashSet(goldStandard.keySet());
 //        for (ByteString q : queried) {
 //            for (ByteString gsResult : goldStandard.get(q)) {
 //                for (ByteString e : Schema.getAllEntitiesForType(db, gsResult)) {
@@ -83,7 +83,7 @@ public class ImpliedFactsEvaluator {
 //        }
 //    }
     
-    public void addGS(ByteString relation, Set<ByteString> classes) {
+    public void addGS(ByteString relation, IntSet classes) {
         for (ByteString rtClass : classes) {
             addGS(relation, rtClass);
         }
@@ -96,7 +96,7 @@ public class ImpliedFactsEvaluator {
         }
     }
     
-    public void addResult(ByteString relation, String method, Set<ByteString> classes) {
+    public void addResult(ByteString relation, String method, IntSet classes) {
         for (ByteString rtClass : classes) {
             addResult(relation, method, classes);
         }
@@ -194,8 +194,8 @@ public class ImpliedFactsEvaluator {
         }
     }
     
-    public static Set<ByteString> readClassFile(String path) throws IOException {
-        Set<ByteString> res = new LinkedHashSet<>();
+    public static IntSet readClassFile(String path) throws IOException {
+        IntSet res = new IntOpenHashSet();
         for (String line : new FileLines(new File(path), "UTF-8", null)) {
             res.add(ByteString.of(line.trim()));
         }
@@ -218,7 +218,7 @@ public class ImpliedFactsEvaluator {
     }
     
     public static void main(String[] args) throws IOException, InterruptedException {
-        Map<ByteString, Set<ByteString>> relation2classGS = new HashMap<>();
+        Map<ByteString, IntSet> relation2classGS = new HashMap<>();
         
 
         CommandLine cli = null;

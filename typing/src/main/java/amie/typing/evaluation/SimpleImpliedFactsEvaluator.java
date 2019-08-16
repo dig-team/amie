@@ -39,15 +39,15 @@ import org.apache.commons.cli.PosixParser;
 public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
     
     private SimpleTypingKB db;
-    public Map<ByteString, IntSet> gs;
-    public Map<ByteString, IntSet> gsClasses;
-    public Map<ByteString, Map<String, IntSet>> query2classes;
+    public Int2ObjectMap<IntSet> gs;
+    public Int2ObjectMap<IntSet> gsClasses;
+    public Int2ObjectMap<Map<String, IntSet>> query2classes;
     
     public SimpleImpliedFactsEvaluator(SimpleTypingKB db) {
         super(db);
         this.db = db;
-        this.gs = new HashMap<>();
-        this.query2classes = new HashMap<>();
+        this.gs = new Int2ObjectOpenHashMap<>();
+        this.query2classes = new Int2ObjectOpenHashMap<>();
     }
     
     @Override

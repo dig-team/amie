@@ -13,7 +13,7 @@ import junit.framework.TestCase;
 public class MinCutMaxClassifierTest extends TestCase {
     
     public void testLinkSortMap() throws Exception {
-        Map<ByteString, Double> m1 = new HashMap<>();
+        Int2ObjectMap<Double> m1 = new Int2ObjectOpenHashMap<>();
         ByteString v1 = ByteString.of("1");
         ByteString v2 = ByteString.of("2");
         ByteString v3 = ByteString.of("3");
@@ -31,10 +31,10 @@ public class MinCutMaxClassifierTest extends TestCase {
         
         MinCutMaxClassifier mcmc = new MinCutMaxClassifier(new KB()); 
         // Chain v1 <-> v2 <-> v3
-        Map<ByteString, Map<ByteString, Double>> t1 = new HashMap<>();
-        Map<ByteString, Double> m1 = new HashMap<>();
-        Map<ByteString, Double> m2 = new HashMap<>();
-        Map<ByteString, Double> m3 = new HashMap<>();
+        Int2ObjectMap<Int2ObjectMap<Double>> t1 = new Int2ObjectOpenHashMap<>();
+        Int2ObjectMap<Double> m1 = new Int2ObjectOpenHashMap<>();
+        Int2ObjectMap<Double> m2 = new Int2ObjectOpenHashMap<>();
+        Int2ObjectMap<Double> m3 = new Int2ObjectOpenHashMap<>();
         ByteString v1 = ByteString.of("1");
         ByteString v2 = ByteString.of("2");
         ByteString v3 = ByteString.of("3");

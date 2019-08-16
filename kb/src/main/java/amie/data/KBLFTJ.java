@@ -217,11 +217,11 @@ public class KBLFTJ extends KB {
 		return result;
 	}
 	
-	public Map<ByteString, IntSet> selectDistinctLFTJ(ByteString var1, ByteString var2,
+	public Int2ObjectMap<IntSet> selectDistinctLFTJ(ByteString var1, ByteString var2,
 			List<ByteString[]> query) {
 		
 		Iterator<ByteString[]> it = query.iterator();
-		Map<ByteString, IntSet> result = new HashMap<>();
+		Int2ObjectMap<IntSet> result = new Int2ObjectOpenHashMap<>();
 		List<ByteString[]> newQuery = new ArrayList<>(query.size());
 		
 		while(it.hasNext()) {
@@ -306,11 +306,11 @@ public class KBLFTJ extends KB {
 		return result;
 	}
 	
-	public Map<ByteString, Map<ByteString, IntSet>> selectDistinctLFTJ(ByteString var1, ByteString var2, ByteString var3,
+	public Int2ObjectMap<Int2ObjectMap<IntSet>> selectDistinctLFTJ(ByteString var1, ByteString var2, ByteString var3,
 			List<ByteString[]> query) {
 		
 		Iterator<ByteString[]> it = query.iterator();
-		Map<ByteString, Map<ByteString, IntSet>> result = new HashMap<>();
+		Int2ObjectMap<Int2ObjectMap<IntSet>> result = new Int2ObjectOpenHashMap<>();
 		List<ByteString[]> newQuery = new ArrayList<>(query.size());
 		
 		while(it.hasNext()) {
@@ -338,7 +338,7 @@ public class KBLFTJ extends KB {
 		
 		Instantiator insty = new Instantiator(newQuery, var1);
 		for(ByteString value : possibleValues) {
-			Map<ByteString, IntSet> innerResult = selectDistinctLFTJ(var2, var3, insty.instantiate(value));
+			Int2ObjectMap<IntSet> innerResult = selectDistinctLFTJ(var2, var3, insty.instantiate(value));
 			if(!innerResult.isEmpty())
 				result.put(value, innerResult);
 		}

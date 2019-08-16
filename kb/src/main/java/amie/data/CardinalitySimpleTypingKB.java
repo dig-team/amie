@@ -22,7 +22,7 @@ import javatools.datatypes.IntHashMap;
  */
 public class CardinalitySimpleTypingKB extends SimpleTypingKB {
     
-    protected final Map<ByteString, Int2IntMap> relationsCard = new HashMap<>();
+    protected final Int2ObjectMap<Int2IntMap> relationsCard = new Int2ObjectOpenHashMap<>();
     
     @Override
     protected boolean add(ByteString subject, ByteString relation, ByteString object) {

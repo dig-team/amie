@@ -63,9 +63,9 @@ public class Schema {
 	
 	private static IntSet allDefinedTypesMaterialized = new IntOpenHashSet();
 	
-	private static MultiMap<ByteString, ByteString> subClassMaterialized = new MultiMap<>();
+	private static MultiInt2ObjectMap<ByteString> subClassMaterialized = new MultiMap<>();
 	
-	private static MultiMap<ByteString, ByteString> superClassMaterialized = new MultiMap<>();
+	private static MultiInt2ObjectMap<ByteString> superClassMaterialized = new MultiMap<>();
     
 	public static void materializeTaxonomy(KB source) {
 		List<ByteString[]> query = KB.triples(KB.triple("?x", subClassRelationBS, "?y"));
@@ -534,7 +534,7 @@ public class Schema {
 	 * @return
 	 */
 	public static Int2IntMap getTypesCount(KB kb) {
-                Map<ByteString, IntSet> types2Instances = null;
+                Int2ObjectMap<IntSet> types2Instances = null;
                 if (kb instanceof SimpleTypingKB) {
                     System.err.print("Computing type counts... ");
                     types2Instances = ((SimpleTypingKB) kb).classes;
@@ -546,8 +546,8 @@ public class Schema {
                     return result;
                 } else {
                     List<ByteString[]> query = KB.triples(KB.triple("?s", typeRelation, "?o"));
-                    types2Instances = new HashMap<>();
-                    Map<ByteString, IntSet> ts = 
+                    types2Instances = new Int2ObjectOpenHashMap<>();
+                    Int2ObjectMap<IntSet> ts = 
                             kb.selectDistinct(ByteString.of("?o"), ByteString.of("?s"), query);
                     Int2IntMap result = new Int2IntOpenHashMap();
                     for (ByteString type : ts.keySet()) {
@@ -562,8 +562,8 @@ public class Schema {
 	 * @param kb
 	 * @return
 	 */
-	public static Map<ByteString, Int2IntMap> getTypesIntersectionCount(KB kb) {
-            Map<ByteString, Int2IntMap> result = new LinkedHashMap<>();
+	public static Int2ObjectMap<Int2IntMap> getTypesIntersectionCount(KB kb) {
+            Int2ObjectMap<Int2IntMap> result = new Int2ObjectOpenHashMap<>();
             System.err.println("Count class size required");
             if (kb instanceof SimpleTypingKB) {
                 System.err.print("Computing type intersection counts... ");
@@ -580,7 +580,7 @@ public class Schema {
 		return result;
             }
 		List<ByteString[]> query = KB.triples(KB.triple("?s", typeRelation, "?o1"), KB.triple("?s", typeRelation, "?o2"));
-		Map<ByteString, Map<ByteString, IntSet>> types2types2Instances = 
+		Int2ObjectMap<Int2ObjectMap<IntSet>> types2types2Instances = 
 				kb.selectDistinct(ByteString.of("?o1"), ByteString.of("?o2"), ByteString.of("?s"), query);
 		
 		for (ByteString type1 : types2types2Instances.keySet()) {
@@ -606,8 +606,8 @@ public class Schema {
 		return typesCount;
 	}
 	
-	public static Map<ByteString, Int2IntMap> loadTypesIntersectionCount(File f) throws IOException {
-		Map<ByteString, Int2IntMap> typesIntersectionCount = new HashMap<>();
+	public static Int2ObjectMap<Int2IntMap> loadTypesIntersectionCount(File f) throws IOException {
+		Int2ObjectMap<Int2IntMap> typesIntersectionCount = new Int2ObjectOpenHashMap<>();
 		for (String line : new FileLines(f, "UTF-8", null)) {
 			String[] split = line.split("\t");
 			if (split.length == 3) {

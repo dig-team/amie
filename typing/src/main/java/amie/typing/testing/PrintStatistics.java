@@ -79,7 +79,7 @@ public class PrintStatistics {
         	System.out.println(" Done.");
         }
         
-        Map<ByteString, Map<ByteString, Double>> stats = sc.computeStatistics(pa.query, pa.variable, pa.classSizeThreshold, pa.supportThreshold);
+        Int2ObjectMap<Int2ObjectMap<Double>> stats = sc.computeStatistics(pa.query, pa.variable, pa.classSizeThreshold, pa.supportThreshold);
         for(ByteString t1: stats.keySet()) {
             for(ByteString t2:stats.get(t1).keySet()) {
                 System.out.println(t1.toString() + "\t" + t2.toString() + "\t" + Double.toString(stats.get(t1).get(t2)));

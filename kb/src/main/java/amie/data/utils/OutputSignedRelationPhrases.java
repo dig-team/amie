@@ -117,12 +117,12 @@ public class OutputSignedRelationPhrases {
 		= new HashMap<Triple<ByteString, ByteString, ByteString>, Set<Pair<ByteString, ByteString>>>();
 		ByteString typeRelation = ByteString.of("<rdf:type>");
 		ByteString defaultStr = ByteString.of("default");
-		Map<ByteString, Map<ByteString, IntSet>> map =
+		Int2ObjectMap<Int2ObjectMap<IntSet>> map =
 				db.resultsThreeVariables(ByteString.of("?p"), ByteString.of("?s"), ByteString.of("o"), 
 						KB.triple("?s", "?p", "?o"));
 		for (ByteString relation : map.keySet()) {
 			if (!relation.equals(typeRelation)) {
-				Map<ByteString, IntSet> tail = map.get(relation);
+				Int2ObjectMap<IntSet> tail = map.get(relation);
 				for (ByteString subject : tail.keySet()) {
 					for (ByteString object : tail.get(subject)) {
 						// Get the types

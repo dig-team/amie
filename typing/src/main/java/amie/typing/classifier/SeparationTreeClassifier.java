@@ -33,12 +33,12 @@ import javatools.datatypes.IntHashMap;
  */
 public class SeparationTreeClassifier extends SeparationClassifier {
     
-    public Map<ByteString, SeparationTreeNode> index = new LinkedHashMap<>();
+    public Int2ObjectMap<SeparationTreeNode> index = new Int2ObjectOpenHashMap<>();
     public boolean supportForTarget;
     
     public SimpleTypingKB localdb = null;
 
-    public SeparationTreeClassifier(KB source, Int2IntMap cS, Map<ByteString, Int2IntMap> cIS) {
+    public SeparationTreeClassifier(KB source, Int2IntMap cS, Int2ObjectMap<Int2IntMap> cIS) {
         super(source, cS, cIS);
         supportForTarget = false;
         if (db instanceof SimpleTypingKB) {
@@ -54,7 +54,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
         }
     }
     
-    public SeparationTreeClassifier(KB source, Int2IntMap cS, Map<ByteString, Int2IntMap> cIS, boolean supportForTarget) {
+    public SeparationTreeClassifier(KB source, Int2IntMap cS, Int2ObjectMap<Int2IntMap> cIS, boolean supportForTarget) {
         super(source, cS, cIS);
         this.supportForTarget = supportForTarget;
         if (db instanceof SimpleTypingKB) {

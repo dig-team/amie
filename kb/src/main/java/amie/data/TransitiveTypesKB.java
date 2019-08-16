@@ -44,7 +44,7 @@ public class TransitiveTypesKB extends KB {
 	@Override
 	protected long countTwoVariables(ByteString... triple) {
 		if (triple[1].equals(TRANSITIVETYPEbs)) {
-			Map<ByteString, IntSet> resultTwoVars = 
+			Int2ObjectMap<IntSet> resultTwoVars = 
 					resultsTwoVariablesByPos(0, 2, triple);
 			long count = 0;
 			for (ByteString subject : resultTwoVars.keySet()) {
@@ -81,10 +81,10 @@ public class TransitiveTypesKB extends KB {
 	}
 	
 	@Override
-	public Map<ByteString, IntSet> resultsTwoVariablesByPos(
+	public Int2ObjectMap<IntSet> resultsTwoVariablesByPos(
 			int pos1, int pos2, ByteString[] triple) {
 		if (triple[1].equals(TRANSITIVETYPEbs)) {
-			Map<ByteString, IntSet> result = new LinkedHashMap<>();
+			Int2ObjectMap<IntSet> result = new Int2ObjectOpenHashMap<>();
 			switch(pos1) {
 			case 0:
 				/*

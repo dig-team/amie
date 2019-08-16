@@ -16,8 +16,8 @@ import javatools.filehandlers.FileLines;
 
 public class FrequencyTester {
 
-	private Map<ByteString, IntSet> attribute2classes = null;
-	private Map<String, Map<ByteString, Map<ByteString, Double>>> heuristic2attribute2class2score;
+	private Int2ObjectMap<IntSet> attribute2classes = null;
+	private Map<String, Int2ObjectMap<Int2ObjectMap<Double>>> heuristic2attribute2class2score;
 
 	public void loadResults(File f) throws IOException {
 		heuristic2attribute2class2score = new HashMap<>();
@@ -25,15 +25,15 @@ public class FrequencyTester {
 			String[] split = line.trim().split("\t");
 			if (split.length == 4) {
 				String heuristic = split[0].trim();
-				Map<ByteString, Map<ByteString, Double>> attribute2class2score = heuristic2attribute2class2score.get(heuristic);
+				Int2ObjectMap<Int2ObjectMap<Double>> attribute2class2score = heuristic2attribute2class2score.get(heuristic);
 				if (attribute2class2score == null) {
-					heuristic2attribute2class2score.put(heuristic, attribute2class2score = new HashMap<>());
+					heuristic2attribute2class2score.put(heuristic, attribute2class2score = new Int2ObjectOpenHashMap<>());
 				}
 				ByteString attribute = ByteString.of(split[2].trim());
 				if (attribute2classes != null && !attribute2classes.containsKey(attribute)) continue;
-				Map<ByteString, Double> class2score = attribute2class2score.get(attribute);
+				Int2ObjectMap<Double> class2score = attribute2class2score.get(attribute);
 				if (class2score == null) {
-					attribute2class2score.put(attribute, class2score = new HashMap<>());
+					attribute2class2score.put(attribute, class2score = new Int2ObjectOpenHashMap<>());
 				}
 				class2score.put(ByteString.of(split[1].trim()), Double.valueOf(split[3].trim()));
 			}
@@ -41,7 +41,7 @@ public class FrequencyTester {
 	}
 	
 	public void loadGoldStandard(KB taxo, File f) throws IOException {
-		attribute2classes = new HashMap<>();
+		attribute2classes = new Int2ObjectOpenHashMap<>();
 		for (String line : new FileLines(f, "UTF-8", null)) {
 			String[] split = line.trim().split("\t");
 			if (split.length == 2) {

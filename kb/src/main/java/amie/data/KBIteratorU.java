@@ -116,7 +116,7 @@ public class KBIteratorU {
         ByteString variable, next;
         IntSet addTo;
         
-        public recursiveSelectForTwoVarIterator(KB kb, KB.Instantiator insty1, KB.Instantiator insty2, ByteString variable, Map<ByteString, IntSet> toIterate, IntSet addTo) {
+        public recursiveSelectForTwoVarIterator(KB kb, KB.Instantiator insty1, KB.Instantiator insty2, ByteString variable, Int2ObjectMap<IntSet> toIterate, IntSet addTo) {
             this.kb = kb;
             this.insty1 = insty1;
             this.insty2 = insty2;
@@ -169,7 +169,7 @@ public class KBIteratorU {
     
     public static class recursiveSelectForThreeVarIterator implements Iterator<ByteString>, CloseableNoThrow {
         
-        Iterator<Map.Entry<ByteString, Map<ByteString, IntSet>>> it1;
+        Iterator<Map.Entry<ByteString, Int2ObjectMap<IntSet>>> it1;
         Iterator<Map.Entry<ByteString, IntSet>> it2;
         Iterator<ByteString> it3;
         KB kb;
@@ -178,7 +178,7 @@ public class KBIteratorU {
         ByteString variable, next;
         IntSet addTo;
         
-        public recursiveSelectForThreeVarIterator(KB kb, KB.Instantiator insty1, KB.Instantiator insty2, KB.Instantiator insty3, ByteString variable, Map<ByteString, Map<ByteString, IntSet>> toIterate, IntSet addTo) {
+        public recursiveSelectForThreeVarIterator(KB kb, KB.Instantiator insty1, KB.Instantiator insty2, KB.Instantiator insty3, ByteString variable, Int2ObjectMap<Int2ObjectMap<IntSet>> toIterate, IntSet addTo) {
             this.kb = kb;
             this.insty1 = insty1;
             this.insty2 = insty2;
@@ -206,7 +206,7 @@ public class KBIteratorU {
                     insty2.instantiate(e2.getKey());
                     it3 = e2.getValue().iterator();
                 } else {
-                    Map.Entry<ByteString, Map<ByteString, IntSet>> e1 = it1.next();
+                    Map.Entry<ByteString, Int2ObjectMap<IntSet>> e1 = it1.next();
                     insty1.instantiate(e1.getKey());
                     it2 = e1.getValue().entrySet().iterator();
                 }

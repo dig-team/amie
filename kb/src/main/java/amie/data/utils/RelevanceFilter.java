@@ -50,7 +50,7 @@ public class RelevanceFilter {
 		System.arraycopy(args, 1, subarray, 0, args.length - 1);
 		KB kb = amie.data.U.loadFiles(subarray);
 		
-		HashMap<ByteString, Double> relevanceMap = new HashMap<>();
+		Int2ObjectMap<Double> relevanceMap = new Int2ObjectOpenHashMap<>();
 		for (Triple<String, String, Double> t : relevanceList.subList(0, 20000)) {
 			if (t.third.isNaN()) {
 				System.err.println(t.first + " is Nan");
@@ -66,7 +66,7 @@ public class RelevanceFilter {
 		List<ByteString[]> query =  KB.triples(KB.triple(s, r, o));
 		for (ByteString relation : kb.selectDistinct(ByteString.of("?r"), query)) {			
 			ByteString[] query2 = KB.triple(s, relation, o);
-			Map<ByteString, IntSet> bindings = null;
+			Int2ObjectMap<IntSet> bindings = null;
 			boolean inversed = false;
 			if (kb.isFunctional(relation) || relation.equals(amie.data.Schema.typeRelationBS)) {				
 				bindings = kb.resultsTwoVariables(s, o, query2);

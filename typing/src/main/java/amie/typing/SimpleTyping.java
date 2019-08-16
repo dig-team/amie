@@ -97,7 +97,7 @@ public class SimpleTyping extends Thread {
         String delimiter = "\t";
         String[] leftOverArgs;
         String[] queries = null; 
-        Map<ByteString, Int2IntMap> countIntersectionMap = null;
+        Int2ObjectMap<Int2IntMap> countIntersectionMap = null;
         int nThreads = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
         PrintStream output = System.out;
         ArrayList<Double> t1 = null, t2 = null, t3 = null;

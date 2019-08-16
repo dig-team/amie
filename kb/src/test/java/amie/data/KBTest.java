@@ -80,7 +80,7 @@ public class KBTest extends TestCase {
 		kb.add(KB.triple("<Ambar>", "<rdf:type>", "<Person>"));		
 		kb.add(KB.triple("<Oana>", "<rdf:type>", "<Person>"));	
 		kb.add(KB.triple("<Thomas>", "<rdf:type>", "<Person>"));
-		Map<ByteString, IntSet> values = kb.selectDistinct(ByteString.of("?x"), ByteString.of("?y"),
+		Int2ObjectMap<IntSet> values = kb.selectDistinct(ByteString.of("?x"), ByteString.of("?y"),
 				KB.triples(KB.triple("?x", KB.NOTEXISTSbs, "?y"),
 						KB.triple("?y", "<rdf:type>", "<Person>")));
 		assertTrue(values.containsKey(ByteString.of("<wasBornIn>")));

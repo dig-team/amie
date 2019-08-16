@@ -48,18 +48,18 @@ public class GoldStandardHelper {
         
     private GSnode current;
     public List<GSnode> ids;
-    private Map<ByteString, GSnode> index;
+    private Int2ObjectMap<GSnode> index;
     
     public GoldStandardHelper(KB source) {
         this.marked = new HashSet<>();
-        this.index = new HashMap<>();
+        this.index = new Int2ObjectOpenHashMap<>();
         db = source;
         //handler = this;
     }
     
     public GoldStandardHelper(String query) {
         this.marked = new HashSet<>();
-        this.index = new HashMap<>();
+        this.index = new Int2ObjectOpenHashMap<>();
         this.query = query;
         current = new GSnode(Schema.topBS);
         index.put(Schema.topBS, current);

@@ -24,11 +24,11 @@ import javatools.datatypes.IntHashMap;
  */
 public abstract class SimpleClassifier {
     
-    public Map<ByteString, SimpleTreeNode> index = new LinkedHashMap<>();
+    public Int2ObjectMap<SimpleTreeNode> index = new Int2ObjectOpenHashMap<>();
     public boolean supportForTarget;
     
     public SimpleTypingKB db;
-    public Map<ByteString, Int2IntMap> classIntersectionSize;
+    public Int2ObjectMap<Int2IntMap> classIntersectionSize;
     public String name = "";
     protected double[] thresholds;
     
@@ -53,12 +53,12 @@ public abstract class SimpleClassifier {
         this.supportForTarget = supportForTarget;
     }
     
-    public SimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Map<ByteString, Int2IntMap> classIntersectionSize) {
+    public SimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Int2ObjectMap<Int2IntMap> classIntersectionSize) {
         this(db, thresholds, output, outputLock);
         this.classIntersectionSize = classIntersectionSize;
     }
     
-    public SimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Map<ByteString, Int2IntMap> classIntersectionSize,
+    public SimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Int2ObjectMap<Int2IntMap> classIntersectionSize,
             boolean supportForTarget) {
         this(db, thresholds, output, outputLock);
         this.classIntersectionSize = classIntersectionSize;

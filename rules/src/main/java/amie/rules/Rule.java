@@ -1084,8 +1084,8 @@ public class Rule {
      *
      * @return
      */
-    private Map<ByteString, Integer> alternativeHistogram() {
-        Map<ByteString, Integer> hist = new HashMap<>(triples.size(), 1.0f);
+    private Int2ObjectMap<Integer> alternativeHistogram() {
+        Int2ObjectMap<Integer> hist = new Int2ObjectOpenHashMap<>(triples.size(), 1.0f);
         for (int i = 1; i < triples.size(); ++i) {
             ByteString[] triple = triples.get(i);
             if (triple[1].equals(KB.DIFFERENTFROMbs)) {
@@ -1854,7 +1854,7 @@ public class Rule {
         }
 
         // Calculate the relation count
-        HashMap<ByteString, List<ByteString[]>> subgraphs = new HashMap<ByteString, List<ByteString[]>>();
+        Int2ObjectMap<List<ByteString[]>> subgraphs = new Int2ObjectOpenHashMap<List<ByteString[]>>();
         for (ByteString[] pattern : triples) {
             List<ByteString[]> subgraph = subgraphs.get(pattern[1]);
             if (subgraph == null) {
@@ -1935,7 +1935,7 @@ public class Rule {
      * @param mappings
      * @param inputTriples 
      */
-    public static void bind(Map<ByteString, ByteString> mappings,
+    public static void bind(Int2ObjectMap<ByteString> mappings,
             List<ByteString[]> inputTriples) {
         for (ByteString[] triple : inputTriples) {
             ByteString binding = mappings.get(triple[0]);
@@ -2051,7 +2051,7 @@ public class Rule {
             }
 
             ByteString[] head = rule.getHead();
-            Map<ByteString, ByteString> mappings = new HashMap<>();
+            Int2ObjectMap<ByteString> mappings = new Int2ObjectOpenHashMap<>();
             mappings.put(head[0], canonicalSubjectExp);
             mappings.put(head[2], canonicalObjectExp);
             Rule.bind(mappings, antecedentClone);
@@ -2200,7 +2200,7 @@ public class Rule {
             return false;
         }
 
-        Map<ByteString, Integer> histogram = alternativeHistogram();
+        Int2ObjectMap<Integer> histogram = alternativeHistogram();
         for (int i = 1; i < triples.size(); ++i) {
             ByteString[] atom = triples.get(i);
             for (int k : new int[]{0, 2}) {
@@ -2288,7 +2288,7 @@ public class Rule {
         ByteString funcVar = getFunctionalVariable();
         ByteString nonFuncVar = getNonFunctionalVariable();
         List<ByteString[]> body = getBody();
-        Map<ByteString, List<ByteString[]>> variablesToAtom = new HashMap<>(triples.size(), 1.0f);
+        Int2ObjectMap<List<ByteString[]>> variablesToAtom = new Int2ObjectOpenHashMap<>(triples.size(), 1.0f);
         List<ByteString[]> path = new ArrayList<>();
         // Build a multimap, variable -> {atoms where the variable occurs}
         for (ByteString[] bodyAtom : body) {

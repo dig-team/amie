@@ -26,7 +26,7 @@ public class ComputeTypeDeductiveClosure {
 		amie.data.Schema.loadSchemaConf();
 		System.out.println("Assuming " + amie.data.Schema.typeRelation + " as type relation");
 		KB kb = U.loadFiles(args);
-		Map<ByteString, IntSet> allEntitiesAndTypes = 
+		Int2ObjectMap<IntSet> allEntitiesAndTypes = 
 				kb.resultsTwoVariables("?s", "?o", new String[]{"?s", amie.data.Schema.typeRelation, "?o"});
 		PrintWriter pw = new PrintWriter(new File("inferredTypes.tsv"));
 		for (ByteString entity : allEntitiesAndTypes.keySet()) {

@@ -86,7 +86,7 @@ public class PCAFalseFactsSampler {
 	 * @param rules
 	 */
 	private void runAndGroupByRelation(Collection<Rule> rules) {
-		Map<ByteString, Collection<Rule>> headsToRules = new HashMap<ByteString, Collection<Rule>>();
+		Int2ObjectMap<Collection<Rule>> headsToRules = new Int2ObjectOpenHashMap<Collection<Rule>>();
 		
 		for(Rule rule: rules){
 			Collection<Rule> rulesForRelation = headsToRules.get(rule.getHead()[1]);
@@ -135,7 +135,7 @@ public class PCAFalseFactsSampler {
 			query.add(triple.clone());
 		
 		if(KB.numVariables(rule.getHead()) == 2){
-			Map<ByteString, IntSet> bindingsTwoVars = db.difference(head[0], head[2], query, rule.getTriples());
+			Int2ObjectMap<IntSet> bindingsTwoVars = db.difference(head[0], head[2], query, rule.getTriples());
 			for(ByteString subject: bindingsTwoVars.keySet()){
 				for(ByteString object: bindingsTwoVars.get(subject)){
 					result.add(new Triple<ByteString, ByteString, ByteString>(subject, relation, object));

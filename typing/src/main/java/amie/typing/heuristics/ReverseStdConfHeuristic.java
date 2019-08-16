@@ -14,7 +14,7 @@ import javatools.datatypes.ByteString;
 public class ReverseStdConfHeuristic extends TypingHeuristic {
 
     public SimpleTypingKB localdb;
-    public static Map<ByteString, Integer> bodySizes = new HashMap<>();
+    public static Int2ObjectMap<Integer> bodySizes = new Int2ObjectOpenHashMap<>();
     
 	public ReverseStdConfHeuristic(KB kb) {
 		super(kb);

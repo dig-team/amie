@@ -46,7 +46,7 @@ public class Separation extends Thread {
     
     KB source; 
     Int2IntMap cS;
-    Map<ByteString, Int2IntMap> cIS;
+    Int2ObjectMap<Int2IntMap> cIS;
     BlockingQueue<Pair<List<ByteString[]>, ByteString>> queryQ; 
     int classSizeThreshold; 
     int supportThreshold; 
@@ -54,7 +54,7 @@ public class Separation extends Thread {
     boolean supportForTarget;
     String classifier;
     
-    public Separation(KB source, Int2IntMap cS, Map<ByteString, 
+    public Separation(KB source, Int2IntMap cS, Int2ObjectMap<
             Int2IntMap> cIS, BlockingQueue<Pair<List<ByteString[]>, 
             ByteString>> queryQ, int classSizeThreshold, int supportThreshold, 
             double[] thresholds, boolean supportForTarget, String classifier) {
@@ -212,7 +212,7 @@ public class Separation extends Thread {
         
         // Load the counts
         Int2IntMap cS;
-        Map<ByteString, Int2IntMap> cIS;
+        Int2ObjectMap<Int2IntMap> cIS;
         
         if (pa.countFile == null) {
             cS = Schema.getTypesCount(dataSource);

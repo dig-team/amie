@@ -21,7 +21,7 @@ import javatools.datatypes.Triple;
  */
 public class RuleBodySizeEvaluator {
 
-	public static int aggregate(Map<ByteString, Int2IntMap> bindings){
+	public static int aggregate(Int2ObjectMap<Int2IntMap> bindings){
 		int count = 0;
 		for(ByteString value1: bindings.keySet()){
 			count += bindings.get(value1).size();
@@ -58,7 +58,7 @@ public class RuleBodySizeEvaluator {
 	private static long[] conditionalBodySize(Rule q, KB db, Set<Triple<ByteString, ByteString, ByteString>> allPredictions) {
 		Predictor pp = new Predictor(db);
 		Object predictionsObj = pp.generatePredictions(q);
-		Map<ByteString, Int2IntMap> predictions = (Map<ByteString, Int2IntMap>)predictionsObj;
+		Int2ObjectMap<Int2IntMap> predictions = (Int2ObjectMap<Int2IntMap>)predictionsObj;
 		int countingVarPos = q.getFunctionalVariablePosition();
 		long result[] = new long[2];
 		

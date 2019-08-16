@@ -22,7 +22,7 @@ import org.apache.commons.math3.distribution.HypergeometricDistribution;
  */
 public class SeparationVTreeClassifier extends SeparationPTreeClassifier {
 
-    public SeparationVTreeClassifier(KB source, Int2IntMap cS, Map<ByteString, Int2IntMap> cIS) {
+    public SeparationVTreeClassifier(KB source, Int2IntMap cS, Int2ObjectMap<Int2IntMap> cIS) {
         super(source, cS, cIS);
     }
 
@@ -30,7 +30,7 @@ public class SeparationVTreeClassifier extends SeparationPTreeClassifier {
         super(source, typeCountFile, typeIntersectionCountFile);
     }
 
-    public SeparationVTreeClassifier(KB source, Int2IntMap cS, Map<ByteString, Int2IntMap> cIS, boolean supportForTarget) {
+    public SeparationVTreeClassifier(KB source, Int2IntMap cS, Int2ObjectMap<Int2IntMap> cIS, boolean supportForTarget) {
         super(source, cS, cIS, supportForTarget);
     }
 

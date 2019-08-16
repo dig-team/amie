@@ -22,7 +22,7 @@ import javatools.datatypes.IntHashMap;
  */
 public class SeparationSTreeClassifier extends SeparationTreeClassifier {
 
-    public SeparationSTreeClassifier(KB source, Int2IntMap cS, Map<ByteString, Int2IntMap> cIS) {
+    public SeparationSTreeClassifier(KB source, Int2IntMap cS, Int2ObjectMap<Int2IntMap> cIS) {
         super(source, cS, cIS);
     }
 
@@ -30,7 +30,7 @@ public class SeparationSTreeClassifier extends SeparationTreeClassifier {
         super(source, typeCountFile, typeIntersectionCountFile);
     }
 
-    public SeparationSTreeClassifier(KB source, Int2IntMap cS, Map<ByteString, Int2IntMap> cIS, boolean supportForTarget) {
+    public SeparationSTreeClassifier(KB source, Int2IntMap cS, Int2ObjectMap<Int2IntMap> cIS, boolean supportForTarget) {
         super(source, cS, cIS, supportForTarget);
     }
 

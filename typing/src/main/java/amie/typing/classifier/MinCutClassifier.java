@@ -43,7 +43,7 @@ public class MinCutClassifier extends SeparationClassifier {
 		// TODO Auto-generated constructor stub
 	}
 
-	public void classify(Map<ByteString, Map<ByteString, Double>> statistics) {
+	public void classify(Int2ObjectMap<Int2ObjectMap<Double>> statistics) {
 		SimpleDirectedWeightedGraph<ByteString, DefaultWeightedEdge>  graph = 
 	            new SimpleDirectedWeightedGraph<>(DefaultWeightedEdge.class); 
 		for (ByteString t1 : statistics.keySet()) {

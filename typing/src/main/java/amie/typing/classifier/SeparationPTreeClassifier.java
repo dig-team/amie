@@ -25,7 +25,7 @@ public class SeparationPTreeClassifier extends SeparationTreeClassifier {
     
     public SimpleTypingKB localdb = null;
 
-    public SeparationPTreeClassifier(KB source, Int2IntMap cS, Map<ByteString, Int2IntMap> cIS) {
+    public SeparationPTreeClassifier(KB source, Int2IntMap cS, Int2ObjectMap<Int2IntMap> cIS) {
         super(source, cS, cIS);
         if (!(db instanceof SimpleTypingKB)) {
             throw new UnsupportedOperationException("Need simple typing KB");
@@ -41,7 +41,7 @@ public class SeparationPTreeClassifier extends SeparationTreeClassifier {
         localdb = (SimpleTypingKB) db;
     }
 
-    public SeparationPTreeClassifier(KB source, Int2IntMap cS, Map<ByteString, Int2IntMap> cIS, boolean supportForTarget) {
+    public SeparationPTreeClassifier(KB source, Int2IntMap cS, Int2ObjectMap<Int2IntMap> cIS, boolean supportForTarget) {
         super(source, cS, cIS, supportForTarget);
         if (!(db instanceof SimpleTypingKB)) {
             throw new UnsupportedOperationException("Need simple typing KB");

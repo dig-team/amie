@@ -31,7 +31,7 @@ public class SeparationClassifier {
 
     protected KB db;
     public Int2IntMap classSize;
-    public Map<ByteString, Int2IntMap> classIntersectionSize;
+    public Int2ObjectMap<Int2IntMap> classIntersectionSize;
 
     protected double getStandardConfidenceWithThreshold(List<ByteString[]> head, List<ByteString[]> body, ByteString variable, int threshold, boolean unsafe) {
         long support, bodySize;
@@ -84,8 +84,8 @@ public class SeparationClassifier {
         return result;
     }
 
-    public Map<ByteString, Map<ByteString, Double>> computeStatistics(List<ByteString[]> query, ByteString variable, int classSizeThreshold, int supportThreshold) {
-        Map<ByteString, Map<ByteString, Double>> result = new LinkedHashMap<>();
+    public Int2ObjectMap<Int2ObjectMap<Double>> computeStatistics(List<ByteString[]> query, ByteString variable, int classSizeThreshold, int supportThreshold) {
+        Int2ObjectMap<Int2ObjectMap<Double>> result = new Int2ObjectOpenHashMap<>();
         IntSet relevantClasses = getRelevantClasses(query, variable, supportThreshold);
 
         for (ByteString class1 : relevantClasses) {
@@ -95,7 +95,7 @@ public class SeparationClassifier {
                 continue;
             }
 
-            Map<ByteString, Double> r = new LinkedHashMap<>();
+            Int2ObjectMap<Double> r = new Int2ObjectOpenHashMap<>();
             List<ByteString[]> clause = TypingHeuristic.typeL(class1, variable);
             clause.addAll(query);
 
@@ -152,7 +152,7 @@ public class SeparationClassifier {
         return result;
     }
 
-    public void classify(Map<ByteString, Map<ByteString, Double>> statistics, double eliminationRatio) {
+    public void classify(Int2ObjectMap<Int2ObjectMap<Double>> statistics, double eliminationRatio) {
         // add an unionRatio ?
         double lratio = Math.abs(Math.log(eliminationRatio));
         IntSet V = new IntOpenHashSet(statistics.keySet());
@@ -228,7 +228,7 @@ public class SeparationClassifier {
         }
     }
 
-    public SeparationClassifier(KB source, Int2IntMap cS, Map<ByteString, Int2IntMap> cIS) {
+    public SeparationClassifier(KB source, Int2IntMap cS, Int2ObjectMap<Int2IntMap> cIS) {
         db = source;
         classSize = cS;
         classIntersectionSize = cIS;

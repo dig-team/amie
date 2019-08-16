@@ -62,7 +62,7 @@ public class MinCutMaxClassifier extends SeparationClassifier {
 		return r;
 	}
 	
-	private Pair<ByteString, Double> getMaxEdge(Map<ByteString, LinkedList<Map.Entry<ByteString, Double>>> graph, IntSet CV) {
+	private Pair<ByteString, Double> getMaxEdge(Int2ObjectMap<LinkedList<Map.Entry<ByteString, Double>>> graph, IntSet CV) {
 		Double maxD = Double.NEGATIVE_INFINITY;
 		ByteString maxN = null;
 		for(ByteString t : CV) {
@@ -85,8 +85,8 @@ public class MinCutMaxClassifier extends SeparationClassifier {
 		return new Pair<>(maxN, maxD);
 	}
 	
-	public IntSet t_MinCutMax(Map<ByteString, Map<ByteString, Double>> statistics, ByteString t) {
-		Map<ByteString, LinkedList<Map.Entry<ByteString, Double>>> smm = new HashMap<>();
+	public IntSet t_MinCutMax(Int2ObjectMap<Int2ObjectMap<Double>> statistics, ByteString t) {
+		Int2ObjectMap<LinkedList<Map.Entry<ByteString, Double>>> smm = new Int2ObjectOpenHashMap<>();
 		for (ByteString t1 : statistics.keySet()) {
 			smm.put(t1, linkSortMap(statistics.get(t1), Collections.reverseOrder()));
 		}
@@ -110,7 +110,7 @@ public class MinCutMaxClassifier extends SeparationClassifier {
                 return S;
         }
                 
-        public void classify(Map<ByteString, Map<ByteString, Double>> statistics) {         
+        public void classify(Int2ObjectMap<Int2ObjectMap<Double>> statistics) {         
             for(ByteString s : t_MinCutMax(statistics, ByteString.of("owl:Thing"))) {
                 System.out.println(s.toString());
             }

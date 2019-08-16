@@ -61,8 +61,8 @@ public class ImpliedFactsEvaluator {
         querySet = new HashSet<>();
     }
     
-//    public ImpliedFactsEvaluator(KB db, Map<ByteString, IntSet> goldStandard,
-//            Map<ByteString, Map<String, IntSet>> results) {
+//    public ImpliedFactsEvaluator(KB db, Int2ObjectMap<IntSet> goldStandard,
+//            Int2ObjectMap<Map<String, IntSet>> results) {
 //        this.db = db;
 //        queried = new IntOpenHashSet(goldStandard.keySet());
 //        for (ByteString q : queried) {
@@ -218,7 +218,7 @@ public class ImpliedFactsEvaluator {
     }
     
     public static void main(String[] args) throws IOException, InterruptedException {
-        Map<ByteString, IntSet> relation2classGS = new HashMap<>();
+        Int2ObjectMap<IntSet> relation2classGS = new Int2ObjectOpenHashMap<>();
         
 
         CommandLine cli = null;

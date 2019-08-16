@@ -38,9 +38,9 @@ public class MinMaxHierarchicalClassifier extends MinCutClassifier {
 	}
 
 	@Override
-	public void classify(Map<ByteString, Map<ByteString, Double>> statistics) {
+	public void classify(Int2ObjectMap<Int2ObjectMap<Double>> statistics) {
 		// TODO Auto-generated method stub
-		Map<ByteString, Double> result = new HashMap<>();
+		Int2ObjectMap<Double> result = new Int2ObjectOpenHashMap<>();
 		for (ByteString t1 : statistics.keySet()) {
 			for (ByteString t2 : statistics.get(t1).keySet()) {
 				if (statistics.get(t2).get(t1).isNaN() || classIntersectionSize.get(t1).get(t2) == classSize.get(t2))

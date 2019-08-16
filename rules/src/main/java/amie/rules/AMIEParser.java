@@ -35,7 +35,7 @@ public class AMIEParser {
   
 	public static void normalizeRule(Rule q){
 		char c = 'a';
-		Map<ByteString, Character> charmap = new HashMap<ByteString, Character>();
+		Int2ObjectMap<Character> charmap = new Int2ObjectOpenHashMap<Character>();
 		for(ByteString[] triple: q.getTriples()){
 			for(int i = 0;  i < triple.length; ++i){
 				if(KB.isVariable(triple[i])){

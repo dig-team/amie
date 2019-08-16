@@ -72,14 +72,14 @@ public class EntityFilter {
 			line = bufferedReader.readLine();
 		}
 				
-		Map<ByteString, Map<ByteString, IntSet>> factSourcesMap = 
+		Int2ObjectMap<Int2ObjectMap<IntSet>> factSourcesMap = 
 				factsSource.resultsThreeVariables(ByteString.of("?s"), ByteString.of("?p"), ByteString.of("o"), 
 						KB.triple("?s", "?p", "?o"));
 		IntSet subjects = factSourcesMap.keySet();
 		for(ByteString subject: subjects){
 			if(seeds.contains(subject)){
 				//Then produce the facts
-				Map<ByteString, IntSet> subjectsMap = factSourcesMap.get(subject);
+				Int2ObjectMap<IntSet> subjectsMap = factSourcesMap.get(subject);
 				if(subjectsMap == null) continue;
 				
 				IntSet predicates = subjectsMap.keySet(); 

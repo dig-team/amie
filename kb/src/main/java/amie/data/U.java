@@ -38,8 +38,8 @@ public class U {
 		sourceEntities.addAll(source1.objectSize);
 		for(ByteString entity: sourceEntities){
 			//Print all facts of the source ontology
-			Map<ByteString, IntSet> tail1 = source1.subject2relation2object.get(entity);
-			Map<ByteString, IntSet> tail2 = source2.subject2relation2object.get(entity);
+			Int2ObjectMap<IntSet> tail1 = source1.subject2relation2object.get(entity);
+			Int2ObjectMap<IntSet> tail2 = source2.subject2relation2object.get(entity);
 			if(tail2 == null)
 				continue;
 						
@@ -60,7 +60,7 @@ public class U {
 			for(ByteString entity: source2.objectSize){
 				if(sourceEntities.contains(entity)) continue;
 				
-				Map<ByteString, IntSet> tail2 = source2.subject2relation2object.get(entity);
+				Int2ObjectMap<IntSet> tail2 = source2.subject2relation2object.get(entity);
 				if(tail2 == null) continue;
 				
 				//Print all facts in the target ontology
@@ -264,9 +264,9 @@ public class U {
 	public static int numberOfFacts(KB kb, ByteString entity, Collection<ByteString> omittedRelations) {
 		ByteString[] querySubject = KB.triple(entity, ByteString.of("?r"), ByteString.of("?o")); 
 		ByteString[] queryObject = KB.triple(ByteString.of("?s"), ByteString.of("?r"), entity); 
-		Map<ByteString, IntSet> relationsSubject = 
+		Int2ObjectMap<IntSet> relationsSubject = 
 				kb.resultsTwoVariables(ByteString.of("?r"), ByteString.of("?o"), querySubject);
-		Map<ByteString, IntSet> relationsObject = 
+		Int2ObjectMap<IntSet> relationsObject = 
 				kb.resultsTwoVariables(ByteString.of("?r"), ByteString.of("?s"), queryObject);
 		int count1 = 0;
 		int count2 = 0;
@@ -310,7 +310,7 @@ public class U {
 	 * @return
 	 */
 	public static IntSet getEntitiesWithCardinality(KB kb, ByteString relation, int cardinality) {
-		Map<ByteString, IntSet> results = null;
+		Int2ObjectMap<IntSet> results = null;
 		List<ByteString[]> query = KB.triples(KB.triple(ByteString.of("?s"), 
 				relation, ByteString.of("?o")));
 		if (kb.isFunctional(relation)) {

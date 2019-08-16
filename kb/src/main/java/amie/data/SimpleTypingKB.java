@@ -18,9 +18,9 @@ import javatools.datatypes.ByteString;
  * @author jlajus
  */
 public class SimpleTypingKB extends KB {
-    public final Map<ByteString, IntSet> relations = new HashMap<>();
-    //protected final Map<ByteString, Map<ByteString, LazySet>> classIntersection = new HashMap<>();
-    public final Map<ByteString, IntSet> classes = new HashMap<>();
+    public final Int2ObjectMap<IntSet> relations = new Int2ObjectOpenHashMap<>();
+    //protected final Int2ObjectMap<Int2ObjectMap<LazySet>> classIntersection = new Int2ObjectOpenHashMap<>();
+    public final Int2ObjectMap<IntSet> classes = new Int2ObjectOpenHashMap<>();
     public final IntSet relationSet = new IntOpenHashSet();
     
     class LazySet {
@@ -116,7 +116,7 @@ public class SimpleTypingKB extends KB {
     @Override
     public IntSet getRelationSet() {
 //        for(ByteString c1 : classes.keySet()) {
-//            Map<ByteString, LazySet> c1I = new HashMap<>();
+//            Int2ObjectMap<LazySet> c1I = new Int2ObjectOpenHashMap<>();
 //            classIntersection.put(c1, c1I);
 //            for(ByteString c2 : classes.keySet()) {
 //                if (c1.compareTo(c2) > 0) c1I.put(c2, new LazySet(c1, c2));

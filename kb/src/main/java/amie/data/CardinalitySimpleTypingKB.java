@@ -67,7 +67,7 @@ public class CardinalitySimpleTypingKB extends SimpleTypingKB {
     }
     
     public void computeCardinalities() {
-        for (Map.Entry<ByteString, Int2IntMap> entry : relationsCard.entrySet()) {
+        for (Int2ObjectMap.Entry<Int2IntMap> entry : relationsCard.entrySet()) {
             Map<Integer, IntSet> t = new HashMap<>(entry.getValue().findMax());
             for (ByteString e : entry.getValue()) {
                 Integer i = entry.getValue().get(e);

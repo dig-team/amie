@@ -20,7 +20,7 @@ public class MinCutMaxClassifierTest extends TestCase {
         m1.put(v2, 1.0);
         m1.put(v1, 2.0);
         m1.put(v3, 1.5);
-        LinkedList<Map.Entry<ByteString, Double>> result = MinCutMaxClassifier.linkSortMap(m1, Collections.reverseOrder());
+        LinkedList<Int2ObjectMap.Entry<Double>> result = MinCutMaxClassifier.linkSortMap(m1, Collections.reverseOrder());
         assertEquals(v1, result.pop().getKey());
         assertEquals(v3, result.pop().getKey());
         assertEquals(v2, result.pop().getKey());

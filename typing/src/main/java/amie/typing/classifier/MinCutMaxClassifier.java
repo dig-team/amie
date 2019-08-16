@@ -62,14 +62,14 @@ public class MinCutMaxClassifier extends SeparationClassifier {
 		return r;
 	}
 	
-	private Pair<ByteString, Double> getMaxEdge(Int2ObjectMap<LinkedList<Map.Entry<ByteString, Double>>> graph, IntSet CV) {
+	private Pair<ByteString, Double> getMaxEdge(Int2ObjectMap<LinkedList<Int2ObjectMap.Entry<Double>>> graph, IntSet CV) {
 		Double maxD = Double.NEGATIVE_INFINITY;
 		ByteString maxN = null;
 		for(ByteString t : CV) {
-			LinkedList<Map.Entry<ByteString, Double>> tt = graph.get(t);
+			LinkedList<Int2ObjectMap.Entry<Double>> tt = graph.get(t);
                         if(tt == null) continue;
 			while(!tt.isEmpty()) {
-				Map.Entry<ByteString, Double> tmaxP = tt.peek();
+				Int2ObjectMap.Entry<Double> tmaxP = tt.peek();
 				if (CV.contains(tmaxP.getKey())) {
 					tt.remove();
 					continue;
@@ -86,7 +86,7 @@ public class MinCutMaxClassifier extends SeparationClassifier {
 	}
 	
 	public IntSet t_MinCutMax(Int2ObjectMap<Int2ObjectMap<Double>> statistics, ByteString t) {
-		Int2ObjectMap<LinkedList<Map.Entry<ByteString, Double>>> smm = new Int2ObjectOpenHashMap<>();
+		Int2ObjectMap<LinkedList<Int2ObjectMap.Entry<Double>>> smm = new Int2ObjectOpenHashMap<>();
 		for (ByteString t1 : statistics.keySet()) {
 			smm.put(t1, linkSortMap(statistics.get(t1), Collections.reverseOrder()));
 		}

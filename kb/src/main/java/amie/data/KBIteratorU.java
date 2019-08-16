@@ -108,7 +108,7 @@ public class KBIteratorU {
 
     public static class recursiveSelectForTwoVarIterator implements Iterator<ByteString>, CloseableNoThrow {
         
-        Iterator<Map.Entry<ByteString, IntSet>> it1;
+        Iterator<Int2ObjectMap.Entry<IntSet>> it1;
         Iterator<ByteString> it2;
         KB kb;
         KB.Instantiator insty1, insty2;
@@ -138,7 +138,7 @@ public class KBIteratorU {
                 } else if (it2.hasNext()) {
                     subIterator = kb.selectDistinctIterator(addTo, variable, insty2.instantiate(it2.next()));
                 } else {
-                    Map.Entry<ByteString, IntSet> e1 = it1.next();
+                    Int2ObjectMap.Entry<IntSet> e1 = it1.next();
                     insty1.instantiate(e1.getKey());
                     it2 = e1.getValue().iterator();
                 }
@@ -169,8 +169,8 @@ public class KBIteratorU {
     
     public static class recursiveSelectForThreeVarIterator implements Iterator<ByteString>, CloseableNoThrow {
         
-        Iterator<Map.Entry<ByteString, Int2ObjectMap<IntSet>>> it1;
-        Iterator<Map.Entry<ByteString, IntSet>> it2;
+        Iterator<Int2ObjectMap.Entry<Int2ObjectMap<IntSet>>> it1;
+        Iterator<Int2ObjectMap.Entry<IntSet>> it2;
         Iterator<ByteString> it3;
         KB kb;
         KB.Instantiator insty1, insty2, insty3;
@@ -202,11 +202,11 @@ public class KBIteratorU {
                 } else if (it3.hasNext()) {
                     subIterator = kb.selectDistinctIterator(addTo, variable, insty3.instantiate(it3.next()));
                 } else if (it2.hasNext()) {
-                    Map.Entry<ByteString, IntSet> e2 = it2.next();
+                    Int2ObjectMap.Entry<IntSet> e2 = it2.next();
                     insty2.instantiate(e2.getKey());
                     it3 = e2.getValue().iterator();
                 } else {
-                    Map.Entry<ByteString, Int2ObjectMap<IntSet>> e1 = it1.next();
+                    Int2ObjectMap.Entry<Int2ObjectMap<IntSet>> e1 = it1.next();
                     insty1.instantiate(e1.getKey());
                     it2 = e1.getValue().entrySet().iterator();
                 }

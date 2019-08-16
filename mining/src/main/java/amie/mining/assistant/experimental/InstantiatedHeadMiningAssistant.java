@@ -65,7 +65,7 @@ public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 			//Initial case
 			query.getTriples().add(newEdge);
 			List<ByteString[]> emptyList = Collections.emptyList();
-			IntHashMap<ByteString> relations = kb.countProjectionBindings(query.getHead(), emptyList, newEdge[1]);
+			Int2IntMap relations = kb.countProjectionBindings(query.getHead(), emptyList, newEdge[1]);
 			for(ByteString relation : relations){
 				if(headExcludedRelations != null && headExcludedRelations.contains(relation))
 					continue;
@@ -96,7 +96,7 @@ public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 			//Initial case
 			query.getTriples().add(newEdge);
 			List<ByteString[]> emptyList = Collections.emptyList();
-			IntHashMap<ByteString> relations = kb.countProjectionBindings(query.getHead(), emptyList, newEdge[1]);
+			Int2IntMap relations = kb.countProjectionBindings(query.getHead(), emptyList, newEdge[1]);
 			for(ByteString relation : relations){
 				if(headExcludedRelations != null && headExcludedRelations.contains(relation))
 					continue;

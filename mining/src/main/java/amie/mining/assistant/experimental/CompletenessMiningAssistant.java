@@ -98,7 +98,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	}
 	
 	@Override
-	protected Collection<Rule> buildInitialQueries(IntHashMap<ByteString> relations, 
+	protected Collection<Rule> buildInitialQueries(Int2IntMap relations, 
 			double minSupportThreshold) {
 		Collection<Rule> output = new ArrayList<>();
 		Rule query = new Rule();
@@ -327,7 +327,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		int nPatterns = rule.getTriples().size();		
 		newEdge[0] = head[0];
 		rule.getTriples().add(newEdge);
-		IntHashMap<ByteString> promisingRelations = kb.frequentBindingsOf(newEdge[1], 
+		Int2IntMap promisingRelations = kb.frequentBindingsOf(newEdge[1], 
 				rule.getFunctionalVariable(), rule.getTriples());
 		rule.getTriples().remove(nPatterns);
 		

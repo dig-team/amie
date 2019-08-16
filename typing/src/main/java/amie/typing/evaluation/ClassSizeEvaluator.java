@@ -18,7 +18,7 @@ import javatools.datatypes.Pair;
  */
 public class ClassSizeEvaluator {
     protected KB taxo;
-    protected IntHashMap<ByteString> classSize;
+    protected Int2IntMap classSize;
     
     public Pair<Integer, Integer> evaluatePrecisionPair(IntSet answer, IntSet goldStandard) {
         int TP = 0;

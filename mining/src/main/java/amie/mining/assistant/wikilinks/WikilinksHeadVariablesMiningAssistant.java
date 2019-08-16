@@ -41,7 +41,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 			ByteString[] newEdge = query.fullyUnboundTriplePattern();
 			query.getTriples().add(newEdge);
 			List<ByteString[]> emptyList = Collections.emptyList();
-			IntHashMap<ByteString> relations = kb.countProjectionBindings(query.getHead(), emptyList, newEdge[1]);
+			Int2IntMap relations = kb.countProjectionBindings(query.getHead(), emptyList, newEdge[1]);
 			for(ByteString relation: relations){
 				// Language bias test
 				if (query.cardinalityForRelation(relation) >= recursivityLimit) {
@@ -84,7 +84,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 			newEdge[0] = head[0];
 			newEdge[1] = typeString;				
 			query.getTriples().add(newEdge);
-			IntHashMap<ByteString> subjectTypes = kb.countProjectionBindings(query.getHead(), 
+			Int2IntMap subjectTypes = kb.countProjectionBindings(query.getHead(), 
 					query.getAntecedent(), newEdge[2]);
 			if(!subjectTypes.isEmpty()){
 				for(ByteString type: subjectTypes){
@@ -107,7 +107,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 				newEdge[0] = head[2];
 				newEdge[1] = typeString;
 				candidate.getTriples().add(newEdge);
-				IntHashMap<ByteString> objectTypes = kb.countProjectionBindings(candidate.getHead(), candidate.getAntecedent(), newEdge[2]);
+				Int2IntMap objectTypes = kb.countProjectionBindings(candidate.getHead(), candidate.getAntecedent(), newEdge[2]);
 				for(ByteString type: objectTypes){
 					int cardinality = objectTypes.get(type);
 					if(cardinality >= minSupportThreshold){

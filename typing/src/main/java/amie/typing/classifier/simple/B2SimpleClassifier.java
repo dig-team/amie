@@ -28,12 +28,12 @@ public class B2SimpleClassifier extends SimpleClassifier {
         name = "stdConf";
     }
 
-    public B2SimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Map<ByteString, IntHashMap<ByteString>> classIntersectionSize) {
+    public B2SimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Map<ByteString, Int2IntMap> classIntersectionSize) {
         super(db, thresholds, output, outputLock, classIntersectionSize);
         name = "stdConf";
     }
 
-    public B2SimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Map<ByteString, IntHashMap<ByteString>> classIntersectionSize, boolean supportForTarget) {
+    public B2SimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Map<ByteString, Int2IntMap> classIntersectionSize, boolean supportForTarget) {
         super(db, thresholds, output, outputLock, classIntersectionSize, supportForTarget);
         name = "stdConf";
     }

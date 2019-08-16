@@ -22,7 +22,7 @@ import javatools.datatypes.IntHashMap;
  */
 public class CardinalitySimpleTypingKB extends SimpleTypingKB {
     
-    protected final Map<ByteString, IntHashMap<ByteString>> relationsCard = new HashMap<>();
+    protected final Map<ByteString, Int2IntMap> relationsCard = new HashMap<>();
     
     @Override
     protected boolean add(ByteString subject, ByteString relation, ByteString object) {
@@ -50,14 +50,14 @@ public class CardinalitySimpleTypingKB extends SimpleTypingKB {
                 if (eS == null) {
                     relations.put(relationy, eS = new IntOpenHashSet());
                 }
-                IntHashMap<ByteString> eS2 = relationsCard.get(relation);
+                Int2IntMap eS2 = relationsCard.get(relation);
                 if (eS2 == null) {
-                    relationsCard.put(relation, eS2 = new IntHashMap<>());
+                    relationsCard.put(relation, eS2 = new Int2IntOpenHashMap());
                 }
                 eS2.add(subject);
                 eS2 = relationsCard.get(relationy);
                 if (eS2 == null) {
-                    relationsCard.put(relationy, eS2 = new IntHashMap<>());
+                    relationsCard.put(relationy, eS2 = new Int2IntOpenHashMap());
                 }
                 eS2.add(object);
                 relationSet.add(relation);
@@ -67,7 +67,7 @@ public class CardinalitySimpleTypingKB extends SimpleTypingKB {
     }
     
     public void computeCardinalities() {
-        for (Map.Entry<ByteString, IntHashMap<ByteString>> entry : relationsCard.entrySet()) {
+        for (Map.Entry<ByteString, Int2IntMap> entry : relationsCard.entrySet()) {
             Map<Integer, IntSet> t = new HashMap<>(entry.getValue().findMax());
             for (ByteString e : entry.getValue()) {
                 Integer i = entry.getValue().get(e);

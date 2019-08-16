@@ -234,9 +234,9 @@ public class Schema {
 	 * @param entity
 	 * @return
 	 */
-	public static IntHashMap<ByteString> getAllTypesForEntity(KB source, ByteString entity){
+	public static Int2IntMap getAllTypesForEntity(KB source, ByteString entity){
 		IntSet leafTypes = getMaterializedTypesForEntity(source, entity);
-		IntHashMap<ByteString> resultTypes = new IntHashMap<ByteString>(leafTypes);
+		Int2IntMap resultTypes = new Int2IntOpenHashMap(leafTypes);
 		for(ByteString leafType: leafTypes){
 			resultTypes.addAll(getAllSuperTypes(source, leafType));
 		}
@@ -533,12 +533,12 @@ public class Schema {
 	 * @param kb
 	 * @return
 	 */
-	public static IntHashMap<ByteString> getTypesCount(KB kb) {
+	public static Int2IntMap getTypesCount(KB kb) {
                 Map<ByteString, IntSet> types2Instances = null;
                 if (kb instanceof SimpleTypingKB) {
                     System.err.print("Computing type counts... ");
                     types2Instances = ((SimpleTypingKB) kb).classes;
-                    IntHashMap<ByteString> result = new IntHashMap<>();
+                    Int2IntMap result = new Int2IntOpenHashMap();
                     for (ByteString type : types2Instances.keySet()) {
 			result.put(type, types2Instances.get(type).size());
                     }
@@ -549,7 +549,7 @@ public class Schema {
                     types2Instances = new HashMap<>();
                     Map<ByteString, IntSet> ts = 
                             kb.selectDistinct(ByteString.of("?o"), ByteString.of("?s"), query);
-                    IntHashMap<ByteString> result = new IntHashMap<>();
+                    Int2IntMap result = new Int2IntOpenHashMap();
                     for (ByteString type : ts.keySet()) {
 			result.put(type, ts.get(type).size());
                     }
@@ -562,14 +562,14 @@ public class Schema {
 	 * @param kb
 	 * @return
 	 */
-	public static Map<ByteString, IntHashMap<ByteString>> getTypesIntersectionCount(KB kb) {
-            Map<ByteString, IntHashMap<ByteString>> result = new LinkedHashMap<>();
+	public static Map<ByteString, Int2IntMap> getTypesIntersectionCount(KB kb) {
+            Map<ByteString, Int2IntMap> result = new LinkedHashMap<>();
             System.err.println("Count class size required");
             if (kb instanceof SimpleTypingKB) {
                 System.err.print("Computing type intersection counts... ");
                 SimpleTypingKB db = (SimpleTypingKB) kb;
                 for (ByteString type1 : db.classes.keySet()) {
-			IntHashMap<ByteString> result2 = new IntHashMap<>();
+			Int2IntMap result2 = new Int2IntOpenHashMap();
 			result.put(type1, result2);
 			for (ByteString type2 : db.classes.keySet()) {
                             int is = (int) SetU.countIntersection(db.classes.get(type1), db.classes.get(type2));
@@ -584,7 +584,7 @@ public class Schema {
 				kb.selectDistinct(ByteString.of("?o1"), ByteString.of("?o2"), ByteString.of("?s"), query);
 		
 		for (ByteString type1 : types2types2Instances.keySet()) {
-			IntHashMap<ByteString> result2 = new IntHashMap<>();
+			Int2IntMap result2 = new Int2IntOpenHashMap();
 			result.put(type1, result2);
 			for (ByteString type2 : types2types2Instances.get(type1).keySet())
 			result2.put(type2, types2types2Instances.get(type1).get(type2).size());
@@ -592,8 +592,8 @@ public class Schema {
 		return result;
 	}
 	
-	public static IntHashMap<ByteString> loadTypesCount(File f) throws IOException {
-		IntHashMap<ByteString> typesCount = new IntHashMap<>();
+	public static Int2IntMap loadTypesCount(File f) throws IOException {
+		Int2IntMap typesCount = new Int2IntOpenHashMap();
 		for (String line : new FileLines(f, "UTF-8", null)) {
 			String[] split = line.split("\t");
 			if (split.length == 2) {
@@ -606,16 +606,16 @@ public class Schema {
 		return typesCount;
 	}
 	
-	public static Map<ByteString, IntHashMap<ByteString>> loadTypesIntersectionCount(File f) throws IOException {
-		Map<ByteString, IntHashMap<ByteString>> typesIntersectionCount = new HashMap<>();
+	public static Map<ByteString, Int2IntMap> loadTypesIntersectionCount(File f) throws IOException {
+		Map<ByteString, Int2IntMap> typesIntersectionCount = new HashMap<>();
 		for (String line : new FileLines(f, "UTF-8", null)) {
 			String[] split = line.split("\t");
 			if (split.length == 3) {
 				try {
 					int i = Integer.parseInt(split[2]);
-					IntHashMap<ByteString> tc = typesIntersectionCount.get(ByteString.of(split[0]));
+					Int2IntMap tc = typesIntersectionCount.get(ByteString.of(split[0]));
 					if (tc == null) {
-						typesIntersectionCount.put(ByteString.of(split[0]), tc = new IntHashMap<ByteString>());
+						typesIntersectionCount.put(ByteString.of(split[0]), tc = new Int2IntOpenHashMap());
 					}
 					tc.put(ByteString.of(split[1]), i);
 				} catch (NumberFormatException e) {}

@@ -88,7 +88,7 @@ public class Predictor {
 				}
 			}
 		} else {
-			Map<ByteString, IntHashMap<ByteString>> pairs = (Map<ByteString, IntHashMap<ByteString>>) bindings; 
+			Map<ByteString, Int2IntMap> pairs = (Map<ByteString, Int2IntMap>) bindings; 
 			int functionalPosition = rule.getFunctionalVariablePosition();
 			for (ByteString subject : pairs.keySet()) {
 				for (ByteString object : pairs.get(subject)) {
@@ -219,7 +219,7 @@ public class Predictor {
 		// TODO Auto-generated method stub
 		int nVars = KB.numVariables(rule.getHead());
 		if(nVars == 2){
-			return samplePredictionsTwoVariables((Map<ByteString, IntHashMap<ByteString>>)predictions, rule);
+			return samplePredictionsTwoVariables((Map<ByteString, Int2IntMap>)predictions, rule);
 		}else if(nVars == 1){
 			return samplePredictionsOneVariable((IntSet)predictions, rule);			
 		}
@@ -233,7 +233,7 @@ public class Predictor {
 	}
 
 	private Collection<Triple<ByteString, ByteString, ByteString>> 
-	samplePredictionsTwoVariables(Map<ByteString, IntHashMap<ByteString>> predictions, Rule rule) {
+	samplePredictionsTwoVariables(Map<ByteString, Int2IntMap> predictions, Rule rule) {
 		IntSet keySet = predictions.keySet();
 		ByteString relation = rule.getHead()[1];
 		//Depending on the counting variable the order is different
@@ -281,7 +281,7 @@ public class Predictor {
 		// TODO Auto-generated method stub
 		int nVars = KB.numVariables(rule.getHead());
 		if(nVars == 2){
-			return samplePredictionsTwoVariables((Map<ByteString, IntHashMap<ByteString>>)predictions, rule, allPredictions);
+			return samplePredictionsTwoVariables((Map<ByteString, Int2IntMap>)predictions, rule, allPredictions);
 		}else if(nVars == 1){
 			return samplePredictionsOneVariable((IntSet)predictions, rule, allPredictions);			
 		}
@@ -298,7 +298,7 @@ public class Predictor {
 	}
 
 	private Collection<Triple<ByteString, ByteString, ByteString>> samplePredictionsTwoVariables(
-			Map<ByteString, IntHashMap<ByteString>> predictions, 
+			Map<ByteString, Int2IntMap> predictions, 
 			Rule rule, Map<ByteString, Map<ByteString, IntSet>> allPredictions){
 		IntSet keySet = predictions.keySet();
 		ByteString relation = rule.getHead()[1];

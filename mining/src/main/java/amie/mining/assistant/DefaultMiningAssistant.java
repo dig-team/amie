@@ -88,7 +88,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		ByteString[] newEdge = new ByteString[]{ByteString.of("?x"), ByteString.of("?y"), ByteString.of("?z")};
 		newEdgeList.add(newEdge);
 		List<ByteString[]> emptyList = Collections.emptyList();
-		IntHashMap<ByteString> relations = this.kb.countProjectionBindings(newEdge, emptyList, newEdge[1]);
+		Int2IntMap relations = this.kb.countProjectionBindings(newEdge, emptyList, newEdge[1]);
 		return buildInitialQueries(relations, minSupportThreshold);		
 	}
 
@@ -161,7 +161,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 						newEdge[closeCirclePosition] = variable;
 						
 						rule.getTriples().add(newEdge);
-						IntHashMap<ByteString> promisingRelations = null;
+						Int2IntMap promisingRelations = null;
 						if (this.enabledFunctionalityHeuristic && this.enableQueryRewriting) {
 							Rule rewrittenQuery = rewriteProjectionQuery(rule, nPatterns, closeCirclePosition);
 							if(rewrittenQuery == null){
@@ -282,7 +282,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 				
 				newEdge[joinPosition] = joinVariable;
 				query.getTriples().add(newEdge);
-				IntHashMap<ByteString> promisingRelations = null;
+				Int2IntMap promisingRelations = null;
 				Rule rewrittenQuery = null;
 				if (this.enableQueryRewriting) {
 					rewrittenQuery = rewriteProjectionQuery(query, nPatterns, joinPosition == 0 ? 0 : 2);	
@@ -421,7 +421,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 			rewrittenQuery = rewriteProjectionQuery(query, bindingTriplePos, danglingPosition == 0 ? 2 : 0);
 		}
 		
-		IntHashMap<ByteString> constants = null;
+		Int2IntMap constants = null;
 		if(rewrittenQuery != null){
 			long t1 = System.currentTimeMillis();		
 			constants = this.kb.countProjectionBindings(rewrittenQuery.getHead(), rewrittenQuery.getAntecedent(), danglingEdge[danglingPosition]);

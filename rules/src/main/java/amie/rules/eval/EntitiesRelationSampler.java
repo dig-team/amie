@@ -36,7 +36,7 @@ public class EntitiesRelationSampler {
 		List<ByteString> allRelations = new ArrayList<ByteString>(db.selectDistinct(ByteString.of("?p"), KB.triples(KB.triple(ByteString.of("?s"), ByteString.of("?p"), ByteString.of("?o")))));
 		List<ByteString> entitiesArray = new ArrayList<ByteString>(allEntities); 
 		Map<ByteString, List<Pair<ByteString, ByteString>>> relationsMap = new HashMap<ByteString, List<Pair<ByteString, ByteString>>>();
-		IntHashMap<ByteString> relationEntityCount = new IntHashMap<ByteString>();
+		Int2IntMap relationEntityCount = new Int2IntOpenHashMap();
 		
 		for(ByteString relation: allRelations){
 			relationEntityCount.put(relation, 0);

@@ -37,7 +37,7 @@ public class UnclosedMiningAssistant extends DefaultMiningAssistant {
 	}
 	
 	@Override
-	protected Collection<Rule> buildInitialQueries(IntHashMap<ByteString> relations, double minSupportThreshold) {
+	protected Collection<Rule> buildInitialQueries(Int2IntMap relations, double minSupportThreshold) {
 		List<Rule> output = new ArrayList<>();
 		Rule query = new Rule();
 		ByteString[] newEdge = query.fullyUnboundTriplePattern();

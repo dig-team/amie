@@ -518,7 +518,7 @@ public class Rule {
      * @return the mustBindVariables
      */
     public List<ByteString> getOpenVariables() {
-        IntHashMap<ByteString> histogram = variablesHistogram(false);
+        Int2IntMap histogram = variablesHistogram(false);
         List<ByteString> variables = new ArrayList<ByteString>();
         for (ByteString var : histogram) {
             if (histogram.get(var) < 2 && KB.isOpenableVariable(var)) {
@@ -1058,8 +1058,8 @@ public class Rule {
      * @param ignoreSpecialAtoms discards pseudo-atoms containing the keyword DIFFERENTFROM.
      * @return
      */
-    private IntHashMap<ByteString> variablesHistogram(boolean ignoreSpecialAtoms) {
-        IntHashMap<ByteString> varsHistogram = new IntHashMap<>();
+    private Int2IntMap variablesHistogram(boolean ignoreSpecialAtoms) {
+        Int2IntMap varsHistogram = new Int2IntOpenHashMap();
         for (ByteString triple[] : triples) {
             if (triple[1].equals(KB.DIFFERENTFROMbs) 
             		&& ignoreSpecialAtoms) {
@@ -1129,7 +1129,7 @@ public class Rule {
             return false;
         }
 
-        IntHashMap<ByteString> varsHistogram = variablesHistogram(ignoreSpecialAtoms);
+        Int2IntMap varsHistogram = variablesHistogram(ignoreSpecialAtoms);
 
         for (ByteString variable : varsHistogram) {
             if (varsHistogram.get(variable) < 2) {
@@ -1684,7 +1684,7 @@ public class Rule {
 
     private void cleanInequalityConstraints() {
         List<ByteString[]> toRemove = new ArrayList<>();
-        IntHashMap<ByteString> varHistogram = variablesHistogram(true);
+        Int2IntMap varHistogram = variablesHistogram(true);
         for (ByteString[] triple : triples) {
             if (triple[1].equals(KB.DIFFERENTFROMbs)) {
                 int varPos = KB.firstVariablePos(triple);
@@ -1834,7 +1834,7 @@ public class Rule {
             return false;
         }
 
-        IntHashMap<ByteString> relationCardinalities = new IntHashMap<>();
+        Int2IntMap relationCardinalities = new Int2IntOpenHashMap();
         for (ByteString[] pattern : triples) {
             relationCardinalities.increase(pattern[1]);
         }

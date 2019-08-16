@@ -518,7 +518,7 @@ public class MiningAssistant {
 		List<ByteString[]> newEdgeList = new ArrayList<ByteString[]>(1);
 		ByteString[] newEdge = new ByteString[]{ByteString.of("?x"), ByteString.of("?y"), ByteString.of("?z")};
 		newEdgeList.add(newEdge);
-		IntHashMap<ByteString> relations = kb.frequentBindingsOf(newEdge[1], newEdge[0], newEdgeList);
+		Int2IntMap relations = kb.frequentBindingsOf(newEdge[1], newEdge[0], newEdgeList);
 		return buildInitialQueries(relations, minSupportThreshold);
 	}
 	
@@ -531,7 +531,7 @@ public class MiningAssistant {
 	 * @param minSupportThreshold Only relations with support equal or above this value are considered.
 	 * @param output
 	 */
-	protected Collection<Rule> buildInitialQueries(IntHashMap<ByteString> relations, double minSupportThreshold) {
+	protected Collection<Rule> buildInitialQueries(Int2IntMap relations, double minSupportThreshold) {
 		Collection<Rule> output = new ArrayList<>();
 		Rule query = new Rule();
 		ByteString[] newEdge = query.fullyUnboundTriplePattern();
@@ -605,7 +605,7 @@ public class MiningAssistant {
 			for(ByteString joinVariable: joinVariables){					
 				newEdge[joinPosition] = joinVariable;
 				rule.getTriples().add(newEdge);
-				IntHashMap<ByteString> promisingRelations = kb.frequentBindingsOf(newEdge[1], 
+				Int2IntMap promisingRelations = kb.frequentBindingsOf(newEdge[1], 
 						rule.getFunctionalVariable(), rule.getTriples());
 				rule.getTriples().remove(nPatterns);
 				
@@ -723,7 +723,7 @@ public class MiningAssistant {
 						newEdge[closeCirclePosition] = variable;
 						
 						rule.getTriples().add(newEdge);
-						IntHashMap<ByteString> promisingRelations = 
+						Int2IntMap promisingRelations = 
 								kb.frequentBindingsOf(newEdge[1], rule.getFunctionalVariable(), rule.getTriples());
 						rule.getTriples().remove(nPatterns);
 						
@@ -1207,7 +1207,7 @@ public class MiningAssistant {
 	protected void getInstantiatedAtoms(Rule queryWithDanglingEdge, Rule parentQuery, 
 			int danglingAtomPosition, int danglingPositionInEdge, double minSupportThreshold, Collection<Rule> output) {
 		ByteString[] danglingEdge = queryWithDanglingEdge.getTriples().get(danglingAtomPosition);
-		IntHashMap<ByteString> constants = kb.frequentBindingsOf(danglingEdge[danglingPositionInEdge], 
+		Int2IntMap constants = kb.frequentBindingsOf(danglingEdge[danglingPositionInEdge], 
 				queryWithDanglingEdge.getFunctionalVariable(), queryWithDanglingEdge.getTriples());
 		for (ByteString constant: constants){
 			int cardinality = constants.get(constant);

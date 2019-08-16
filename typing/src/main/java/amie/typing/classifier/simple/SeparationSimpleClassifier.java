@@ -31,11 +31,11 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
         super(db, thresholds, output, outputLock, supportForTarget);
     }
 
-    public SeparationSimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Map<ByteString, IntHashMap<ByteString>> classIntersectionSize) {
+    public SeparationSimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Map<ByteString, Int2IntMap> classIntersectionSize) {
         super(db, thresholds, output, outputLock, classIntersectionSize);
     }
 
-    public SeparationSimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Map<ByteString, IntHashMap<ByteString>> classIntersectionSize, boolean supportForTarget) {
+    public SeparationSimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Map<ByteString, Int2IntMap> classIntersectionSize, boolean supportForTarget) {
         super(db, thresholds, output, outputLock, classIntersectionSize, supportForTarget);
     }
     

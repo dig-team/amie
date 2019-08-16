@@ -45,8 +45,8 @@ import org.apache.commons.cli.PosixParser;
 public class Separation extends Thread {
     
     KB source; 
-    IntHashMap<ByteString> cS;
-    Map<ByteString, IntHashMap<ByteString>> cIS;
+    Int2IntMap cS;
+    Map<ByteString, Int2IntMap> cIS;
     BlockingQueue<Pair<List<ByteString[]>, ByteString>> queryQ; 
     int classSizeThreshold; 
     int supportThreshold; 
@@ -54,8 +54,8 @@ public class Separation extends Thread {
     boolean supportForTarget;
     String classifier;
     
-    public Separation(KB source, IntHashMap<ByteString> cS, Map<ByteString, 
-            IntHashMap<ByteString>> cIS, BlockingQueue<Pair<List<ByteString[]>, 
+    public Separation(KB source, Int2IntMap cS, Map<ByteString, 
+            Int2IntMap> cIS, BlockingQueue<Pair<List<ByteString[]>, 
             ByteString>> queryQ, int classSizeThreshold, int supportThreshold, 
             double[] thresholds, boolean supportForTarget, String classifier) {
         this.source = source;
@@ -211,8 +211,8 @@ public class Separation extends Thread {
         dataSource.load(dataFiles);
         
         // Load the counts
-        IntHashMap<ByteString> cS;
-        Map<ByteString, IntHashMap<ByteString>> cIS;
+        Int2IntMap cS;
+        Map<ByteString, Int2IntMap> cIS;
         
         if (pa.countFile == null) {
             cS = Schema.getTypesCount(dataSource);

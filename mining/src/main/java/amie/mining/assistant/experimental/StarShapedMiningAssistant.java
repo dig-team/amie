@@ -30,7 +30,7 @@ public class StarShapedMiningAssistant extends MiningAssistant {
 	}
 	
 	@Override
-	protected Collection<Rule> buildInitialQueries(IntHashMap<ByteString> relations, 
+	protected Collection<Rule> buildInitialQueries(Int2IntMap relations, 
 			double minSupportThreshold) {
 		return wrapped.buildInitialQueries(relations, minSupportThreshold);
 	}
@@ -65,7 +65,7 @@ public class StarShapedMiningAssistant extends MiningAssistant {
 		int nPatterns = rule.getTriples().size();		
 		newEdge[0] = head[0];
 		rule.getTriples().add(newEdge);
-		IntHashMap<ByteString> promisingRelations = kb.frequentBindingsOf(newEdge[1], 
+		Int2IntMap promisingRelations = kb.frequentBindingsOf(newEdge[1], 
 				rule.getFunctionalVariable(), rule.getTriples());
 		rule.getTriples().remove(nPatterns);
 		

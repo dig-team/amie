@@ -116,7 +116,7 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 			newEdge[1] = KB.TRANSITIVETYPEbs;
 			
 			Rule pattern = rule.addAtom(newEdge, 0);
-			IntHashMap<ByteString> promisingTypes = kb.frequentBindingsOf(newEdge[2], pattern.getFunctionalVariable(), pattern.getTriples());
+			Int2IntMap promisingTypes = kb.frequentBindingsOf(newEdge[2], pattern.getFunctionalVariable(), pattern.getTriples());
 			for (ByteString promisingType : promisingTypes) {
 				cardinality = promisingTypes.get(promisingType);
 				if (cardinality >= minSupportThreshold) {

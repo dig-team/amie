@@ -38,7 +38,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
     
     public SimpleTypingKB localdb = null;
 
-    public SeparationTreeClassifier(KB source, IntHashMap<ByteString> cS, Map<ByteString, IntHashMap<ByteString>> cIS) {
+    public SeparationTreeClassifier(KB source, Int2IntMap cS, Map<ByteString, Int2IntMap> cIS) {
         super(source, cS, cIS);
         supportForTarget = false;
         if (db instanceof SimpleTypingKB) {
@@ -54,7 +54,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
         }
     }
     
-    public SeparationTreeClassifier(KB source, IntHashMap<ByteString> cS, Map<ByteString, IntHashMap<ByteString>> cIS, boolean supportForTarget) {
+    public SeparationTreeClassifier(KB source, Int2IntMap cS, Map<ByteString, Int2IntMap> cIS, boolean supportForTarget) {
         super(source, cS, cIS);
         this.supportForTarget = supportForTarget;
         if (db instanceof SimpleTypingKB) {

@@ -90,8 +90,8 @@ public class RuleHitsEvaluator {
 					predictions.increase(t);
 				}
 			}else{
-				Map<ByteString, IntHashMap<ByteString>> twoVarsBindings = 
-						(Map<ByteString, IntHashMap<ByteString>>)bindings;
+				Map<ByteString, Int2IntMap> twoVarsBindings = 
+						(Map<ByteString, Int2IntMap>)bindings;
 				for(ByteString value1: twoVarsBindings.keySet()){
 					for(ByteString value2: twoVarsBindings.get(value1)){
 						Triple<ByteString, ByteString, ByteString> t = 

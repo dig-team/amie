@@ -46,7 +46,7 @@ public class ExistentialAndNegatedRulesMiningAssistant extends MiningAssistant {
 	public void setHeadExcludedRelations(java.util.Collection<ByteString> headExcludedRelations) {};
 	
 	@Override
-	protected Collection<Rule> buildInitialQueries(IntHashMap<ByteString> relations, 
+	protected Collection<Rule> buildInitialQueries(Int2IntMap relations, 
 			double minSupportThreshold) {
 		// Now we have to take care of the negative ones
 		// => ~r(x, y). We will use the keywords NOTEXISTSbs and NOTEXISTSINVbs

@@ -124,7 +124,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 				
 				newEdge[joinPosition] = joinVariable;
 				query.getTriples().add(newEdge);
-				IntHashMap<ByteString> promisingRelations = null;
+				Int2IntMap promisingRelations = null;
 				Rule rewrittenQuery = null;
 				if (this.enableQueryRewriting) {
 					rewrittenQuery = rewriteProjectionQuery(query, nPatterns, joinPosition == 0 ? 0 : 2);	
@@ -242,7 +242,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 			newEdge[1] = Schema.typeRelationBS;
 			
 			Rule pattern = rule.addAtom(newEdge, 0);
-			IntHashMap<ByteString> promisingTypes = kb.frequentBindingsOf(newEdge[2], pattern.getFunctionalVariable(), pattern.getTriples());
+			Int2IntMap promisingTypes = kb.frequentBindingsOf(newEdge[2], pattern.getFunctionalVariable(), pattern.getTriples());
 			for (ByteString promisingType : promisingTypes) {
 				cardinality = promisingTypes.get(promisingType);
 				if (cardinality >= minSupportThreshold) {

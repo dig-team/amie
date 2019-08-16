@@ -74,13 +74,13 @@ public class KB {
 	protected final Map<ByteString, Map<ByteString, IntSet>> subject2object2relation = new IdentityHashMap<ByteString, Map<ByteString, IntSet>>();
 
 	/** Number of facts per subject */
-	protected final IntHashMap<ByteString> subjectSize = new IntHashMap<ByteString>();
+	protected final Int2IntMap subjectSize = new Int2IntOpenHashMap();
 
 	/** Number of facts per object */
-	protected final IntHashMap<ByteString> objectSize = new IntHashMap<ByteString>();
+	protected final Int2IntMap objectSize = new Int2IntOpenHashMap();
 
 	/** Number of facts per relation */
-	public final IntHashMap<ByteString> relationSize = new IntHashMap<ByteString>();
+	public final Int2IntMap relationSize = new Int2IntOpenHashMap();
 
 	// ---------------------------------------------------------------------------
 	// Statistics
@@ -89,17 +89,17 @@ public class KB {
 	/**
 	 * Subject-subject overlaps
 	 */
-	public final Map<ByteString, IntHashMap<ByteString>> subject2subjectOverlap = new IdentityHashMap<ByteString, IntHashMap<ByteString>>();
+	public final Map<ByteString, Int2IntMap> subject2subjectOverlap = new IdentityHashMap<ByteString, Int2IntMap>();
 
 	/**
 	 * Subject-object overlaps
 	 */
-	public final Map<ByteString, IntHashMap<ByteString>> subject2objectOverlap = new IdentityHashMap<ByteString, IntHashMap<ByteString>>();
+	public final Map<ByteString, Int2IntMap> subject2objectOverlap = new IdentityHashMap<ByteString, Int2IntMap>();
 
 	/**
 	 * Object-object overlaps
 	 */
-	public final Map<ByteString, IntHashMap<ByteString>> object2objectOverlap = new IdentityHashMap<ByteString, IntHashMap<ByteString>>();
+	public final Map<ByteString, Int2IntMap> object2objectOverlap = new IdentityHashMap<ByteString, Int2IntMap>();
 
 	/** Number of facts */
 	protected long size;
@@ -291,7 +291,7 @@ public class KB {
 					.get(relation);
 			if (overlaps == null) {
 				subject2subjectOverlap.put(relation,
-						new IntHashMap<ByteString>());
+						new Int2IntOpenHashMap());
 			}
 		}
 
@@ -300,7 +300,7 @@ public class KB {
 					.get(relation);
 			if (overlaps == null) {
 				subject2objectOverlap.put(relation,
-						new IntHashMap<ByteString>());
+						new Int2IntOpenHashMap());
 			}
 		}
 
@@ -309,7 +309,7 @@ public class KB {
 					.get(relation);
 			if (overlaps == null) {
 				object2objectOverlap.put(relation,
-						new IntHashMap<ByteString>());
+						new Int2IntOpenHashMap());
 			}
 		}
 
@@ -420,9 +420,9 @@ public class KB {
 	 * It resets an overlap index.
 	 * @param map
 	 */
-	private void resetMap(Map<ByteString, IntHashMap<ByteString>> map) {
+	private void resetMap(Map<ByteString, Int2IntMap> map) {
 		for (ByteString key : map.keySet()) {
-			map.put(key, new IntHashMap<ByteString>());
+			map.put(key, new Int2IntOpenHashMap());
 		}
 	}
 
@@ -482,9 +482,9 @@ public class KB {
             for (ByteString r1 : db.relationSize) {
                 sp1 = new SignedPredicate(r1, true);
                 sp1i = new SignedPredicate(r1, false);
-                db.subject2subjectOverlap.put(r1, new IntHashMap<>());
-                db.subject2objectOverlap.put(r1, new IntHashMap<>());
-                db.object2objectOverlap.put(r1, new IntHashMap<>());
+                db.subject2subjectOverlap.put(r1, new Int2IntOpenHashMap());
+                db.subject2objectOverlap.put(r1, new Int2IntOpenHashMap());
+                db.object2objectOverlap.put(r1, new Int2IntOpenHashMap());
                 
                 for (ByteString r2 : db.relationSize) {
                 
@@ -2526,30 +2526,30 @@ public class KB {
 	}
 
         
-        public void increase(IntHashMap<ByteString> r, IntHashMap<ByteString> p) {
+        public void increase(Int2IntMap r, Int2IntMap p) {
             for (ByteString k : p) {
                 increase(r, k, p.get(k));
             }
         }
         
-        public void increase(IntHashMap<ByteString> r, Map<ByteString, IntSet> p) {
+        public void increase(Int2IntMap r, Map<ByteString, IntSet> p) {
             for (ByteString k : p.keySet()) {
                 increase(r, k, p.get(k).size());
             }
         }
         
-        public void increase(IntHashMap<ByteString> r, IntSet p) {
+        public void increase(Int2IntMap r, IntSet p) {
             for (ByteString k : p) {
                 increase(r, k);
             }
         }
         
-        public void increase(IntHashMap<ByteString> r, ByteString k, int delta) {
+        public void increase(Int2IntMap r, ByteString k, int delta) {
             //r.put(k, r.getOrDefault(k, 0) + delta);
             r.put(k, r.get(k, 0) + delta);
         }
         
-        public void increase(IntHashMap<ByteString> r, ByteString k) {
+        public void increase(Int2IntMap r, ByteString k) {
             increase(r, k, 1);
         }
 	/**
@@ -2558,10 +2558,10 @@ public class KB {
 	 * 
 	 * @return IntHashMap A map of the form {string : frequency}
 	 **/
-	public IntHashMap<ByteString> frequentBindingsOf(ByteString variable,
+	public Int2IntMap frequentBindingsOf(ByteString variable,
 			ByteString projectionVariable, List<ByteString[]> query) {
 		// If only one triple
-                IntHashMap<ByteString> result = new IntHashMap<>();
+                Int2IntMap result = new Int2IntOpenHashMap();
 		if (query.size() == 1) {
 			ByteString[] triple = query.get(0);
 			int varPos = varpos(variable, triple);
@@ -2728,11 +2728,11 @@ public class KB {
 	 * Counts, for each binding of the variable at position pos, the number of
 	 * instantiations of the triple
 	 */
-	protected IntHashMap<ByteString> countBindings(int pos,
+	protected Int2IntMap countBindings(int pos,
 			ByteString... triple) {
 		switch (numVariables(triple)) {
 		case 1:
-			return (new IntHashMap<ByteString>(resultsOneVariable(triple)));
+			return (new Int2IntOpenHashMap(resultsOneVariable(triple)));
 		case 2:
 			int pos2 = -1;
 			switch (pos) {
@@ -2740,7 +2740,7 @@ public class KB {
 			case 1: pos2 = (isVariable(triple[2])) ? 2 : 0; break; // We want the most frequent predicates
 			case 2: pos2 = (isVariable(triple[1])) ? 1 : 0; break; // we want the most frequent objects
 			}
-                        IntHashMap<ByteString> result = new IntHashMap<>();
+                        Int2IntMap result = new Int2IntOpenHashMap();
                         increase(result, resultsTwoVariablesByPos(pos, pos2, triple));
 			return (result);
 		case 3:
@@ -2757,12 +2757,12 @@ public class KB {
 	 * Counts for each binding of the variable at pos how many instances of the
 	 * projection triple exist in the query
 	 */
-	protected IntHashMap<ByteString> countProjectionBindings(int pos,
+	protected Int2IntMap countProjectionBindings(int pos,
 			ByteString[] projectionTriple, List<ByteString[]> otherTriples) {
 		if (!isVariable(projectionTriple[pos]))
 			throw new IllegalArgumentException("Position " + pos + " in "
 					+ toString(projectionTriple) + " must be a variable");
-		IntHashMap<ByteString> result = new IntHashMap<>();
+		Int2IntMap result = new Int2IntOpenHashMap();
 		switch (numVariables(projectionTriple)) {
 		case 1:
 			try (Instantiator insty = new Instantiator(otherTriples,
@@ -2808,7 +2808,7 @@ public class KB {
 	 * 
 	 * @return IntHashMap A map of the form {string : frequency}
 	 **/
-	public IntHashMap<ByteString> countProjectionBindings(
+	public Int2IntMap countProjectionBindings(
 			ByteString[] projectionTriple, List<ByteString[]> otherTriples,
 			ByteString variable) {
 		int pos = varpos(variable, projectionTriple);
@@ -2833,7 +2833,7 @@ public class KB {
 		int posRestrictive = mostRestrictiveTriple(wholeQuery);
 		ByteString[] mostRestrictive = (posRestrictive != -1) ? wholeQuery
 				.get(posRestrictive) : projectionTriple;
-		IntHashMap<ByteString> result = new IntHashMap<>();
+		Int2IntMap result = new Int2IntOpenHashMap();
 		int posInCommon = (mostRestrictive != projectionTriple) ? firstVariableInCommon(
 				mostRestrictive, projectionTriple) : -1;
 		int nHeadVars = numVariables(projectionTriple);
@@ -2979,7 +2979,7 @@ public class KB {
 	 * Counts, for each binding of the variable the number of instantiations of
 	 * the projection triple
 	 */
-	public IntHashMap<ByteString> countProjectionBindings(
+	public Int2IntMap countProjectionBindings(
 			CharSequence[] projectionTriple, List<CharSequence[]> query,
 			CharSequence variable) {
 		ByteString[] projection = triple(projectionTriple);
@@ -4078,8 +4078,8 @@ public class KB {
 	 * @param kb
 	 * @return
 	 */
-	public IntHashMap<ByteString> getEntitiesOccurrences() {
-		IntHashMap<ByteString> result = new IntHashMap<>();
+	public Int2IntMap getEntitiesOccurrences() {
+		Int2IntMap result = new Int2IntOpenHashMap();
 		increase(result, subjectSize);
 		increase(result, objectSize);
 		return result;
@@ -4092,8 +4092,8 @@ public class KB {
 	 * @param kb
 	 * @return
 	 */
-	public IntHashMap<ByteString> getEntitiesOccurrences(Collection<ByteString> entities) {
-		IntHashMap<ByteString> result = new IntHashMap<>();
+	public Int2IntMap getEntitiesOccurrences(Collection<ByteString> entities) {
+		Int2IntMap result = new Int2IntOpenHashMap();
 		for (ByteString entity : entities) {
 			if (subjectSize.contains(entity)) increase(result, entity, subjectSize.get(entity));
 			if (objectSize.contains(entity)) increase(result, entity, objectSize.get(entity));
@@ -4108,8 +4108,8 @@ public class KB {
 	 * @param threshold
 	 * @return
 	 */
-	public IntHashMap<ByteString> getRelationsBiggerOrEqualThan(int threshold) {	
-		IntHashMap<ByteString> relationsBiggerThan = new IntHashMap<ByteString>();
+	public Int2IntMap getRelationsBiggerOrEqualThan(int threshold) {	
+		Int2IntMap relationsBiggerThan = new Int2IntOpenHashMap();
 		for (ByteString relation : relation2subject2object.keySet()) {
 			int size = 0;		
 			Map<ByteString, IntSet> tail = 
@@ -4585,8 +4585,8 @@ public class KB {
         }
     }
     
-    public IntHashMap<ByteString> getCount(SignedPredicate sp) {
-        IntHashMap<ByteString> result = new IntHashMap<>();
+    public Int2IntMap getCount(SignedPredicate sp) {
+        Int2IntMap result = new Int2IntOpenHashMap();
         increase(result, getMap(sp));
         return result;
     }

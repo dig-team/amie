@@ -30,8 +30,8 @@ import java.util.HashSet;
 public class SeparationClassifier {
 
     protected KB db;
-    public IntHashMap<ByteString> classSize;
-    public Map<ByteString, IntHashMap<ByteString>> classIntersectionSize;
+    public Int2IntMap classSize;
+    public Map<ByteString, Int2IntMap> classIntersectionSize;
 
     protected double getStandardConfidenceWithThreshold(List<ByteString[]> head, List<ByteString[]> body, ByteString variable, int threshold, boolean unsafe) {
         long support, bodySize;
@@ -228,7 +228,7 @@ public class SeparationClassifier {
         }
     }
 
-    public SeparationClassifier(KB source, IntHashMap<ByteString> cS, Map<ByteString, IntHashMap<ByteString>> cIS) {
+    public SeparationClassifier(KB source, Int2IntMap cS, Map<ByteString, Int2IntMap> cIS) {
         db = source;
         classSize = cS;
         classIntersectionSize = cIS;

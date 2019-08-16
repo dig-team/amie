@@ -38,7 +38,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 
 	protected void getInstantiatedAtoms(Rule query, Rule originalQuery, ByteString[] danglingEdge, 
 			int danglingPosition, double minSupportThreshold, Collection<Rule> output) {
-		IntHashMap<ByteString> constants = kb.frequentBindingsOf(danglingEdge[danglingPosition], query.getFunctionalVariable(), query.getTriples());
+		Int2IntMap constants = kb.frequentBindingsOf(danglingEdge[danglingPosition], query.getFunctionalVariable(), query.getTriples());
 		for(ByteString constant: constants){
 			ByteString tmp = danglingEdge[danglingPosition];
 			danglingEdge[danglingPosition] = constant;
@@ -124,7 +124,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 						newEdge[closeCirclePosition] = variable;
 						
 						query.getTriples().add(newEdge);
-						IntHashMap<ByteString> promisingRelations = kb.frequentBindingsOf(newEdge[1], query.getFunctionalVariable(), query.getTriples());
+						Int2IntMap promisingRelations = kb.frequentBindingsOf(newEdge[1], query.getFunctionalVariable(), query.getTriples());
 						query.getTriples().remove(nPatterns);
 						
 						for(ByteString relation: promisingRelations){
@@ -169,7 +169,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 		Rule query = new Rule();
 		ByteString[] newEdge = query.fullyUnboundTriplePattern();
 		query.getTriples().add(newEdge);
-		IntHashMap<ByteString> relations = 
+		Int2IntMap relations = 
 				kb.frequentBindingsOf(newEdge[1], newEdge[0], query.getTriples());
 		for (ByteString relation: relations) {
 			if(headExcludedRelations != null && headExcludedRelations.contains(newEdge[1]))
@@ -233,7 +233,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 			for(ByteString joinVariable: joinVariables){					
 				newEdge[joinPosition] = joinVariable;
 				query.getTriples().add(newEdge);
-				IntHashMap<ByteString> promisingRelations = kb.frequentBindingsOf(newEdge[1], query.getFunctionalVariable(), query.getTriples());
+				Int2IntMap promisingRelations = kb.frequentBindingsOf(newEdge[1], query.getFunctionalVariable(), query.getTriples());
 				query.getTriples().remove(nPatterns);
 				
 				int danglingPosition = (joinPosition == 0 ? 2 : 0);

@@ -63,7 +63,7 @@ public class TypedDefaultMiningAssistant extends DefaultMiningAssistant {
 			newEdge[0] = head[0];
 			newEdge[1] = typeString;				
 			query.getTriples().add(newEdge);
-			IntHashMap<ByteString> subjectTypes = kb.countProjectionBindings(query.getHead(), query.getAntecedent(), newEdge[2]);
+			Int2IntMap subjectTypes = kb.countProjectionBindings(query.getHead(), query.getAntecedent(), newEdge[2]);
 			if(!subjectTypes.isEmpty()){
 				for(ByteString type: subjectTypes){
 					int cardinality = subjectTypes.get(type);
@@ -85,7 +85,7 @@ public class TypedDefaultMiningAssistant extends DefaultMiningAssistant {
 				newEdge[0] = head[2];
 				newEdge[1] = typeString;
 				candidate.getTriples().add(newEdge);
-				IntHashMap<ByteString> objectTypes = kb.countProjectionBindings(candidate.getHead(), candidate.getAntecedent(), newEdge[2]);
+				Int2IntMap objectTypes = kb.countProjectionBindings(candidate.getHead(), candidate.getAntecedent(), newEdge[2]);
 				if(!objectTypes.isEmpty()){
 					for(ByteString type: objectTypes){
 						int cardinality = objectTypes.get(type);

@@ -144,7 +144,7 @@ public class Evaluator {
 			}
 			
 			for(int i = 0; i < 3; ++i){
-				triple[i] = ByteString.of(record.get(i + 1));
+				triple[i] = KB.map(record.get(i + 1));
 			}
 			
 			int evalCode = evaluate(currentRule, triple, trainingDataset, targetDataset);

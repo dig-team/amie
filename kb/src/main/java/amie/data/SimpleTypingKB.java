@@ -69,7 +69,7 @@ public class SimpleTypingKB extends KB {
                     relations.put(relation, eS = new IntOpenHashSet());
                 }
                 eS.add(subject);
-                ByteString relationy = ByteString.of(relation.toString() + "-1");
+                ByteString relationy = KB.map(relation.toString() + "-1");
                 eS = relations.get(relationy);
                 if (eS == null) {
                     relations.put(relationy, eS = new IntOpenHashSet());

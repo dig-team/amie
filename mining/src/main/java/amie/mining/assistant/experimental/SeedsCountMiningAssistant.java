@@ -300,7 +300,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 				freeVarPos = 0;
 		}
 
-		existentialTriple[freeVarPos] = ByteString.of("?x");
+		existentialTriple[freeVarPos] = KB.map("?x");
 				
 		if (!antecedent.isEmpty()) {			
 			try{

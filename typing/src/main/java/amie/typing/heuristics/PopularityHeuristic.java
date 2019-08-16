@@ -17,18 +17,18 @@ public class PopularityHeuristic extends TypingHeuristic {
 		// TODO Auto-generated constructor stub
 	}
 	
-	public static final ByteString popularityRelationBS = ByteString.of("<isPopular>");
+	public static final ByteString popularityRelationBS = KB.map("<isPopular>");
 	
 	public PopularityHeuristic(KB kb, int popularityThreshold) {
 		super(kb);
-		ByteString variable = ByteString.of("?v1");
+		ByteString variable = KB.map("?v1");
 		List<ByteString[]> typeClause = new ArrayList<>(1);
-		typeClause.add(KB.triple(variable, amie.data.Schema.typeRelationBS, ByteString.of("?v2")));
+		typeClause.add(KB.triple(variable, amie.data.Schema.typeRelationBS, KB.map("?v2")));
 		IntSet entities = db.selectDistinct(variable, typeClause);
 		for (ByteString e : entities) {
-			if (db.count(KB.triple(e, ByteString.of("?x"), ByteString.of("?y"))) 
-					+ db.count(KB.triple(ByteString.of("?x"), ByteString.of("?y"), e)) > popularityThreshold)
-				db.add(KB.triple(e, popularityRelationBS, ByteString.of("")));
+			if (db.count(KB.triple(e, KB.map("?x"), KB.map("?y"))) 
+					+ db.count(KB.triple(KB.map("?x"), KB.map("?y"), e)) > popularityThreshold)
+				db.add(KB.triple(e, popularityRelationBS, KB.map("")));
 		}
 		name = "Popularity";
 	}
@@ -42,7 +42,7 @@ public class PopularityHeuristic extends TypingHeuristic {
 	public double evaluate(ByteString type, List<ByteString[]> clause,
 			ByteString variable) {
 		List<ByteString[]> body = typeL(type, variable);
-		body.add(KB.triple(variable, popularityRelationBS, ByteString.of("")));
+		body.add(KB.triple(variable, popularityRelationBS, KB.map("")));
 		return getStandardConfidence(clause, body, variable);
 	}
 

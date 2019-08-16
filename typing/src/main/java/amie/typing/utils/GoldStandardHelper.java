@@ -68,8 +68,8 @@ public class GoldStandardHelper {
     }
     
     private Pair<List<ByteString[]>, ByteString> queryStrToQuery(String query) {
-        List<ByteString[]> queryL = KB.triples(KB.triple(ByteString.of("?x"), ByteString.of(query.substring(0, query.length()-1)), ByteString.of("?y")));
-        ByteString variable = ByteString.of("?"+query.substring(query.length()-1));
+        List<ByteString[]> queryL = KB.triples(KB.triple(KB.map("?x"), KB.map(query.substring(0, query.length()-1)), KB.map("?y")));
+        ByteString variable = KB.map("?"+query.substring(query.length()-1));
         return new Pair<>(queryL, variable);
     }
     
@@ -367,8 +367,8 @@ public class GoldStandardHelper {
     
     public void listQueries() {
         List<ByteString[]> query = new ArrayList<>(1);
-        query.add(KB.triple(ByteString.of("?x"), ByteString.of("?y"), ByteString.of("?z")));
-        IntSet relations = db.selectDistinct(ByteString.of("?y"), query);
+        query.add(KB.triple(KB.map("?x"), KB.map("?y"), KB.map("?z")));
+        IntSet relations = db.selectDistinct(KB.map("?y"), query);
         relations.remove(Schema.typeRelationBS);
         relations.remove(Schema.subClassRelationBS);
         

@@ -32,8 +32,8 @@ public class EntitiesRelationSampler {
 		KB db = new KB();
 		int maxOccurrencePerRelation = Integer.parseInt(args[0]);		
 		db.load(new File(args[1]));
-		IntSet allEntities = db.selectDistinct(ByteString.of("?s"), KB.triples(KB.triple(ByteString.of("?s"), ByteString.of("?p"), ByteString.of("?o"))));
-		List<ByteString> allRelations = new ArrayList<ByteString>(db.selectDistinct(ByteString.of("?p"), KB.triples(KB.triple(ByteString.of("?s"), ByteString.of("?p"), ByteString.of("?o")))));
+		IntSet allEntities = db.selectDistinct(KB.map("?s"), KB.triples(KB.triple(KB.map("?s"), KB.map("?p"), KB.map("?o"))));
+		List<ByteString> allRelations = new ArrayList<ByteString>(db.selectDistinct(KB.map("?p"), KB.triples(KB.triple(KB.map("?s"), KB.map("?p"), KB.map("?o")))));
 		List<ByteString> entitiesArray = new ArrayList<ByteString>(allEntities); 
 		Int2ObjectMap<List<Pair<ByteString, ByteString>>> relationsMap = new Int2ObjectOpenHashMap<List<Pair<ByteString, ByteString>>>();
 		Int2IntMap relationEntityCount = new Int2IntOpenHashMap();
@@ -52,8 +52,8 @@ public class EntitiesRelationSampler {
 			entitiesArray.remove(entitiesArray.size() - 1);
 			
 			//Now take all the triples about this entity
-			List<ByteString[]> query = KB.triples(KB.triple(entity, ByteString.of("?p"), ByteString.of("?o")));
-			Int2ObjectMap<IntSet> predicateObjects = db.selectDistinct(ByteString.of("?p"), ByteString.of("?o"), query);
+			List<ByteString[]> query = KB.triples(KB.triple(entity, KB.map("?p"), KB.map("?o")));
+			Int2ObjectMap<IntSet> predicateObjects = db.selectDistinct(KB.map("?p"), KB.map("?o"), query);
 			
 			for(ByteString relation: predicateObjects.keySet()){				
 				if(relationEntityCount.get(relation) >= maxOccurrencePerRelation){

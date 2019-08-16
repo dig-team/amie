@@ -26,11 +26,11 @@ public class ComputeTypeDeductiveClosureWikidata {
     
     public static void main(String[] args) throws IOException {
         Schema.typeRelation = "<P106>";
-        Schema.typeRelationBS = ByteString.of(Schema.typeRelation);
+        Schema.typeRelationBS = KB.map(Schema.typeRelation);
         Schema.subClassRelation = "<P279>";
-        Schema.subClassRelationBS = ByteString.of(Schema.subClassRelation);
+        Schema.subClassRelationBS = KB.map(Schema.subClassRelation);
         Schema.top = "<Q35120>";
-        Schema.topBS = ByteString.of(Schema.top);
+        Schema.topBS = KB.map(Schema.top);
         System.out.println("Assuming " + Schema.typeRelation + " as type relation");
         KB kb = U.loadFiles(args, " ");
         Int2ObjectMap<IntSet> allEntitiesAndTypes

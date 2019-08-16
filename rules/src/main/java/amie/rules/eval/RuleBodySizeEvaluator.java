@@ -40,14 +40,14 @@ public class RuleBodySizeEvaluator {
 			ByteString[] head = q.getHead();
 			q.setFunctionalVariablePosition(Rule.findFunctionalVariable(q, db));
 			long[] result = conditionalBodySize(q, db, predictions);
-			long nSubjects = db.countDistinct(ByteString.of(head[0]), KB.triples(head));
-			long nObjects = db.countDistinct(ByteString.of(head[2]), KB.triples(head));
+			long nSubjects = db.countDistinct(KB.map(head[0]), KB.triples(head));
+			long nObjects = db.countDistinct(KB.map(head[2]), KB.triples(head));
 			ByteString tmp = head[0];
-			head[0] = ByteString.of("?x");
+			head[0] = KB.map("?x");
 			long a = db.countDistinctPairs(tmp, head[2], q.getTriples());
 			head[0] = tmp;
 			tmp = head[2];
-			head[2] = ByteString.of("?x");
+			head[2] = KB.map("?x");
 			long b = db.countDistinctPairs(head[0], tmp, q.getTriples());
 			System.out.println(q.getRuleString() + "\t" + result[0] + "\t" + result[1] + "\t" + nSubjects + "\t" + nObjects + "\t" + a + "\t" + b);
 		}

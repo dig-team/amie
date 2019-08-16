@@ -13,7 +13,7 @@ public class FullRelationSignatureMiningAssistant extends DefaultMiningAssistant
 
 	public FullRelationSignatureMiningAssistant(KB dataSource) {
 		super(dataSource);
-		bodyExcludedRelations = Arrays.asList(ByteString.of("<rdf:type>"));
+		bodyExcludedRelations = Arrays.asList(KB.map("<rdf:type>"));
 	}
 	
 	@Override
@@ -24,7 +24,7 @@ public class FullRelationSignatureMiningAssistant extends DefaultMiningAssistant
 	
 	public void getDanglingAtoms(Rule query, double minCardinality, Collection<Rule> output) {		
 		ByteString[] newEdge = query.fullyUnboundTriplePattern();
-		ByteString rdfType = ByteString.of("rdf:type");
+		ByteString rdfType = KB.map("rdf:type");
 		
 		if(query.isEmpty()){
 			//Initial case

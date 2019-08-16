@@ -31,13 +31,13 @@ public class KBsSummarizer {
 		}		
 		IntSet relationsInCommon = new IntOpenHashSet();
 		
-		IntSet relationsDb1 = db1.selectDistinct(ByteString.of("?p"), 
-				KB.triples(KB.triple(ByteString.of("?s"), 
-						ByteString.of("?p"), ByteString.of("?o"))));
+		IntSet relationsDb1 = db1.selectDistinct(KB.map("?p"), 
+				KB.triples(KB.triple(KB.map("?s"), 
+						KB.map("?p"), KB.map("?o"))));
 		if (db2 != null) {
-			IntSet relationsDb2 = db2.selectDistinct(ByteString.of("?p"), 
-					KB.triples(KB.triple(ByteString.of("?s"), 
-							ByteString.of("?p"), ByteString.of("?o"))));
+			IntSet relationsDb2 = db2.selectDistinct(KB.map("?p"), 
+					KB.triples(KB.triple(KB.map("?s"), 
+							KB.map("?p"), KB.map("?o"))));
 			
 			for (ByteString relation : relationsDb1) {
 				if (relationsDb2.contains(relation)) {

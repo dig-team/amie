@@ -22,8 +22,8 @@ public class RelationSignatureDefaultMiningAssistant extends DefaultMiningAssist
 	 */
 	public RelationSignatureDefaultMiningAssistant(KB dataSource) {
 		super(dataSource);
-        List<ByteString> excludedRelationsSignatured = Arrays.asList(ByteString.of("rdf:type"),
-                ByteString.of("rdfs:domain"), ByteString.of("rdfs:range"));
+        List<ByteString> excludedRelationsSignatured = Arrays.asList(KB.map("rdf:type"),
+                KB.map("rdfs:domain"), KB.map("rdfs:range"));
         bodyExcludedRelations = excludedRelationsSignatured;
         headExcludedRelations = excludedRelationsSignatured;
 	}
@@ -56,7 +56,7 @@ public class RelationSignatureDefaultMiningAssistant extends DefaultMiningAssist
 		if(domain != null){
 			ByteString[] domainTriple = new ByteString[3];
 			domainTriple[0] = candidate.getHead()[0];
-			domainTriple[1] = ByteString.of("rdf:type");
+			domainTriple[1] = KB.map("rdf:type");
 			domainTriple[2] = domain;
 			candidate.getTriples().add(domainTriple);
 			queryChanged = true;
@@ -66,7 +66,7 @@ public class RelationSignatureDefaultMiningAssistant extends DefaultMiningAssist
 		if(range != null){
 			ByteString[] rangeTriple = new ByteString[3];
 			rangeTriple[0] = candidate.getHead()[2];
-			rangeTriple[1] = ByteString.of("rdf:type");
+			rangeTriple[1] = KB.map("rdf:type");
 			rangeTriple[2] = range;
 			candidate.getTriples().add(rangeTriple);
 			queryChanged = true;

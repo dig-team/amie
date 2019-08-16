@@ -26,32 +26,32 @@ import javatools.filehandlers.FileLines;
 public class Schema {
 	
         public static String top = "owl:Thing";
-        public static ByteString topBS = ByteString.of(top);
+        public static ByteString topBS = KB.map(top);
     
 	/** X rdf:type Class **/
 	public static String typeRelation = "rdf:type";
 	
-	public static ByteString typeRelationBS = ByteString.of(typeRelation);
+	public static ByteString typeRelationBS = KB.map(typeRelation);
 	
 	/** Class1 rdfs:subClassOf Class2 **/
 	public static String subClassRelation = "rdfs:subClassOf";
 	
-	public static ByteString subClassRelationBS = ByteString.of(subClassRelation);
+	public static ByteString subClassRelationBS = KB.map(subClassRelation);
 	
 	/** relation1 rdfs:subPropertyOf relation2 **/
 	public static String subPropertyRelation = "rdfs:subPropertyOf";
 	
-	public static ByteString subPropertyRelationBS = ByteString.of(subPropertyRelation);
+	public static ByteString subPropertyRelationBS = KB.map(subPropertyRelation);
 	
 	/** Class rdfs:domain relation **/
 	public static String domainRelation = "rdfs:domain";
 	
-	public static ByteString domainRelationBS = ByteString.of(domainRelation);
+	public static ByteString domainRelationBS = KB.map(domainRelation);
 	
 	/** Class rdfs:domain range **/
 	public static String rangeRelation = "rdfs:range";
 	
-	public static ByteString rangeRelationBS = ByteString.of(rangeRelation);
+	public static ByteString rangeRelationBS = KB.map(rangeRelation);
 	
 	public static List<ByteString> schemaRelationsBS = Arrays.asList(typeRelationBS, subClassRelationBS, 
 			subPropertyRelationBS, domainRelationBS, rangeRelationBS);
@@ -69,8 +69,8 @@ public class Schema {
     
 	public static void materializeTaxonomy(KB source) {
 		List<ByteString[]> query = KB.triples(KB.triple("?x", subClassRelationBS, "?y"));
-		allDefinedTypesMaterialized.addAll(source.selectDistinct(ByteString.of("?x"), query));
-		allDefinedTypesMaterialized.addAll(source.selectDistinct(ByteString.of("?y"), query));
+		allDefinedTypesMaterialized.addAll(source.selectDistinct(KB.map("?x"), query));
+		allDefinedTypesMaterialized.addAll(source.selectDistinct(KB.map("?y"), query));
 		for (ByteString type : allDefinedTypesMaterialized) {
 			for (ByteString subtype : getAllSubTypes(source, type)) subClassMaterialized.put(type, subtype);
 			for (ByteString supertype : getAllSuperTypes(source, type)) superClassMaterialized.put(type, supertype);
@@ -100,7 +100,7 @@ public class Schema {
 					continue;
 				try {
 					amie.data.U.class.getField(lineParts[0]).set(null, lineParts[1]);
-					amie.data.U.class.getField(lineParts[0] + "BS").set(null, ByteString.of(lineParts[1]));
+					amie.data.U.class.getField(lineParts[0] + "BS").set(null, KB.map(lineParts[1]));
 				} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException
 						| SecurityException e) {
 					e.printStackTrace();
@@ -140,7 +140,7 @@ public class Schema {
 	 */
 	public static ByteString getRelationDomain(KB source, ByteString relation){
 		List<ByteString[]> query = KB.triples(KB.triple(relation, domainRelation, "?x"));
-		IntSet domains = source.selectDistinct(ByteString.of("?x"), query);
+		IntSet domains = source.selectDistinct(KB.map("?x"), query);
 		if(!domains.isEmpty()){
 			return domains.iterator().next();
 		}
@@ -149,7 +149,7 @@ public class Schema {
 		List<ByteString[]> query2 = KB.triples(KB.triple(relation, subPropertyRelation, "?y"), 
 				KB.triple("?y", "rdfs:domain", "?x"));
 		
-		domains = source.selectDistinct(ByteString.of("?x"), query2);
+		domains = source.selectDistinct(KB.map("?x"), query2);
 		if(!domains.isEmpty()){
 			return domains.iterator().next();
 		}
@@ -165,7 +165,7 @@ public class Schema {
 	 */
 	public static ByteString getRelationRange(KB source, ByteString relation){
 		List<ByteString[]> query = KB.triples(KB.triple(relation, rangeRelation, "?x"));
-		IntSet ranges = source.selectDistinct(ByteString.of("?x"), query);
+		IntSet ranges = source.selectDistinct(KB.map("?x"), query);
 		if(!ranges.isEmpty()){
 			return ranges.iterator().next();
 		}
@@ -174,7 +174,7 @@ public class Schema {
 		List<ByteString[]> query2 = KB.triples(KB.triple(relation, subPropertyRelation, "?y"), 
 				KB.triple("?y", "rdfs:range", "?x"));
 		
-		ranges = source.selectDistinct(ByteString.of("?x"), query2);
+		ranges = source.selectDistinct(KB.map("?x"), query2);
 		if(!ranges.isEmpty()){
 			return ranges.iterator().next();
 		}
@@ -189,8 +189,8 @@ public class Schema {
 	 * @return
 	 */
 	public static IntSet getMaterializedTypesForEntity(KB source, ByteString entity){
-		List<ByteString[]> query = KB.triples(KB.triple(entity, typeRelationBS, ByteString.of("?x")));
-		return source.selectDistinct(ByteString.of("?x"), query);
+		List<ByteString[]> query = KB.triples(KB.triple(entity, typeRelationBS, KB.map("?x")));
+		return source.selectDistinct(KB.map("?x"), query);
 	}
 	
 	/**
@@ -205,7 +205,7 @@ public class Schema {
 			return subTypes == null || subTypes.size() == 0;
 		}
 		List<ByteString[]> query = KB.triples(KB.triple("?x", subClassRelation, type));		
-		return source.countDistinct(ByteString.of("?x"), query) == 0;
+		return source.countDistinct(KB.map("?x"), query) == 0;
 	}
 	
 	/**
@@ -251,7 +251,7 @@ public class Schema {
 	 */
 	public static IntSet getSuperTypes(KB source, ByteString type){
 		List<ByteString[]> query = KB.triples(KB.triple(type, subClassRelation, "?x"));		
-		return new IntOpenHashSet(source.selectDistinct(ByteString.of("?x"), query));
+		return new IntOpenHashSet(source.selectDistinct(KB.map("?x"), query));
 	}
 	
 	/**
@@ -296,7 +296,7 @@ public class Schema {
 	 */
 	public static IntSet getAllEntitiesForType(KB source, ByteString type) {
 		List<ByteString[]> query = KB.triples(KB.triple("?x", typeRelation, type));		
-		return new IntOpenHashSet(source.selectDistinct(ByteString.of("?x"), query));	
+		return new IntOpenHashSet(source.selectDistinct(KB.map("?x"), query));	
 	}
 	
 	/**
@@ -306,7 +306,7 @@ public class Schema {
 	 * @return
 	 */
 	public static long getNumberOfEntitiesForType(KB kb, ByteString type) {
-		return kb.count(ByteString.of("?s"), typeRelationBS, type);
+		return kb.count(KB.map("?s"), typeRelationBS, type);
 	}
 	
 	/**
@@ -315,7 +315,7 @@ public class Schema {
 	 */
 	public static IntSet getAllTypes(KB kb) {
 		List<ByteString[]> query = KB.triples(KB.triple("?x", typeRelation, "?type"));		
-		return new IntOpenHashSet(kb.selectDistinct(ByteString.of("?type"), query));	
+		return new IntOpenHashSet(kb.selectDistinct(KB.map("?type"), query));	
 	}
 	
 	/**
@@ -344,10 +344,10 @@ public class Schema {
 		List<ByteString[]> query = null;
 		String queryVar = "?s";
 		query = KB.triples(KB.triple("?s", relation, "?o"), 
-						   KB.triple(ByteString.of(queryVar), 
+						   KB.triple(KB.map(queryVar), 
 								   typeRelationBS, domainType));
 		
-		return source.selectDistinct(ByteString.of(queryVar), query);		
+		return source.selectDistinct(KB.map(queryVar), query);		
 	}
 
 	
@@ -358,8 +358,8 @@ public class Schema {
 	 * @return
 	 */
 	public static IntSet getSubTypes(KB source, ByteString type) {
-		List<ByteString[]> query = KB.triples(KB.triple(ByteString.of("?x"), subClassRelation, type));		
-		return new IntOpenHashSet(source.selectDistinct(ByteString.of("?x"), query));	
+		List<ByteString[]> query = KB.triples(KB.triple(KB.map("?x"), subClassRelation, type));		
+		return new IntOpenHashSet(source.selectDistinct(KB.map("?x"), query));	
 	}
 	
 	public static IntSet getSubtypes(KB source, ByteString type) {	
@@ -427,10 +427,10 @@ public class Schema {
 		List<ByteString[]> query = null;
 		String queryVar = "?o";
 		query = KB.triples(KB.triple("?s", relation, "?o"), 
-						   KB.triple(ByteString.of(queryVar), 
+						   KB.triple(KB.map(queryVar), 
 								   typeRelationBS, rangeType));
 		
-		return source.selectDistinct(ByteString.of(queryVar), query);		
+		return source.selectDistinct(KB.map(queryVar), query);		
 	}
 	
 	/**
@@ -465,19 +465,19 @@ public class Schema {
 			return hist;
 		}
 		
-		IntSet effectiveDomain = kb.selectDistinct(ByteString.of(queryVar), query);
+		IntSet effectiveDomain = kb.selectDistinct(KB.map(queryVar), query);
 		IntSet theorethicalDomain = getAllEntitiesForType(kb, targetType);
 		effectiveDomain.retainAll(theorethicalDomain);
 		for (ByteString entity : effectiveDomain) {
 			long val;
 			if (kb.isFunctional(relation)) {
-				val = kb.count(KB.triple(entity, relation, ByteString.of(existVar)));
+				val = kb.count(KB.triple(entity, relation, KB.map(existVar)));
 			} else {
-				val = kb.count(KB.triple(ByteString.of(queryVar), relation, entity));
+				val = kb.count(KB.triple(KB.map(queryVar), relation, entity));
 			}
 			hist.increase((int)val);
 		}
-		kb.selectDistinct(ByteString.of(existVar), query);
+		kb.selectDistinct(KB.map(existVar), query);
 		
 		return hist;		
 	}
@@ -503,27 +503,27 @@ public class Schema {
 			queryVar = "?s";
 			existVar = "?o";
 			query = KB.triples(KB.triple("?s", relation, "?o"), 
-							   KB.triple(ByteString.of("?s"), 
+							   KB.triple(KB.map("?s"), 
 									   typeRelationBS, domainType));
 		} else {
 			queryVar = "?o";
 			existVar = "?s";
 			query = KB.triples(KB.triple("?o", relation, "?s"),
-					 		   KB.triple(ByteString.of("?o"), 
+					 		   KB.triple(KB.map("?o"), 
 					 				   typeRelationBS, domainType));
 		}
 				
-		IntSet effectiveDomain = kb.selectDistinct(ByteString.of(queryVar), query);
+		IntSet effectiveDomain = kb.selectDistinct(KB.map(queryVar), query);
 		for (ByteString entity : effectiveDomain) {
 			long val;
 			if (kb.isFunctional(relation)) {
-				val = kb.count(KB.triple(entity, relation, ByteString.of(existVar)));
+				val = kb.count(KB.triple(entity, relation, KB.map(existVar)));
 			} else {
-				val = kb.count(KB.triple(ByteString.of(queryVar), relation, entity));
+				val = kb.count(KB.triple(KB.map(queryVar), relation, entity));
 			}
 			hist.increase((int)val);
 		}
-		kb.selectDistinct(ByteString.of(existVar), query);
+		kb.selectDistinct(KB.map(existVar), query);
 		
 		return hist;	
 	}
@@ -548,7 +548,7 @@ public class Schema {
                     List<ByteString[]> query = KB.triples(KB.triple("?s", typeRelation, "?o"));
                     types2Instances = new Int2ObjectOpenHashMap<>();
                     Int2ObjectMap<IntSet> ts = 
-                            kb.selectDistinct(ByteString.of("?o"), ByteString.of("?s"), query);
+                            kb.selectDistinct(KB.map("?o"), KB.map("?s"), query);
                     Int2IntMap result = new Int2IntOpenHashMap();
                     for (ByteString type : ts.keySet()) {
 			result.put(type, ts.get(type).size());
@@ -581,7 +581,7 @@ public class Schema {
             }
 		List<ByteString[]> query = KB.triples(KB.triple("?s", typeRelation, "?o1"), KB.triple("?s", typeRelation, "?o2"));
 		Int2ObjectMap<Int2ObjectMap<IntSet>> types2types2Instances = 
-				kb.selectDistinct(ByteString.of("?o1"), ByteString.of("?o2"), ByteString.of("?s"), query);
+				kb.selectDistinct(KB.map("?o1"), KB.map("?o2"), KB.map("?s"), query);
 		
 		for (ByteString type1 : types2types2Instances.keySet()) {
 			Int2IntMap result2 = new Int2IntOpenHashMap();
@@ -598,7 +598,7 @@ public class Schema {
 			String[] split = line.split("\t");
 			if (split.length == 2) {
 				try {
-					typesCount.put(ByteString.of(split[0]), Integer.parseInt(split[1]));
+					typesCount.put(KB.map(split[0]), Integer.parseInt(split[1]));
 				} catch (NumberFormatException e) {}
 			}
 		}
@@ -613,11 +613,11 @@ public class Schema {
 			if (split.length == 3) {
 				try {
 					int i = Integer.parseInt(split[2]);
-					Int2IntMap tc = typesIntersectionCount.get(ByteString.of(split[0]));
+					Int2IntMap tc = typesIntersectionCount.get(KB.map(split[0]));
 					if (tc == null) {
-						typesIntersectionCount.put(ByteString.of(split[0]), tc = new Int2IntOpenHashMap());
+						typesIntersectionCount.put(KB.map(split[0]), tc = new Int2IntOpenHashMap());
 					}
-					tc.put(ByteString.of(split[1]), i);
+					tc.put(KB.map(split[1]), i);
 				} catch (NumberFormatException e) {}
 			}
 		}

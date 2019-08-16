@@ -14,9 +14,9 @@ public class MinCutMaxClassifierTest extends TestCase {
     
     public void testLinkSortMap() throws Exception {
         Int2ObjectMap<Double> m1 = new Int2ObjectOpenHashMap<>();
-        ByteString v1 = ByteString.of("1");
-        ByteString v2 = ByteString.of("2");
-        ByteString v3 = ByteString.of("3");
+        ByteString v1 = KB.map("1");
+        ByteString v2 = KB.map("2");
+        ByteString v3 = KB.map("3");
         m1.put(v2, 1.0);
         m1.put(v1, 2.0);
         m1.put(v3, 1.5);
@@ -35,9 +35,9 @@ public class MinCutMaxClassifierTest extends TestCase {
         Int2ObjectMap<Double> m1 = new Int2ObjectOpenHashMap<>();
         Int2ObjectMap<Double> m2 = new Int2ObjectOpenHashMap<>();
         Int2ObjectMap<Double> m3 = new Int2ObjectOpenHashMap<>();
-        ByteString v1 = ByteString.of("1");
-        ByteString v2 = ByteString.of("2");
-        ByteString v3 = ByteString.of("3");
+        ByteString v1 = KB.map("1");
+        ByteString v2 = KB.map("2");
+        ByteString v3 = KB.map("3");
         m1.put(v2, 1.0);
         m2.put(v3, 2.0);
         m3.put(v2, 3.0);

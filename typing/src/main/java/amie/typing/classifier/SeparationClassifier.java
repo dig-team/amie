@@ -40,11 +40,11 @@ public class SeparationClassifier {
             SimpleTypingKB simpledb = (SimpleTypingKB) db;
             ByteString relation;
             if (body.size() == 1) {
-                relation = (body.get(0)[0].equals(variable)) ? body.get(0)[1] : ByteString.of(body.get(0)[1].toString() + "-1");
+                relation = (body.get(0)[0].equals(variable)) ? body.get(0)[1] : KB.map(body.get(0)[1].toString() + "-1");
                 bodySize = simpledb.countElements(relation);
                 support = simpledb.countElements(relation, head.get(0)[2]);
             } else if (body.size() == 2) {
-                relation = (body.get(1)[0].equals(variable)) ? body.get(1)[1] : ByteString.of(body.get(1)[1].toString() + "-1");
+                relation = (body.get(1)[0].equals(variable)) ? body.get(1)[1] : KB.map(body.get(1)[1].toString() + "-1");
                 return simpledb.typingStdConf(relation, body.get(0)[2], head.get(0)[2], threshold);
                 //bodySize = simpledb.countElements(relation, body.get(0)[2]);
                 //support = simpledb.countElements(relation, body.get(0)[2], head.get(0)[2]);
@@ -332,15 +332,15 @@ public class SeparationClassifier {
             // Schema related options
             if (cli.hasOption("tr")) {
                 Schema.typeRelation = cli.getOptionValue("tr");
-                Schema.typeRelationBS = ByteString.of(Schema.typeRelation);
+                Schema.typeRelationBS = KB.map(Schema.typeRelation);
             }
             if (cli.hasOption("scr")) {
                 Schema.subClassRelation = cli.getOptionValue("scr");
-                Schema.subClassRelationBS = ByteString.of(Schema.subClassRelation);
+                Schema.subClassRelationBS = KB.map(Schema.subClassRelation);
             }
             if (cli.hasOption("top")) {
                 Schema.top = cli.getOptionValue("top");
-                Schema.topBS = ByteString.of(Schema.top);
+                Schema.topBS = KB.map(Schema.top);
             }
             
             // Delimiter
@@ -351,11 +351,11 @@ public class SeparationClassifier {
             // Wikidata setup overrides Schema + delimiter
             if (cli.hasOption("w")) {
                 Schema.typeRelation = "<P106>";
-                Schema.typeRelationBS = ByteString.of(Schema.typeRelation);
+                Schema.typeRelationBS = KB.map(Schema.typeRelation);
                 Schema.subClassRelation = "<P279>";
-                Schema.subClassRelationBS = ByteString.of(Schema.subClassRelation);
+                Schema.subClassRelationBS = KB.map(Schema.subClassRelation);
                 Schema.top = "<Q35120>";
-                Schema.topBS = ByteString.of(Schema.top);
+                Schema.topBS = KB.map(Schema.top);
                 delimiter = " ";
             }
             
@@ -386,7 +386,7 @@ public class SeparationClassifier {
 
                 String[] attr = cli.getOptionValue("q").split("-1");
                 query = KB.triples(KB.triple("?x", attr[0], "?y"));
-                variable = (attr.length == 1) ? ByteString.of("?x") : ByteString.of("?y");
+                variable = (attr.length == 1) ? KB.map("?x") : KB.map("?y");
             }
         }
     }

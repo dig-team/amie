@@ -29,8 +29,8 @@ public class HeadVariablesImprovedMiningAssistant extends
 		ByteString[] typeConstraint1, typeConstraint2;
 		typeConstraint1 = new ByteString[3];
 		typeConstraint2 = new ByteString[3];
-		typeConstraint1[1] = typeConstraint2[1] = ByteString.of("rdf:type");
-		typeConstraint1[2] = typeConstraint2[2] = ByteString.of("?w");
+		typeConstraint1[1] = typeConstraint2[1] = KB.map("rdf:type");
+		typeConstraint1[2] = typeConstraint2[2] = KB.map("?w");
 		typeConstraint1[0] = existentialTriple[nonExistentialPosition == 0 ? 2 : 0];
 		typeConstraint2[0] = existentialTriple[nonExistentialPosition].equals(var1) ? var2 : var1;
 		antecedent.add(typeConstraint1);

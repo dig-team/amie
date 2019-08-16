@@ -111,7 +111,7 @@ public class KB {
 	/** X transitiveType T predicate **/
     public static final String TRANSITIVETYPEstr = "transitiveType";
 	
-	public static final ByteString TRANSITIVETYPEbs = ByteString.of(TRANSITIVETYPEstr);
+	public static final ByteString TRANSITIVETYPEbs = KB.map(TRANSITIVETYPEstr);
 	
 	/** (X differentFrom Y Z ...) predicate */
 	public static final String DIFFERENTFROMstr = "differentFrom";
@@ -124,31 +124,31 @@ public class KB {
 	public static final String EQUALSstr = "equals";
 
 	/** (X equals Y Z ...) predicate */
-	public static final ByteString EQUALSbs = ByteString.of(EQUALSstr);
+	public static final ByteString EQUALSbs = KB.map(EQUALSstr);
 	
 	/** r(X, y') exists for some y', predicate */
 	public static final String EXISTSstr = "exists";
 	
 	/** r(X, y') exists for some y', predicate */
-	public static final ByteString EXISTSbs = ByteString.of(EXISTSstr);
+	public static final ByteString EXISTSbs = KB.map(EXISTSstr);
 	
 	/** r(y', X) exists for some y', predicate */
 	public static final String EXISTSINVstr = "existsInv";
 	
 	/** r(y', X) exists for some y', predicate */
-	public static final ByteString EXISTSINVbs = ByteString.of(EXISTSINVstr);	
+	public static final ByteString EXISTSINVbs = KB.map(EXISTSINVstr);	
 	
 	/** r(X, y') does NOT exists for some y', predicate */
 	public static final String NOTEXISTSstr = "~exists";
 	
 	/** r(X, y') does NOT exists for some y', predicate */
-	public static final ByteString NOTEXISTSbs = ByteString.of(NOTEXISTSstr);
+	public static final ByteString NOTEXISTSbs = KB.map(NOTEXISTSstr);
 	
 	/** r(y', X) does NOT exists for some y', predicate */
 	public static final String NOTEXISTSINVstr = "~existsInv";
 	
 	/** r(y', X) does NOT exists for some y', predicate */
-	public static final ByteString NOTEXISTSINVbs = ByteString.of(NOTEXISTSINVstr);
+	public static final ByteString NOTEXISTSINVbs = KB.map(NOTEXISTSINVstr);
 	
 	/** Variable sign (as defined in SPARQL) **/
 	public static final char VariableSign = '?';
@@ -169,25 +169,25 @@ public class KB {
 	
 	public static final String hasNumberOfValuesEqualsInv = "hasNumberOfValuesEqualsInv";
 	
-	public static final ByteString hasNumberOfValuesEqualsBS = ByteString.of(hasNumberOfValuesEquals);
+	public static final ByteString hasNumberOfValuesEqualsBS = KB.map(hasNumberOfValuesEquals);
 	
-	public static final ByteString hasNumberOfValuesEqualsInvBS = ByteString.of(hasNumberOfValuesEqualsInv);
+	public static final ByteString hasNumberOfValuesEqualsInvBS = KB.map(hasNumberOfValuesEqualsInv);
 	
 	public static final String hasNumberOfValuesGreaterThan = "hasNumberOfValuesGreaterThan";
 	
 	public static final String hasNumberOfValuesGreaterThanInv = "hasNumberOfValuesGreaterThanInv";
 	
-	public static final ByteString hasNumberOfValuesGreaterThanBS = ByteString.of(hasNumberOfValuesGreaterThan);
+	public static final ByteString hasNumberOfValuesGreaterThanBS = KB.map(hasNumberOfValuesGreaterThan);
 	
-	public static final ByteString hasNumberOfValuesGreaterThanInvBS = ByteString.of(hasNumberOfValuesGreaterThanInv);
+	public static final ByteString hasNumberOfValuesGreaterThanInvBS = KB.map(hasNumberOfValuesGreaterThanInv);
 	
 	public static final String hasNumberOfValuesSmallerThan = "hasNumberOfValuesSmallerThan";
 			
 	public static final String hasNumberOfValuesSmallerThanInv = "hasNumberOfValuesSmallerThanInv";		
 	
-	public static final ByteString hasNumberOfValuesSmallerThanBS = ByteString.of(hasNumberOfValuesSmallerThan);
+	public static final ByteString hasNumberOfValuesSmallerThanBS = KB.map(hasNumberOfValuesSmallerThan);
 	
-	public static final ByteString hasNumberOfValuesSmallerThanInvBS = ByteString.of(hasNumberOfValuesSmallerThanInv);		
+	public static final ByteString hasNumberOfValuesSmallerThanInvBS = KB.map(hasNumberOfValuesSmallerThanInv);		
 	
 	// ---------------------------------------------------------------------------
 	// Loading
@@ -1276,7 +1276,7 @@ public class KB {
 	public static Pair<ByteString, Integer> parseCardinalityRelation(ByteString relation) {
 		Matcher m = cardinalityRelationsRegexPattern.matcher(relation);
 		if (m.matches()) {
-			Pair<ByteString, Integer> pair = new Pair<>(ByteString.of(m.group(1)), 
+			Pair<ByteString, Integer> pair = new Pair<>(KB.map(m.group(1)), 
 					Integer.parseInt(m.group(2)));
 			if (pair.first.equals(hasNumberOfValuesSmallerThanBS) || 
 					pair.first.equals(hasNumberOfValuesSmallerThanInvBS)) {
@@ -1352,7 +1352,7 @@ public class KB {
 				 */
 				IntSet allTypes = (Schema.isTaxonomyMaterialized()) ? Schema.getAllDefinedTypes() : get(relation2object2subject, Schema.typeRelationBS).keySet();
 				for (ByteString type : allTypes) {
-					result.put(type, resultsOneVariable(triple(ByteString.of("?s"), TRANSITIVETYPEbs, type)));
+					result.put(type, resultsOneVariable(triple(KB.map("?s"), TRANSITIVETYPEbs, type)));
 				}
 				return result;
 			case 1:
@@ -3455,7 +3455,7 @@ public class KB {
 		int pos = str.indexOf("\"^^");
 		if (pos != -1)
 			str = str.substring(0, pos + 1);
-		return (ByteString.of(str));
+		return (KB.map(str));
 	}
 
 	/** Makes a list of triples */
@@ -4425,8 +4425,8 @@ public class KB {
 	public void summarizeDistributions(boolean useSignatureTypes) {
 		summarize(true);
 		System.out.println();
-		List<ByteString> ommittedRelations = Arrays.asList(ByteString.of("rdf:type"),
-				ByteString.of("rdfs:domain"), ByteString.of("rdfs:range"));
+		List<ByteString> ommittedRelations = Arrays.asList(KB.map("rdf:type"),
+				KB.map("rdfs:domain"), KB.map("rdfs:range"));
 		PrintWriter writer = null;
 		try {
 			writer = new PrintWriter("sample.txt", "UTF-8");
@@ -4538,11 +4538,11 @@ public class KB {
 				line = Char17.cutLast(line);
 			String[] split = line.split(delimiter);
 			if (split.length == 3) {
-				if (exceptionsList.contains(ByteString.of(split[1].trim())) 
+				if (exceptionsList.contains(KB.map(split[1].trim())) 
 						|| !oldKB.contains(split[0].trim(), split[1].trim(), split[2].trim()))
 					add(split[0].trim(), split[1].trim(), split[2].trim());
 			} else if (split.length == 4) {
-				if (exceptionsList.contains(ByteString.of(split[2].trim())) 
+				if (exceptionsList.contains(KB.map(split[2].trim())) 
 						|| !oldKB.contains(split[1].trim(), split[2].trim(), split[3].trim()))
 					add(split[1].trim(), split[2].trim(), split[3].trim());
 			}

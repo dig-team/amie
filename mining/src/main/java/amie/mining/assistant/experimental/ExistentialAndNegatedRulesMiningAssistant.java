@@ -25,7 +25,7 @@ public class ExistentialAndNegatedRulesMiningAssistant extends MiningAssistant {
 		super(dataSource);
 		this.maxDepth = 2;
 		this.allowConstants = false;
-		this.headExcludedRelations = Arrays.asList(ByteString.of(Schema.typeRelationBS));
+		this.headExcludedRelations = Arrays.asList(KB.map(Schema.typeRelationBS));
 		this.confidenceMetric = ConfidenceMetric.StandardConfidence;
 	}
 	

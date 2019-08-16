@@ -115,10 +115,10 @@ public class OutputSignedRelationPhrases {
 		// TODO Auto-generated method stub
 		Map<Triple<ByteString, ByteString, ByteString>, Set<Pair<ByteString, ByteString>>> result 
 		= new HashMap<Triple<ByteString, ByteString, ByteString>, Set<Pair<ByteString, ByteString>>>();
-		ByteString typeRelation = ByteString.of("<rdf:type>");
-		ByteString defaultStr = ByteString.of("default");
+		ByteString typeRelation = KB.map("<rdf:type>");
+		ByteString defaultStr = KB.map("default");
 		Int2ObjectMap<Int2ObjectMap<IntSet>> map =
-				db.resultsThreeVariables(ByteString.of("?p"), ByteString.of("?s"), ByteString.of("o"), 
+				db.resultsThreeVariables(KB.map("?p"), KB.map("?s"), KB.map("o"), 
 						KB.triple("?s", "?p", "?o"));
 		for (ByteString relation : map.keySet()) {
 			if (!relation.equals(typeRelation)) {

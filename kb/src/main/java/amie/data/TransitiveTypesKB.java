@@ -25,7 +25,7 @@ public class TransitiveTypesKB extends KB {
 	
 	public static final String TRANSITIVETYPEstr = "transitiveType";
 	
-	public static final ByteString TRANSITIVETYPEbs = ByteString.of(TRANSITIVETYPEstr);
+	public static final ByteString TRANSITIVETYPEbs = KB.map(TRANSITIVETYPEstr);
 	
 	@Override
 	protected boolean contains(ByteString... fact) {
@@ -99,7 +99,7 @@ public class TransitiveTypesKB extends KB {
 				 * Return a map from all types to all entities of sub-classes
 				 */
 				for (ByteString type : get(relation2object2subject, Schema.typeRelationBS).keySet()) {
-					result.put(type, resultsOneVariable(triple(ByteString.of("?s"), TRANSITIVETYPEbs, type)));
+					result.put(type, resultsOneVariable(triple(KB.map("?s"), TRANSITIVETYPEbs, type)));
 				}
 				return result;
 			case 1:
@@ -123,19 +123,19 @@ public class TransitiveTypesKB extends KB {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		if (kb.contains(ByteString.of("<John_Ford_(musician)>"), Schema.typeRelationBS, ByteString.of("<wordnet_person_100007846>"))) {
+		if (kb.contains(KB.map("<John_Ford_(musician)>"), Schema.typeRelationBS, KB.map("<wordnet_person_100007846>"))) {
 			System.err.println("Check failed: contains rdf:type not valid.");
 		} else {
 			System.out.println("Check passed: contains rdf:type.");
 		}
-		if (!kb.contains(ByteString.of("<John_Ford_(musician)>"), TRANSITIVETYPEbs, ByteString.of("<wordnet_person_100007846>"))) {
+		if (!kb.contains(KB.map("<John_Ford_(musician)>"), TRANSITIVETYPEbs, KB.map("<wordnet_person_100007846>"))) {
 			System.err.println("Check failed: contains transitiveType not valid.");
 		} else {
 			System.out.println("Check passed: contains transitiveType.");
 		}
-		System.out.println(String.valueOf(kb.countOneVariable(ByteString.of("?s"), Schema.typeRelationBS, ByteString.of("<wordnet_person_100007846>"))) + " persons");
-		System.out.println(String.valueOf(kb.countOneVariable(ByteString.of("?s"), TRANSITIVETYPEbs, ByteString.of("<wordnet_person_100007846>"))) + " transitive persons");
+		System.out.println(String.valueOf(kb.countOneVariable(KB.map("?s"), Schema.typeRelationBS, KB.map("<wordnet_person_100007846>"))) + " persons");
+		System.out.println(String.valueOf(kb.countOneVariable(KB.map("?s"), TRANSITIVETYPEbs, KB.map("<wordnet_person_100007846>"))) + " transitive persons");
 		 
-		System.out.println(kb.countTwoVariables(ByteString.of("?x"), TRANSITIVETYPEbs, ByteString.of("?y")));
+		System.out.println(kb.countTwoVariables(KB.map("?x"), TRANSITIVETYPEbs, KB.map("?y")));
 	}	
 }

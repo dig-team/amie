@@ -45,10 +45,10 @@ public class ImpliedFactsEvaluator {
     public BlockingQueue<Pair<ByteString, String>> queryQ = new LinkedBlockingQueue<>();
     public BlockingQueue<Pair<Pair<ByteString, String>, ImpliedFacts>> resultQ = new LinkedBlockingQueue<>();
 
-    public static final ByteString gsRelation = ByteString.of("<inGoldStandardOf>");
+    public static final ByteString gsRelation = KB.map("<inGoldStandardOf>");
 
     public static ByteString resultWithThresholdRelation(String method) {
-        return ByteString.of("<inResult_" + method + ">");
+        return KB.map("<inResult_" + method + ">");
     }
 
     public static ByteString rwtr(String t) {
@@ -127,7 +127,7 @@ public class ImpliedFactsEvaluator {
 //        if (!queried.contains(query)) {
 //            //return new ImpliedFacts(0, 0, 0, 0);
 //        }
-//        final ByteString x = ByteString.of("?x");
+//        final ByteString x = KB.map("?x");
 //        List<ByteString[]> gsSizeQ = KB.triples(KB.triple(x, gsRelation, query));
 //        List<ByteString[]> rtSizeQ = KB.triples(KB.triple(x, rwtr(method), query));
 //        long gsSize = db.countDistinct(x, gsSizeQ);
@@ -136,9 +136,9 @@ public class ImpliedFactsEvaluator {
 //        long tp = db.countDistinct(x, gsSizeQ);
 //        String[] q = query.toString().split("-1");
 //        if (q.length == 1) {
-//            gsSizeQ.add(KB.triple(x, ByteString.of(query), ByteString.of("?y")));
+//            gsSizeQ.add(KB.triple(x, KB.map(query), KB.map("?y")));
 //        } else {
-//            gsSizeQ.add(KB.triple(ByteString.of("?y"), ByteString.of(q[0]), x));
+//            gsSizeQ.add(KB.triple(KB.map("?y"), KB.map(q[0]), x));
 //        }
 //        long oldFacts = db.countDistinct(x, gsSizeQ);
 //        //return new ImpliedFacts(tp, rtSize - tp, gsSize - tp, tp - oldFacts);
@@ -151,7 +151,7 @@ public class ImpliedFactsEvaluator {
             while(true) {
                 try {
                     qP = queryQ.take();
-                    if (qP.first.equals(ByteString.of("STOP"))) break;
+                    if (qP.first.equals(KB.map("STOP"))) break;
                     resultQ.put(new Pair<>(qP, computeImpliedFacts(qP.first, qP.second)));
                 } catch (InterruptedException ex) {
                     Logger.getLogger(ImpliedFactsEvaluator.class.getName()).log(Level.SEVERE, null, ex);
@@ -166,7 +166,7 @@ public class ImpliedFactsEvaluator {
         
         List<Thread> threadList = new ArrayList<>(nThreads);
         for (int i = 0; i < nThreads; i++) {
-            queryQ.add(new Pair<>(ByteString.of("STOP"), ""));
+            queryQ.add(new Pair<>(KB.map("STOP"), ""));
             threadList.add(new ImpliedFactsMTEvaluator());
         }
         
@@ -185,9 +185,9 @@ public class ImpliedFactsEvaluator {
         filename = filename.replace("_cleaned", "");
         String[] fns = filename.split("_");
         if (fns.length == 2 && t.length > 1) {
-            return new Pair<>(ByteString.of("<" + (fns[0].contains("-1")? (fns[0].replace("-1", "") + ">-1") : (fns[0] + ">"))), t[t.length - 2] + "_" + fns[1]);
+            return new Pair<>(KB.map("<" + (fns[0].contains("-1")? (fns[0].replace("-1", "") + ">-1") : (fns[0] + ">"))), t[t.length - 2] + "_" + fns[1]);
         } else if (fns.length == 3) {
-            return new Pair<>(ByteString.of("<" + (fns[1].contains("-1")? (fns[1].replace("-1", "") + ">-1") : (fns[1] + ">"))), fns[0] + "_" + fns[2]);
+            return new Pair<>(KB.map("<" + (fns[1].contains("-1")? (fns[1].replace("-1", "") + ">-1") : (fns[1] + ">"))), fns[0] + "_" + fns[2]);
         } else {
             System.err.println("ERROR parsing \"" + path + "\"");
             return null;
@@ -197,7 +197,7 @@ public class ImpliedFactsEvaluator {
     public static IntSet readClassFile(String path) throws IOException {
         IntSet res = new IntOpenHashSet();
         for (String line : new FileLines(new File(path), "UTF-8", null)) {
-            res.add(ByteString.of(line.trim()));
+            res.add(KB.map(line.trim()));
         }
         return res;
     }
@@ -206,11 +206,11 @@ public class ImpliedFactsEvaluator {
         for (String line : new FileLines(new File(path), "UTF-8", null)) {
             String[] s = line.split("\t");
             if (s.length == 2) {
-                addGS(ByteString.of(s[0]), ByteString.of(s[1]));
+                addGS(KB.map(s[0]), KB.map(s[1]));
             } else if (s.length == 4) {
-                addResult(ByteString.of(s[2]), s[0]+"_"+s[1], ByteString.of(s[3]));
+                addResult(KB.map(s[2]), s[0]+"_"+s[1], KB.map(s[3]));
             } else if (s.length == 5) {
-                addResult(ByteString.of(s[3]), s[1]+"_"+s[2]+"_"+s[0], ByteString.of(s[4]));
+                addResult(KB.map(s[3]), s[1]+"_"+s[2]+"_"+s[0], KB.map(s[4]));
             } else {
                 throw new IllegalArgumentException("Not well formatted file");
             }
@@ -304,7 +304,7 @@ public class ImpliedFactsEvaluator {
             try {
                 eval.readFile(gsFiles[i]);
             } catch (IllegalArgumentException e) {
-                eval.addGS(ByteString.of("<" + gsFiles[i].split("_")[1] + ((gsFiles[i].split("_")[2].equals("y")) ? "-1" : "") + ">"), readClassFile(gsFiles[i]));
+                eval.addGS(KB.map("<" + gsFiles[i].split("_")[1] + ((gsFiles[i].split("_")[2].equals("y")) ? "-1" : "") + ">"), readClassFile(gsFiles[i]));
             }
         }
         

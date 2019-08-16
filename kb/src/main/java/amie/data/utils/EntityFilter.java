@@ -68,12 +68,12 @@ public class EntityFilter {
 		//reading file line by line
 		String line = bufferedReader.readLine().trim();
 		while(line != null){
-			seeds.add(ByteString.of("<" + line + ">"));
+			seeds.add(KB.map("<" + line + ">"));
 			line = bufferedReader.readLine();
 		}
 				
 		Int2ObjectMap<Int2ObjectMap<IntSet>> factSourcesMap = 
-				factsSource.resultsThreeVariables(ByteString.of("?s"), ByteString.of("?p"), ByteString.of("o"), 
+				factsSource.resultsThreeVariables(KB.map("?s"), KB.map("?p"), KB.map("o"), 
 						KB.triple("?s", "?p", "?o"));
 		IntSet subjects = factSourcesMap.keySet();
 		for(ByteString subject: subjects){

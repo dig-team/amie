@@ -16,7 +16,7 @@ public class SexismSimpleTypingKB extends SimpleTypingKB {
     protected boolean add(ByteString subject, ByteString relation, ByteString object) {
         if (relation.equals(Schema.typeRelationBS) || relation.equals(Schema.subClassRelationBS)) {
             return super.add(subject, relation, object);
-        } else if (relation.equals(ByteString.of("<hasGender>"))) {
+        } else if (relation.equals(KB.map("<hasGender>"))) {
             return super.add(subject, object, relation);
         } else {
             return false;

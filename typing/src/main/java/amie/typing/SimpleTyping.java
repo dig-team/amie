@@ -242,15 +242,15 @@ public class SimpleTyping extends Thread {
         // Schema related options
         if (cli.hasOption("tr")) {
             Schema.typeRelation = cli.getOptionValue("tr");
-            Schema.typeRelationBS = ByteString.of(Schema.typeRelation);
+            Schema.typeRelationBS = KB.map(Schema.typeRelation);
         }
         if (cli.hasOption("scr")) {
             Schema.subClassRelation = cli.getOptionValue("scr");
-            Schema.subClassRelationBS = ByteString.of(Schema.subClassRelation);
+            Schema.subClassRelationBS = KB.map(Schema.subClassRelation);
         }
         if (cli.hasOption("top")) {
             Schema.top = cli.getOptionValue("top");
-            Schema.topBS = ByteString.of(Schema.top);
+            Schema.topBS = KB.map(Schema.top);
         }
 
         // Delimiter
@@ -261,11 +261,11 @@ public class SimpleTyping extends Thread {
         // Wikidata setup overrides Schema + delimiter
         if (cli.hasOption("w")) {
             Schema.typeRelation = "<P106>";
-            Schema.typeRelationBS = ByteString.of(Schema.typeRelation);
+            Schema.typeRelationBS = KB.map(Schema.typeRelation);
             Schema.subClassRelation = "<P279>";
-            Schema.subClassRelationBS = ByteString.of(Schema.subClassRelation);
+            Schema.subClassRelationBS = KB.map(Schema.subClassRelation);
             Schema.top = "<Q35120>";
-            Schema.topBS = ByteString.of(Schema.top);
+            Schema.topBS = KB.map(Schema.top);
             delimiter = " ";
         }
 
@@ -440,7 +440,7 @@ public class SimpleTyping extends Thread {
         if (queries != null && queries.length > 0) {
             relations = new IntOpenHashSet();
             for (int i = 0; i < queries.length; i++) {
-                relations.add(ByteString.of(queries[i]));
+                relations.add(KB.map(queries[i]));
             }
         } else {
             relations = dataSource.relations.keySet();

@@ -126,9 +126,9 @@ public class PCAFalseFactsSampler {
 		ByteString relation = head[1];
 				
 		if(rule.getFunctionalVariablePosition() == 0)
-			existential[2] = ByteString.of("?x");
+			existential[2] = KB.map("?x");
 		else
-			existential[0] = ByteString.of("?x");
+			existential[0] = KB.map("?x");
 		
 		query.add(existential);
 		for(ByteString[] triple: rule.getAntecedent())

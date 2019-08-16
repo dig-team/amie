@@ -37,22 +37,22 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	
 	public static final String hasNotChanged = "<hasNotChanged>";
 	
-	public static final ByteString isRelevanthasWikiLengthBS = ByteString.of(isRelevanthasWikiLength); 
+	public static final ByteString isRelevanthasWikiLengthBS = KB.map(isRelevanthasWikiLength); 
 	
-	public static final ByteString isRelevanthasIngoingLinksBS = ByteString.of(isRelevanthasIngoingLinks); 
+	public static final ByteString isRelevanthasIngoingLinksBS = KB.map(isRelevanthasIngoingLinks); 
 	
-	public static final ByteString hasChangedBS = ByteString.of(hasChanged);
+	public static final ByteString hasChangedBS = KB.map(hasChanged);
 	
-	public static final ByteString hasNotChangedBS = ByteString.of(hasNotChanged);
+	public static final ByteString hasNotChangedBS = KB.map(hasNotChanged);
 	
-	public static final ByteString isCompleteBS = ByteString.of(isComplete);
+	public static final ByteString isCompleteBS = KB.map(isComplete);
 	
-	public static final ByteString isIncompleteBS = ByteString.of(isIncomplete);
+	public static final ByteString isIncompleteBS = KB.map(isIncomplete);
 	
-	public static final ByteString isRelevanthasNumberOfFactsBS = ByteString.of(isRelevanthasNumberOfFacts);
+	public static final ByteString isRelevanthasNumberOfFactsBS = KB.map(isRelevanthasNumberOfFacts);
 	
-	private static final List<ByteString> functionalExceptions = Arrays.asList(ByteString.of("<hasChild>"), 
-			ByteString.of("<child_P40>"), ByteString.of("<spokenIn>"));
+	private static final List<ByteString> functionalExceptions = Arrays.asList(KB.map("<hasChild>"), 
+			KB.map("<child_P40>"), KB.map("<spokenIn>"));
 	
 	public CompletenessMiningAssistant(KB dataSource) {
 		super(dataSource);
@@ -178,7 +178,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 					return;
 			}
 								
-			ByteString newRelation = ByteString.of(compositeRelation.first.toString() + newCard);
+			ByteString newRelation = KB.map(compositeRelation.first.toString() + newCard);
 			lastAtom[1] = newRelation;
 			long cardinality = kb.countDistinct(rule.getFunctionalVariable(), rule.getTriples());
 			lastAtom[1] = oldRelation;
@@ -204,22 +204,22 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		if (this.isFunctional(targetRelation)) {
 			startCardinality  = 0;
 			inequalityRelation = KB.hasNumberOfValuesGreaterThan + startCardinality;
-			newAtom[1] = ByteString.of(inequalityRelation);
+			newAtom[1] = KB.map(inequalityRelation);
 			this.addAtom(rule, newAtom, minSupportThreshold, output);
 
 			startCardinality = kb.maximalCardinality(targetRelation) + 1;
 			inequalityRelation = KB.hasNumberOfValuesSmallerThan + startCardinality;
-			newAtom[1] = ByteString.of(inequalityRelation);
+			newAtom[1] = KB.map(inequalityRelation);
 			this.addAtom(rule, newAtom, minSupportThreshold, output);
 		} else {
 			startCardinality = 0;
 			inequalityRelation = KB.hasNumberOfValuesGreaterThanInv + startCardinality;
-			newAtom[1] = ByteString.of(inequalityRelation);
+			newAtom[1] = KB.map(inequalityRelation);
 			this.addAtom(rule, newAtom, minSupportThreshold, output);
 
 			startCardinality = kb.maximalCardinalityInv(targetRelation) + 1;
 			inequalityRelation = KB.hasNumberOfValuesSmallerThanInv + startCardinality;
-			newAtom[1] = ByteString.of(inequalityRelation);
+			newAtom[1] = KB.map(inequalityRelation);
 			this.addAtom(rule, newAtom, minSupportThreshold, output);
 		}
 		
@@ -413,7 +413,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	private void addRelevanceAtom(Rule parentRule, ByteString relevanceRelation,
 			double minSupportThreshold, Collection<Rule> output) {
 		ByteString[] relevanceAtom = new ByteString[]{parentRule.getFunctionalVariable(), 
-				relevanceRelation, ByteString.of("TRUE")};
+				relevanceRelation, KB.map("TRUE")};
 		
 		parentRule.getTriples().add(relevanceAtom);
 		long support = kb.countDistinct(relevanceAtom[0], parentRule.getTriples());

@@ -216,8 +216,8 @@ public class MiningAssistant {
 		triples.add(rootPattern);
 		this.totalSubjectCount = this.kb.countDistinct(rootPattern[0], triples);
 		this.totalObjectCount = this.kb.countDistinct(rootPattern[2], triples);
-		this.typeString = ByteString.of("rdf:type");
-		this.subPropertyString = ByteString.of("rdfs:subPropertyOf");
+		this.typeString = KB.map("rdf:type");
+		this.subPropertyString = KB.map("rdfs:subPropertyOf");
 		this.headCardinalities = new HashMap<String, Double>();
 		ByteString[] subclassPattern = Rule.fullyUnboundTriplePattern1();
 		subclassPattern[1] = subPropertyString;
@@ -323,7 +323,7 @@ public class MiningAssistant {
 	protected void buildRelationsDictionary() {
 		Collection<ByteString> relations = kb.getRelations();
 		for (ByteString relation : relations) {
-			ByteString[] query = KB.triple(ByteString.of("?x"), relation, ByteString.of("?y"));
+			ByteString[] query = KB.triple(KB.map("?x"), relation, KB.map("?y"));
 			double relationSize = kb.count(query);
 			headCardinalities.put(relation.toString(), relationSize);
 		}
@@ -516,7 +516,7 @@ public class MiningAssistant {
 	 */
 	public Collection<Rule> getInitialAtoms(double minSupportThreshold) {
 		List<ByteString[]> newEdgeList = new ArrayList<ByteString[]>(1);
-		ByteString[] newEdge = new ByteString[]{ByteString.of("?x"), ByteString.of("?y"), ByteString.of("?z")};
+		ByteString[] newEdge = new ByteString[]{KB.map("?x"), KB.map("?y"), KB.map("?z")};
 		newEdgeList.add(newEdge);
 		Int2IntMap relations = kb.frequentBindingsOf(newEdge[1], newEdge[0], newEdgeList);
 		return buildInitialQueries(relations, minSupportThreshold);
@@ -1161,7 +1161,7 @@ public class MiningAssistant {
 		if(remained != null){
 			if(!remained[1].equals(rule.getHead()[1]) || hardCaseInfo[1] != rule.getFunctionalVariablePosition()){
 				ByteString[] existentialTriple = rule.getHead().clone();
-				existentialTriple[freeVarPosition] = ByteString.of("?z");
+				existentialTriple[freeVarPosition] = KB.map("?z");
 				easyQuery.add(existentialTriple);
 			}
 		}
@@ -1179,16 +1179,16 @@ public class MiningAssistant {
 		int[] hardCaseInfo = kb.identifyHardQueryTypeI(rule.getAntecedent());
 		double denominator = 0.0;
 		ByteString[] triple = new ByteString[3];
-		triple[0] = ByteString.of("?xw");
+		triple[0] = KB.map("?xw");
 		triple[1] = rule.getAntecedent().get(0)[1];
-		triple[2] = ByteString.of("?yw");
+		triple[2] = KB.map("?yw");
 		
 		if(hardCaseInfo[0] == 2){
 			// Case r(y, z) r(x, z)
-			denominator = kb.countDistinct(ByteString.of("?xw"), KB.triples(triple));
+			denominator = kb.countDistinct(KB.map("?xw"), KB.triples(triple));
 		}else{
 			// Case r(z, y) r(z, x)
-			denominator = kb.countDistinct(ByteString.of("?yw"), KB.triples(triple));
+			denominator = kb.countDistinct(KB.map("?yw"), KB.triples(triple));
 		}
 		
 		return rule.getSupport() / denominator;
@@ -1270,7 +1270,7 @@ public class MiningAssistant {
 				freeVarPos = 0;
 		}
 
-		existentialTriple[freeVarPos] = ByteString.of("?xw");
+		existentialTriple[freeVarPos] = KB.map("?xw");
 		if (!antecedent.isEmpty()) {
 			//Improved confidence: Add an existential version of the head
 			antecedent.add(existentialTriple);

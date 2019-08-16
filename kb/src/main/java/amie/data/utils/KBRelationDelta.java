@@ -78,8 +78,8 @@ public class KBRelationDelta {
 						ByteString domain = null;
 						ByteString qVariable = null;
 						String relationlabel = null;
-						List<ByteString[]> query = KB.triples(KB.triple(ByteString.of("?s"), relation, ByteString.of("?o")));
-						ByteString[] query2 = KB.triple(ByteString.of("?s"), relation, ByteString.of("?o"));
+						List<ByteString[]> query = KB.triples(KB.triple(KB.map("?s"), relation, KB.map("?o")));
+						ByteString[] query2 = KB.triple(KB.map("?s"), relation, KB.map("?o"));
 						boolean isFunctional = ddb2.isFunctional(relation); 
 						if (isFunctional) {
 							domain = Schema.getRelationDomain(ddb2, relation);
@@ -99,10 +99,10 @@ public class KBRelationDelta {
 						for (ByteString entity : entities) {
 							if (isFunctional) {
 								query2[0] = entity;
-								query2[2] = ByteString.of("?o");
+								query2[2] = KB.map("?o");
 							} else {
 								query2[2] = entity;
-								query2[0] = ByteString.of("?s");
+								query2[0] = KB.map("?s");
 							}
 							IntSet s1 = ddb1.resultsOneVariable(query2);
 							IntSet s2 = ddb2.resultsOneVariable(query2);

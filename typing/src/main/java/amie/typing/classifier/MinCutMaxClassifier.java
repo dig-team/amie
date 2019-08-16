@@ -111,7 +111,7 @@ public class MinCutMaxClassifier extends SeparationClassifier {
         }
                 
         public void classify(Int2ObjectMap<Int2ObjectMap<Double>> statistics) {         
-            for(ByteString s : t_MinCutMax(statistics, ByteString.of("owl:Thing"))) {
+            for(ByteString s : t_MinCutMax(statistics, KB.map("owl:Thing"))) {
                 System.out.println(s.toString());
             }
 	}

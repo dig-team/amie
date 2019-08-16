@@ -27,7 +27,7 @@ public class MaterializeInverseFunctions {
 		System.out.println("Type relation: " + amie.data.Schema.typeRelation);
 		KB db = amie.data.U.loadFiles(args);
 		Int2ObjectMap<Int2ObjectMap<IntSet>> map = 
-				db.resultsThreeVariables(ByteString.of("?s"), ByteString.of("?p"), ByteString.of("?o"),
+				db.resultsThreeVariables(KB.map("?s"), KB.map("?p"), KB.map("?o"),
 						KB.triple("?o", "?p", "?s"));
 		for(ByteString object: map.keySet()){
 			Int2ObjectMap<IntSet > predicates = map.get(object);

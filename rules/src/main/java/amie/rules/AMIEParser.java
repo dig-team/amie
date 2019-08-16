@@ -45,7 +45,7 @@ public class AMIEParser {
 						charmap.put(triple[i], replace);
 						c = (char) (c + 1);
 					}
-					triple[i] = ByteString.of("?" + replace);				
+					triple[i] = KB.map("?" + replace);				
 				}
 			}
 		}

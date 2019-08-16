@@ -81,8 +81,8 @@ public class FactsFilter {
 		
 		for(ByteString subject: subjects){
 			Int2ObjectMap<IntSet> subjectsMap = 
-					trimSource.resultsTwoVariables(ByteString.of("?p"), ByteString.of("?o"),
-							KB.triple(subject, ByteString.of("?p"), ByteString.of("?o")));
+					trimSource.resultsTwoVariables(KB.map("?p"), KB.map("?o"),
+							KB.triple(subject, KB.map("?p"), KB.map("?o")));
 			if(subjectsMap == null) continue;			
 			IntSet predicates = subjectsMap.keySet(); 
 			for(ByteString predicate: predicates){

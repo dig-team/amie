@@ -14,11 +14,11 @@ public class TrivialRelevanceCalculator {
 		KB kb = new KB();
 		kb.load(new File(args[0]));
 		List<ByteString[]> query = KB.triples(KB.triple("?s", "?p", "?o"));
-		IntSet allEntities = kb.selectDistinct(ByteString.of("?s"), query);
-		allEntities.addAll(kb.selectDistinct(ByteString.of("?o"), query));
+		IntSet allEntities = kb.selectDistinct(KB.map("?s"), query);
+		allEntities.addAll(kb.selectDistinct(KB.map("?o"), query));
 		for (ByteString entity : allEntities) {			
-			int nFacts = (int) kb.count(entity, ByteString.of("?p"), ByteString.of("?o"));
-			nFacts += kb.count(ByteString.of("?s"), ByteString.of("?p"), ByteString.of(entity));
+			int nFacts = (int) kb.count(entity, KB.map("?p"), KB.map("?o"));
+			nFacts += kb.count(KB.map("?s"), KB.map("?p"), KB.map(entity));
 			
 			System.out.println(entity + "\t<hasNumberOfFacts>\t" + nFacts);								
 		}

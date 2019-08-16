@@ -56,15 +56,15 @@ public class RelevanceFilter {
 				System.err.println(t.first + " is Nan");
 				System.exit(1);
 			}
-			relevanceMap.put(ByteString.of(t.first), t.third);
+			relevanceMap.put(KB.map(t.first), t.third);
 		}
 		
 		// Now filter the facts
-		ByteString s = ByteString.of("?s");
-		ByteString r = ByteString.of("?r");
-		ByteString o = ByteString.of("?o");		
+		ByteString s = KB.map("?s");
+		ByteString r = KB.map("?r");
+		ByteString o = KB.map("?o");		
 		List<ByteString[]> query =  KB.triples(KB.triple(s, r, o));
-		for (ByteString relation : kb.selectDistinct(ByteString.of("?r"), query)) {			
+		for (ByteString relation : kb.selectDistinct(KB.map("?r"), query)) {			
 			ByteString[] query2 = KB.triple(s, relation, o);
 			Int2ObjectMap<IntSet> bindings = null;
 			boolean inversed = false;

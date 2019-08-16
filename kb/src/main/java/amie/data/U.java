@@ -248,8 +248,8 @@ public class U {
 	 * @return
 	 */
 	public static int numberOfFacts(KB kb, ByteString entity) {
-		ByteString[] querySubject = KB.triple(entity, ByteString.of("?r"), ByteString.of("?o")); 
-		ByteString[] queryObject = KB.triple(ByteString.of("?s"), ByteString.of("?r"), entity); 
+		ByteString[] querySubject = KB.triple(entity, KB.map("?r"), KB.map("?o")); 
+		ByteString[] queryObject = KB.triple(KB.map("?s"), KB.map("?r"), entity); 
 		return (int)kb.count(querySubject) + (int)kb.count(queryObject);
 	}
 	
@@ -262,12 +262,12 @@ public class U {
 	 * @return
 	 */
 	public static int numberOfFacts(KB kb, ByteString entity, Collection<ByteString> omittedRelations) {
-		ByteString[] querySubject = KB.triple(entity, ByteString.of("?r"), ByteString.of("?o")); 
-		ByteString[] queryObject = KB.triple(ByteString.of("?s"), ByteString.of("?r"), entity); 
+		ByteString[] querySubject = KB.triple(entity, KB.map("?r"), KB.map("?o")); 
+		ByteString[] queryObject = KB.triple(KB.map("?s"), KB.map("?r"), entity); 
 		Int2ObjectMap<IntSet> relationsSubject = 
-				kb.resultsTwoVariables(ByteString.of("?r"), ByteString.of("?o"), querySubject);
+				kb.resultsTwoVariables(KB.map("?r"), KB.map("?o"), querySubject);
 		Int2ObjectMap<IntSet> relationsObject = 
-				kb.resultsTwoVariables(ByteString.of("?r"), ByteString.of("?s"), queryObject);
+				kb.resultsTwoVariables(KB.map("?r"), KB.map("?s"), queryObject);
 		int count1 = 0;
 		int count2 = 0;
 		for (ByteString relation : relationsSubject.keySet()) {
@@ -288,7 +288,7 @@ public class U {
 	 * @return
 	 */
 	public static boolean isFunction(KB kb, ByteString relation) {
-		return kb.contains(relation, ByteString.of("<isFunction>"), ByteString.of("TRUE"));
+		return kb.contains(relation, KB.map("<isFunction>"), KB.map("TRUE"));
 	}
 	
 	/**
@@ -298,7 +298,7 @@ public class U {
 	 * @return
 	 */
 	public static boolean isMandatory(KB kb, ByteString relation) {
-		return kb.contains(relation, ByteString.of("<isMandatory>"), ByteString.of("TRUE"));
+		return kb.contains(relation, KB.map("<isMandatory>"), KB.map("TRUE"));
 	}
 
 	/**
@@ -311,12 +311,12 @@ public class U {
 	 */
 	public static IntSet getEntitiesWithCardinality(KB kb, ByteString relation, int cardinality) {
 		Int2ObjectMap<IntSet> results = null;
-		List<ByteString[]> query = KB.triples(KB.triple(ByteString.of("?s"), 
-				relation, ByteString.of("?o")));
+		List<ByteString[]> query = KB.triples(KB.triple(KB.map("?s"), 
+				relation, KB.map("?o")));
 		if (kb.isFunctional(relation)) {
-			results = kb.selectDistinct(ByteString.of("?s"), ByteString.of("?o"), query);
+			results = kb.selectDistinct(KB.map("?s"), KB.map("?o"), query);
 		} else {
-			results = kb.selectDistinct(ByteString.of("?o"), ByteString.of("?s"), query);			
+			results = kb.selectDistinct(KB.map("?o"), KB.map("?s"), query);			
 		}
 		IntSet entities = new IntOpenHashSet();
 		for (ByteString e : results.keySet()) {

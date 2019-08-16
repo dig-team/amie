@@ -205,7 +205,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
     
     public void computeStatistics(List<ByteString[]> query, ByteString variable, int classSizeThreshold) {
         IntSet relevantClasses = index.keySet();
-        ByteString relation = (query.get(0)[0].equals(variable)) ? query.get(0)[1] : ByteString.of(query.get(0)[1].toString() + "-1");
+        ByteString relation = (query.get(0)[0].equals(variable)) ? query.get(0)[1] : KB.map(query.get(0)[1].toString() + "-1");
 
         for (ByteString class1 : relevantClasses) {
             int c1size = classSize.get(class1);

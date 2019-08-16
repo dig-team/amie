@@ -18,8 +18,8 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 	
 	public WikilinksHeadVariablesMiningAssistant(KB dataSource) {
 		super(dataSource);
-        headExcludedRelations = Arrays.asList(ByteString.of(WikilinksHeadVariablesMiningAssistant.wikiLinkProperty), 
-        		ByteString.of("rdf:type"));
+        headExcludedRelations = Arrays.asList(KB.map(WikilinksHeadVariablesMiningAssistant.wikiLinkProperty), 
+        		KB.map("rdf:type"));
         bodyExcludedRelations = headExcludedRelations;
 	}
 	
@@ -133,7 +133,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 	
 	@Override
 	public void getClosingAtoms(Rule query, double minSupportThreshold, Collection<Rule> output) {
-		int length = query.getLengthWithoutTypesAndLinksTo(typeString, ByteString.of(wikiLinkProperty));
+		int length = query.getLengthWithoutTypesAndLinksTo(typeString, KB.map(wikiLinkProperty));
 		ByteString[] head = query.getHead();
 		if (length == maxDepth - 1) {
 			List<ByteString> openVariables = query.getOpenVariables();
@@ -148,9 +148,9 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 			}
 		}
 		
-		if (!query.containsRelation(ByteString.of(wikiLinkProperty))) {
+		if (!query.containsRelation(KB.map(wikiLinkProperty))) {
 			ByteString[] newEdge = head.clone();
-			newEdge[1] = ByteString.of(wikiLinkProperty);
+			newEdge[1] = KB.map(wikiLinkProperty);
 			List<ByteString[]> queryAtoms = new ArrayList<>();
 			queryAtoms.addAll(query.getTriples());
 			queryAtoms.add(newEdge);
@@ -180,13 +180,13 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 	}
 
 	protected boolean isNotTooLong(Rule candidate){
-		return candidate.getLengthWithoutTypesAndLinksTo(typeString, ByteString.of(wikiLinkProperty)) < maxDepth;
+		return candidate.getLengthWithoutTypesAndLinksTo(typeString, KB.map(wikiLinkProperty)) < maxDepth;
 	}
 	
 	@Override
 	public boolean shouldBeOutput(Rule candidate) {
 		return candidate.isClosed(true) 
 				&& candidate.containsRelation(typeString)
-				&& candidate.containsRelation(ByteString.of(wikiLinkProperty));
+				&& candidate.containsRelation(KB.map(wikiLinkProperty));
 	}	
 }

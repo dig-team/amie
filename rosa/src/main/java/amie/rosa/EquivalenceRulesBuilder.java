@@ -38,7 +38,7 @@ public class EquivalenceRulesBuilder {
 			freeVarPos = existentialTriple[0].equals(candidate.getFunctionalVariable()) ? 2 : 0;
 		}
 
-		existentialTriple[freeVarPos] = ByteString.of("?x");
+		existentialTriple[freeVarPos] = KB.map("?x");
 				
 		//Confidence
 		try{

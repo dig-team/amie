@@ -77,7 +77,7 @@ public class Separation extends Thread {
         while(true) {
             try {
                 q = queryQ.take();
-                if (q.second.equals(ByteString.of("STOP"))) { System.out.println("Thread terminating"); break; }
+                if (q.second.equals(KB.map("STOP"))) { System.out.println("Thread terminating"); break; }
                 System.out.println("Beginning "+q.first.get(0)[1].toString() + " (" + q.second + ") ...");
                 SeparationTreeClassifier st;
                 switch(classifier) {
@@ -202,7 +202,7 @@ public class Separation extends Thread {
         
         // Load the KB
         KB dataSource;
-        if (pa.query != null && pa.query.get(0)[1].equals(ByteString.of("sexism"))) {
+        if (pa.query != null && pa.query.get(0)[1].equals(KB.map("sexism"))) {
             dataSource = new SexismSimpleTypingKB();
         } else {
             dataSource = new SimpleTypingKB();
@@ -232,20 +232,20 @@ public class Separation extends Thread {
 
             ByteString[] q;
             for (ByteString r : relations) {
-                q = KB.triple(ByteString.of("?x"), r, ByteString.of("?y"));
-                queryQ.add(new Pair<>(KB.triples(q), ByteString.of("?x")));
-                queryQ.add(new Pair<>(KB.triples(q), ByteString.of("?y")));
+                q = KB.triple(KB.map("?x"), r, KB.map("?y"));
+                queryQ.add(new Pair<>(KB.triples(q), KB.map("?x")));
+                queryQ.add(new Pair<>(KB.triples(q), KB.map("?y")));
             }
-        } else if (pa.query.get(0)[1].equals(ByteString.of("sexism"))) {
+        } else if (pa.query.get(0)[1].equals(KB.map("sexism"))) {
             nThreads = Math.min(nProcessors, 2);
             // Note: KB instanceof SexismSimpleTypingKB
-            queryQ.add(new Pair<>(KB.triples(KB.triple("?x", "<male>", "?y")), ByteString.of("?x")));
-            queryQ.add(new Pair<>(KB.triples(KB.triple("?x", "<female>", "?y")), ByteString.of("?x")));
+            queryQ.add(new Pair<>(KB.triples(KB.triple("?x", "<male>", "?y")), KB.map("?x")));
+            queryQ.add(new Pair<>(KB.triples(KB.triple("?x", "<female>", "?y")), KB.map("?x")));
         } else {
             queryQ.add(new Pair<>(pa.query, pa.variable));
         }
         for (int i = 0; i < nThreads; i++) {
-            queryQ.add(new Pair<>(Collections.EMPTY_LIST, ByteString.of("STOP")));
+            queryQ.add(new Pair<>(Collections.EMPTY_LIST, KB.map("STOP")));
         }
         
         // Let's thread !

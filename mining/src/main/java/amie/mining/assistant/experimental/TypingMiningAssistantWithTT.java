@@ -21,7 +21,7 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 	
 	public static String topType = "owl:Thing";
 	
-	public static ByteString topTypeBS = ByteString.of(topType);
+	public static ByteString topTypeBS = KB.map(topType);
 
 	public TypingMiningAssistantWithTT(KB dataSource) {
 		super(dataSource);
@@ -209,11 +209,11 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 		for (Rule rule : output) {
 			System.out.println(rule.getRuleString() + "\t" + String.valueOf(rule.getStdConfidence()));
 		}*/
-		newRule = new Rule(KB.triple(ByteString.of("?x"), KB.TRANSITIVETYPEbs, ByteString.of("<wordnet_abstraction_100002137>")),
-							KB.triples(KB.triple(ByteString.of("?x"), ByteString.of("<isMarriedTo>"), ByteString.of("?y")),
-									   KB.triple(ByteString.of("?x"), KB.TRANSITIVETYPEbs, topTypeBS)), 0);
+		newRule = new Rule(KB.triple(KB.map("?x"), KB.TRANSITIVETYPEbs, KB.map("<wordnet_abstraction_100002137>")),
+							KB.triples(KB.triple(KB.map("?x"), KB.map("<isMarriedTo>"), KB.map("?y")),
+									   KB.triple(KB.map("?x"), KB.TRANSITIVETYPEbs, topTypeBS)), 0);
 		System.out.println("New rule: " + newRule.getRuleString());
-		long support = kb.countDistinct(ByteString.of("?x"), newRule.getTriples());
+		long support = kb.countDistinct(KB.map("?x"), newRule.getTriples());
 		System.out.println("Support: " + String.valueOf(support));
 		System.out.println("MRT calls: " + String.valueOf(KB.STAT_NUMBER_OF_CALL_TO_MRT.get()));
 		/*

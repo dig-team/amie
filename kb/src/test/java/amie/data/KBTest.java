@@ -48,14 +48,14 @@ public class KBTest extends TestCase {
 	public void testValuesOneVar1() {
 		IntSet values = kb.resultsOneVariable(KB.triple("<worksAt>", KB.NOTEXISTSbs, "?x"));
 		assertEquals(2, values.size());
-		assertTrue(values.contains(ByteString.of("<Oana>")));
-		assertTrue(values.contains(ByteString.of("<Telecom>")));
+		assertTrue(values.contains(KB.map("<Oana>")));
+		assertTrue(values.contains(KB.map("<Telecom>")));
 	}
 	
 	public void testValuesOneVar2() {
 		IntSet values = kb.resultsOneVariable(KB.triple("?x", KB.NOTEXISTSbs, "<Luis>"));
 		assertEquals(1, values.size());
-		assertTrue(values.contains(ByteString.of("<isLocatedIn>")));
+		assertTrue(values.contains(KB.map("<isLocatedIn>")));
 	}
 	
 	public void testValuesOneVar3() {
@@ -63,11 +63,11 @@ public class KBTest extends TestCase {
 		kb.add(KB.triple("<Munich>", "<rdf:type>", "<City>"));
 		kb.add(KB.triple("<Colmar>", "<rdf:type>", "<City>"));		
 		kb.add(KB.triple("<Paris>", "<rdf:type>", "<City>"));		
-		IntSet values = kb.selectDistinct(ByteString.of("?x"), 
+		IntSet values = kb.selectDistinct(KB.map("?x"), 
 				KB.triples(KB.triple("<wasBornIn>", KB.NOTEXISTSINVbs, "?x"),
 						KB.triple("?x", "<rdf:type>", "<City>")));
 		assertEquals(1, values.size());
-		assertTrue(values.contains(ByteString.of("<Paris>")));
+		assertTrue(values.contains(KB.map("<Paris>")));
 	}
 	
 	public void testValuesTwoVars() {
@@ -80,17 +80,17 @@ public class KBTest extends TestCase {
 		kb.add(KB.triple("<Ambar>", "<rdf:type>", "<Person>"));		
 		kb.add(KB.triple("<Oana>", "<rdf:type>", "<Person>"));	
 		kb.add(KB.triple("<Thomas>", "<rdf:type>", "<Person>"));
-		Int2ObjectMap<IntSet> values = kb.selectDistinct(ByteString.of("?x"), ByteString.of("?y"),
+		Int2ObjectMap<IntSet> values = kb.selectDistinct(KB.map("?x"), KB.map("?y"),
 				KB.triples(KB.triple("?x", KB.NOTEXISTSbs, "?y"),
 						KB.triple("?y", "<rdf:type>", "<Person>")));
-		assertTrue(values.containsKey(ByteString.of("<wasBornIn>")));
-		assertTrue(values.get(ByteString.of("<wasBornIn>")).contains(ByteString.of("<Ambar>")));
+		assertTrue(values.containsKey(KB.map("<wasBornIn>")));
+		assertTrue(values.get(KB.map("<wasBornIn>")).contains(KB.map("<Ambar>")));
 		
-		values = kb.selectDistinct(ByteString.of("?x"), ByteString.of("?y"),
+		values = kb.selectDistinct(KB.map("?x"), KB.map("?y"),
 				KB.triples(KB.triple("?x", KB.NOTEXISTSINVbs, "?y"),
 						KB.triple("?y", "<rdf:type>", "<City>")));
-		assertTrue(values.containsKey(ByteString.of("<wasBornIn>")));
-		assertTrue(values.get(ByteString.of("<wasBornIn>")).contains(ByteString.of("<Paris>")));
+		assertTrue(values.containsKey(KB.map("<wasBornIn>")));
+		assertTrue(values.get(KB.map("<wasBornIn>")).contains(KB.map("<Paris>")));
 	}
         
         public void testSelectIterator() {
@@ -104,14 +104,14 @@ public class KBTest extends TestCase {
                     KB.triple("?x", "<worksAt>", "?t"),
                     KB.triple("?t", "<isLocatedIn>", "?c"),
                     KB.triple("?x", "<livesIn>", "?c"));
-            IntSet values = kb.selectDistinct(ByteString.of("?x"), query);
+            IntSet values = kb.selectDistinct(KB.map("?x"), query);
             assertEquals(3, values.size());
-            assertTrue(values.contains(ByteString.of("<Thomas>")));
-            assertTrue(values.contains(ByteString.of("<Antoine>")));
-            assertTrue(values.contains(ByteString.of("<Luis>")));
+            assertTrue(values.contains(KB.map("<Thomas>")));
+            assertTrue(values.contains(KB.map("<Antoine>")));
+            assertTrue(values.contains(KB.map("<Luis>")));
             IntSet result = new IntOpenHashSet();
             IntSet resultIterator = new IntOpenHashSet();
-            for (IntIterator it = kb.selectDistinctIterator(result, ByteString.of("?x"), query); it.hasNext(); ) {
+            for (IntIterator it = kb.selectDistinctIterator(result, KB.map("?x"), query); it.hasNext(); ) {
                 ByteString e = it.next();
                 assertFalse(resultIterator.contains(e));
                 resultIterator.add(e);
@@ -127,21 +127,21 @@ public class KBTest extends TestCase {
             atom3 = KB.triple("?y", "c", "E");
             
             List<ByteString[]> query = KB.triples(atom1, atom2, atom3);
-            assertEquals(KB.connectedComponent(query, ByteString.of("?y"), ByteString.of("?x")),
+            assertEquals(KB.connectedComponent(query, KB.map("?y"), KB.map("?x")),
                     KB.triples(atom1, atom3));
-            assertEquals(KB.connectedComponent(query, ByteString.of("?y"), ByteString.of("?z")),
+            assertEquals(KB.connectedComponent(query, KB.map("?y"), KB.map("?z")),
                     KB.triples(atom1, atom2, atom3));
-            assertEquals(KB.connectedComponent(query, ByteString.of("?x"), ByteString.of("?y")),
+            assertEquals(KB.connectedComponent(query, KB.map("?x"), KB.map("?y")),
                     KB.triples(atom1, atom2));
-            assertEquals(KB.connectedComponent(query, ByteString.of("?x"), ByteString.of("?z")),
+            assertEquals(KB.connectedComponent(query, KB.map("?x"), KB.map("?z")),
                     KB.triples(atom1, atom2, atom3));
-            assertEquals(KB.connectedComponent(query, ByteString.of("?z"), ByteString.of("?x")),
+            assertEquals(KB.connectedComponent(query, KB.map("?z"), KB.map("?x")),
                     KB.triples(atom2));
-            assertEquals(KB.connectedComponent(query, ByteString.of("?z"), ByteString.of("?y")),
+            assertEquals(KB.connectedComponent(query, KB.map("?z"), KB.map("?y")),
                     KB.triples(atom1, atom2));
-            assertEquals(KB.connectedComponent(query, ByteString.of("?w"), ByteString.of("a")),
+            assertEquals(KB.connectedComponent(query, KB.map("?w"), KB.map("a")),
                     KB.triples());
-            assertEquals(KB.connectedComponent(query, ByteString.of("?x"), ByteString.of("?w")),
+            assertEquals(KB.connectedComponent(query, KB.map("?x"), KB.map("?w")),
                     KB.triples(atom1, atom2, atom3));
         }
 

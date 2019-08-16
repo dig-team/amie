@@ -32,7 +32,7 @@ public class TaxonomyMinimal {
         KB taxo = new KB();
         taxo.setDelimiter(" ");
         Schema.subClassRelation = "<P279>";
-                Schema.subClassRelationBS = ByteString.of(Schema.subClassRelation);
+                Schema.subClassRelationBS = KB.map(Schema.subClassRelation);
         taxo.load(new File(args[0]));
         
         for (int i = 1; i < args.length; i++) {
@@ -41,7 +41,7 @@ public class TaxonomyMinimal {
 
             File resultFile = new File(args[i]);
             for (String line : new FileLines(resultFile, "UTF-8", null)) {
-                ByteString t = ByteString.of(line.trim());
+                ByteString t = KB.map(line.trim());
                 if (results.contains(t)) {
                     clean = false;
                     System.err.println("ERROR:"+args[i]+": Duplicates found");

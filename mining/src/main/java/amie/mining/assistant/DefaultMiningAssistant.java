@@ -85,7 +85,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 	@Override
 	public Collection<Rule> getInitialAtoms(double minSupportThreshold) {
 		List<ByteString[]> newEdgeList = new ArrayList<ByteString[]>(1);
-		ByteString[] newEdge = new ByteString[]{ByteString.of("?x"), ByteString.of("?y"), ByteString.of("?z")};
+		ByteString[] newEdge = new ByteString[]{KB.map("?x"), KB.map("?y"), KB.map("?z")};
 		newEdgeList.add(newEdge);
 		List<ByteString[]> emptyList = Collections.emptyList();
 		Int2IntMap relations = this.kb.countProjectionBindings(newEdge, emptyList, newEdge[1]);
@@ -609,7 +609,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 				freeVarPos = 0;
 		}
 
-		existentialTriple[freeVarPos] = ByteString.of("?xw");
+		existentialTriple[freeVarPos] = KB.map("?xw");
 		if (!antecedent.isEmpty()) {
 			antecedent.add(existentialTriple);
 			try{
@@ -668,8 +668,8 @@ public class DefaultMiningAssistant extends MiningAssistant{
 				KB.triple("?e", "<isMarriedTo>", "?a"));
 		//?e  <hasChild>  ?b  ?e  <isMarriedTo>  ?a   => ?a  <hasChild>  ?b
 		long timeStamp1 = System.currentTimeMillis();
-		System.out.println("Results Std: " + db.countDistinctPairs(ByteString.of("?a"), ByteString.of("?b"), pcaDenom.subList(1,  pcaDenom.size() - 1)));
-		System.out.println("Results PCA: " + db.countDistinctPairs(ByteString.of("?a"), ByteString.of("?b"), pcaDenom));
+		System.out.println("Results Std: " + db.countDistinctPairs(KB.map("?a"), KB.map("?b"), pcaDenom.subList(1,  pcaDenom.size() - 1)));
+		System.out.println("Results PCA: " + db.countDistinctPairs(KB.map("?a"), KB.map("?b"), pcaDenom));
 		System.out.println("PCA denom: " + ((System.currentTimeMillis() - timeStamp1) / 1000.0) + " seconds");
 	}
 }

@@ -29,13 +29,13 @@ public class FrequencyTester {
 				if (attribute2class2score == null) {
 					heuristic2attribute2class2score.put(heuristic, attribute2class2score = new Int2ObjectOpenHashMap<>());
 				}
-				ByteString attribute = ByteString.of(split[2].trim());
+				ByteString attribute = KB.map(split[2].trim());
 				if (attribute2classes != null && !attribute2classes.containsKey(attribute)) continue;
 				Int2ObjectMap<Double> class2score = attribute2class2score.get(attribute);
 				if (class2score == null) {
 					attribute2class2score.put(attribute, class2score = new Int2ObjectOpenHashMap<>());
 				}
-				class2score.put(ByteString.of(split[1].trim()), Double.valueOf(split[3].trim()));
+				class2score.put(KB.map(split[1].trim()), Double.valueOf(split[3].trim()));
 			}
 		}
 	}
@@ -45,14 +45,14 @@ public class FrequencyTester {
 		for (String line : new FileLines(f, "UTF-8", null)) {
 			String[] split = line.trim().split("\t");
 			if (split.length == 2) {
-				ByteString attribute = ByteString.of(split[0].trim());
+				ByteString attribute = KB.map(split[0].trim());
 				IntSet classes = attribute2classes.get(attribute);
 				if (classes == null) {
 					classes = new IntOpenHashSet();
 					attribute2classes.put(attribute, classes);
 				}
-				ByteString dclass = ByteString.of("<http://dbpedia.org/ontology/" + split[1].trim() + ">");
-				if(dclass != ByteString.of("<http://dbpedia.org/ontology/None>")) {
+				ByteString dclass = KB.map("<http://dbpedia.org/ontology/" + split[1].trim() + ">");
+				if(dclass != KB.map("<http://dbpedia.org/ontology/None>")) {
 					classes.add(dclass);
 					classes.addAll(amie.data.Schema.getAllSubTypes(taxo, dclass));
 				}
@@ -102,7 +102,7 @@ public class FrequencyTester {
 		taxo.load(new File(args[0]));
 		ft.loadGoldStandard(taxo, new File(args[1]));
 		ft.loadResults(new File(args[2]));
-		//ft.test("StdConf", ByteString.of("<http://dbpedia.org/ontology/architect>-1"));
+		//ft.test("StdConf", KB.map("<http://dbpedia.org/ontology/architect>-1"));
 		ft.testAll();
 		//ft.printGoldStandard();
 	}

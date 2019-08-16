@@ -34,7 +34,7 @@ public class ReverseStdConfHeuristic extends TypingHeuristic {
 	public double evaluate(ByteString type, List<ByteString[]> clause,
 			ByteString variable) {
                 // TODO Scale with max value of children
-                ByteString relation = (clause.get(0)[0].equals(variable)) ? clause.get(0)[1] : ByteString.of(clause.get(0)[1].toString() + "-1");
+                ByteString relation = (clause.get(0)[0].equals(variable)) ? clause.get(0)[1] : KB.map(clause.get(0)[1].toString() + "-1");
                 //System.err.println(relation.toString());
                 //System.err.println(phi.size());
                 Integer bodySize = bodySizes.get(relation);

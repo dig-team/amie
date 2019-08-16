@@ -215,7 +215,7 @@ public class Rule {
      * @return
      */
     public ByteString[] fullyUnboundTriplePattern() {
-        return new ByteString[] {newVariable(), ByteString.of("?pp"), newVariable()};
+        return new ByteString[] {newVariable(), KB.map("?pp"), newVariable()};
     }
 
     /** It creates a new unbound atom with fresh variables for the subject and object
@@ -225,9 +225,9 @@ public class Rule {
     public static synchronized ByteString[] fullyUnboundTriplePattern1() {
         ByteString[] result = new ByteString[3];
         ++varsCount;
-        result[0] = ByteString.of("?s" + varsCount);
-        result[1] = ByteString.of("?p" + varsCount);
-        result[2] = ByteString.of("?o" + varsCount);
+        result[0] = KB.map("?s" + varsCount);
+        result[1] = KB.map("?p" + varsCount);
+        result[2] = KB.map("?o" + varsCount);
         return result;
     }
 
@@ -409,8 +409,8 @@ public class Rule {
     	}
     	
     	ByteString result = this.highestVariableSuffix == 0 ?
-    			ByteString.of("?" + this.highestVariable) :
-    			ByteString.of("?" + this.highestVariable + this.highestVariableSuffix);
+    			KB.map("?" + this.highestVariable) :
+    			KB.map("?" + this.highestVariable + this.highestVariableSuffix);
     	
     	return result;
     }
@@ -2005,7 +2005,7 @@ public class Rule {
             newTriples.add(triple.clone());
         }
         ByteString[] existentialTriple = newTriples.get(0);
-        existentialTriple[getNonFunctionalVariablePosition()] = ByteString.of("?x");
+        existentialTriple[getNonFunctionalVariablePosition()] = KB.map("?x");
         return newTriples;
     }
 
@@ -2045,7 +2045,7 @@ public class Rule {
 
             IntSet otherVariables = rule.getNonHeadVariables();
             for (ByteString var : otherVariables) {
-                Rule.bind(var, ByteString.of("?v" + varCount), antecedentClone);
+                Rule.bind(var, KB.map("?v" + varCount), antecedentClone);
                 ++varCount;
                 nonHeadVariables.add(var);
             }

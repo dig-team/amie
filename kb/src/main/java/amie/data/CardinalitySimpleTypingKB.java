@@ -45,7 +45,7 @@ public class CardinalitySimpleTypingKB extends SimpleTypingKB {
                     relations.put(relation, eS = new IntOpenHashSet());
                 }
                 eS.add(subject);
-                ByteString relationy = ByteString.of(relation.toString() + "-1");
+                ByteString relationy = KB.map(relation.toString() + "-1");
                 eS = relations.get(relationy);
                 if (eS == null) {
                     relations.put(relationy, eS = new IntOpenHashSet());
@@ -82,17 +82,17 @@ public class CardinalitySimpleTypingKB extends SimpleTypingKB {
             for (int i = 0; i < sortedKeys.size(); i++) {
                 if (i > 0) {
                     t.get(sortedKeys.get(i)).addAll(t.get(sortedKeys.get(i-1)));
-                    add(ByteString.of(entry.getKey().toString() + 
+                    add(KB.map(entry.getKey().toString() + 
                              "_" + Integer.toString(sortedKeys.get(i-1)) + "+"),
                         Schema.subClassRelationBS,
-                        ByteString.of(entry.getKey().toString() + 
+                        KB.map(entry.getKey().toString() + 
                             "_" + Integer.toString(sortedKeys.get(i)) + "+"));
                 }
-                classes.put(ByteString.of(entry.getKey().toString() + 
+                classes.put(KB.map(entry.getKey().toString() + 
                         "_" + Integer.toString(sortedKeys.get(i)) + "+"), 
                         t.get(sortedKeys.get(i)));
             }
-            add(ByteString.of(entry.getKey().toString() + 
+            add(KB.map(entry.getKey().toString() + 
                         "_" + Integer.toString(sortedKeys.get(sortedKeys.size() - 1)) + "+"),
                 Schema.subClassRelationBS,
                 Schema.topBS);

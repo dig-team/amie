@@ -65,7 +65,7 @@ public class ExistentialRulesHeadVariablesMiningAssistant extends
 				}else{
 					freeVarPos = existentialTriple[0].equals(candidate.getFunctionalVariable()) ? 2 : 0;
 				}
-				existentialTriple[freeVarPos] = ByteString.of("?x");
+				existentialTriple[freeVarPos] = KB.map("?x");
 				
 				try{
 					List<ByteString[]> redundantAtoms = Rule.redundantAtoms(existentialTriple, antecedent);

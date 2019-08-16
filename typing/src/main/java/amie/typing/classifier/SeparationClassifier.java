@@ -33,12 +33,12 @@ public class SeparationClassifier {
     public Int2IntMap classSize;
     public Int2ObjectMap<Int2IntMap> classIntersectionSize;
 
-    protected double getStandardConfidenceWithThreshold(List<int[]> head, List<int[]> body, ByteString variable, int threshold, boolean unsafe) {
+    protected double getStandardConfidenceWithThreshold(List<int[]> head, List<int[]> body, int variable, int threshold, boolean unsafe) {
         long support, bodySize;
         
         if(db instanceof SimpleTypingKB) {
             SimpleTypingKB simpledb = (SimpleTypingKB) db;
-            ByteString relation;
+            int relation;
             if (body.size() == 1) {
                 relation = (body.get(0)[0].equals(variable)) ? body.get(0)[1] : KB.map(body.get(0)[1].toString() + "-1");
                 bodySize = simpledb.countElements(relation);
@@ -74,9 +74,9 @@ public class SeparationClassifier {
      * @param supportThreshold
      * @return
      */
-    public IntSet getRelevantClasses(List<int[]> query, ByteString variable, int supportThreshold) {
+    public IntSet getRelevantClasses(List<int[]> query, int variable, int supportThreshold) {
         IntSet result = new IntOpenHashSet();
-        for (ByteString c : classSize) {
+        for (int c : classSize) {
             if (getStandardConfidenceWithThreshold(TypingHeuristic.typeL(c, variable), query, variable, supportThreshold, true) != 0) {
                 result.add(c);
             }
@@ -84,11 +84,11 @@ public class SeparationClassifier {
         return result;
     }
 
-    public Int2ObjectMap<Int2ObjectMap<Double>> computeStatistics(List<int[]> query, ByteString variable, int classSizeThreshold, int supportThreshold) {
+    public Int2ObjectMap<Int2ObjectMap<Double>> computeStatistics(List<int[]> query, int variable, int classSizeThreshold, int supportThreshold) {
         Int2ObjectMap<Int2ObjectMap<Double>> result = new Int2ObjectOpenHashMap<>();
         IntSet relevantClasses = getRelevantClasses(query, variable, supportThreshold);
 
-        for (ByteString class1 : relevantClasses) {
+        for (int class1 : relevantClasses) {
             int c1size = classSize.get(class1);
 
             if (c1size < classSizeThreshold) {
@@ -99,7 +99,7 @@ public class SeparationClassifier {
             List<int[]> clause = TypingHeuristic.typeL(class1, variable);
             clause.addAll(query);
 
-            for (ByteString class2 : relevantClasses) {
+            for (int class2 : relevantClasses) {
 
                 assert (clause.size() == query.size() + 1);
                 if (class1 == class2) {
@@ -156,8 +156,8 @@ public class SeparationClassifier {
         // add an unionRatio ?
         double lratio = Math.abs(Math.log(eliminationRatio));
         IntSet V = new IntOpenHashSet(statistics.keySet());
-        for (ByteString class1 : statistics.keySet()) {
-            for (ByteString class2 : statistics.get(class1).keySet()) {
+        for (int class1 : statistics.keySet()) {
+            for (int class2 : statistics.get(class1).keySet()) {
                 double s1 = Math.log(statistics.get(class1).get(class2));
                 if (Double.isNaN(s1)) {
                     continue;
@@ -193,7 +193,7 @@ public class SeparationClassifier {
                  */
             }
         }
-        for (ByteString t : V) {
+        for (int t : V) {
             System.out.println(t.toString());
         }
     }
@@ -300,7 +300,7 @@ public class SeparationClassifier {
         public String delimiter = "\t";
         public String[] leftOverArgs = null;
         public List<int[]> query;
-        public ByteString variable;
+        public int variable;
         public File countFile = null;
         public File countIntersectionFile = null;
 

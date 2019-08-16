@@ -60,11 +60,11 @@ public class RelevanceFilter {
 		}
 		
 		// Now filter the facts
-		ByteString s = KB.map("?s");
-		ByteString r = KB.map("?r");
-		ByteString o = KB.map("?o");		
+		int s = KB.map("?s");
+		int r = KB.map("?r");
+		int o = KB.map("?o");		
 		List<int[]> query =  KB.triples(KB.triple(s, r, o));
-		for (ByteString relation : kb.selectDistinct(KB.map("?r"), query)) {			
+		for (int relation : kb.selectDistinct(KB.map("?r"), query)) {			
 			int[] query2 = KB.triple(s, relation, o);
 			Int2ObjectMap<IntSet> bindings = null;
 			boolean inversed = false;
@@ -75,7 +75,7 @@ public class RelevanceFilter {
 				bindings = kb.resultsTwoVariables(o, s, query2);			
 			}
 			
-			for (ByteString argument : bindings.keySet()) {
+			for (int argument : bindings.keySet()) {
 				Double relevanceValue = relevanceMap.get(argument);
 				if (relevanceValue != null) {
 					//Output the entry
@@ -93,14 +93,14 @@ public class RelevanceFilter {
 	 * @param intHashMap
 	 * @param inversed If true, then the object is fixed, otherwise the subject
 	 */
-	private static void outputEntry(ByteString argument, ByteString relation, 
+	private static void outputEntry(int argument, int relation, 
 			IntSet values, boolean inversed) {
 		if (inversed) {
-			for (ByteString value : values) {
+			for (int value : values) {
 				System.out.println(value + "\t" + relation + "\t" + argument);
 			}	
 		} else {
-			for (ByteString value : values) {
+			for (int value : values) {
 				System.out.println(argument + "\t" + relation + "\t" + value);
 			}				
 		}

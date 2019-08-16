@@ -39,11 +39,11 @@ public class SeparationVTreeClassifier extends SeparationPTreeClassifier {
     }
     
     @Override
-    public void computeStatistics(List<int[]> query, ByteString variable, int classSizeThreshold) {
+    public void computeStatistics(List<int[]> query, int variable, int classSizeThreshold) {
         IntSet relevantClasses = index.keySet();
-        ByteString relation = (query.get(0)[0].equals(variable)) ? query.get(0)[1] : KB.map(query.get(0)[1].toString() + "-1");
+        int relation = (query.get(0)[0].equals(variable)) ? query.get(0)[1] : KB.map(query.get(0)[1].toString() + "-1");
 
-        for (ByteString class1 : relevantClasses) {
+        for (int class1 : relevantClasses) {
             int c1size = classSize.get(class1);
             IntSet c1phi = new IntOpenHashSet(localdb.relations.get(relation));
             c1phi.retainAll(localdb.classes.get(class1));
@@ -53,7 +53,7 @@ public class SeparationVTreeClassifier extends SeparationPTreeClassifier {
 
             IntSet targetClasses = (supportForTarget) ? relevantClasses : classIntersectionSize.get(class1);
 
-            for (ByteString class2 : targetClasses) {
+            for (int class2 : targetClasses) {
                 if (class1 == class2) {
                     continue;
                 }

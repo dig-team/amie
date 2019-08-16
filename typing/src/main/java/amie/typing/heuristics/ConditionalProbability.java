@@ -27,10 +27,10 @@ public class ConditionalProbability extends TypingHeuristic {
 	}
 
 	@Override 
-	public double evaluate(ByteString type, List<int[]> clause,
-			ByteString variable) {
+	public double evaluate(int type, List<int[]> clause,
+			int variable) {
 		double t, stdConf, superClassMaxConf = 0;
-		for (ByteString c : amie.data.Schema.getSuperTypes(db, type)) {
+		for (int c : amie.data.Schema.getSuperTypes(db, type)) {
 			if ((t = getStandardConfidence(c, clause, variable)) > superClassMaxConf) {
 				superClassMaxConf = t;
 			}

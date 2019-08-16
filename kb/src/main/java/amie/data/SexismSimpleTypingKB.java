@@ -13,7 +13,7 @@ import javatools.datatypes.ByteString;
  */
 public class SexismSimpleTypingKB extends SimpleTypingKB {
     @Override
-    protected boolean add(ByteString subject, ByteString relation, ByteString object) {
+    protected boolean add(int subject, int relation, int object) {
         if (relation.equals(Schema.typeRelationBS) || relation.equals(Schema.subClassRelationBS)) {
             return super.add(subject, relation, object);
         } else if (relation.equals(KB.map("<hasGender>"))) {

@@ -64,8 +64,8 @@ public class MinCutMaxClassifier extends SeparationClassifier {
 	
 	private Pair<ByteString, Double> getMaxEdge(Int2ObjectMap<LinkedList<Int2ObjectMap.Entry<Double>>> graph, IntSet CV) {
 		Double maxD = Double.NEGATIVE_INFINITY;
-		ByteString maxN = null;
-		for(ByteString t : CV) {
+		int maxN = null;
+		for(int t : CV) {
 			LinkedList<Int2ObjectMap.Entry<Double>> tt = graph.get(t);
                         if(tt == null) continue;
 			while(!tt.isEmpty()) {
@@ -85,9 +85,9 @@ public class MinCutMaxClassifier extends SeparationClassifier {
 		return new Pair<>(maxN, maxD);
 	}
 	
-	public IntSet t_MinCutMax(Int2ObjectMap<Int2ObjectMap<Double>> statistics, ByteString t) {
+	public IntSet t_MinCutMax(Int2ObjectMap<Int2ObjectMap<Double>> statistics, int t) {
 		Int2ObjectMap<LinkedList<Int2ObjectMap.Entry<Double>>> smm = new Int2ObjectOpenHashMap<>();
-		for (ByteString t1 : statistics.keySet()) {
+		for (int t1 : statistics.keySet()) {
 			smm.put(t1, linkSortMap(statistics.get(t1), Collections.reverseOrder()));
 		}
 		// Implement t-MinCutMax algorithm
@@ -111,7 +111,7 @@ public class MinCutMaxClassifier extends SeparationClassifier {
         }
                 
         public void classify(Int2ObjectMap<Int2ObjectMap<Double>> statistics) {         
-            for(ByteString s : t_MinCutMax(statistics, KB.map("owl:Thing"))) {
+            for(int s : t_MinCutMax(statistics, KB.map("owl:Thing"))) {
                 System.out.println(s.toString());
             }
 	}

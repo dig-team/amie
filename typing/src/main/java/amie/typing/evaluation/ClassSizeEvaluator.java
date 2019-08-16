@@ -23,9 +23,9 @@ public class ClassSizeEvaluator {
     public Pair<Integer, Integer> evaluatePrecisionPair(IntSet answer, IntSet goldStandard) {
         int TP = 0;
         int FP = 0;
-        for (ByteString c : answer) {
+        for (int c : answer) {
             int subTP = 0;
-            for (ByteString gc : goldStandard) {
+            for (int gc : goldStandard) {
                 if (gc.equals(c) || Schema.isTransitiveSuperType(taxo, gc, c)) {
                     subTP = classSize.get(c);
                     break;

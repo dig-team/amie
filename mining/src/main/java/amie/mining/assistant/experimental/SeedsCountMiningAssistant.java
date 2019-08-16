@@ -39,8 +39,8 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 	protected void getInstantiatedAtoms(Rule query, Rule originalQuery, int[] danglingEdge, 
 			int danglingPosition, double minSupportThreshold, Collection<Rule> output) {
 		Int2IntMap constants = kb.frequentBindingsOf(danglingEdge[danglingPosition], query.getFunctionalVariable(), query.getTriples());
-		for(ByteString constant: constants){
-			ByteString tmp = danglingEdge[danglingPosition];
+		for(int constant: constants){
+			int tmp = danglingEdge[danglingPosition];
 			danglingEdge[danglingPosition] = constant;
 			int cardinality = seedsCardinality(query);
 			danglingEdge[danglingPosition] = tmp;
@@ -108,18 +108,18 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 		varSetups[0] = new Pair<Integer, Integer>(0, 2);
 		varSetups[1] = new Pair<Integer, Integer>(2, 0);
 		int[] newEdge = query.fullyUnboundTriplePattern();
-		ByteString relationVariable = newEdge[1];
+		int relationVariable = newEdge[1];
 		
 		for(Pair<Integer, Integer> varSetup: varSetups){			
 			int joinPosition = varSetup.first.intValue();
 			int closeCirclePosition = varSetup.second.intValue();
-			ByteString joinVariable = newEdge[joinPosition];
-			ByteString closeCircleVariable = newEdge[closeCirclePosition];
+			int joinVariable = newEdge[joinPosition];
+			int closeCircleVariable = newEdge[closeCirclePosition];
 						
-			for(ByteString sourceVariable: sourceVariables){					
+			for(int sourceVariable: sourceVariables){					
 				newEdge[joinPosition] = sourceVariable;
 				
-				for(ByteString variable: targetVariables){
+				for(int variable: targetVariables){
 					if(!variable.equals(sourceVariable)){
 						newEdge[closeCirclePosition] = variable;
 						
@@ -127,7 +127,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 						Int2IntMap promisingRelations = kb.frequentBindingsOf(newEdge[1], query.getFunctionalVariable(), query.getTriples());
 						query.getTriples().remove(nPatterns);
 						
-						for(ByteString relation: promisingRelations){
+						for(int relation: promisingRelations){
 							if(bodyExcludedRelations != null && bodyExcludedRelations.contains(relation))
 								continue;
 							
@@ -171,7 +171,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 		query.getTriples().add(newEdge);
 		Int2IntMap relations = 
 				kb.frequentBindingsOf(newEdge[1], newEdge[0], query.getTriples());
-		for (ByteString relation: relations) {
+		for (int relation: relations) {
 			if(headExcludedRelations != null && headExcludedRelations.contains(newEdge[1]))
 				continue;
 
@@ -225,12 +225,12 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 		}
 
 		int nPatterns = query.getTriples().size();
-		ByteString originalRelationVariable = newEdge[1];		
+		int originalRelationVariable = newEdge[1];		
 		
 		for(int joinPosition = 0; joinPosition <= 2; joinPosition += 2){
-			ByteString originalFreshVariable = newEdge[joinPosition];
+			int originalFreshVariable = newEdge[joinPosition];
 			
-			for(ByteString joinVariable: joinVariables){					
+			for(int joinVariable: joinVariables){					
 				newEdge[joinPosition] = joinVariable;
 				query.getTriples().add(newEdge);
 				Int2IntMap promisingRelations = kb.frequentBindingsOf(newEdge[1], query.getFunctionalVariable(), query.getTriples());
@@ -238,7 +238,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 				
 				int danglingPosition = (joinPosition == 0 ? 2 : 0);
 				boolean boundHead = !KB.isVariable(query.getTriples().get(0)[danglingPosition]);
-				for(ByteString relation: promisingRelations){
+				for(int relation: promisingRelations){
 					if(bodyExcludedRelations != null && bodyExcludedRelations.contains(relation))
 						continue;
 					//Here we still have to make a redundancy check		

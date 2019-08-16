@@ -97,7 +97,7 @@ public class PCAFalseFactsSampler {
 			rulesForRelation.add(rule);			
 		}
 		
-		for(ByteString relation: headsToRules.keySet()){
+		for(int relation: headsToRules.keySet()){
 			Map<Triple<ByteString, ByteString, ByteString>, Rule> factToRule = new HashMap<Triple<ByteString, ByteString, ByteString>, Rule>();
 			Set<Triple<ByteString, ByteString, ByteString>> allAssumedFalse = new LinkedHashSet<Triple<ByteString, ByteString, ByteString>>();	
 			for(Rule rule: headsToRules.get(relation)){		
@@ -123,7 +123,7 @@ public class PCAFalseFactsSampler {
 		Set<Triple<ByteString, ByteString, ByteString>> result = new LinkedHashSet<Triple<ByteString, ByteString, ByteString>>();
 		int[] head = rule.getHead();
 		int[] existential = head.clone();
-		ByteString relation = head[1];
+		int relation = head[1];
 				
 		if(rule.getFunctionalVariablePosition() == 0)
 			existential[2] = KB.map("?x");
@@ -136,8 +136,8 @@ public class PCAFalseFactsSampler {
 		
 		if(KB.numVariables(rule.getHead()) == 2){
 			Int2ObjectMap<IntSet> bindingsTwoVars = db.difference(head[0], head[2], query, rule.getTriples());
-			for(ByteString subject: bindingsTwoVars.keySet()){
-				for(ByteString object: bindingsTwoVars.get(subject)){
+			for(int subject: bindingsTwoVars.keySet()){
+				for(int object: bindingsTwoVars.get(subject)){
 					result.add(new Triple<ByteString, ByteString, ByteString>(subject, relation, object));
 					//int[] test = new int[]{subject, relation, object};
 					//assert(!db.contains(test));

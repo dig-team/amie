@@ -20,8 +20,8 @@ public class HeadVariablesImprovedMiningAssistant extends
         		+ "Adding type constraints when calculating support and confidence.";
 	}
 
-	protected double computePcaBodySize(ByteString var1, 
-			ByteString var2, Rule query, 
+	protected double computePcaBodySize(int var1, 
+			int var2, Rule query, 
 			List<int[]> antecedent, 
 			int[] existentialTriple, 
 			int nonExistentialPosition) {

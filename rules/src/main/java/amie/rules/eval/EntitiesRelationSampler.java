@@ -38,7 +38,7 @@ public class EntitiesRelationSampler {
 		Int2ObjectMap<List<Pair<ByteString, ByteString>>> relationsMap = new Int2ObjectOpenHashMap<List<Pair<ByteString, ByteString>>>();
 		Int2IntMap relationEntityCount = new Int2IntOpenHashMap();
 		
-		for(ByteString relation: allRelations){
+		for(int relation: allRelations){
 			relationEntityCount.put(relation, 0);
 			relationsMap.put(relation, new ArrayList<Pair<ByteString, ByteString>>());
 		}
@@ -47,7 +47,7 @@ public class EntitiesRelationSampler {
 			//Pick a random entity
 			Random r = new Random();
 			int position = r.nextInt(entitiesArray.size());
-			ByteString entity = entitiesArray.get(position);
+			int entity = entitiesArray.get(position);
 			swap(entitiesArray, position, entitiesArray.size() - 1);
 			entitiesArray.remove(entitiesArray.size() - 1);
 			
@@ -55,14 +55,14 @@ public class EntitiesRelationSampler {
 			List<int[]> query = KB.triples(KB.triple(entity, KB.map("?p"), KB.map("?o")));
 			Int2ObjectMap<IntSet> predicateObjects = db.selectDistinct(KB.map("?p"), KB.map("?o"), query);
 			
-			for(ByteString relation: predicateObjects.keySet()){				
+			for(int relation: predicateObjects.keySet()){				
 				if(relationEntityCount.get(relation) >= maxOccurrencePerRelation){
 					continue;
 				}
 				
 				relationEntityCount.increase(relation);
 				List<Pair<ByteString, ByteString>> facts = relationsMap.get(relation);
-				for(ByteString object: predicateObjects.get(relation)){
+				for(int object: predicateObjects.get(relation)){
 					facts.add(new Pair<ByteString, ByteString>(entity, object));
 				}
 				
@@ -71,7 +71,7 @@ public class EntitiesRelationSampler {
 			}
 		}
 		
-		for(ByteString relation: relationsMap.keySet()){
+		for(int relation: relationsMap.keySet()){
 			for(Pair<ByteString, ByteString> entityObject: relationsMap.get(relation))
 				System.out.println(entityObject.first + "\t" + relation + "\t" + entityObject.second);
 		}
@@ -79,7 +79,7 @@ public class EntitiesRelationSampler {
 	}
 
 	private static void swap(List<ByteString> entitiesArray, int i, int j) {
-		ByteString tmp = entitiesArray.get(i);
+		int tmp = entitiesArray.get(i);
 		entitiesArray.set(i, entitiesArray.get(j));
 		entitiesArray.set(j, tmp);
 	}

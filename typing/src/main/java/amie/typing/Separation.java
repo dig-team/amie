@@ -231,7 +231,7 @@ public class Separation extends Thread {
             relations.remove(Schema.subClassRelationBS);
 
             int[] q;
-            for (ByteString r : relations) {
+            for (int r : relations) {
                 q = KB.triple(KB.map("?x"), r, KB.map("?y"));
                 queryQ.add(new Pair<>(KB.triples(q), KB.map("?x")));
                 queryQ.add(new Pair<>(KB.triples(q), KB.map("?y")));

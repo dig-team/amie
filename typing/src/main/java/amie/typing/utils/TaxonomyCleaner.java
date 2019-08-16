@@ -31,8 +31,8 @@ public class TaxonomyCleaner {
         for (String line : new FileLines(new File(args[0]), "UTF-8", null)) {
             String[] split = line.split("/t");
             if (split.length == 4) {
-                ByteString s = KB.map(split[1]);
-                ByteString o = KB.map(split[3]);
+                int s = KB.map(split[1]);
+                int o = KB.map(split[3]);
                 if (s.equals(o)) {
                     System.err.println(s.toString());
                 } else {
@@ -46,7 +46,7 @@ public class TaxonomyCleaner {
         List<IntSet> scc = gi.stronglyConnectedSets();
         for (IntSet scs : scc) {
             if (scs.size() > 1) {
-                for (ByteString v : scs) {
+                for (int v : scs) {
                     System.out.print(v.toString() + " ");
                 }
                 System.out.println();

@@ -25,12 +25,12 @@ public class TransitiveTypesKB extends KB {
 	
 	public static final String TRANSITIVETYPEstr = "transitiveType";
 	
-	public static final ByteString TRANSITIVETYPEbs = KB.map(TRANSITIVETYPEstr);
+	public static final int TRANSITIVETYPEbs = KB.map(TRANSITIVETYPEstr);
 	
 	@Override
 	protected boolean contains(ByteString... fact) {
 		if (fact[1].equals(TRANSITIVETYPEbs)) {
-			for (ByteString type : get(this.subject2relation2object, fact[0], Schema.typeRelationBS)) {
+			for (int type : get(this.subject2relation2object, fact[0], Schema.typeRelationBS)) {
 				if (Schema.isTransitiveSuperType(this, fact[2], type)) {
 					return true;
 				}
@@ -47,7 +47,7 @@ public class TransitiveTypesKB extends KB {
 			Int2ObjectMap<IntSet> resultTwoVars = 
 					resultsTwoVariablesByPos(0, 2, triple);
 			long count = 0;
-			for (ByteString subject : resultTwoVars.keySet()) {
+			for (int subject : resultTwoVars.keySet()) {
 				count += resultTwoVars.get(subject).size();
 			}
 			return count;
@@ -64,7 +64,7 @@ public class TransitiveTypesKB extends KB {
 				 * Return all the entities in subclasses of triple[2]
 				 */
 				IntSet result = new IntOpenHashSet();
-				for (ByteString subtype : Schema.getAllSubTypes(this, triple[2])) {
+				for (int subtype : Schema.getAllSubTypes(this, triple[2])) {
 					result.addAll(get(relation2object2subject, Schema.typeRelationBS, subtype));
 				}
 				return result;
@@ -90,7 +90,7 @@ public class TransitiveTypesKB extends KB {
 				/*
 				 * Return a map from all entities to all super-classes
 				 */
-				for (ByteString entity : get(relation2subject2object, Schema.typeRelationBS).keySet()) {
+				for (int entity : get(relation2subject2object, Schema.typeRelationBS).keySet()) {
 					result.put(entity, Schema.getAllTypesForEntity(this, entity));
 				}
 				return result;
@@ -98,7 +98,7 @@ public class TransitiveTypesKB extends KB {
 				/*
 				 * Return a map from all types to all entities of sub-classes
 				 */
-				for (ByteString type : get(relation2object2subject, Schema.typeRelationBS).keySet()) {
+				for (int type : get(relation2object2subject, Schema.typeRelationBS).keySet()) {
 					result.put(type, resultsOneVariable(triple(KB.map("?s"), TRANSITIVETYPEbs, type)));
 				}
 				return result;

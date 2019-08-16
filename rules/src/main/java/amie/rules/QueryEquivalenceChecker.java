@@ -58,7 +58,7 @@ public class QueryEquivalenceChecker {
 			return comparePred;
 		}
 
-		private int compare(ByteString b1, ByteString b2) {
+		private int compare(int b1, int b2) {
 			// TODO Auto-generated method stub
 			if(KB.isVariable(b1)){
 				if(KB.isVariable(b2)){
@@ -277,7 +277,7 @@ public class QueryEquivalenceChecker {
 			for(int j = i + 1; j < nodeList.size(); ++j){
 				for(int i1 = 0; i1 < nodeList.get(i).data.length; ++i1){
 					for(int j1 = 0; j1 < nodeList.get(j).data.length; ++j1){
-						ByteString vari, varj;
+						int vari, varj;
 						vari = nodeList.get(i).data[i1];
 						varj = nodeList.get(j).data[j1];
 						if(KB.isVariable(vari) && vari.equals(varj)){

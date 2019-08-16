@@ -194,7 +194,7 @@ public class Rule {
      * @param obj
      * @return
      */
-    public static int[] triple(ByteString sub, ByteString pred, ByteString obj) {
+    public static int[] triple(int sub, int pred, int obj) {
         int[] newTriple = new int[3];
         newTriple[0] = sub;
         newTriple[1] = pred;
@@ -202,7 +202,7 @@ public class Rule {
         return newTriple;
     }
 
-    public static boolean equal(int[] pattern1, ByteString pattern2[]) {
+    public static boolean equal(int[] pattern1, int pattern2[]) {
         return pattern1[0] == pattern2[0]
                 && pattern1[1] == pattern2[1]
                 && pattern1[2] == pattern2[2];
@@ -335,9 +335,9 @@ public class Rule {
      * @param headAtom
      */
     private void parseVariables() {
-    	ByteString maxVariable = null;
+    	int maxVariable = null;
     	for (int[] atom : this.triples) {
-	    	for (ByteString particle : atom) {
+	    	for (int particle : atom) {
 	    		if (KB.isVariable(particle)) {
 	    			Matcher m = variablesRegex.matcher(particle.toString());
 		    		if (m.matches()) {
@@ -379,7 +379,7 @@ public class Rule {
      * @param v2
      * @return
      */
-	private int compareVariables(ByteString v1, ByteString v2) {
+	private int compareVariables(int v1, int v2) {
 		if (v2 == null) {
 			return 1;
 		} else {
@@ -400,7 +400,7 @@ public class Rule {
      * It returns a new fresh variable for the rule.
      * @return
      */
-    private ByteString newVariable() {
+    private int newVariable() {
     	if (this.highestVariable == 'z') {
     		this.highestVariable = 'a';
     		++this.highestVariableSuffix;
@@ -408,7 +408,7 @@ public class Rule {
     		++this.highestVariable;
     	}
     	
-    	ByteString result = this.highestVariableSuffix == 0 ?
+    	int result = this.highestVariableSuffix == 0 ?
     			KB.map("?" + this.highestVariable) :
     			KB.map("?" + this.highestVariable + this.highestVariableSuffix);
     	
@@ -520,7 +520,7 @@ public class Rule {
     public List<ByteString> getOpenVariables() {
         Int2IntMap histogram = variablesHistogram(false);
         List<ByteString> variables = new ArrayList<ByteString>();
-        for (ByteString var : histogram) {
+        for (int var : histogram) {
             if (histogram.get(var) < 2 && KB.isOpenableVariable(var)) {
                 variables.add(var);
             }
@@ -713,7 +713,7 @@ public class Rule {
         }
     }
     
-    public Pair<Integer, Integer> getLastCoordinatesOf(ByteString bs) {
+    public Pair<Integer, Integer> getLastCoordinatesOf(int bs) {
     	if (triples.isEmpty()) {
             return null;
         } else {
@@ -739,7 +739,7 @@ public class Rule {
      *
      * @return
      */
-    public int cardinalityForRelation(ByteString relation) {
+    public int cardinalityForRelation(int relation) {
         int count = 0;
         for (int[] triple : triples) {
             if (triple[1].equals(relation)) {
@@ -801,11 +801,11 @@ public class Rule {
         return redundantAtoms;
     }
 
-    public ByteString getFunctionalVariable() {
+    public int getFunctionalVariable() {
         return getHead()[functionalVariablePosition];
     }
 
-    public ByteString getNonFunctionalVariable() {
+    public int getNonFunctionalVariable() {
         return triples.get(0)[getNonFunctionalVariablePosition()];
     }
 
@@ -1060,7 +1060,7 @@ public class Rule {
      */
     private Int2IntMap variablesHistogram(boolean ignoreSpecialAtoms) {
         Int2IntMap varsHistogram = new Int2IntOpenHashMap();
-        for (ByteString triple[] : triples) {
+        for (int triple[] : triples) {
             if (triple[1].equals(KB.DIFFERENTFROMbs) 
             		&& ignoreSpecialAtoms) {
                 continue;
@@ -1131,7 +1131,7 @@ public class Rule {
 
         Int2IntMap varsHistogram = variablesHistogram(ignoreSpecialAtoms);
 
-        for (ByteString variable : varsHistogram) {
+        for (int variable : varsHistogram) {
             if (varsHistogram.get(variable) < 2) {
                 return false;
             }
@@ -1175,7 +1175,7 @@ public class Rule {
      *
      * @return
      */
-    public ByteString getHeadRelationBS() {
+    public int getHeadRelationBS() {
         return triples.get(0)[1];
     }
 
@@ -1212,7 +1212,7 @@ public class Rule {
      *
      * @return
      */
-    public int getRealLengthWithoutTypes(ByteString typeString) {
+    public int getRealLengthWithoutTypes(int typeString) {
         int length = 0;
         for (int[] triple : triples) {
             if (!triple[1].equals(KB.DIFFERENTFROMbs)
@@ -1231,7 +1231,7 @@ public class Rule {
      * @param typeString
      * @return
      */
-    public int getLengthWithoutTypes(ByteString typeString) {
+    public int getLengthWithoutTypes(int typeString) {
         int size = 0;
         for (int[] triple : triples) {
             if (!triple[1].equals(typeString)
@@ -1250,7 +1250,7 @@ public class Rule {
      * @param typeString
      * @return
      */
-    public int getLengthWithoutTypesAndLinksTo(ByteString typeString, ByteString linksString) {
+    public int getLengthWithoutTypesAndLinksTo(int typeString, int linksString) {
         int size = 0;
         for (int[] triple : triples) {
             if ((!triple[1].equals(typeString) 
@@ -1291,7 +1291,7 @@ public class Rule {
      * @return
      */
     public Rule addAtom(int[] newAtom,
-            double cardinality, ByteString joinedVariable, ByteString danglingVariable) {
+            double cardinality, int joinedVariable, int danglingVariable) {
         Rule newQuery = new Rule(this, cardinality);
         int[] copyNewEdge = newAtom.clone();
         newQuery.triples.add(copyNewEdge);
@@ -1340,7 +1340,7 @@ public class Rule {
      * @param cardinality
      * @return
      */
-    public Rule specializeTypeAtom(ByteString subtype, double cardinality) {
+    public Rule specializeTypeAtom(int subtype, double cardinality) {
 		Rule newRule = new Rule(this.getHead(), this.getBody(), cardinality);
 		int[] lastTriple = newRule.getLastTriplePattern();
 		lastTriple[1] = Schema.typeRelationBS;
@@ -1656,7 +1656,7 @@ public class Rule {
      * @param cardinality
      * @return
      */
-    public Rule instantiateConstant(int danglingPosition, ByteString constant, double cardinality) {
+    public Rule instantiateConstant(int danglingPosition, int constant, double cardinality) {
         Rule newQuery = new Rule(this, cardinality);
         int[] lastNewPattern = newQuery.getLastTriplePattern();
         lastNewPattern[danglingPosition] = constant;
@@ -1674,7 +1674,7 @@ public class Rule {
      * @param cardinality
      * @return
      */
-    public Rule instantiateConstant(int triplePos, int danglingPosition, ByteString constant, double cardinality) {
+    public Rule instantiateConstant(int triplePos, int danglingPosition, int constant, double cardinality) {
         Rule newQuery = new Rule(this, cardinality);
         int[] targetEdge = newQuery.getTriples().get(triplePos);
         targetEdge[danglingPosition] = constant;
@@ -1745,7 +1745,7 @@ public class Rule {
         return pcaBodySize;
     }
 
-    public Rule rewriteQuery(int[] remove, int[] target, ByteString victimVar, ByteString targetVar) {
+    public Rule rewriteQuery(int[] remove, int[] target, int victimVar, int targetVar) {
         List<int[]> newTriples = new ArrayList<int[]>();
         for (int[] t : triples) {
             if (t != remove) {
@@ -1765,7 +1765,7 @@ public class Rule {
         if (remove == triples.get(0)) {
             for (int i = 0; i < newTriples.size(); ++i) {
                 if (Arrays.equals(target, newTriples.get(i))) {
-                    ByteString tmp[] = newTriples.get(0);
+                    int tmp[] = newTriples.get(0);
                     newTriples.set(0, newTriples.get(i));
                     newTriples.set(i, tmp);
                 }
@@ -1778,7 +1778,7 @@ public class Rule {
     }
 
     public boolean variableCanBeDeleted(int triplePos, int varPos) {
-        ByteString variable = triples.get(triplePos)[varPos];
+        int variable = triples.get(triplePos)[varPos];
         for (int i = 0; i < triples.size(); ++i) {
             if (i != triplePos) {
                 if (KB.varpos(variable, triples.get(i)) != -1) {
@@ -1839,7 +1839,7 @@ public class Rule {
             relationCardinalities.increase(pattern[1]);
         }
 
-        for (ByteString relation : relationCardinalities) {
+        for (int relation : relationCardinalities) {
             if (relationCardinalities.get(relation) != 2) {
                 return false;
             }
@@ -1938,7 +1938,7 @@ public class Rule {
     public static void bind(Int2ObjectMap<ByteString> mappings,
             List<int[]> inputTriples) {
         for (int[] triple : inputTriples) {
-            ByteString binding = mappings.get(triple[0]);
+            int binding = mappings.get(triple[0]);
             if (binding != null) {
                 triple[0] = binding;
             }
@@ -1957,8 +1957,8 @@ public class Rule {
      * @param newVal
      * @param query
      */
-    public static void bind(ByteString oldVal,
-            ByteString newVal, List<int[]> query) {
+    public static void bind(int oldVal,
+            int newVal, List<int[]> query) {
         for (int[] triple : query) {
             if (triple[0].equals(oldVal)) {
                 triple[0] = newVal;
@@ -2034,8 +2034,8 @@ public class Rule {
 
         // We need to rewrite the rules	
         int[] canonicalHead = canonicalHeadRule.getHead().clone();
-        ByteString canonicalSubjectExp = canonicalHead[0];
-        ByteString canonicalObjectExp = canonicalHead[2];
+        int canonicalSubjectExp = canonicalHead[0];
+        int canonicalObjectExp = canonicalHead[2];
         IntSet nonHeadVariables = new IntOpenHashSet();
         int varCount = 0;
         List<int[]> commonAntecendent = new ArrayList<>();
@@ -2044,7 +2044,7 @@ public class Rule {
             List<int[]> antecedentClone = rule.getAntecedentClone();
 
             IntSet otherVariables = rule.getNonHeadVariables();
-            for (ByteString var : otherVariables) {
+            for (int var : otherVariables) {
                 Rule.bind(var, KB.map("?v" + varCount), antecedentClone);
                 ++varCount;
                 nonHeadVariables.add(var);
@@ -2095,11 +2095,11 @@ public class Rule {
         return nonHeadVars;
     }
 
-    public boolean containsRelation(ByteString relation) {
+    public boolean containsRelation(int relation) {
         return Rule.containsRelation(triples, relation);
     }
     
-    public int firstIndexOfRelation(ByteString relation) {
+    public int firstIndexOfRelation(int relation) {
     	return firstIndexOfRelation(triples, relation);
     }
     
@@ -2120,7 +2120,7 @@ public class Rule {
      * @return
      */
     public static boolean containsRelation(List<int[]> triples, 
-    		ByteString relation) {
+    		int relation) {
     	return firstIndexOfRelation(triples, relation) != -1;
 	}
     
@@ -2132,7 +2132,7 @@ public class Rule {
      * does not exist.
      */
     public static int firstIndexOfRelation(List<int[]> triples, 
-    		ByteString relation) {
+    		int relation) {
     	for (int i = 0; i < triples.size(); ++i) {
             if (triples.get(i)[1].equals(relation)) {
                 return i;
@@ -2142,7 +2142,7 @@ public class Rule {
         return -1;    	
     }
 
-    public int numberOfAtomsWithRelation(ByteString relation) {
+    public int numberOfAtomsWithRelation(int relation) {
         int count = 0;
         for (int[] triple : triples) {
             if (triple[1].equals(relation)) {
@@ -2232,7 +2232,7 @@ public class Rule {
      * @param expression
      * @return
      */
-    private boolean occursInHead(ByteString expression) {
+    private boolean occursInHead(int expression) {
         int[] head = getHead();
         return expression.equals(head[0]) || expression.equals(head[2]);
     }
@@ -2285,8 +2285,8 @@ public class Rule {
      */
     public List<int[]> getCanonicalPath() {
         // First check the most functional variable
-        ByteString funcVar = getFunctionalVariable();
-        ByteString nonFuncVar = getNonFunctionalVariable();
+        int funcVar = getFunctionalVariable();
+        int nonFuncVar = getNonFunctionalVariable();
         List<int[]> body = getBody();
         Int2ObjectMap<List<int[]>> variablesToAtom = new Int2ObjectOpenHashMap<>(triples.size(), 1.0f);
         List<int[]> path = new ArrayList<>();
@@ -2304,7 +2304,7 @@ public class Rule {
         }
 
         // Start with the functional variable.
-        ByteString joinVariable = funcVar;
+        int joinVariable = funcVar;
         int[] lastAtom = null;
         while (true) {
             List<int[]> atomsList = variablesToAtom.get(joinVariable);

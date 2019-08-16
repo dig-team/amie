@@ -19,7 +19,7 @@ public class CrossOntologyFilter {
 		TSVFile tsv = new TSVFile(new File(args[0]));
 		for(List<String> line : tsv){
 			Rule rule = AMIEParser.rule(line.get(0));
-			ByteString r1, r2;
+			int r1, r2;
 			r1 = rule.getHead()[1];
 			r2 = rule.getBody().get(0)[1];
 			if((r1.toString().startsWith("<dbo:") && !r2.toString().startsWith("<dbo:")) || 

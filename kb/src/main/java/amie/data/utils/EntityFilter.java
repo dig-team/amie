@@ -76,16 +76,16 @@ public class EntityFilter {
 				factsSource.resultsThreeVariables(KB.map("?s"), KB.map("?p"), KB.map("o"), 
 						KB.triple("?s", "?p", "?o"));
 		IntSet subjects = factSourcesMap.keySet();
-		for(ByteString subject: subjects){
+		for(int subject: subjects){
 			if(seeds.contains(subject)){
 				//Then produce the facts
 				Int2ObjectMap<IntSet> subjectsMap = factSourcesMap.get(subject);
 				if(subjectsMap == null) continue;
 				
 				IntSet predicates = subjectsMap.keySet(); 
-				for(ByteString predicate: predicates){
+				for(int predicate: predicates){
 					IntSet objects = subjectsMap.get(predicate);
-					for(ByteString object: objects){
+					for(int object: objects){
 						int nTimes = 1;
 						for(int k = 0; k < nTimes; ++k){
 							out.append(subject);

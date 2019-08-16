@@ -8,7 +8,7 @@ import amie.data.U;
 
 public class TrueType extends TypingHeuristic {
 
-	public static final ByteString trueTypeBS = KB.map("<TrueType>");
+	public static final int trueTypeBS = KB.map("<TrueType>");
 	
 	public TrueType(KB kb) {
 		super(kb);
@@ -17,9 +17,9 @@ public class TrueType extends TypingHeuristic {
 	}
 
 	@Override
-	public double evaluate(ByteString type, List<int[]> clause,
-			ByteString variable) {
-		ByteString t = amie.data.Schema.typeRelationBS;
+	public double evaluate(int type, List<int[]> clause,
+			int variable) {
+		int t = amie.data.Schema.typeRelationBS;
 		amie.data.Schema.typeRelationBS = trueTypeBS;
 		double res = getStandardConfidence(type, clause, variable);
 		amie.data.Schema.typeRelationBS = t;

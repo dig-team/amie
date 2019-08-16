@@ -29,7 +29,7 @@ public class FrequencyTester {
 				if (attribute2class2score == null) {
 					heuristic2attribute2class2score.put(heuristic, attribute2class2score = new Int2ObjectOpenHashMap<>());
 				}
-				ByteString attribute = KB.map(split[2].trim());
+				int attribute = KB.map(split[2].trim());
 				if (attribute2classes != null && !attribute2classes.containsKey(attribute)) continue;
 				Int2ObjectMap<Double> class2score = attribute2class2score.get(attribute);
 				if (class2score == null) {
@@ -45,13 +45,13 @@ public class FrequencyTester {
 		for (String line : new FileLines(f, "UTF-8", null)) {
 			String[] split = line.trim().split("\t");
 			if (split.length == 2) {
-				ByteString attribute = KB.map(split[0].trim());
+				int attribute = KB.map(split[0].trim());
 				IntSet classes = attribute2classes.get(attribute);
 				if (classes == null) {
 					classes = new IntOpenHashSet();
 					attribute2classes.put(attribute, classes);
 				}
-				ByteString dclass = KB.map("<http://dbpedia.org/ontology/" + split[1].trim() + ">");
+				int dclass = KB.map("<http://dbpedia.org/ontology/" + split[1].trim() + ">");
 				if(dclass != KB.map("<http://dbpedia.org/ontology/None>")) {
 					classes.add(dclass);
 					classes.addAll(amie.data.Schema.getAllSubTypes(taxo, dclass));
@@ -61,14 +61,14 @@ public class FrequencyTester {
 	}
 	
 	public void printGoldStandard() {
-		for (ByteString attribute : attribute2classes.keySet()) {
-			for (ByteString classes : attribute2classes.get(attribute)) {
+		for (int attribute : attribute2classes.keySet()) {
+			for (int classes : attribute2classes.get(attribute)) {
 				System.out.println(attribute.toString() + "\t" + classes.toString());
 			}
 		}
 	}
 	
-	public void test(String heuristic, ByteString attribute) {
+	public void test(String heuristic, int attribute) {
 		FrequencyVector<ByteString, Double> resultFV = new FrequencyVector<>(heuristic2attribute2class2score.get(heuristic).get(attribute));
 		double precision = resultFV.weightedPrecisionWithRespectTo(attribute2classes.get(attribute));
 		double recall = resultFV.recallWithRespectTo(attribute2classes.get(attribute));
@@ -79,7 +79,7 @@ public class FrequencyTester {
 	
 	public void testAll() {
 		for (String heuristic : heuristic2attribute2class2score.keySet()) {
-			for (ByteString attribute : attribute2classes.keySet()) {
+			for (int attribute : attribute2classes.keySet()) {
 				if (!attribute2classes.get(attribute).isEmpty()) test(heuristic, attribute);
 			}
 		}

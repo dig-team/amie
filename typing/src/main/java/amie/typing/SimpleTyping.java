@@ -445,7 +445,7 @@ public class SimpleTyping extends Thread {
         } else {
             relations = dataSource.relations.keySet();
         }
-        /*for (ByteString r : relations) {
+        /*for (int r : relations) {
             System.err.println(r.toString());
         }*/
         
@@ -470,7 +470,7 @@ public class SimpleTyping extends Thread {
             }
             switch(cn.first) {
                 case "b2":
-                    for (ByteString r : relations) {
+                    for (int r : relations) {
                         for (Integer classSizeThreshold : classSizeThresholds) {
                             queryQ.add(new Pair<>(
                                 new Pair<>(classSizeThreshold, r), 
@@ -479,7 +479,7 @@ public class SimpleTyping extends Thread {
                     }
                     break;
                 case "b3":
-                    for (ByteString r : relations) {
+                    for (int r : relations) {
                         for (Integer classSizeThreshold : classSizeThresholds) {
                             queryQ.add(new Pair<>(
                                 new Pair<>(classSizeThreshold, r), 
@@ -488,7 +488,7 @@ public class SimpleTyping extends Thread {
                     }
                     break;
                 case "strict":
-                    for (ByteString r : relations) {
+                    for (int r : relations) {
                         for (Integer classSizeThreshold : classSizeThresholds) {
                             queryQ.add(new Pair<>(
                                 new Pair<>(classSizeThreshold, r), 
@@ -497,7 +497,7 @@ public class SimpleTyping extends Thread {
                     }
                     break;
                 case "relaxed":
-                    for (ByteString r : relations) {
+                    for (int r : relations) {
                         for (Integer classSizeThreshold : classSizeThresholds) {
                             queryQ.add(new Pair<>(
                                 new Pair<>(classSizeThreshold, r), 
@@ -506,7 +506,7 @@ public class SimpleTyping extends Thread {
                     }
                     break;
                 case "fisher":
-                    for (ByteString r : relations) {
+                    for (int r : relations) {
                         for (Integer classSizeThreshold : classSizeThresholds) {
                             queryQ.add(new Pair<>(
                                 new Pair<>(classSizeThreshold, r), 

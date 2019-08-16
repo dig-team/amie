@@ -115,16 +115,16 @@ public class OutputSignedRelationPhrases {
 		// TODO Auto-generated method stub
 		Map<Triple<ByteString, ByteString, ByteString>, Set<Pair<ByteString, ByteString>>> result 
 		= new HashMap<Triple<ByteString, ByteString, ByteString>, Set<Pair<ByteString, ByteString>>>();
-		ByteString typeRelation = KB.map("<rdf:type>");
-		ByteString defaultStr = KB.map("default");
+		int typeRelation = KB.map("<rdf:type>");
+		int defaultStr = KB.map("default");
 		Int2ObjectMap<Int2ObjectMap<IntSet>> map =
 				db.resultsThreeVariables(KB.map("?p"), KB.map("?s"), KB.map("o"), 
 						KB.triple("?s", "?p", "?o"));
-		for (ByteString relation : map.keySet()) {
+		for (int relation : map.keySet()) {
 			if (!relation.equals(typeRelation)) {
 				Int2ObjectMap<IntSet> tail = map.get(relation);
-				for (ByteString subject : tail.keySet()) {
-					for (ByteString object : tail.get(subject)) {
+				for (int subject : tail.keySet()) {
+					for (int object : tail.get(subject)) {
 						// Get the types
 						IntSet subjectTypes = 
 								map.get(typeRelation).get(subject);
@@ -140,8 +140,8 @@ public class OutputSignedRelationPhrases {
 							objectTypes.add(defaultStr);
 						}
 						
-						for (ByteString domain : subjectTypes) {
-							for (ByteString range : objectTypes) {
+						for (int domain : subjectTypes) {
+							for (int range : objectTypes) {
 								Triple<ByteString, ByteString, ByteString> triple = 
 										new Triple<ByteString, ByteString, ByteString>(
 												relation, domain, range);

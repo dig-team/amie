@@ -41,7 +41,7 @@ public class UnclosedMiningAssistant extends DefaultMiningAssistant {
 		List<Rule> output = new ArrayList<>();
 		Rule query = new Rule();
 		int[] newEdge = query.fullyUnboundTriplePattern();
-		ByteString relation = KB.TRANSITIVETYPEbs;
+		int relation = KB.TRANSITIVETYPEbs;
 		int[] succedent = newEdge.clone();
 		succedent[1] = relation;
 		Rule candidate = new Rule(succedent, kb.size());

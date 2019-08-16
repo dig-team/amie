@@ -13,10 +13,10 @@ import javatools.datatypes.ByteString;
  */
 public class SignedPredicate implements Comparable<SignedPredicate> {
 
-    public ByteString predicate;
+    public int predicate;
     public boolean subject;
 
-    public SignedPredicate(ByteString p, boolean s) {
+    public SignedPredicate(int p, boolean s) {
         this.predicate = p;
         this.subject = s;
     }

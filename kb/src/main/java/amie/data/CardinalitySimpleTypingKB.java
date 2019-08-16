@@ -25,7 +25,7 @@ public class CardinalitySimpleTypingKB extends SimpleTypingKB {
     protected final Int2ObjectMap<Int2IntMap> relationsCard = new Int2ObjectOpenHashMap<>();
     
     @Override
-    protected boolean add(ByteString subject, ByteString relation, ByteString object) {
+    protected boolean add(int subject, int relation, int object) {
         if (relation.equals(Schema.typeRelationBS)) {
             //System.err.println(object);
             synchronized (classes) {
@@ -45,7 +45,7 @@ public class CardinalitySimpleTypingKB extends SimpleTypingKB {
                     relations.put(relation, eS = new IntOpenHashSet());
                 }
                 eS.add(subject);
-                ByteString relationy = KB.map(relation.toString() + "-1");
+                int relationy = KB.map(relation.toString() + "-1");
                 eS = relations.get(relationy);
                 if (eS == null) {
                     relations.put(relationy, eS = new IntOpenHashSet());
@@ -69,7 +69,7 @@ public class CardinalitySimpleTypingKB extends SimpleTypingKB {
     public void computeCardinalities() {
         for (Int2ObjectMap.Entry<Int2IntMap> entry : relationsCard.entrySet()) {
             Map<Integer, IntSet> t = new HashMap<>(entry.getValue().findMax());
-            for (ByteString e : entry.getValue()) {
+            for (int e : entry.getValue()) {
                 Integer i = entry.getValue().get(e);
                 IntSet rs = t.get(i);
                 if (rs == null) {

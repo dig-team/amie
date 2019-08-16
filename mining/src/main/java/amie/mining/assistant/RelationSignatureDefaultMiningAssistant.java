@@ -50,7 +50,7 @@ public class RelationSignatureDefaultMiningAssistant extends DefaultMiningAssist
 		}
 		
 		//Add the schema information to the rule
-		ByteString domain, range, relation;
+		int domain, range, relation;
 		relation = candidate.getHead()[1];
 		domain = Schema.getRelationDomain(kb, relation);
 		if(domain != null){

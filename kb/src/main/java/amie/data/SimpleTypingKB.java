@@ -25,9 +25,9 @@ public class SimpleTypingKB extends KB {
     
     class LazySet {
         private volatile IntSet resource = null;
-        private ByteString c1, c2;
+        private int c1, c2;
         
-        public LazySet(ByteString c1, ByteString c2) {
+        public LazySet(int c1, int c2) {
             this.c1 = c1;
             this.c2 = c2;
         } 
@@ -49,7 +49,7 @@ public class SimpleTypingKB extends KB {
     }
     
     @Override
-    protected boolean add(ByteString subject, ByteString relation, ByteString object) {
+    protected boolean add(int subject, int relation, int object) {
         if (relation.equals(Schema.typeRelationBS)) {
             //System.err.println(object);
             synchronized (classes) {
@@ -69,7 +69,7 @@ public class SimpleTypingKB extends KB {
                     relations.put(relation, eS = new IntOpenHashSet());
                 }
                 eS.add(subject);
-                ByteString relationy = KB.map(relation.toString() + "-1");
+                int relationy = KB.map(relation.toString() + "-1");
                 eS = relations.get(relationy);
                 if (eS == null) {
                     relations.put(relationy, eS = new IntOpenHashSet());
@@ -80,7 +80,7 @@ public class SimpleTypingKB extends KB {
         }
     }
 
-    private IntSet lazyIntersectionSet(ByteString c1, ByteString c2) {
+    private IntSet lazyIntersectionSet(int c1, int c2) {
         if (c1.compareTo(c2) < 0) {
             return lazyIntersectionSet(c2, c1);
         }
@@ -88,21 +88,21 @@ public class SimpleTypingKB extends KB {
         //return classIntersection.get(c1).get(c2).getResource();
     }
     
-    public long countElements(ByteString relation) {
+    public long countElements(int relation) {
         if (!relations.containsKey(relation)) { return 0; }
         return relations.get(relation).size();
     }
     
-    public long countElements(ByteString relation, ByteString type) {
+    public long countElements(int relation, int type) {
         if (!classes.containsKey(type)) { return 0; }
         return countIntersection(relations.get(relation), classes.get(type));
     }
     
-    public long countElements(ByteString relation, ByteString type1, ByteString type2) {
+    public long countElements(int relation, int type1, int type2) {
         return countIntersection(relations.get(relation), lazyIntersectionSet(type1, type2));
     }
     
-    public double typingStdConf(ByteString relation, ByteString bodyType, ByteString headType, int supportThreshold) {
+    public double typingStdConf(int relation, int bodyType, int headType, int supportThreshold) {
         IntSet body = new IntOpenHashSet(relations.get(relation));
         body.retainAll(classes.get(bodyType));
         long bodySize = body.size();
@@ -115,10 +115,10 @@ public class SimpleTypingKB extends KB {
     
     @Override
     public IntSet getRelationSet() {
-//        for(ByteString c1 : classes.keySet()) {
+//        for(int c1 : classes.keySet()) {
 //            Int2ObjectMap<LazySet> c1I = new Int2ObjectOpenHashMap<>();
 //            classIntersection.put(c1, c1I);
-//            for(ByteString c2 : classes.keySet()) {
+//            for(int c2 : classes.keySet()) {
 //                if (c1.compareTo(c2) > 0) c1I.put(c2, new LazySet(c1, c2));
 //            }
 //        }

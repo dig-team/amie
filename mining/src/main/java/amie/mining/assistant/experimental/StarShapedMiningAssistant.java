@@ -69,7 +69,7 @@ public class StarShapedMiningAssistant extends MiningAssistant {
 				rule.getFunctionalVariable(), rule.getTriples());
 		rule.getTriples().remove(nPatterns);
 		
-		for(ByteString relation: promisingRelations){
+		for(int relation: promisingRelations){
 			if (this.bodyExcludedRelations != null && 
 					this.bodyExcludedRelations.contains(relation))
 				continue;

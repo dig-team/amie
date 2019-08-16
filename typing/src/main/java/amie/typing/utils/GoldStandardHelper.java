@@ -30,7 +30,7 @@ import javatools.datatypes.Pair;
  */
 public class GoldStandardHelper {
     
-    protected double getStandardConfidenceWithThreshold(List<int[]> head, List<int[]> body, ByteString variable, int threshold, boolean unsafe) {
+    protected double getStandardConfidenceWithThreshold(List<int[]> head, List<int[]> body, int variable, int threshold, boolean unsafe) {
         List<int[]> bodyC = (unsafe) ? new LinkedList<>(body) : body;
         long bodySize = db.countDistinct(variable, bodyC);
         bodyC.addAll(head);
@@ -69,7 +69,7 @@ public class GoldStandardHelper {
     
     private Pair<List<int[]>, ByteString> queryStrToQuery(String query) {
         List<int[]> queryL = KB.triples(KB.triple(KB.map("?x"), KB.map(query.substring(0, query.length()-1)), KB.map("?y")));
-        ByteString variable = KB.map("?"+query.substring(query.length()-1));
+        int variable = KB.map("?"+query.substring(query.length()-1));
         return new Pair<>(queryL, variable);
     }
     
@@ -79,16 +79,16 @@ public class GoldStandardHelper {
     public class GSnode implements Comparable {
         List<GSnode> parents;
         List<GSnode> children;
-        ByteString className;
+        int className;
         
-        public GSnode(ByteString className) { 
+        public GSnode(int className) { 
             this.className = className; 
             this.children = new LinkedList<>();
             this.parents = new LinkedList<>();
         }
         
-        public void generate(int supportThreshold, List<int[]> query, ByteString variable) {
-            for (ByteString subClass : Schema.getSubTypes(db, className)) {
+        public void generate(int supportThreshold, List<int[]> query, int variable) {
+            for (int subClass : Schema.getSubTypes(db, className)) {
                 GSnode stc = index.get(subClass);
                 if (stc != null) {
                     children.add(stc);
@@ -328,7 +328,7 @@ public class GoldStandardHelper {
     
     public void search(String s) {
         ids = new LinkedList<>();
-        for (ByteString c: index.keySet()) {
+        for (int c: index.keySet()) {
             if(c.toString().contains(s)) ids.add(index.get(c));
         }
         _printIds();
@@ -374,7 +374,7 @@ public class GoldStandardHelper {
         
         ids = new LinkedList<>();
         System.out.println(" Append x or y to:");
-        for (ByteString r : relations) {
+        for (int r : relations) {
             //System.out.println(r.toString());
             ids.add(new GSnode(r));
         }

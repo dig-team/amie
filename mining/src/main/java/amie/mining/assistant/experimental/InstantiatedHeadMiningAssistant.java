@@ -35,7 +35,7 @@ public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 		int[] newEdge = query.fullyUnboundTriplePattern();		
 		query.getTriples().add(newEdge);
 		
-		for(ByteString relation: relations) {
+		for(int relation: relations) {
 			newEdge[1] = relation;
 			
 			int countVarPos = countAlwaysOnSubject ? 0 : findCountingVariable(newEdge);
@@ -66,7 +66,7 @@ public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 			query.getTriples().add(newEdge);
 			List<int[]> emptyList = Collections.emptyList();
 			Int2IntMap relations = kb.countProjectionBindings(query.getHead(), emptyList, newEdge[1]);
-			for(ByteString relation : relations){
+			for(int relation : relations){
 				if(headExcludedRelations != null && headExcludedRelations.contains(relation))
 					continue;
 				
@@ -97,7 +97,7 @@ public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 			query.getTriples().add(newEdge);
 			List<int[]> emptyList = Collections.emptyList();
 			Int2IntMap relations = kb.countProjectionBindings(query.getHead(), emptyList, newEdge[1]);
-			for(ByteString relation : relations){
+			for(int relation : relations){
 				if(headExcludedRelations != null && headExcludedRelations.contains(relation))
 					continue;
 				

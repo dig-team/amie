@@ -41,14 +41,14 @@ public class MinMaxHierarchicalClassifier extends MinCutClassifier {
 	public void classify(Int2ObjectMap<Int2ObjectMap<Double>> statistics) {
 		// TODO Auto-generated method stub
 		Int2ObjectMap<Double> result = new Int2ObjectOpenHashMap<>();
-		for (ByteString t1 : statistics.keySet()) {
-			for (ByteString t2 : statistics.get(t1).keySet()) {
+		for (int t1 : statistics.keySet()) {
+			for (int t2 : statistics.get(t1).keySet()) {
 				if (statistics.get(t2).get(t1).isNaN() || classIntersectionSize.get(t1).get(t2) == classSize.get(t2))
 					continue;
 				result.put(t1, (result.get(t1) == null || result.get(t1) < statistics.get(t2).get(t1)) ? statistics.get(t2).get(t1) : result.get(t1));
 			}
 		}
-		for (ByteString t1 : result.keySet()) {
+		for (int t1 : result.keySet()) {
 			System.out.println(t1.toString() + "\t" + Double.toString(result.get(t1)));
 		}
 	}

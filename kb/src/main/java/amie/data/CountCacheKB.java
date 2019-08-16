@@ -27,7 +27,7 @@ public class CountCacheKB extends KB {
      * returns the number of instances that fulfill a certain condition
      */
     @Override
-    public long countDistinct(ByteString variable, List<int[]> query) {
+    public long countDistinct(int variable, List<int[]> query) {
         if (countCacheEnabled) {
             queryCache qC = new queryCache(query, Arrays.asList(variable));
             Long count = countCache.get(qC);
@@ -47,7 +47,7 @@ public class CountCacheKB extends KB {
     /**
      * returns the number of distinct pairs (var1,var2) for the query
      */
-    public long countDistinctPairs(ByteString var1, ByteString var2,
+    public long countDistinctPairs(int var1, int var2,
             List<int[]> query) {
 
         queryCache qC = null;
@@ -65,7 +65,7 @@ public class CountCacheKB extends KB {
 
         try (Instantiator insty1 = new Instantiator(query, var1)) {
             IntSet bindings = selectDistinct(var1, query);
-            for (ByteString val1 : bindings) {
+            for (int val1 : bindings) {
                 result += countDistinct(var2, insty1.instantiate(val1));
             }
         }
@@ -76,7 +76,7 @@ public class CountCacheKB extends KB {
         return (result);
     }
 
-public long countPairs(ByteString var1, ByteString var2,
+public long countPairs(int var1, int var2,
 			List<int[]> query, int[] queryInfo) {
 		
 		queryCache qC = null;
@@ -91,9 +91,9 @@ public long countPairs(ByteString var1, ByteString var2,
 
 		long result = 0;
 		// Approximate count
-		ByteString joinVariable = query.get(queryInfo[2])[queryInfo[0]];
-		ByteString targetVariable = query.get(queryInfo[3])[queryInfo[1]];
-		ByteString targetRelation = query.get(queryInfo[2])[1];
+		int joinVariable = query.get(queryInfo[2])[queryInfo[0]];
+		int targetVariable = query.get(queryInfo[3])[queryInfo[1]];
+		int targetRelation = query.get(queryInfo[2])[1];
 
 		// Heuristic
 		if (relationSize.get(targetRelation) < 50000)
@@ -114,7 +114,7 @@ public long countPairs(ByteString var1, ByteString var2,
 		duplicatesEstimate = (int) Math.ceil(duplicatesCard * duplicatesFactor);
 
 		try (Instantiator insty1 = new Instantiator(subquery, joinVariable)) {
-			for (ByteString value : selectDistinct(joinVariable, subquery)) {
+			for (int value : selectDistinct(joinVariable, subquery)) {
 				result += (long) Math
 						.ceil(Math.pow(
 								countDistinct(targetVariable,
@@ -175,7 +175,7 @@ public long countPairs(ByteString var1, ByteString var2,
 			}
 			int j = 2;
 			int i = 0;
-			for (ByteString arg : args) {
+			for (int arg : args) {
 				if(isVariable(arg)) {
 					repr[i][0] = VARIABLEHASH;
 					if(countVariables.contains(arg)) {

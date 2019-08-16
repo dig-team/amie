@@ -44,7 +44,7 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
         return treeScore >= -Math.abs(Math.log(threshold));
     }
     
-    private int getIntersectionSize(ByteString class1, ByteString class2) {
+    private int getIntersectionSize(int class1, int class2) {
         if (classIntersectionSize != null) {
             if (!classIntersectionSize.containsKey(class1) || !classIntersectionSize.get(class1).contains(class2)) {
                 return 0;
@@ -54,15 +54,15 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
         return (int) SetU.countIntersection(db.classes.get(class1), db.classes.get(class2));
     }
     
-    private int cs(ByteString class1) { return db.classes.get(class1).size(); }
+    private int cs(int class1) { return db.classes.get(class1).size(); }
     
     protected abstract Pair<Double, Double> classesScore(int c1, int c1c2, int c1phi, int c1c2phi);
     
     @Override
-    public void computeStatistics(ByteString relation, int classSizeThreshold) {
+    public void computeStatistics(int relation, int classSizeThreshold) {
         IntSet relevantClasses = index.keySet();
 
-        for (ByteString class1 : relevantClasses) {
+        for (int class1 : relevantClasses) {
             if (db instanceof CardinalitySimpleTypingKB) {
                 String[] s = class1.toString().split("_");
                 if (s.length == 2 && s[0].equals(relation.toString())) {
@@ -84,7 +84,7 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
                 continue;
             }
 
-            for (ByteString class2 : targetClasses) {
+            for (int class2 : targetClasses) {
                 if (class1 == class2) {
                     continue;
                 }

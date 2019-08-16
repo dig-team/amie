@@ -36,7 +36,7 @@ public class AlignKBs {
 	 * @return
 	 */
 	public static boolean isCrossOntology(Rule rule) {
-		ByteString r1, r2;
+		int r1, r2;
 		r1 = rule.getHead()[1];
 		r2 = rule.getBody().get(0)[1];
 		return (!r1.toString().startsWith(prefixkb2) && r2.toString().startsWith(prefixkb2)) || 

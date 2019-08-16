@@ -45,7 +45,7 @@ public class ExistentialRulesHeadVariablesMiningAssistant extends
 		if (!antecedent.isEmpty()){
 			try{
 				if(KB.numVariables(head) == 2){
-					ByteString var1, var2;
+					int var1, var2;
 					var1 = head[KB.firstVariablePos(head)];
 					var2 = head[KB.secondVariablePos(head)];
 					denominator = (double) computeBodySize(var1, var2, candidate);
@@ -81,7 +81,7 @@ public class ExistentialRulesHeadVariablesMiningAssistant extends
 						pcaDenominator = denominator;
 					}else{
 						if(KB.numVariables(head) == 2){
-							ByteString var1, var2;
+							int var1, var2;
 							var1 = head[KB.firstVariablePos(head)];
 							var2 = head[KB.secondVariablePos(head)];
 							pcaDenominator = (double) computePcaBodySize(var1, 

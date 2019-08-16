@@ -62,13 +62,13 @@ public class PrintCounts {
         BufferedWriter out2 = new BufferedWriter(new OutputStreamWriter(fstream2, "UTF-8"));
         int s = 0;
 
-        for (ByteString t : kb.classes.keySet()) {
+        for (int t : kb.classes.keySet()) {
             if ((s = kb.classes.get(t).size()) >= threshold) {
                 out1.append(t.toString() + "\t" + Integer.toString(s) + "\n");
             }
         }
-        for (ByteString t1 : kb.classes.keySet()) {
-            for (ByteString t2 : kb.classes.keySet()) {
+        for (int t1 : kb.classes.keySet()) {
+            for (int t2 : kb.classes.keySet()) {
                 if ((s = (int) SetU.countIntersection(kb.classes.get(t1), kb.classes.get(t2))) >= threshold) {
                     out2.append(t1.toString() + "\t" + t2.toString() + "\t" + s + "\n");
                 }

@@ -37,9 +37,9 @@ public class ComputeTypeDeductiveClosureWikidata {
                 = kb.resultsTwoVariables("?s", "?o", new String[]{"?s", amie.data.Schema.typeRelation, "?o"});
         PrintWriter pw  = new PrintWriter(new File("wikidataTransitiveTypes.tsv"));
         PrintWriter pw2 = new PrintWriter(new File("wikidataTypedEntities.tsv"));
-        for (ByteString entity : allEntitiesAndTypes.keySet()) {
+        for (int entity : allEntitiesAndTypes.keySet()) {
             IntSet superTypes = new IntOpenHashSet(allEntitiesAndTypes.get(entity));
-            for (ByteString type : allEntitiesAndTypes.get(entity)) {
+            for (int type : allEntitiesAndTypes.get(entity)) {
                 superTypes.addAll(amie.data.Schema.getAllSuperTypes(kb, type));
             }
             if (superTypes.contains(Schema.topBS)) {
@@ -56,8 +56,8 @@ public class ComputeTypeDeductiveClosureWikidata {
      * @param superTypes
      * @throws FileNotFoundException
      */
-    private static void output(ByteString entity, IntSet superTypes, PrintWriter pw) {
-        for (ByteString type : superTypes) {
+    private static void output(int entity, IntSet superTypes, PrintWriter pw) {
+        for (int type : superTypes) {
             pw.println(entity + " " + Schema.typeRelation + " " + type);
         }
     }

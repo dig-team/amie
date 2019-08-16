@@ -56,7 +56,7 @@ public class KBRelationDelta {
 		while (!r2.isEmpty()) {
 			List<Thread> threads = new ArrayList<>();
 			for (int i = 0; i < Math.max(1, Runtime.getRuntime().availableProcessors() / 2); ++i) {
-				final ByteString relation = r2.poll();
+				final int relation = r2.poll();
 				System.out.println("Analyzing relation " + relation);
 				if (relation == null)
 					break;
@@ -75,8 +75,8 @@ public class KBRelationDelta {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-						ByteString domain = null;
-						ByteString qVariable = null;
+						int domain = null;
+						int qVariable = null;
 						String relationlabel = null;
 						List<int[]> query = KB.triples(KB.triple(KB.map("?s"), relation, KB.map("?o")));
 						int[] query2 = KB.triple(KB.map("?s"), relation, KB.map("?o"));
@@ -96,7 +96,7 @@ public class KBRelationDelta {
 						System.out.println("Checking those that appear in the old database");
 						entities.retainAll(allEntitiesOldKB);			
 						System.out.println("Checking for changes");
-						for (ByteString entity : entities) {
+						for (int entity : entities) {
 							if (isFunctional) {
 								query2[0] = entity;
 								query2[2] = KB.map("?o");

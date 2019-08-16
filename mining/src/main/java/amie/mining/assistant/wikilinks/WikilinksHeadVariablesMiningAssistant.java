@@ -42,7 +42,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 			query.getTriples().add(newEdge);
 			List<int[]> emptyList = Collections.emptyList();
 			Int2IntMap relations = kb.countProjectionBindings(query.getHead(), emptyList, newEdge[1]);
-			for(ByteString relation: relations){
+			for(int relation: relations){
 				// Language bias test
 				if (query.cardinalityForRelation(relation) >= recursivityLimit) {
 					continue;
@@ -87,7 +87,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 			Int2IntMap subjectTypes = kb.countProjectionBindings(query.getHead(), 
 					query.getAntecedent(), newEdge[2]);
 			if(!subjectTypes.isEmpty()){
-				for(ByteString type: subjectTypes){
+				for(int type: subjectTypes){
 					int cardinality = subjectTypes.get(type);
 					if(cardinality >= minSupportThreshold){
 						Rule newCandidate = new Rule(query, cardinality);
@@ -108,7 +108,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 				newEdge[1] = typeString;
 				candidate.getTriples().add(newEdge);
 				Int2IntMap objectTypes = kb.countProjectionBindings(candidate.getHead(), candidate.getAntecedent(), newEdge[2]);
-				for(ByteString type: objectTypes){
+				for(int type: objectTypes){
 					int cardinality = objectTypes.get(type);
 					if(cardinality >= minSupportThreshold){
 						Rule newCandidate = new Rule(candidate, cardinality);
@@ -137,7 +137,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 		int[] head = query.getHead();
 		if (length == maxDepth - 1) {
 			List<ByteString> openVariables = query.getOpenVariables();
-			for (ByteString openVar : openVariables) {
+			for (int openVar : openVariables) {
 				if (KB.isVariable(head[0]) && !openVar.equals(head[0])) {
 					return;
 				}
@@ -163,7 +163,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 				output.add(candidate1);	
 			}
 			
-			ByteString tmp = newEdge[0];
+			int tmp = newEdge[0];
 			newEdge[0] = newEdge[2];
 			newEdge[2] = tmp;
 			cardinality = kb.countDistinctPairs(head[0], head[2], queryAtoms);

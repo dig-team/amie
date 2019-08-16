@@ -46,9 +46,9 @@ public class MinCutClassifier extends SeparationClassifier {
 	public void classify(Int2ObjectMap<Int2ObjectMap<Double>> statistics) {
 		SimpleDirectedWeightedGraph<ByteString, DefaultWeightedEdge>  graph = 
 	            new SimpleDirectedWeightedGraph<>(DefaultWeightedEdge.class); 
-		for (ByteString t1 : statistics.keySet()) {
+		for (int t1 : statistics.keySet()) {
 			graph.addVertex(t1);
-			for(ByteString t2 : statistics.get(t1).keySet()) {
+			for(int t2 : statistics.get(t1).keySet()) {
 				if (Double.isNaN(statistics.get(t2).get(t1))) { continue; }
 				graph.addVertex(t2);
 				DefaultWeightedEdge e = graph.addEdge(t1, t2);
@@ -58,8 +58,8 @@ public class MinCutClassifier extends SeparationClassifier {
 		PushRelabelMFImpl<ByteString, DefaultWeightedEdge> mf = new PushRelabelMFImpl<>(graph);
 		IntSet result = Collections.emptySet();
 		double mcMinVal = Double.POSITIVE_INFINITY, mcVal;
-		for (ByteString t1 : graph.vertexSet()) {
-			for (ByteString t2 : graph.vertexSet()) {
+		for (int t1 : graph.vertexSet()) {
+			for (int t2 : graph.vertexSet()) {
 				if (t1 == t2) continue;
 				if ((mcVal = mf.calculateMinCut(t1, t2)) < mcMinVal) {
 					mcMinVal = mcVal;
@@ -67,7 +67,7 @@ public class MinCutClassifier extends SeparationClassifier {
 				}
 			}
 		}
-		for (ByteString r : result) {
+		for (int r : result) {
 			System.out.println(r.toString());
 		}
 	}

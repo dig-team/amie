@@ -21,13 +21,13 @@ public class HSpread extends TypingHeuristic {
 	}
 
 	@Override
-	public double evaluate(ByteString type, List<int[]> clause,
-			ByteString variable) {
+	public double evaluate(int type, List<int[]> clause,
+			int variable) {
 		double sc = getStandardConfidence(typeL(type, variable), clause, variable, true);
 		double t,scm = 0;
 		IntSet subtypes = amie.data.Schema.getSubtypes(db, type);
 		clause.add(typeT(type, variable));
-		for (ByteString subType : subtypes) {
+		for (int subType : subtypes) {
 			t = getStandardConfidence(typeL(subType, variable), clause, variable, true);
 			scm += t;
 		}

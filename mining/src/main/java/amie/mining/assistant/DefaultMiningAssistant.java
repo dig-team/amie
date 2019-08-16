@@ -56,7 +56,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		int[] newEdge = query.fullyUnboundTriplePattern();		
 		query.getTriples().add(newEdge);
 		
-		for(ByteString relation: relations){
+		for(int relation: relations){
 			newEdge[1] = relation;
 			
 			int countVarPos = this.countAlwaysOnSubject? 0 : findCountingVariable(newEdge);
@@ -145,18 +145,18 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		varSetups[0] = new Pair<Integer, Integer>(0, 2);
 		varSetups[1] = new Pair<Integer, Integer>(2, 0);
 		int[] newEdge = rule.fullyUnboundTriplePattern();
-		ByteString relationVariable = newEdge[1];
+		int relationVariable = newEdge[1];
 		
 		for(Pair<Integer, Integer> varSetup: varSetups){			
 			int joinPosition = varSetup.first.intValue();
 			int closeCirclePosition = varSetup.second.intValue();
-			ByteString joinVariable = newEdge[joinPosition];
-			ByteString closeCircleVariable = newEdge[closeCirclePosition];
+			int joinVariable = newEdge[joinPosition];
+			int closeCircleVariable = newEdge[closeCirclePosition];
 						
-			for(ByteString sourceVariable: sourceVariables){					
+			for(int sourceVariable: sourceVariables){					
 				newEdge[joinPosition] = sourceVariable;
 				
-				for(ByteString variable: targetVariables){
+				for(int variable: targetVariables){
 					if(!variable.equals(sourceVariable)){
 						newEdge[closeCirclePosition] = variable;
 						
@@ -183,7 +183,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 						}
 						rule.getTriples().remove(nPatterns);
 						List<ByteString> listOfPromisingRelations = promisingRelations.decreasingKeys();
-						for(ByteString relation: listOfPromisingRelations){
+						for(int relation: listOfPromisingRelations){
 							int cardinality = promisingRelations.get(relation);
 							if (cardinality < minSupportThreshold) {
 								break;
@@ -277,7 +277,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		int nPatterns = query.getLength();
 		
 		for(int joinPosition = 0; joinPosition <= 2; joinPosition += 2){			
-			for(ByteString joinVariable: joinVariables){
+			for(int joinVariable: joinVariables){
 				int[] newEdge = edge.clone();
 				
 				newEdge[joinPosition] = joinVariable;
@@ -309,7 +309,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 				List<ByteString> listOfPromisingRelations = promisingRelations.decreasingKeys();				
 				// The relations are sorted by support, therefore we can stop once we have reached
 				// the minimum support.
-				for(ByteString relation: listOfPromisingRelations){
+				for(int relation: listOfPromisingRelations){
 					int cardinality = promisingRelations.get(relation);
 					
 					if (cardinality < minSupportThreshold) {
@@ -437,7 +437,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		}
 		
 		int joinPosition = (danglingPosition == 0 ? 2 : 0);
-		for(ByteString constant: constants){
+		for(int constant: constants){
 			int cardinality = constants.get(constant);
 			if(cardinality >= minSupportThreshold){
 				int[] targetEdge = danglingEdge.clone();
@@ -486,7 +486,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 			int[] t1 = query.getTriples().get(hardnessInfo[2]);
 			int[] t2 = query.getTriples().get(hardnessInfo[3]);
 			
-			ByteString nonFreshVar = targetTriple[nonFreshVarPos];
+			int nonFreshVar = targetTriple[nonFreshVarPos];
 			int victimVarPos, victimTriplePos = -1, targetTriplePos = -1;
 			victimVarPos= hardnessInfo[1];
 						
@@ -531,7 +531,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 	 * @param query
 	 * @return
 	 */
-	protected long computeBodySize(ByteString var1, ByteString var2, Rule query){
+	protected long computeBodySize(int var1, int var2, Rule query){
 		long t1 = System.currentTimeMillis();		
 		long result = this.kb.countDistinctPairs(var1, var2, query.getAntecedent());
 		long t2 = System.currentTimeMillis();	
@@ -552,7 +552,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 	 * @param nonExistentialPosition
 	 * @return
 	 */
-	protected double computePcaBodySize(ByteString var1, ByteString var2, Rule query, List<int[]> antecedent, int[] existentialTriple, int nonExistentialPosition) {		
+	protected double computePcaBodySize(int var1, int var2, Rule query, List<int[]> antecedent, int[] existentialTriple, int nonExistentialPosition) {		
 		antecedent.add(existentialTriple);
 		long t1 = System.currentTimeMillis();
 		long result = this.kb.countDistinctPairs(var1, var2, antecedent);
@@ -642,7 +642,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 			//Confidence
 			try{
 				if(KB.numVariables(head) == 2){
-					ByteString var1, var2;
+					int var1, var2;
 					var1 = head[KB.firstVariablePos(head)];
 					var2 = head[KB.secondVariablePos(head)];
 					denominator = (double) computeBodySize(var1, var2, candidate);

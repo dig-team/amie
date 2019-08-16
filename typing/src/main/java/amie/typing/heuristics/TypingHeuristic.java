@@ -25,30 +25,30 @@ public abstract class TypingHeuristic {
             this.defaultSupportThreshold = supportThreshold;
         }
 	
-	protected double getStandardConfidence(ByteString type, List<int[]> clause, ByteString variable) {
+	protected double getStandardConfidence(int type, List<int[]> clause, int variable) {
 		return getStandardConfidence(clause, typeL(type, variable), variable, false);
 	}
 	
-	public static int[] typeT(ByteString type, ByteString variable) { return KB.triple(variable, amie.data.Schema.typeRelationBS, type); }
-	public static List<int[]> typeL(ByteString type, ByteString variable) {
+	public static int[] typeT(int type, int variable) { return KB.triple(variable, amie.data.Schema.typeRelationBS, type); }
+	public static List<int[]> typeL(int type, int variable) {
 		List<int[]> l = new LinkedList<>();
 		l.add(typeT(type, variable));
 		return l;
 	}
 	
-	protected double getStandardConfidence(List<int[]> head, List<int[]> body, ByteString variable) {
+	protected double getStandardConfidence(List<int[]> head, List<int[]> body, int variable) {
 		return getStandardConfidence(head, body, variable, false);
 	}
 	
-	protected double getStandardConfidence(List<int[]> head, List<int[]> body, ByteString variable, int threshold) {
+	protected double getStandardConfidence(List<int[]> head, List<int[]> body, int variable, int threshold) {
 		return getStandardConfidenceWithThreshold(head, body, variable, threshold, false);
 	}
 	
-	protected double getStandardConfidence(List<int[]> head, List<int[]> body, ByteString variable, boolean safe) {
+	protected double getStandardConfidence(List<int[]> head, List<int[]> body, int variable, boolean safe) {
 		return getStandardConfidenceWithThreshold(head, body, variable, defaultSupportThreshold, safe);
 	}
 	
-	protected double getStandardConfidenceWithThreshold(List<int[]> head, List<int[]> body, ByteString variable, int threshold, boolean safe) {
+	protected double getStandardConfidenceWithThreshold(List<int[]> head, List<int[]> body, int variable, int threshold, boolean safe) {
 		List<int[]> bodyC = (safe) ? new LinkedList<>(body) : body;
 		long bodySize = db.countDistinct(variable, bodyC);
 		bodyC.addAll(head);
@@ -58,5 +58,5 @@ public abstract class TypingHeuristic {
 		return (double) support / bodySize;
 	}
 	
-	public abstract double evaluate(ByteString type, List<int[]> clause, ByteString variable);
+	public abstract double evaluate(int type, List<int[]> clause, int variable);
 }

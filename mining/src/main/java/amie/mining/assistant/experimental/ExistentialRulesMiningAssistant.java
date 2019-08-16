@@ -48,7 +48,7 @@ public class ExistentialRulesMiningAssistant extends DefaultMiningAssistant {
 		List<int[]> candidate = new ArrayList<>();
 		if (openVariables.size() > 0) {
 			for (int[] triple : rule.getTriplesCopy()) {
-				for (ByteString openVariable : openVariables) {
+				for (int openVariable : openVariables) {
 					if (triple[0] == openVariable && openVariables.contains(triple[2])) {
 						return;
 					}

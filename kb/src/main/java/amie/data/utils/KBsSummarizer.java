@@ -39,7 +39,7 @@ public class KBsSummarizer {
 					KB.triples(KB.triple(KB.map("?s"), 
 							KB.map("?p"), KB.map("?o"))));
 			
-			for (ByteString relation : relationsDb1) {
+			for (int relation : relationsDb1) {
 				if (relationsDb2.contains(relation)) {
 					relationsInCommon.add(relation);
 				}

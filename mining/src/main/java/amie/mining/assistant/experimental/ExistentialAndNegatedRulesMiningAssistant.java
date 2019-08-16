@@ -54,7 +54,7 @@ public class ExistentialAndNegatedRulesMiningAssistant extends MiningAssistant {
 		Rule query = new Rule();
 		int[] newEdge1 = query.fullyUnboundTriplePattern();
 		int[] newEdge2 = query.fullyUnboundTriplePattern();
-		for (ByteString relation : relations) {
+		for (int relation : relations) {
 			if (this.headExcludedRelations != null 
 					&& this.headExcludedRelations.contains(relation)) {
 				continue;
@@ -123,7 +123,7 @@ public class ExistentialAndNegatedRulesMiningAssistant extends MiningAssistant {
 			} else {
 				source = this.kb;
 			}
-			ByteString typeToEnforce = null;
+			int typeToEnforce = null;
 			if (head[1].equals(KB.NOTEXISTSbs) || head[1].equals(KB.EXISTSbs)) {
 				typeToEnforce = Schema.getRelationDomain(source, head[0]);
 			} else if (head[1].equals(KB.NOTEXISTSINVbs) || head[1].equals(KB.EXISTSINVbs)) {

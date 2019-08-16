@@ -51,21 +51,21 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
     }
     
     @Override
-    public void addGS(ByteString relation, IntSet classes) {
+    public void addGS(int relation, IntSet classes) {
         //System.err.println(relation);
         queried.add(relation);
         IntSet gsr = gs.get(relation);
         if (gsr == null) {
             gs.put(relation, gsr = new IntOpenHashSet());
         }
-        for (ByteString rtClass : classes) {
+        for (int rtClass : classes) {
             System.err.println(rtClass);
             gsr.addAll(db.classes.get(rtClass));
         }
     }
     
     @Override
-    public void addGS(ByteString relation, ByteString gsClass) {
+    public void addGS(int relation, int gsClass) {
         //System.err.println(relation);
         queried.add(relation);
         IntSet gsr = gs.get(relation);
@@ -76,7 +76,7 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
     }
     
     @Override
-    public void addResult(ByteString relation, String method, ByteString rtClass) {
+    public void addResult(int relation, String method, int rtClass) {
         querySet.add(method);
         Map<String, IntSet> method2classes = query2classes.get(relation);
         if (method2classes == null) {
@@ -90,7 +90,7 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
     }
     
     @Override
-    public void addResult(ByteString relation, String method, IntSet classes) {
+    public void addResult(int relation, String method, IntSet classes) {
         querySet.add(method);
         Map<String, IntSet> method2classes = query2classes.get(relation);
         if (method2classes == null) {
@@ -100,7 +100,7 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
     }
     
     @Override
-    public ImpliedFacts computeImpliedFacts(ByteString query, String method) {
+    public ImpliedFacts computeImpliedFacts(int query, String method) {
         System.err.println("Computing " + query.toString() + ":" + method);
         if (!queried.contains(query)) {
             return new ImpliedFacts(0, 0, 0, 0, 0, 0);
@@ -111,7 +111,7 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
             return new ImpliedFacts(0, 0, gsSize, 0, 0, gsSize - oldGSFacts);
         }
         IntSet rtSet = new IntOpenHashSet((int) gsSize);
-        for (ByteString c : query2classes.get(query).get(method)) {
+        for (int c : query2classes.get(query).get(method)) {
             rtSet.addAll(db.classes.get(c));
         }
         long rtSize = rtSet.size();
@@ -253,7 +253,7 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
         }
         
         for (String method : eval.querySet) {
-            for (ByteString relation : eval.queried) {
+            for (int relation : eval.queried) {
                 eval.queryQ.add(new Pair<>(relation, method));
             }
         }

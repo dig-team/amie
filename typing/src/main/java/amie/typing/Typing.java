@@ -67,7 +67,7 @@ public class Typing {
 
                     out = new BufferedWriter(new FileWriter(fn));
                     double s;
-                    for (ByteString c : classes) {
+                    for (int c : classes) {
                         s = q.third.evaluate(c, q.first, q.second);
                         if (outputThreshold <= s) {
                             out.write(c.toString() + "\t" + Double.toString(s) + "\n");
@@ -349,14 +349,14 @@ public class Typing {
             TypingHeuristic spread = new Spread(dataSource);
             TypingHeuristic amplification = new Amplification(dataSource);
             double mrc_score = 0;
-            ByteString mrc = KB.map("NONE");
+            int mrc = KB.map("NONE");
             double mrc_score2 = 0;
-            ByteString mrc2 = KB.map("NONE");
-            for (ByteString r : relations) {
+            int mrc2 = KB.map("NONE");
+            for (int r : relations) {
                 clause.add(KB.triple(KB.map("?x"), r, KB.map("?y")));
                 Double prob = 0.0;
                 List<Double> probs = new LinkedList<>();
-                for (ByteString c : classes) {
+                for (int c : classes) {
                     if ((prob = spread.evaluate(c, clause, KB.map("?x")) * amplification.evaluate(c, clause, KB.map("?x"))) > mrc_score) {
                         mrc = c;
                         mrc_score = prob;
@@ -376,7 +376,7 @@ public class Typing {
         } else {
             BlockingQueue queryQ = new LinkedBlockingQueue();
             for (TypingHeuristic th : typingHeuristics) {
-                for (ByteString r : relations) {
+                for (int r : relations) {
                     queryQ.add(new Triple<>(KB.triples(KB.triple(KB.map("?x"), r, KB.map("?y"))),
                             KB.map("?x"), th));
                     queryQ.add(new Triple<>(KB.triples(KB.triple(KB.map("?x"), r, KB.map("?y"))),

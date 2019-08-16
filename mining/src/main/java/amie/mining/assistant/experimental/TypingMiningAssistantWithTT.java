@@ -21,7 +21,7 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 	
 	public static String topType = "owl:Thing";
 	
-	public static ByteString topTypeBS = KB.map(topType);
+	public static int topTypeBS = KB.map(topType);
 
 	public TypingMiningAssistantWithTT(KB dataSource) {
 		super(dataSource);
@@ -80,7 +80,7 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 		List<int[]> body = rule.getBody();
 		IntSet subTypes = amie.data.Schema.getSubTypes(kb, head[2]);
 		int parentTypePos = Rule.firstIndexOfRelation(body, KB.TRANSITIVETYPEbs);
-		for (ByteString subType : subTypes) {
+		for (int subType : subTypes) {
 			Rule succedent = new Rule(rule, rule.getSupport());
 			if (parentTypePos == -1) {
 				succedent = succedent.addAtom(KB.triple(head[0], KB.TRANSITIVETYPEbs, head[2]), 0);
@@ -110,14 +110,14 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 			return;
 		}
 		int cardinality;
-		for (ByteString openVariable : openVariables) {
+		for (int openVariable : openVariables) {
 			int[] newEdge = rule.fullyUnboundTriplePattern();
 			newEdge[0] = openVariable;
 			newEdge[1] = KB.TRANSITIVETYPEbs;
 			
 			Rule pattern = rule.addAtom(newEdge, 0);
 			Int2IntMap promisingTypes = kb.frequentBindingsOf(newEdge[2], pattern.getFunctionalVariable(), pattern.getTriples());
-			for (ByteString promisingType : promisingTypes) {
+			for (int promisingType : promisingTypes) {
 				cardinality = promisingTypes.get(promisingType);
 				if (cardinality >= minSupportThreshold) {
 					newEdge[2] = promisingType;

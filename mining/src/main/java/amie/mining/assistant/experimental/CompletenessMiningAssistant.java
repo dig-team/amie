@@ -37,19 +37,19 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	
 	public static final String hasNotChanged = "<hasNotChanged>";
 	
-	public static final ByteString isRelevanthasWikiLengthBS = KB.map(isRelevanthasWikiLength); 
+	public static final int isRelevanthasWikiLengthBS = KB.map(isRelevanthasWikiLength); 
 	
-	public static final ByteString isRelevanthasIngoingLinksBS = KB.map(isRelevanthasIngoingLinks); 
+	public static final int isRelevanthasIngoingLinksBS = KB.map(isRelevanthasIngoingLinks); 
 	
-	public static final ByteString hasChangedBS = KB.map(hasChanged);
+	public static final int hasChangedBS = KB.map(hasChanged);
 	
-	public static final ByteString hasNotChangedBS = KB.map(hasNotChanged);
+	public static final int hasNotChangedBS = KB.map(hasNotChanged);
 	
-	public static final ByteString isCompleteBS = KB.map(isComplete);
+	public static final int isCompleteBS = KB.map(isComplete);
 	
-	public static final ByteString isIncompleteBS = KB.map(isIncomplete);
+	public static final int isIncompleteBS = KB.map(isIncomplete);
 	
-	public static final ByteString isRelevanthasNumberOfFactsBS = KB.map(isRelevanthasNumberOfFacts);
+	public static final int isRelevanthasNumberOfFactsBS = KB.map(isRelevanthasNumberOfFacts);
 	
 	private static final List<ByteString> functionalExceptions = Arrays.asList(KB.map("<hasChild>"), 
 			KB.map("<child_P40>"), KB.map("<spokenIn>"));
@@ -93,7 +93,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	 * @param relation
 	 * @return
 	 */
-	public boolean isFunctional(ByteString relation) {
+	public boolean isFunctional(int relation) {
 		return this.kb.isFunctional(relation) || functionalExceptions.contains(relation);
 	}
 	
@@ -105,7 +105,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		
 		int[] newEdge = query.fullyUnboundTriplePattern();
 		
-		for (ByteString relation: relations) {		
+		for (int relation: relations) {		
 			if (relation.equals(isCompleteBS) ||
 					relation.equals(isIncompleteBS)) {
 				registerHeadRelation(relation, (double) relations.get(relation));
@@ -144,12 +144,12 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		if (compositeRelation == null) {
 			super.getTypeSpecializedAtoms(rule, minSupportThreshold, output);
 		} else {
-			ByteString oldRelation = lastAtom[1];
+			int oldRelation = lastAtom[1];
 			// Do not specialize the equals relation
 			if (oldRelation.toString().startsWith(KB.hasNumberOfValuesEquals)) 
 				return;
 			
-			ByteString targetRelation = lastAtom[2];
+			int targetRelation = lastAtom[2];
 			int newCard = -1;
 			int[] head = rule.getHead(); 
 			if (head[1].equals(isCompleteBS)) {
@@ -178,7 +178,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 					return;
 			}
 								
-			ByteString newRelation = KB.map(compositeRelation.first.toString() + newCard);
+			int newRelation = KB.map(compositeRelation.first.toString() + newCard);
 			lastAtom[1] = newRelation;
 			long cardinality = kb.countDistinct(rule.getFunctionalVariable(), rule.getTriples());
 			lastAtom[1] = oldRelation;
@@ -194,7 +194,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 
 	
 	private void addCardinalityAtom(Rule rule, double minSupportThreshold, 
-			ByteString targetRelation,
+			int targetRelation,
 			Collection<Rule> output) {
 		// We'll force a cardinality atom at the end
 		int[] head = rule.getHead();
@@ -282,7 +282,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		// First look for the instantiated atom
 		int[] lastAtom = parentRule.getLastRealTriplePattern(); // We assume it is an instantiated type atom
 		int[] atom1 = parentRule.fullyUnboundTriplePattern();
-		ByteString countVar = parentRule.getFunctionalVariable();
+		int countVar = parentRule.getFunctionalVariable();
 		
 		atom1[0] = countVar;
 		atom1[1] = Schema.typeRelationBS;
@@ -290,7 +290,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		int[] atom2 = KB.triple(atom1[2], KB.DIFFERENTFROMbs, lastAtom[2]);
 		long baseCardinality = Schema.getNumberOfEntitiesForType(this.kb, lastAtom[2]);
 		List<int[]> parentRuleTriples = parentRule.getTriples();
-		for (ByteString subtype : subtypes) {
+		for (int subtype : subtypes) {
 			long typeCardinality = Schema.getNumberOfEntitiesForType(this.kb, subtype);
 			double ratio = (double) typeCardinality / baseCardinality;
 			if (typeCardinality < minSupportThreshold || ratio < 0.05)
@@ -331,7 +331,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 				rule.getFunctionalVariable(), rule.getTriples());
 		rule.getTriples().remove(nPatterns);
 		
-		for(ByteString relation: promisingRelations){
+		for(int relation: promisingRelations){
 			if (this.bodyExcludedRelations != null && 
 					this.bodyExcludedRelations.contains(relation))
 				continue;
@@ -363,10 +363,10 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 
 	private void addTypeAtom(Rule parentRule, double minSupportThreshold, Collection<Rule> output) {
 		int[] head = parentRule.getHead();
-		ByteString relation = head[2];
+		int relation = head[2];
 		int[] newEdge = head.clone();
 		newEdge[1] = Schema.typeRelationBS;
-		ByteString domain = null;
+		int domain = null;
 		if (this.kbSchema != null) {
 			if (this.isFunctional(relation)) {
 				domain = Schema.getRelationDomain(this.kbSchema, relation);
@@ -391,10 +391,10 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		}
 	}
 
-	private void addChangedAtom(Rule parentRule, ByteString changeRelation, double minSupportThreshold,
+	private void addChangedAtom(Rule parentRule, int changeRelation, double minSupportThreshold,
 			Collection<Rule> output) {
 		int[] head = parentRule.getHead();
-		ByteString targetRelation = head[2];
+		int targetRelation = head[2];
 		
 		int[] changedAtom = new int[]{parentRule.getFunctionalVariable(), 
 				changeRelation, targetRelation};
@@ -410,7 +410,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		
 	}
 
-	private void addRelevanceAtom(Rule parentRule, ByteString relevanceRelation,
+	private void addRelevanceAtom(Rule parentRule, int relevanceRelation,
 			double minSupportThreshold, Collection<Rule> output) {
 		int[] relevanceAtom = new int[]{parentRule.getFunctionalVariable(), 
 				relevanceRelation, KB.map("TRUE")};
@@ -446,7 +446,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	 * @param rule
 	 * @return
 	 */
-	private boolean containsCardinalityAtom(Rule rule, ByteString targetRelation) {
+	private boolean containsCardinalityAtom(Rule rule, int targetRelation) {
 		int idx = indexOfCardinalityAtom(rule);
 		if (idx == -1) {
 			return false;

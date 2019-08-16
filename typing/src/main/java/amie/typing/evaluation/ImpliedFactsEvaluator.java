@@ -45,13 +45,13 @@ public class ImpliedFactsEvaluator {
     public BlockingQueue<Pair<ByteString, String>> queryQ = new LinkedBlockingQueue<>();
     public BlockingQueue<Pair<Pair<ByteString, String>, ImpliedFacts>> resultQ = new LinkedBlockingQueue<>();
 
-    public static final ByteString gsRelation = KB.map("<inGoldStandardOf>");
+    public static final int gsRelation = KB.map("<inGoldStandardOf>");
 
-    public static ByteString resultWithThresholdRelation(String method) {
+    public static int resultWithThresholdRelation(String method) {
         return KB.map("<inResult_" + method + ">");
     }
 
-    public static ByteString rwtr(String t) {
+    public static int rwtr(String t) {
         return resultWithThresholdRelation(t);
     }
 
@@ -65,17 +65,17 @@ public class ImpliedFactsEvaluator {
 //            Int2ObjectMap<Map<String, IntSet>> results) {
 //        this.db = db;
 //        queried = new IntOpenHashSet(goldStandard.keySet());
-//        for (ByteString q : queried) {
-//            for (ByteString gsResult : goldStandard.get(q)) {
-//                for (ByteString e : Schema.getAllEntitiesForType(db, gsResult)) {
+//        for (int q : queried) {
+//            for (int gsResult : goldStandard.get(q)) {
+//                for (int e : Schema.getAllEntitiesForType(db, gsResult)) {
 //                    db.add(e, gsRelation, q);
 //                }
 //            }
 //            if (!results.containsKey(q)) { continue; }
 //            for (String t : results.get(q).keySet()) {
 //                queryQ.add(new Pair<>(q, t));
-//                for (ByteString rtClass : results.get(q).get(t)) {
-//                    for (ByteString e : Schema.getAllEntitiesForType(db, rtClass)) {
+//                for (int rtClass : results.get(q).get(t)) {
+//                    for (int e : Schema.getAllEntitiesForType(db, rtClass)) {
 //                        db.add(e, rwtr(t), q);
 //                    }
 //                }
@@ -83,28 +83,28 @@ public class ImpliedFactsEvaluator {
 //        }
 //    }
     
-    public void addGS(ByteString relation, IntSet classes) {
-        for (ByteString rtClass : classes) {
+    public void addGS(int relation, IntSet classes) {
+        for (int rtClass : classes) {
             addGS(relation, rtClass);
         }
     }
         
-    public void addGS(ByteString relation, ByteString rtClass) {
+    public void addGS(int relation, int rtClass) {
         queried.add(relation);
-        for (ByteString e : Schema.getAllEntitiesForType(db, rtClass)) {
+        for (int e : Schema.getAllEntitiesForType(db, rtClass)) {
                 db.add(e, gsRelation, relation);
         }
     }
     
-    public void addResult(ByteString relation, String method, IntSet classes) {
-        for (ByteString rtClass : classes) {
+    public void addResult(int relation, String method, IntSet classes) {
+        for (int rtClass : classes) {
             addResult(relation, method, classes);
         }
     }
         
-    public void addResult(ByteString relation, String method, ByteString rtClass) {
+    public void addResult(int relation, String method, int rtClass) {
         querySet.add(method);
-        for (ByteString e : Schema.getAllEntitiesForType(db, rtClass)) {
+        for (int e : Schema.getAllEntitiesForType(db, rtClass)) {
                 db.add(e, rwtr(method), relation);
         }
     }
@@ -122,12 +122,12 @@ public class ImpliedFactsEvaluator {
             NFTP=nftp; NFPS=nfps; NFGS=nfgs; }
     }
     
-    public ImpliedFacts computeImpliedFacts(ByteString query, String method) {
+    public ImpliedFacts computeImpliedFacts(int query, String method) {
         throw new UnsupportedOperationException("No longer...");
 //        if (!queried.contains(query)) {
 //            //return new ImpliedFacts(0, 0, 0, 0);
 //        }
-//        final ByteString x = KB.map("?x");
+//        final int x = KB.map("?x");
 //        List<int[]> gsSizeQ = KB.triples(KB.triple(x, gsRelation, query));
 //        List<int[]> rtSizeQ = KB.triples(KB.triple(x, rwtr(method), query));
 //        long gsSize = db.countDistinct(x, gsSizeQ);
@@ -319,7 +319,7 @@ public class ImpliedFactsEvaluator {
         }
         
         for (String method : eval.querySet) {
-            for (ByteString relation : eval.queried) {
+            for (int relation : eval.queried) {
                 eval.queryQ.add(new Pair<>(relation, method));
             }
         }

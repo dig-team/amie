@@ -75,12 +75,12 @@ public class Predictor {
 		
 		Set<Triple<ByteString, ByteString, ByteString>> triples = new LinkedHashSet<>();
 		int[] head = rule.getHead();
-		ByteString relation = rule.getHead()[1];
+		int relation = rule.getHead()[1];
 		
 		if (KB.numVariables(rule.getHead()) == 1) {
 			IntSet constants = (IntSet) bindings;
 			int variablePosition = rule.getFunctionalVariablePosition();
-			for (ByteString constant : constants) {
+			for (int constant : constants) {
 				if (variablePosition == 0) {
 					triples.add(new Triple<>(constant, relation, head[2]));
 				} else {
@@ -90,8 +90,8 @@ public class Predictor {
 		} else {
 			Int2ObjectMap<Int2IntMap> pairs = (Int2ObjectMap<Int2IntMap>) bindings; 
 			int functionalPosition = rule.getFunctionalVariablePosition();
-			for (ByteString subject : pairs.keySet()) {
-				for (ByteString object : pairs.get(subject)) {
+			for (int subject : pairs.keySet()) {
+				for (int object : pairs.get(subject)) {
 					if (functionalPosition == 0) {
 						triples.add(new Triple<>(subject, relation, object));
 					} else {
@@ -235,14 +235,14 @@ public class Predictor {
 	private Collection<Triple<ByteString, ByteString, ByteString>> 
 	samplePredictionsTwoVariables(Int2ObjectMap<Int2IntMap> predictions, Rule rule) {
 		IntSet keySet = predictions.keySet();
-		ByteString relation = rule.getHead()[1];
+		int relation = rule.getHead()[1];
 		//Depending on the counting variable the order is different
 		int countingVarPos = rule.getFunctionalVariablePosition();
 		Set<Triple<ByteString, ByteString, ByteString>> samplingCandidates = 
 				new LinkedHashSet<Triple<ByteString, ByteString, ByteString>>();
 		
-		for(ByteString value1: keySet){
-			for(ByteString value2: predictions.get(value1)){
+		for(int value1: keySet){
+			for(int value2: predictions.get(value1)){
 				Triple<ByteString, ByteString, ByteString> triple = 
 						new Triple<ByteString, ByteString, ByteString>(null, null, null);
 				
@@ -301,14 +301,14 @@ public class Predictor {
 			Int2ObjectMap<Int2IntMap> predictions, 
 			Rule rule, Int2ObjectMap<Int2ObjectMap<IntSet>> allPredictions){
 		IntSet keySet = predictions.keySet();
-		ByteString relation = rule.getHead()[1];
+		int relation = rule.getHead()[1];
 		//Depending on the counting variable the order is different
 		int countingVarPos = rule.getFunctionalVariablePosition();
 		Set<Triple<ByteString, ByteString, ByteString>> samplingCandidates = 
 				new LinkedHashSet<Triple<ByteString, ByteString, ByteString>>();
 		
-		for(ByteString value1: keySet){
-			for(ByteString value2: predictions.get(value1)){
+		for(int value1: keySet){
+			for(int value2: predictions.get(value1)){
 				Triple<ByteString, ByteString, ByteString> triple = 
 						new Triple<ByteString, ByteString, ByteString>(null, null, null);
 				

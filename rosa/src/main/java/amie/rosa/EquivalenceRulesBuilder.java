@@ -43,7 +43,7 @@ public class EquivalenceRulesBuilder {
 		//Confidence
 		try{
 			if(KB.numVariables(head) == 2){
-				ByteString var1, var2;
+				int var1, var2;
 				var1 = head[KB.firstVariablePos(head)];
 				var2 = head[KB.secondVariablePos(head)];
 				
@@ -55,7 +55,7 @@ public class EquivalenceRulesBuilder {
 				improvedDenominator = source.countDistinctPairs(var1, var2, antecedent);
 				candidate.setPcaBodySize((int)improvedDenominator);
 			}else if(KB.numVariables(head) == 1){
-				ByteString var = head[KB.firstVariablePos(head)];				
+				int var = head[KB.firstVariablePos(head)];				
 				numerator = source.countDistinct(var, candidate.getTriples());
 				denominator = source.countDistinct(var, antecedent);
 				antecedent.add(existentialTriple);
@@ -86,14 +86,14 @@ public class EquivalenceRulesBuilder {
 			Int2ObjectMap<IntSet> bodyBindings = source.selectDistinct(head[0], head[2], KB.triples(body));		
 			Set<Pair<ByteString, ByteString> > pairs = new HashSet<Pair<ByteString, ByteString>>();
 			
-			for(ByteString key1: headBindings.keySet()){
-				for(ByteString key2: headBindings.get(key1)){
+			for(int key1: headBindings.keySet()){
+				for(int key2: headBindings.get(key1)){
 					pairs.add(new Pair<ByteString, ByteString>(key1, key2));
 				}
 			}
 			
-			for(ByteString key1: bodyBindings.keySet()){
-				for(ByteString key2: bodyBindings.get(key1)){
+			for(int key1: bodyBindings.keySet()){
+				for(int key2: bodyBindings.get(key1)){
 					pairs.add(new Pair<ByteString, ByteString>(key1, key2));
 				}
 			}		
@@ -118,7 +118,7 @@ public class EquivalenceRulesBuilder {
 		for(int i = 0; i < rules.size(); ++i){
 			if(flags[i]) continue;
 			boolean twoVars = KB.numVariables(rules.get(i).getHead()) == 2;
-			ByteString r1, r2, r1p, r2p, t1, t2, t1p, t2p;
+			int r1, r2, r1p, r2p, t1, t2, t1p, t2p;
 			r1 = rules.get(i).getHead()[1];
 			r2 = rules.get(i).getBody().get(0)[1];
 			t1 = rules.get(i).getHead()[2];
@@ -168,7 +168,7 @@ public class EquivalenceRulesBuilder {
 		for(int i = 0; i < rules.size(); ++i){
 			if(flags[i]) continue;
 			boolean twoVars = KB.numVariables(rules.get(i).getHead()) == 2;
-			ByteString r1, r2, r1p, r2p, t1, t2, t1p, t2p;
+			int r1, r2, r1p, r2p, t1, t2, t1p, t2p;
 			r1 = rules.get(i).getHead()[1];
 			r2 = rules.get(i).getBody().get(0)[1];
 			t1 = rules.get(i).getHead()[2];

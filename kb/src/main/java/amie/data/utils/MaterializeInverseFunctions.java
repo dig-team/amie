@@ -29,14 +29,14 @@ public class MaterializeInverseFunctions {
 		Int2ObjectMap<Int2ObjectMap<IntSet>> map = 
 				db.resultsThreeVariables(KB.map("?s"), KB.map("?p"), KB.map("?o"),
 						KB.triple("?o", "?p", "?s"));
-		for(ByteString object: map.keySet()){
+		for(int object: map.keySet()){
 			Int2ObjectMap<IntSet > predicates = map.get(object);
-			for(ByteString predicate: predicates.keySet()){
+			for(int predicate: predicates.keySet()){
 				if(db.functionality(predicate) >= db.inverseFunctionality(predicate)){
-					for(ByteString subject: predicates.get(predicate))
+					for(int subject: predicates.get(predicate))
 						System.out.println(subject + "\t" + predicate + "\t" + object);
 				} else {
-					for(ByteString subject: predicates.get(predicate))
+					for(int subject: predicates.get(predicate))
 						System.out.println(object + "\t" + "<inv-" 
 					+ predicate.subSequence(1, predicate.length()) + "\t" + subject);					
 				}

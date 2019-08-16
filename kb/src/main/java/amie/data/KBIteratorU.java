@@ -72,9 +72,9 @@ public class KBIteratorU {
     public static class recursiveSelectForOneVarIterator extends addNotInIfExistsIterator implements IntIterator, CloseableNoThrow {
         
         IntIterator subIterator;
-        ByteString variable;
+        int variable;
         
-        public recursiveSelectForOneVarIterator(KB kb, KB.Instantiator insty, ByteString variable, IntSet toIterate, IntSet addTo) {
+        public recursiveSelectForOneVarIterator(KB kb, KB.Instantiator insty, int variable, IntSet toIterate, IntSet addTo) {
             super(kb, insty, toIterate, addTo);
             this.variable = variable;
             this.subIterator = Collections.emptyIterator();
@@ -114,10 +114,10 @@ public class KBIteratorU {
         KB kb;
         KB.Instantiator insty1, insty2;
         IntIterator subIterator;
-        ByteString variable, next;
+        int variable, next;
         IntSet addTo;
         
-        public recursiveSelectForTwoVarIterator(KB kb, KB.Instantiator insty1, KB.Instantiator insty2, ByteString variable, Int2ObjectMap<IntSet> toIterate, IntSet addTo) {
+        public recursiveSelectForTwoVarIterator(KB kb, KB.Instantiator insty1, KB.Instantiator insty2, int variable, Int2ObjectMap<IntSet> toIterate, IntSet addTo) {
             this.kb = kb;
             this.insty1 = insty1;
             this.insty2 = insty2;
@@ -151,8 +151,8 @@ public class KBIteratorU {
         }
 
         @Override
-        public ByteString next() {
-            ByteString r = null;
+        public int next() {
+            int r = null;
             if (next != null || hasNext()) { r = next; next = null; }
             return r;
         }
@@ -176,10 +176,10 @@ public class KBIteratorU {
         KB kb;
         KB.Instantiator insty1, insty2, insty3;
         IntIterator subIterator;
-        ByteString variable, next;
+        int variable, next;
         IntSet addTo;
         
-        public recursiveSelectForThreeVarIterator(KB kb, KB.Instantiator insty1, KB.Instantiator insty2, KB.Instantiator insty3, ByteString variable, Int2ObjectMap<Int2ObjectMap<IntSet>> toIterate, IntSet addTo) {
+        public recursiveSelectForThreeVarIterator(KB kb, KB.Instantiator insty1, KB.Instantiator insty2, KB.Instantiator insty3, int variable, Int2ObjectMap<Int2ObjectMap<IntSet>> toIterate, IntSet addTo) {
             this.kb = kb;
             this.insty1 = insty1;
             this.insty2 = insty2;
@@ -220,8 +220,8 @@ public class KBIteratorU {
         }
 
         @Override
-        public ByteString next() {
-            ByteString r = null;
+        public int next() {
+            int r = null;
             if (next != null || hasNext()) { r = next; next = null; }
             return r;
         }
@@ -236,4 +236,5 @@ public class KBIteratorU {
             insty3.close();
             it1 = null;
         }
+    }
 }

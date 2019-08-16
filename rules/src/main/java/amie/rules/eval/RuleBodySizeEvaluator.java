@@ -23,7 +23,7 @@ public class RuleBodySizeEvaluator {
 
 	public static int aggregate(Int2ObjectMap<Int2IntMap> bindings){
 		int count = 0;
-		for(ByteString value1: bindings.keySet()){
+		for(int value1: bindings.keySet()){
 			count += bindings.get(value1).size();
 		}
 		return count;
@@ -42,7 +42,7 @@ public class RuleBodySizeEvaluator {
 			long[] result = conditionalBodySize(q, db, predictions);
 			long nSubjects = db.countDistinct(KB.map(head[0]), KB.triples(head));
 			long nObjects = db.countDistinct(KB.map(head[2]), KB.triples(head));
-			ByteString tmp = head[0];
+			int tmp = head[0];
 			head[0] = KB.map("?x");
 			long a = db.countDistinctPairs(tmp, head[2], q.getTriples());
 			head[0] = tmp;
@@ -62,8 +62,8 @@ public class RuleBodySizeEvaluator {
 		int countingVarPos = q.getFunctionalVariablePosition();
 		long result[] = new long[2];
 		
-		for(ByteString value1: predictions.keySet()){
-			for(ByteString value2: predictions.get(value1)){
+		for(int value1: predictions.keySet()){
+			for(int value2: predictions.get(value1)){
 				Triple<ByteString, ByteString, ByteString> triple = new Triple<ByteString, ByteString, ByteString>(null, null, null);
 				
 				if(value1.equals(value2)){ 

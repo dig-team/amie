@@ -46,7 +46,7 @@ public class B3SimpleClassifier extends SimpleClassifier {
     }
 
     @Override
-    public void computeStatistics(ByteString relation, int classSizeThreshold) {
+    public void computeStatistics(int relation, int classSizeThreshold) {
         int bodySize = index.get(Schema.topBS).support;
         for (SimpleTreeNode n : index.values()) {
             n.separationScore = ((double) n.support) / bodySize;
@@ -58,7 +58,7 @@ public class B3SimpleClassifier extends SimpleClassifier {
     /**
      * Compute the lowest classes in the taxonomy meeting the threshold.
      */
-    public void computeClassification(ByteString relation, int classSizeThreshold) {
+    public void computeClassification(int relation, int classSizeThreshold) {
         for (SimpleTreeNode n : index.values()) {
             int i = 0;
             while(i < thresholds.length && meetThreshold(n.separationScore, thresholds[i])) { i++; }

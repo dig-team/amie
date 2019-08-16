@@ -41,7 +41,7 @@ public class TaxonomyMinimal {
 
             File resultFile = new File(args[i]);
             for (String line : new FileLines(resultFile, "UTF-8", null)) {
-                ByteString t = KB.map(line.trim());
+                int t = KB.map(line.trim());
                 if (results.contains(t)) {
                     clean = false;
                     System.err.println("ERROR:"+args[i]+": Duplicates found");
@@ -50,8 +50,8 @@ public class TaxonomyMinimal {
             }
 
             IntSet cleanedResults = new IntOpenHashSet(results);
-            for (ByteString c1 : results) {
-                for (ByteString c2 : results) {
+            for (int c1 : results) {
+                for (int c2 : results) {
                     if (c1 == c2) {
                         continue;
                     }
@@ -65,7 +65,7 @@ public class TaxonomyMinimal {
             }
             if (!clean) {
                 BufferedWriter w = new BufferedWriter(new FileWriter(args[i]+"_cleaned"));
-                for (ByteString c : cleanedResults) {
+                for (int c : cleanedResults) {
                     w.write(c.toString()+"\n");
                 }
                 w.close();

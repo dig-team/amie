@@ -70,7 +70,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
         }
     }
     
-    public void classify(List<int[]> query, ByteString variable, int classSizeThreshold, int supportThreshold, double[] thresholds) throws IOException {
+    public void classify(List<int[]> query, int variable, int classSizeThreshold, int supportThreshold, double[] thresholds) throws IOException {
         if (getStandardConfidenceWithThreshold(TypingHeuristic.typeL(Schema.topBS, variable), query, variable, supportThreshold, true) != 0) {
             SeparationTreeNode root = new SeparationTreeNode(Schema.topBS);
             index.put(Schema.topBS, root);
@@ -88,7 +88,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
 
     private ArrayList<BufferedWriter> writers = new ArrayList<>();
     
-    private void createFiles(List<int[]> query, ByteString variable, double[] thresholds) throws IOException {
+    private void createFiles(List<int[]> query, int variable, double[] thresholds) throws IOException {
         if (query.size() > 1) throw new UnsupportedOperationException("Not supported yet.");
         int[] singleton = query.get(0);
         String fnb = singleton[1].toString().substring(1, singleton[1].toString().length()-1) + ((singleton[2].equals(variable)) ? "-1" : "") + "_";
@@ -101,18 +101,18 @@ public class SeparationTreeClassifier extends SeparationClassifier {
     
     protected class SeparationTreeNode {
     
-        public SeparationTreeNode(ByteString classNameP) {
+        public SeparationTreeNode(int classNameP) {
             className = classNameP;
         }
     
-        public ByteString className;
+        public int className;
         public Double separationScore = 0.0;
         public int thresholdI = -1;
         public int thresholdMask = 0;
         public Collection<SeparationTreeNode> children = new LinkedList<>();
     
-        public void generate(int supportThreshold, int classSizeThreshold, List<int[]> query, ByteString variable) {
-            for (ByteString subClass : Schema.getSubTypes(db, className)) {
+        public void generate(int supportThreshold, int classSizeThreshold, List<int[]> query, int variable) {
+            for (int subClass : Schema.getSubTypes(db, className)) {
                 SeparationTreeNode stc = index.get(subClass);
                 if (stc != null) {
                     children.add(stc);
@@ -146,7 +146,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
      * Prints class into files
      * Class of node n should be printed in file i if n.thresholdI > -1 and i \in [n.thresholdMask + 1; n.thresholdI]
      */
-    private void export(int i, ByteString className) throws IOException {
+    private void export(int i, int className) throws IOException {
         writers.get(i).write(className.toString() + "\n");
     }
     
@@ -203,11 +203,11 @@ public class SeparationTreeClassifier extends SeparationClassifier {
         index.get(Schema.topBS).resetMask();
     }
     
-    public void computeStatistics(List<int[]> query, ByteString variable, int classSizeThreshold) {
+    public void computeStatistics(List<int[]> query, int variable, int classSizeThreshold) {
         IntSet relevantClasses = index.keySet();
-        ByteString relation = (query.get(0)[0].equals(variable)) ? query.get(0)[1] : KB.map(query.get(0)[1].toString() + "-1");
+        int relation = (query.get(0)[0].equals(variable)) ? query.get(0)[1] : KB.map(query.get(0)[1].toString() + "-1");
 
-        for (ByteString class1 : relevantClasses) {
+        for (int class1 : relevantClasses) {
             int c1size = classSize.get(class1);
             IntSet c1phi = null;
             
@@ -223,7 +223,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
             clause.addAll(query);
             IntSet targetClasses = (supportForTarget) ? relevantClasses : classIntersectionSize.get(class1);
 
-            for (ByteString class2 : targetClasses) {
+            for (int class2 : targetClasses) {
                 assert (clause.size() == query.size() + 1);
                 if (class1 == class2) {
                     continue;

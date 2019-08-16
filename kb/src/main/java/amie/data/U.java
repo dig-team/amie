@@ -36,36 +36,36 @@ public class U {
 		IntSet sourceEntities = new IntOpenHashSet();
 		sourceEntities.addAll(source1.subjectSize);
 		sourceEntities.addAll(source1.objectSize);
-		for(ByteString entity: sourceEntities){
+		for(int entity: sourceEntities){
 			//Print all facts of the source ontology
 			Int2ObjectMap<IntSet> tail1 = source1.subject2relation2object.get(entity);
 			Int2ObjectMap<IntSet> tail2 = source2.subject2relation2object.get(entity);
 			if(tail2 == null)
 				continue;
 						
-			for(ByteString predicate: tail1.keySet()){
-				for(ByteString object: tail1.get(predicate)){
+			for(int predicate: tail1.keySet()){
+				for(int object: tail1.get(predicate)){
 					System.out.println(entity + "\t" + predicate + "\t" + object);
 				}
 			}
 			//Print all facts in the target ontology
-			for(ByteString predicate: tail2.keySet()){
-				for(ByteString object: tail2.get(predicate)){
+			for(int predicate: tail2.keySet()){
+				for(int object: tail2.get(predicate)){
 					System.out.println(entity + "\t" + predicate + "\t" + object);
 				}
 			}
 		}
 		
 		if(withObjs){
-			for(ByteString entity: source2.objectSize){
+			for(int entity: source2.objectSize){
 				if(sourceEntities.contains(entity)) continue;
 				
 				Int2ObjectMap<IntSet> tail2 = source2.subject2relation2object.get(entity);
 				if(tail2 == null) continue;
 				
 				//Print all facts in the target ontology
-				for(ByteString predicate: tail2.keySet()){
-					for(ByteString object: tail2.get(predicate)){
+				for(int predicate: tail2.keySet()){
+					for(int object: tail2.get(predicate)){
 						System.out.println(entity + "\t" + predicate + "\t" + object);
 					}
 				}
@@ -82,12 +82,12 @@ public class U {
 		System.out.println("Relation1\tRelation2\tRelation1-subjects"
 				+ "\tRelation1-objects\tRelation2-subjects\tRelation2-objects"
 				+ "\tSubject-Subject\tSubject-Object\tObject-Subject\tObject-Object");
-		for(ByteString r1: source.relationSize){
+		for(int r1: source.relationSize){
 			IntSet subjects1 = source.relation2subject2object.get(r1).keySet();
 			IntSet objects1 = source.relation2object2subject.get(r1).keySet();
 			int nSubjectsr1 = subjects1.size();
 			int nObjectsr1 = objects1.size();
-			for(ByteString r2: source.relationSize){
+			for(int r2: source.relationSize){
 				if(r1.equals(r2))
 					continue;				
 				System.out.print(r1 + "\t");
@@ -229,7 +229,7 @@ public class U {
 	private static int computeOverlap(IntSet subjects1,
 			IntSet subjects2) {
 		int overlap = 0; 
-		for(ByteString entity1 : subjects1){
+		for(int entity1 : subjects1){
 			if(subjects2.contains(entity1))
 				++overlap;
 		}
@@ -247,7 +247,7 @@ public class U {
 	 * @param entity
 	 * @return
 	 */
-	public static int numberOfFacts(KB kb, ByteString entity) {
+	public static int numberOfFacts(KB kb, int entity) {
 		int[] querySubject = KB.triple(entity, KB.map("?r"), KB.map("?o")); 
 		int[] queryObject = KB.triple(KB.map("?s"), KB.map("?r"), entity); 
 		return (int)kb.count(querySubject) + (int)kb.count(queryObject);
@@ -261,7 +261,7 @@ public class U {
 	 * @param omittedRelations These relations are not counted as facts.
 	 * @return
 	 */
-	public static int numberOfFacts(KB kb, ByteString entity, Collection<ByteString> omittedRelations) {
+	public static int numberOfFacts(KB kb, int entity, Collection<ByteString> omittedRelations) {
 		int[] querySubject = KB.triple(entity, KB.map("?r"), KB.map("?o")); 
 		int[] queryObject = KB.triple(KB.map("?s"), KB.map("?r"), entity); 
 		Int2ObjectMap<IntSet> relationsSubject = 
@@ -270,12 +270,12 @@ public class U {
 				kb.resultsTwoVariables(KB.map("?r"), KB.map("?s"), queryObject);
 		int count1 = 0;
 		int count2 = 0;
-		for (ByteString relation : relationsSubject.keySet()) {
+		for (int relation : relationsSubject.keySet()) {
 			if (!omittedRelations.contains(relation))
 				count1 += relationsSubject.get(relation).size();
 		}
 		
-		for (ByteString relation : relationsObject.keySet()) {
+		for (int relation : relationsObject.keySet()) {
 			if (!omittedRelations.contains(relation))
 				count1 += relationsObject.get(relation).size();
 		}
@@ -287,7 +287,7 @@ public class U {
 	 * Returns true if the relation is defined as a function.
 	 * @return
 	 */
-	public static boolean isFunction(KB kb, ByteString relation) {
+	public static boolean isFunction(KB kb, int relation) {
 		return kb.contains(relation, KB.map("<isFunction>"), KB.map("TRUE"));
 	}
 	
@@ -297,7 +297,7 @@ public class U {
 	 * their most functional side.
 	 * @return
 	 */
-	public static boolean isMandatory(KB kb, ByteString relation) {
+	public static boolean isMandatory(KB kb, int relation) {
 		return kb.contains(relation, KB.map("<isMandatory>"), KB.map("TRUE"));
 	}
 
@@ -309,7 +309,7 @@ public class U {
 	 * @param cardinality
 	 * @return
 	 */
-	public static IntSet getEntitiesWithCardinality(KB kb, ByteString relation, int cardinality) {
+	public static IntSet getEntitiesWithCardinality(KB kb, int relation, int cardinality) {
 		Int2ObjectMap<IntSet> results = null;
 		List<int[]> query = KB.triples(KB.triple(KB.map("?s"), 
 				relation, KB.map("?o")));
@@ -319,7 +319,7 @@ public class U {
 			results = kb.selectDistinct(KB.map("?o"), KB.map("?s"), query);			
 		}
 		IntSet entities = new IntOpenHashSet();
-		for (ByteString e : results.keySet()) {
+		for (int e : results.keySet()) {
 			if (results.get(e).size() == cardinality) {
 				entities.add(e);
 			}

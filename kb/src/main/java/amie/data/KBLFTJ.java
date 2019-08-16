@@ -35,7 +35,7 @@ public class KBLFTJ extends KB {
 	private IntSet getAllVariables(List<int[]> query) {
 		IntSet result = new IntOpenHashSet();
 		for(int[] atom : query) {
-			for(ByteString entity : atom) {
+			for(int entity : atom) {
 				if(isVariable(entity))
 					result.add(entity);
 			}
@@ -43,7 +43,7 @@ public class KBLFTJ extends KB {
 		return result;
 	}
 	
-	public static int varposInv(ByteString variable, int[] triple) {
+	public static int varposInv(int variable, int[] triple) {
 		for(int i = 0; i < triple.length; i++) {
 			if(isVariable(triple[i]) && !triple[i].equals(variable))
 				return i;
@@ -51,7 +51,7 @@ public class KBLFTJ extends KB {
 		return -1;
 	}
 	
-	private IntSet getPossibleValues(ByteString variable, int[] triple) {
+	private IntSet getPossibleValues(int variable, int[] triple) {
 		switch(numVariables(triple)) {
 		case 1:
 			return resultsOneVariable(triple);
@@ -141,7 +141,7 @@ public class KBLFTJ extends KB {
 			return true;
 		
 		IntSet variables = getAllVariables(newQuery);
-		ByteString variable = variables.iterator().next();
+		int variable = variables.iterator().next();
 		
 		IntSet possibleValues = new IntOpenHashSet();
 		boolean first = true;
@@ -159,7 +159,7 @@ public class KBLFTJ extends KB {
 		Instantiator insty = new Instantiator(newQuery, variable);
 		boolean result = false;
 		
-		for(ByteString value : possibleValues) {
+		for(int value : possibleValues) {
 			if(existsBSLFTJ(insty.instantiate(value))) 
 				result = true;
 				break;
@@ -169,7 +169,7 @@ public class KBLFTJ extends KB {
 		return result;
 	}
 	
-	public IntSet selectDistinctLFTJ(ByteString variable,
+	public IntSet selectDistinctLFTJ(int variable,
 			List<int[]> query) {
 		
 		Iterator<int[]> it = query.iterator();
@@ -208,7 +208,7 @@ public class KBLFTJ extends KB {
 		
 		// otherwise instantiate and filter the possible values
 		Instantiator insty = new Instantiator(newQuery, variable);
-		for(ByteString value : possibleValues) {
+		for(int value : possibleValues) {
 			if(existsBSLFTJ(insty.instantiate(value))) 
 				result.add(value);
 		}
@@ -217,7 +217,7 @@ public class KBLFTJ extends KB {
 		return result;
 	}
 	
-	public Int2ObjectMap<IntSet> selectDistinctLFTJ(ByteString var1, ByteString var2,
+	public Int2ObjectMap<IntSet> selectDistinctLFTJ(int var1, int var2,
 			List<int[]> query) {
 		
 		Iterator<int[]> it = query.iterator();
@@ -248,7 +248,7 @@ public class KBLFTJ extends KB {
 		}
 		
 		Instantiator insty = new Instantiator(newQuery, var1);
-		for(ByteString value : possibleValues) {
+		for(int value : possibleValues) {
 			IntSet innerResult = selectDistinct(var2, insty.instantiate(value));
 			if(!innerResult.isEmpty()) 
 				result.put(value, innerResult);
@@ -267,7 +267,7 @@ public class KBLFTJ extends KB {
 	 * @return
 	 */
 	@SuppressWarnings({ "unused" })
-	private long countDistinctLFTJ(ByteString var1, ByteString var2,
+	private long countDistinctLFTJ(int var1, int var2,
 			List<int[]> query) {
 		
 		Iterator<int[]> it = query.iterator();
@@ -298,7 +298,7 @@ public class KBLFTJ extends KB {
 		}
 		
 		Instantiator insty = new Instantiator(newQuery, var1);
-		for(ByteString value : possibleValues) {
+		for(int value : possibleValues) {
 			result += selectDistinctLFTJ(var2, insty.instantiate(value)).size();
 		}
 		insty.close();
@@ -306,7 +306,7 @@ public class KBLFTJ extends KB {
 		return result;
 	}
 	
-	public Int2ObjectMap<Int2ObjectMap<IntSet>> selectDistinctLFTJ(ByteString var1, ByteString var2, ByteString var3,
+	public Int2ObjectMap<Int2ObjectMap<IntSet>> selectDistinctLFTJ(int var1, int var2, int var3,
 			List<int[]> query) {
 		
 		Iterator<int[]> it = query.iterator();
@@ -337,7 +337,7 @@ public class KBLFTJ extends KB {
 		}
 		
 		Instantiator insty = new Instantiator(newQuery, var1);
-		for(ByteString value : possibleValues) {
+		for(int value : possibleValues) {
 			Int2ObjectMap<IntSet> innerResult = selectDistinctLFTJ(var2, var3, insty.instantiate(value));
 			if(!innerResult.isEmpty())
 				result.put(value, innerResult);

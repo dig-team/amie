@@ -79,7 +79,7 @@ public class RuleHitsEvaluator {
 			
 			if(KB.numVariables(head) == 1){
 				IntSet oneVarBindings = (IntSet)bindings;
-				for(ByteString binding: oneVarBindings){
+				for(int binding: oneVarBindings){
 					Triple<ByteString, ByteString, ByteString> t = 
 							new Triple<>(KB.map("?a"), head[1], KB.map("?b"));
 					if (q.getFunctionalVariablePosition() == 0) {
@@ -92,8 +92,8 @@ public class RuleHitsEvaluator {
 			}else{
 				Int2ObjectMap<Int2IntMap> twoVarsBindings = 
 						(Int2ObjectMap<Int2IntMap>)bindings;
-				for(ByteString value1: twoVarsBindings.keySet()){
-					for(ByteString value2: twoVarsBindings.get(value1)){
+				for(int value1: twoVarsBindings.keySet()){
+					for(int value2: twoVarsBindings.get(value1)){
 						Triple<ByteString, ByteString, ByteString> t = 
 								new Triple<>(KB.map("?a"), head[1], KB.map("?b"));
 						if(q.getFunctionalVariablePosition() == 0){

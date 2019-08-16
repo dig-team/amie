@@ -82,7 +82,7 @@ public class TransitiveTypesKB extends KB {
 	
 	@Override
 	public Int2ObjectMap<IntSet> resultsTwoVariablesByPos(
-			int pos1, int pos2, ByteString[] triple) {
+			int pos1, int pos2, int[] triple) {
 		if (triple[1].equals(TRANSITIVETYPEbs)) {
 			Int2ObjectMap<IntSet> result = new Int2ObjectOpenHashMap<>();
 			switch(pos1) {

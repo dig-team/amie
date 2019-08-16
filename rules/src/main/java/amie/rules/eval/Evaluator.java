@@ -21,7 +21,7 @@ public class Evaluator {
 	 * @param target
 	 * @return
 	 */
-	public static int evaluate(ByteString[] triple, 
+	public static int evaluate(int[] triple, 
 			KB training, KB target) {
 		//If we know something else about the triple, PCA says it is false
 		if (triple == null) {
@@ -29,7 +29,7 @@ public class Evaluator {
 		}
 		// TODO Auto-generated method stub
 		int returnVal = 3;
-		ByteString[] head = Rule.fullyUnboundTriplePattern1();
+		int[] head = Rule.fullyUnboundTriplePattern1();
 		head[1] = triple[1];
 		boolean relationIsFunctional = 
 				training.functionality(triple[1]) >= 0.9 
@@ -70,9 +70,9 @@ public class Evaluator {
 	 * 3 otherwise.
 	 */
 	public static int evaluate(Rule rule, 
-			ByteString[] triple, KB training, KB target){
+			int[] triple, KB training, KB target){
 		// TODO Auto-generated method stub
-		ByteString[] head = rule.getHead();
+		int[] head = rule.getHead();
 		ByteString boundVariable = null;
 		int returnVal = 3;
 		boolean relationIsFunctional = 
@@ -131,13 +131,13 @@ public class Evaluator {
 				continue;
 			}
 			
-			ByteString[] triple = new ByteString[3];
+			int[] triple = new int[3];
 			
 			String ruleStr = record.get(0);
 			if(ruleStr.equals(lastRuleStr)){
 				currentRule = lastRule;
 			}else{
-				Pair<List<ByteString[]>, ByteString[]> rulePair = KB.rule(ruleStr);
+				Pair<List<int[]>, int[]> rulePair = KB.rule(ruleStr);
 				currentRule = new Rule();
 				currentRule.getTriples().add(rulePair.second);
 				currentRule.getTriples().addAll(rulePair.first);

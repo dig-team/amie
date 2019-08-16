@@ -22,13 +22,13 @@ public class HeadVariablesImprovedMiningAssistant extends
 
 	protected double computePcaBodySize(ByteString var1, 
 			ByteString var2, Rule query, 
-			List<ByteString[]> antecedent, 
-			ByteString[] existentialTriple, 
+			List<int[]> antecedent, 
+			int[] existentialTriple, 
 			int nonExistentialPosition) {
 		antecedent.add(existentialTriple);
-		ByteString[] typeConstraint1, typeConstraint2;
-		typeConstraint1 = new ByteString[3];
-		typeConstraint2 = new ByteString[3];
+		int[] typeConstraint1, typeConstraint2;
+		typeConstraint1 = new int[3];
+		typeConstraint2 = new int[3];
 		typeConstraint1[1] = typeConstraint2[1] = KB.map("rdf:type");
 		typeConstraint1[2] = typeConstraint2[2] = KB.map("?w");
 		typeConstraint1[0] = existentialTriple[nonExistentialPosition == 0 ? 2 : 0];

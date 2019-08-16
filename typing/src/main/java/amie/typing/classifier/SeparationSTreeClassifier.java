@@ -38,7 +38,7 @@ public class SeparationSTreeClassifier extends SeparationTreeClassifier {
         super(source, typeCountFile, typeIntersectionCountFile, supportForTarget);
     }
     
-    public void computeStatistics(List<ByteString[]> query, ByteString variable, int classSizeThreshold) {
+    public void computeStatistics(List<int[]> query, ByteString variable, int classSizeThreshold) {
         IntSet relevantClasses = index.keySet();
         ByteString relation = (query.get(0)[0].equals(variable)) ? query.get(0)[1] : KB.map(query.get(0)[1].toString() + "-1");
 
@@ -54,7 +54,7 @@ public class SeparationSTreeClassifier extends SeparationTreeClassifier {
                 }
             }
 
-            List<ByteString[]> clause = TypingHeuristic.typeL(class1, variable);
+            List<int[]> clause = TypingHeuristic.typeL(class1, variable);
             clause.addAll(query);
             IntSet targetClasses = (supportForTarget) ? relevantClasses : classIntersectionSize.get(class1);
 

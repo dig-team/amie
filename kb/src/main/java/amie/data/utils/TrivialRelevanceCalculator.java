@@ -13,7 +13,7 @@ public class TrivialRelevanceCalculator {
 	public static void main(String[] args) throws IOException {
 		KB kb = new KB();
 		kb.load(new File(args[0]));
-		List<ByteString[]> query = KB.triples(KB.triple("?s", "?p", "?o"));
+		List<int[]> query = KB.triples(KB.triple("?s", "?p", "?o"));
 		IntSet allEntities = kb.selectDistinct(KB.map("?s"), query);
 		allEntities.addAll(kb.selectDistinct(KB.map("?o"), query));
 		for (ByteString entity : allEntities) {			

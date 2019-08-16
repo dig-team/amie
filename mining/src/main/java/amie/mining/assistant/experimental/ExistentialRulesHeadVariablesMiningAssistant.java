@@ -32,14 +32,14 @@ public class ExistentialRulesHeadVariablesMiningAssistant extends
 	@Override
 	public void calculateConfidenceMetrics(Rule candidate) {
 		// TODO Auto-generated method stub
-		List<ByteString[]> antecedent = new ArrayList<ByteString[]>();
+		List<int[]> antecedent = new ArrayList<int[]>();
 		antecedent.addAll(candidate.getAntecedent());
-		List<ByteString[]> succedent = new ArrayList<ByteString[]>();
+		List<int[]> succedent = new ArrayList<int[]>();
 		succedent.addAll(candidate.getTriples().subList(0, 1));
 		double pcaDenominator = 0.0;
 		double denominator = 0.0;
-		ByteString[] head = candidate.getHead();
-		ByteString[] existentialTriple = head.clone();
+		int[] head = candidate.getHead();
+		int[] existentialTriple = head.clone();
 		int freeVarPos, countVarPos;
 				
 		if (!antecedent.isEmpty()){
@@ -68,11 +68,11 @@ public class ExistentialRulesHeadVariablesMiningAssistant extends
 				existentialTriple[freeVarPos] = KB.map("?x");
 				
 				try{
-					List<ByteString[]> redundantAtoms = Rule.redundantAtoms(existentialTriple, antecedent);
+					List<int[]> redundantAtoms = Rule.redundantAtoms(existentialTriple, antecedent);
 					boolean existentialQueryRedundant = false;
 					
 					//If the counting variable is in the same position of any of the unifiable patterns => redundant
-					for(ByteString[] atom: redundantAtoms){
+					for(int[] atom: redundantAtoms){
 						if(existentialTriple[countVarPos].equals(atom[countVarPos]))
 							existentialQueryRedundant = true;
 					}

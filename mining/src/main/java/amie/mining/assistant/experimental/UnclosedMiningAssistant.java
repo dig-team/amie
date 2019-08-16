@@ -40,9 +40,9 @@ public class UnclosedMiningAssistant extends DefaultMiningAssistant {
 	protected Collection<Rule> buildInitialQueries(Int2IntMap relations, double minSupportThreshold) {
 		List<Rule> output = new ArrayList<>();
 		Rule query = new Rule();
-		ByteString[] newEdge = query.fullyUnboundTriplePattern();
+		int[] newEdge = query.fullyUnboundTriplePattern();
 		ByteString relation = KB.TRANSITIVETYPEbs;
-		ByteString[] succedent = newEdge.clone();
+		int[] succedent = newEdge.clone();
 		succedent[1] = relation;
 		Rule candidate = new Rule(succedent, kb.size());
 		candidate.setFunctionalVariablePosition(0);

@@ -14,7 +14,7 @@ public class CommonAttributeOfClass extends TypingHeuristic {
 	}
 
 	@Override
-	public double evaluate(ByteString type, List<ByteString[]> clause,
+	public double evaluate(ByteString type, List<int[]> clause,
 			ByteString variable) {
 		// TODO Auto-generated method stub
 		return 0;

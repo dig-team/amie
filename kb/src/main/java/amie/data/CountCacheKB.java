@@ -27,7 +27,7 @@ public class CountCacheKB extends KB {
      * returns the number of instances that fulfill a certain condition
      */
     @Override
-    public long countDistinct(ByteString variable, List<ByteString[]> query) {
+    public long countDistinct(ByteString variable, List<int[]> query) {
         if (countCacheEnabled) {
             queryCache qC = new queryCache(query, Arrays.asList(variable));
             Long count = countCache.get(qC);
@@ -48,7 +48,7 @@ public class CountCacheKB extends KB {
      * returns the number of distinct pairs (var1,var2) for the query
      */
     public long countDistinctPairs(ByteString var1, ByteString var2,
-            List<ByteString[]> query) {
+            List<int[]> query) {
 
         queryCache qC = null;
         if (countCacheEnabled) {
@@ -77,7 +77,7 @@ public class CountCacheKB extends KB {
     }
 
 public long countPairs(ByteString var1, ByteString var2,
-			List<ByteString[]> query, int[] queryInfo) {
+			List<int[]> query, int[] queryInfo) {
 		
 		queryCache qC = null;
 		if (countCacheEnabled) {
@@ -102,7 +102,7 @@ public long countPairs(ByteString var1, ByteString var2,
 		long duplicatesEstimate, duplicatesCard;
 		double duplicatesFactor;
 
-		List<ByteString[]> subquery = new ArrayList<ByteString[]>(query);
+		List<int[]> subquery = new ArrayList<int[]>(query);
 		subquery.remove(queryInfo[2]); // Remove one of the hard queries
 		duplicatesCard = countDistinct(targetVariable, subquery);
 
@@ -156,13 +156,13 @@ public long countPairs(ByteString var1, ByteString var2,
 		
 		public static AtomicLong queryCount = new AtomicLong();
 		
-		public queryCache(List<ByteString[]> query, List<ByteString> countVariables) {
+		public queryCache(List<int[]> query, List<ByteString> countVariables) {
 			
 			queryRep = stringRepresentation(query, countVariables);
 			queryCount.incrementAndGet();
 			ncol = query.size() + 2;
 			IntSet args = new IntOpenHashSet();
-			for (ByteString[] atom : query) {
+			for (int[] atom : query) {
 				args.add(atom[0]);
 				args.add(atom[2]);
 			}
@@ -170,7 +170,7 @@ public long countPairs(ByteString var1, ByteString var2,
 			headers = new IntOpenHashSet(query.size());
 			constants = new IntOpenHashSet();
 			repr = new int[nline][ncol];
-			for (ByteString[] atom : query) {
+			for (int[] atom : query) {
 				headers.add(atom[1]);
 			}
 			int j = 2;
@@ -187,7 +187,7 @@ public long countPairs(ByteString var1, ByteString var2,
 					constants.add(arg);
 				}
 				j = 2;
-				for (ByteString[] atom : query) {
+				for (int[] atom : query) {
 					repr[i][j] = ((atom[0].equals(arg)) ? ((atom[2].equals(arg)) ? 1 : 2) : ((atom[2].equals(arg)) ? 3 : 5) * (atom[1].hashCode()+1));
 					j++;
 				}
@@ -224,9 +224,9 @@ public long countPairs(ByteString var1, ByteString var2,
 		
 		public static AtomicLong collisionCount = new AtomicLong();
 		
-		public String stringRepresentation(List<ByteString[]> _query, List<ByteString> _cV) {
+		public String stringRepresentation(List<int[]> _query, List<ByteString> _cV) {
 			String r = "";
-			for (ByteString[] atom : _query) {
+			for (int[] atom : _query) {
 				r += atom[0].toString() + " " + atom[1].toString() + " " + atom[2].toString() + "; ";
 			}
 			r += _cV.toString();

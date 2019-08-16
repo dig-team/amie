@@ -20,7 +20,7 @@ public class StdConfHeuristic extends TypingHeuristic {
 	}
 
 	@Override
-	public double evaluate(ByteString type, List<ByteString[]> clause,
+	public double evaluate(ByteString type, List<int[]> clause,
 			ByteString variable) {
 		return getStandardConfidence(type, clause, variable);
 		// TODO Auto-generated method stub

@@ -33,7 +33,7 @@ public class SeparationClassifier {
     public Int2IntMap classSize;
     public Int2ObjectMap<Int2IntMap> classIntersectionSize;
 
-    protected double getStandardConfidenceWithThreshold(List<ByteString[]> head, List<ByteString[]> body, ByteString variable, int threshold, boolean unsafe) {
+    protected double getStandardConfidenceWithThreshold(List<int[]> head, List<int[]> body, ByteString variable, int threshold, boolean unsafe) {
         long support, bodySize;
         
         if(db instanceof SimpleTypingKB) {
@@ -52,7 +52,7 @@ public class SeparationClassifier {
                 throw new UnsupportedOperationException("Simple KB can only deal with simple queries");
             }
         } else {
-            List<ByteString[]> bodyC = (unsafe) ? new LinkedList<>(body) : body;
+            List<int[]> bodyC = (unsafe) ? new LinkedList<>(body) : body;
             bodySize = db.countDistinct(variable, bodyC);
             bodyC.addAll(head);
             support = db.countDistinct(variable, bodyC);
@@ -74,7 +74,7 @@ public class SeparationClassifier {
      * @param supportThreshold
      * @return
      */
-    public IntSet getRelevantClasses(List<ByteString[]> query, ByteString variable, int supportThreshold) {
+    public IntSet getRelevantClasses(List<int[]> query, ByteString variable, int supportThreshold) {
         IntSet result = new IntOpenHashSet();
         for (ByteString c : classSize) {
             if (getStandardConfidenceWithThreshold(TypingHeuristic.typeL(c, variable), query, variable, supportThreshold, true) != 0) {
@@ -84,7 +84,7 @@ public class SeparationClassifier {
         return result;
     }
 
-    public Int2ObjectMap<Int2ObjectMap<Double>> computeStatistics(List<ByteString[]> query, ByteString variable, int classSizeThreshold, int supportThreshold) {
+    public Int2ObjectMap<Int2ObjectMap<Double>> computeStatistics(List<int[]> query, ByteString variable, int classSizeThreshold, int supportThreshold) {
         Int2ObjectMap<Int2ObjectMap<Double>> result = new Int2ObjectOpenHashMap<>();
         IntSet relevantClasses = getRelevantClasses(query, variable, supportThreshold);
 
@@ -96,7 +96,7 @@ public class SeparationClassifier {
             }
 
             Int2ObjectMap<Double> r = new Int2ObjectOpenHashMap<>();
-            List<ByteString[]> clause = TypingHeuristic.typeL(class1, variable);
+            List<int[]> clause = TypingHeuristic.typeL(class1, variable);
             clause.addAll(query);
 
             for (ByteString class2 : relevantClasses) {
@@ -299,7 +299,7 @@ public class SeparationClassifier {
         public Integer supportThreshold = 50;
         public String delimiter = "\t";
         public String[] leftOverArgs = null;
-        public List<ByteString[]> query;
+        public List<int[]> query;
         public ByteString variable;
         public File countFile = null;
         public File countIntersectionFile = null;

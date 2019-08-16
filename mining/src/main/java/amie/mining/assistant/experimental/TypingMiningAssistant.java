@@ -36,11 +36,11 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 		super.buildRelationsDictionary();
 		
 		// Build all defined classes
-		List<ByteString[]> query = KB.triples(KB.triple("?class", Schema.subClassRelation, "?c"));		
+		List<int[]> query = KB.triples(KB.triple("?class", Schema.subClassRelation, "?c"));		
 		IntSet types = new IntOpenHashSet(kb.selectDistinct(KB.map("?class"), query));
 		types.add(topTypeBS);
 		for (ByteString type : types) {
-			ByteString[] query_c = KB.triple(KB.map("?x"), Schema.typeRelationBS, type);
+			int[] query_c = KB.triple(KB.map("?x"), Schema.typeRelationBS, type);
 			double relationSize = kb.count(query_c);
 			headCardinalities.put(type.toString(), relationSize);
 		}
@@ -48,7 +48,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 	
 	@Override
 	public long getHeadCardinality(Rule query){
-		ByteString[] head = query.getHead();
+		int[] head = query.getHead();
 		if(head[1].equals(Schema.typeRelationBS)) {
 			return headCardinalities.get(head[2].toString()).longValue();
 		}
@@ -57,8 +57,8 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 	
 	public Rule getInitialRule() {
 		Rule query = new Rule();
-		ByteString[] newEdge = query.fullyUnboundTriplePattern();
-		ByteString[] succedent = newEdge.clone();
+		int[] newEdge = query.fullyUnboundTriplePattern();
+		int[] succedent = newEdge.clone();
 		succedent[1] = Schema.typeRelationBS;
 		succedent[2] = topTypeBS;
 		Rule candidate = new Rule(succedent, (double)kb.countOneVariable(succedent));
@@ -104,7 +104,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 	 * @param minSupportThreshold Minimum support threshold.
 	 * @param output
 	 */
-	protected void getDanglingAtoms(Rule query, ByteString[] edge, double minSupportThreshold, Collection<Rule> output) {
+	protected void getDanglingAtoms(Rule query, int[] edge, double minSupportThreshold, Collection<Rule> output) {
 		List<ByteString> joinVariables = null;
 		List<ByteString> openVariables = query.getOpenVariables();
 		
@@ -120,7 +120,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 		
 		for(int joinPosition = 0; joinPosition <= 2; joinPosition += 2){			
 			for(ByteString joinVariable: joinVariables){
-				ByteString[] newEdge = edge.clone();
+				int[] newEdge = edge.clone();
 				
 				newEdge[joinPosition] = joinVariable;
 				query.getTriples().add(newEdge);
@@ -176,7 +176,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 						continue;
 					
 					Rule candidate = query.addAtom(newEdge, cardinality);
-					List<ByteString[]> recursiveAtoms = candidate.getRedundantAtoms();
+					List<int[]> recursiveAtoms = candidate.getRedundantAtoms();
 					if(!recursiveAtoms.isEmpty()){
 						continue;
 					}
@@ -197,8 +197,8 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 		if (rule.getBody().isEmpty()) {
 			return;
 		}
-		ByteString[] head = rule.getHead();
-		List<ByteString[]> body = rule.getBody();
+		int[] head = rule.getHead();
+		List<int[]> body = rule.getBody();
 		IntSet subTypes = Schema.getSubTypes(kb, head[2]);
 		int parentTypePos = Rule.firstIndexOfRelation(body, Schema.typeRelationBS);
 		for (ByteString subType : subTypes) {
@@ -237,7 +237,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 		}
 		int cardinality;
 		for (ByteString openVariable : openVariables) {
-			ByteString[] newEdge = rule.fullyUnboundTriplePattern();
+			int[] newEdge = rule.fullyUnboundTriplePattern();
 			newEdge[0] = openVariable;
 			newEdge[1] = Schema.typeRelationBS;
 			
@@ -293,7 +293,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 		int lastTriplePatternIndex = rule.getLastNotTypeTriplePatternIndex();
 		if (lastTriplePatternIndex == -1)
 			return;
-		ByteString[] lastTriplePattern = rule.getTriples().get(lastTriplePatternIndex);
+		int[] lastTriplePattern = rule.getTriples().get(lastTriplePatternIndex);
 		
 		List<ByteString> openVariables = rule.getOpenVariables();
 		int danglingPosition = 0;

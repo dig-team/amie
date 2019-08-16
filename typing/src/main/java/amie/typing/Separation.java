@@ -47,7 +47,7 @@ public class Separation extends Thread {
     KB source; 
     Int2IntMap cS;
     Int2ObjectMap<Int2IntMap> cIS;
-    BlockingQueue<Pair<List<ByteString[]>, ByteString>> queryQ; 
+    BlockingQueue<Pair<List<int[]>, ByteString>> queryQ; 
     int classSizeThreshold; 
     int supportThreshold; 
     double[] thresholds;
@@ -55,7 +55,7 @@ public class Separation extends Thread {
     String classifier;
     
     public Separation(KB source, Int2IntMap cS, Int2ObjectMap<
-            Int2IntMap> cIS, BlockingQueue<Pair<List<ByteString[]>, 
+            Int2IntMap> cIS, BlockingQueue<Pair<List<int[]>, 
             ByteString>> queryQ, int classSizeThreshold, int supportThreshold, 
             double[] thresholds, boolean supportForTarget, String classifier) {
         this.source = source;
@@ -73,7 +73,7 @@ public class Separation extends Thread {
     
         @Override
     public void run() {
-        Pair<List<ByteString[]>, ByteString> q;
+        Pair<List<int[]>, ByteString> q;
         while(true) {
             try {
                 q = queryQ.take();
@@ -230,7 +230,7 @@ public class Separation extends Thread {
             relations.remove(Schema.typeRelationBS);
             relations.remove(Schema.subClassRelationBS);
 
-            ByteString[] q;
+            int[] q;
             for (ByteString r : relations) {
                 q = KB.triple(KB.map("?x"), r, KB.map("?y"));
                 queryQ.add(new Pair<>(KB.triples(q), KB.map("?x")));

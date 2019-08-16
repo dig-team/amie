@@ -56,8 +56,8 @@ public class StarShapedMiningAssistant extends MiningAssistant {
 	@Override
 	@MiningOperator(name="dangling")
 	public void getDanglingAtoms(Rule rule, double minSupportThreshold, Collection<Rule> output) {
-		ByteString[] newEdge = rule.fullyUnboundTriplePattern();
-		ByteString[] head = rule.getHead();
+		int[] newEdge = rule.fullyUnboundTriplePattern();
+		int[] head = rule.getHead();
 		//General case
 		if(!isNotTooLong(rule))
 			return;

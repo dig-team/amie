@@ -19,15 +19,15 @@ public class EquivalenceRulesBuilder {
 
 	private static void calculateMetrics(KB source, Rule candidate) {
 		// TODO Auto-generated method stub
-		List<ByteString[]> antecedent = new ArrayList<ByteString[]>();
+		List<int[]> antecedent = new ArrayList<int[]>();
 		antecedent.addAll(candidate.getAntecedent());
-		List<ByteString[]> succedent = new ArrayList<ByteString[]>();
+		List<int[]> succedent = new ArrayList<int[]>();
 		succedent.addAll(candidate.getTriples().subList(0, 1));
 		long numerator = 0;
 		long improvedDenominator = 0;
 		long denominator = 0;
-		ByteString[] head = candidate.getHead();
-		ByteString[] existentialTriple = head.clone();
+		int[] head = candidate.getHead();
+		int[] existentialTriple = head.clone();
 		int freeVarPos, countVarPos;
 				
 		countVarPos = source.functionality(head[1]) > source.inverseFunctionality(head[1]) ? 0 : 2;
@@ -70,7 +70,7 @@ public class EquivalenceRulesBuilder {
 	}
 	
 	public static long calculateIntersection(KB source, Rule rule){
-		ByteString[] head = rule.getHead();
+		int[] head = rule.getHead();
 		if(KB.numVariables(head) == 2)
 			return source.countDistinctPairs(head[0], head[2], rule.getTriples());
 		else
@@ -78,7 +78,7 @@ public class EquivalenceRulesBuilder {
 	}
 	
 	public static long calculateUnion(KB source, Rule rule){
-		ByteString[] head, body;
+		int[] head, body;
 		head = rule.getHead();
 		body = rule.getBody().get(0);
 		if(KB.numVariables(head) == 2){

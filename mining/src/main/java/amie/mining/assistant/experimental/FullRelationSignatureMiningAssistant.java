@@ -23,7 +23,7 @@ public class FullRelationSignatureMiningAssistant extends DefaultMiningAssistant
 	}
 	
 	public void getDanglingAtoms(Rule query, double minCardinality, Collection<Rule> output) {		
-		ByteString[] newEdge = query.fullyUnboundTriplePattern();
+		int[] newEdge = query.fullyUnboundTriplePattern();
 		ByteString rdfType = KB.map("rdf:type");
 		
 		if(query.isEmpty()){

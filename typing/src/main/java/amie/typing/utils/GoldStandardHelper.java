@@ -30,8 +30,8 @@ import javatools.datatypes.Pair;
  */
 public class GoldStandardHelper {
     
-    protected double getStandardConfidenceWithThreshold(List<ByteString[]> head, List<ByteString[]> body, ByteString variable, int threshold, boolean unsafe) {
-        List<ByteString[]> bodyC = (unsafe) ? new LinkedList<>(body) : body;
+    protected double getStandardConfidenceWithThreshold(List<int[]> head, List<int[]> body, ByteString variable, int threshold, boolean unsafe) {
+        List<int[]> bodyC = (unsafe) ? new LinkedList<>(body) : body;
         long bodySize = db.countDistinct(variable, bodyC);
         bodyC.addAll(head);
         long support = db.countDistinct(variable, bodyC);
@@ -63,12 +63,12 @@ public class GoldStandardHelper {
         this.query = query;
         current = new GSnode(Schema.topBS);
         index.put(Schema.topBS, current);
-        Pair<List<ByteString[]>, ByteString> queryPair = queryStrToQuery(query);
+        Pair<List<int[]>, ByteString> queryPair = queryStrToQuery(query);
         current.generate(supportThreshold, queryPair.first, queryPair.second);
     }
     
-    private Pair<List<ByteString[]>, ByteString> queryStrToQuery(String query) {
-        List<ByteString[]> queryL = KB.triples(KB.triple(KB.map("?x"), KB.map(query.substring(0, query.length()-1)), KB.map("?y")));
+    private Pair<List<int[]>, ByteString> queryStrToQuery(String query) {
+        List<int[]> queryL = KB.triples(KB.triple(KB.map("?x"), KB.map(query.substring(0, query.length()-1)), KB.map("?y")));
         ByteString variable = KB.map("?"+query.substring(query.length()-1));
         return new Pair<>(queryL, variable);
     }
@@ -87,7 +87,7 @@ public class GoldStandardHelper {
             this.parents = new LinkedList<>();
         }
         
-        public void generate(int supportThreshold, List<ByteString[]> query, ByteString variable) {
+        public void generate(int supportThreshold, List<int[]> query, ByteString variable) {
             for (ByteString subClass : Schema.getSubTypes(db, className)) {
                 GSnode stc = index.get(subClass);
                 if (stc != null) {
@@ -366,7 +366,7 @@ public class GoldStandardHelper {
     }
     
     public void listQueries() {
-        List<ByteString[]> query = new ArrayList<>(1);
+        List<int[]> query = new ArrayList<>(1);
         query.add(KB.triple(KB.map("?x"), KB.map("?y"), KB.map("?z")));
         IntSet relations = db.selectDistinct(KB.map("?y"), query);
         relations.remove(Schema.typeRelationBS);

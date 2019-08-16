@@ -35,11 +35,11 @@ public class Typing {
 
     public static class TypingMT extends Thread {
 
-        private BlockingQueue<Triple<List<ByteString[]>, ByteString, TypingHeuristic>> queryQ;
+        private BlockingQueue<Triple<List<int[]>, ByteString, TypingHeuristic>> queryQ;
         private IntSet classes;
         private double outputThreshold;
 
-        public TypingMT(BlockingQueue<Triple<List<ByteString[]>, ByteString, TypingHeuristic>> queryQ,
+        public TypingMT(BlockingQueue<Triple<List<int[]>, ByteString, TypingHeuristic>> queryQ,
                 IntSet classes, double outputThreshold) {
             this.queryQ = queryQ;
             this.classes = classes;
@@ -47,7 +47,7 @@ public class Typing {
         }
 
         public void run() {
-            Triple<List<ByteString[]>, ByteString, TypingHeuristic> q;
+            Triple<List<int[]>, ByteString, TypingHeuristic> q;
             BufferedWriter out;
             while (true) {
                 try {
@@ -60,7 +60,7 @@ public class Typing {
                         throw new UnsupportedOperationException("Not supported yet.");
                     }
 
-                    ByteString[] singleton = q.first.get(0);
+                    int[] singleton = q.first.get(0);
                     String fn = q.third.name + "_";
                     fn += singleton[1].toString().substring(1, singleton[1].toString().length() - 1);
                     fn += (singleton[2].equals(q.second)) ? "-1" : "";
@@ -333,7 +333,7 @@ public class Typing {
         dataSource.load(dataFiles);
         long timeStamp2 = System.currentTimeMillis();
 
-        List<ByteString[]> query = new ArrayList<>(1);
+        List<int[]> query = new ArrayList<>(1);
         query.add(KB.triple(KB.map("?x"), KB.map("?y"), KB.map("?z")));
         IntSet relations = dataSource.getRelationSet(); //dataSource.selectDistinct(KB.map("?y"), query);
         relations.remove(Schema.typeRelationBS);
@@ -342,7 +342,7 @@ public class Typing {
 
         query.get(0)[1] = Schema.typeRelationBS;
         IntSet classes = dataSource.getClassSet(); //dataSource.selectDistinct(KB.map("?z"), query);
-        List<ByteString[]> clause = new LinkedList<>();
+        List<int[]> clause = new LinkedList<>();
 
         if (typingHeuristics.isEmpty()) {
             System.out.println("Default heuristic: MRC");

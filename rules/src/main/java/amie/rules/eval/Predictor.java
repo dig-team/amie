@@ -74,7 +74,7 @@ public class Predictor {
 		}
 		
 		Set<Triple<ByteString, ByteString, ByteString>> triples = new LinkedHashSet<>();
-		ByteString[] head = rule.getHead();
+		int[] head = rule.getHead();
 		ByteString relation = rule.getHead()[1];
 		
 		if (KB.numVariables(rule.getHead()) == 1) {
@@ -120,7 +120,7 @@ public class Predictor {
 	}
 	
 	private Object generateBindingsForThreeVariables(Rule rule) {
-		ByteString[] head = rule.getHead();
+		int[] head = rule.getHead();
 		return source.selectDistinct(rule.getFunctionalVariable(), 
 				head[1], rule.getNonFunctionalVariable(), rule.getAntecedent());
 	}

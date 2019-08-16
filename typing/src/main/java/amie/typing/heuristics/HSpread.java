@@ -21,7 +21,7 @@ public class HSpread extends TypingHeuristic {
 	}
 
 	@Override
-	public double evaluate(ByteString type, List<ByteString[]> clause,
+	public double evaluate(ByteString type, List<int[]> clause,
 			ByteString variable) {
 		double sc = getStandardConfidence(typeL(type, variable), clause, variable, true);
 		double t,scm = 0;

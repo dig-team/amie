@@ -17,7 +17,7 @@ public class TrueType extends TypingHeuristic {
 	}
 
 	@Override
-	public double evaluate(ByteString type, List<ByteString[]> clause,
+	public double evaluate(ByteString type, List<int[]> clause,
 			ByteString variable) {
 		ByteString t = amie.data.Schema.typeRelationBS;
 		amie.data.Schema.typeRelationBS = trueTypeBS;

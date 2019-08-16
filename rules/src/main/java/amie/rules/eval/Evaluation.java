@@ -28,7 +28,7 @@ public class Evaluation {
 		this.source = source;
 	}
 
-	public ByteString[] toTriplePattern() {
-		return new ByteString[]{fact.first, fact.second, fact.third};
+	public int[] toTriplePattern() {
+		return new int[]{fact.first, fact.second, fact.third};
 	}
 }

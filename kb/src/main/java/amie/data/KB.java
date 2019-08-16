@@ -1322,7 +1322,7 @@ public class KB {
 	 * of first value to set of second values
 	 */
 	public Int2ObjectMap<IntSet> resultsTwoVariables(
-			ByteString var1, ByteString var2, ByteString[] triple) {
+			ByteString var1, ByteString var2, int[] triple) {
 		int varPos1 = varpos(var1, triple);
 		int varPos2 = varpos(var2, triple);
 		return resultsTwoVariablesByPos(varPos1, varPos2, triple);
@@ -1334,7 +1334,7 @@ public class KB {
 	 * of first value to set of second values
 	 */
 	public Int2ObjectMap<IntSet> resultsTwoVariablesByPos(
-			int pos1, int pos2, ByteString[] triple) {
+			int pos1, int pos2, int[] triple) {
 		if (triple[1].equals(TRANSITIVETYPEbs)) {
 			Int2ObjectMap<IntSet> result = new Int2ObjectOpenHashMap<>();
 			switch(pos1) {
@@ -1442,7 +1442,7 @@ public class KB {
 	 */
 	public Int2ObjectMap<Int2ObjectMap<IntSet>> resultsThreeVariables(
 			ByteString var1, ByteString var2, ByteString var3,
-			ByteString[] triple) {
+			int[] triple) {
 		int varPos1 = varpos(var1, triple);
 		int varPos2 = varpos(var2, triple);
 		int varPos3 = varpos(var3, triple);
@@ -1460,7 +1460,7 @@ public class KB {
 	 * @return
 	 */
 	private Int2ObjectMap<Int2ObjectMap<IntSet>> resultsThreeVariablesByPos(
-			int varPos1, int varPos2, int varPos3, ByteString[] triple) {
+			int varPos1, int varPos2, int varPos3, int[] triple) {
 		switch (varPos1) {
 		case 0 :
 			switch (varPos2) {
@@ -1692,9 +1692,9 @@ public class KB {
 	 * @param query
 	 * @return
 	 */
-	public static boolean containsVariables(List<ByteString[]> query) {
+	public static boolean containsVariables(List<int[]> query) {
 		// TODO Auto-generated method stub
-		for (ByteString[] triple : query) {
+		for (int[] triple : query) {
 			if (numVariables(triple) > 0) {
 				return true;
 			}
@@ -1738,12 +1738,12 @@ public class KB {
 	 * @param pos Index in the list of the triple to be removed.
 	 * @param triples Target list
 	 **/
-	protected static List<ByteString[]> remove(int pos, List<ByteString[]> triples) {
+	protected static List<int[]> remove(int pos, List<int[]> triples) {
 		if (pos == 0)
 			return (triples.subList(1, triples.size()));
 		if (pos == triples.size() - 1)
 			return (triples.subList(0, triples.size() - 1));
-		List<ByteString[]> result = new ArrayList<>(triples);
+		List<int[]> result = new ArrayList<>(triples);
 		result.remove(pos);
 		return (result);
 	}
@@ -1755,7 +1755,7 @@ public class KB {
 	 * The most restrictive triple is the one that contains the smallest number of satisfying
 	 * instantiations.
 	 **/
-	protected int mostRestrictiveTriple(List<ByteString[]> triples) {
+	protected int mostRestrictiveTriple(List<int[]> triples) {
 		STAT_NUMBER_OF_CALL_TO_MRT.incrementAndGet();
 		int bestPos = -1;
 		long count = Long.MAX_VALUE;
@@ -1778,7 +1778,7 @@ public class KB {
 	 * @param byteStrings
 	 * @return
 	 */
-	private boolean isSpecialAtom(ByteString[] atom) {
+	private boolean isSpecialAtom(int[] atom) {
 		return specialRelations.contains(atom[1]) ||
 				parseCardinalityRelation(atom[1]) != null;
 	}
@@ -1790,7 +1790,7 @@ public class KB {
 	 * @param triples
 	 * @param variable Only triples containing this variable are considered.
 	 **/
-	protected int mostRestrictiveTriple(List<ByteString[]> triples,
+	protected int mostRestrictiveTriple(List<int[]> triples,
 			ByteString variable) {
 		int bestPos = -1;
 		long count = Long.MAX_VALUE;
@@ -1816,12 +1816,12 @@ public class KB {
 	 * @param var1 
 	 * @param var2 
 	 **/
-	protected int mostRestrictiveTriple(List<ByteString[]> triples,
+	protected int mostRestrictiveTriple(List<int[]> triples,
 			ByteString var1, ByteString var2) {
 		int bestPos = -1;
 		long count = Long.MAX_VALUE;
 		for (int i = 0; i < triples.size(); i++) {
-			ByteString[] triple = triples.get(i);
+			int[] triple = triples.get(i);
 			if (contains(var1, triple) || contains(var2, triple)) {
 				long myCount = count(triple);
 				if (myCount >= count)
@@ -1841,13 +1841,13 @@ public class KB {
 	 * @param triple
 	 * @return
 	 */
-	private boolean contains(ByteString var, ByteString[] triple) {
+	private boolean contains(ByteString var, int[] triple) {
 		return triple[0].equals(var) || triple[1].equals(var)
 				|| triple[2].equals(var);
 	}
         
-        private boolean contains(ByteString var, List<ByteString[]> triples) {
-		for (ByteString[] triple : triples) {
+        private boolean contains(ByteString var, List<int[]> triples) {
+		for (int[] triple : triples) {
                     if (contains(var, triple)) return true;
                 }
                 return false;
@@ -1858,7 +1858,7 @@ public class KB {
 	 * @param var
 	 * @param triple
 	 **/
-	public static int varpos(ByteString var, ByteString[] triple) {
+	public static int varpos(ByteString var, int[] triple) {
 		for (int i = 0; i < triple.length; i++) {
 			if (var.equals(triple[i]))
 				return (i);
@@ -1919,7 +1919,7 @@ public class KB {
 	 * @param triples
 	 * @return
 	 */
-	public boolean existsBS1(List<ByteString[]> triples) {
+	public boolean existsBS1(List<int[]> triples) {
 		if (triples.isEmpty())
 			return (false);
 		if (triples.size() == 1)
@@ -1927,8 +1927,8 @@ public class KB {
 		int bestPos = mostRestrictiveTriple(triples);
 		if (bestPos == -1)
 			return (false);
-		ByteString[] best = triples.get(bestPos);
-                List<ByteString[]> otherTriples;
+                List<int[]> otherTriples;
+		int[] best = triples.get(bestPos);
 
 		switch (numVariables(best)) {
 		case 0:
@@ -2007,7 +2007,7 @@ public class KB {
 	}
 
 	/** returns the number of instances that fulfill a certain condition */
-	public long countDistinct(ByteString variable, List<ByteString[]> query) {
+	public long countDistinct(ByteString variable, List<int[]> query) {
                 return (long) (selectDistinct(variable, query).size());
 	}
 
@@ -2023,10 +2023,10 @@ public class KB {
 
 	/** returns the instances that fulfill a certain condition */
 	public IntSet selectDistinct(ByteString variable,
-			List<ByteString[]> query) {
+			List<int[]> query) {
 		// Only one triple
 		if (query.size() == 1) {
-			ByteString[] triple = query.get(0);
+			int[] triple = query.get(0);
 			switch (numVariables(triple)) {
 			case 0:
 				return (Collections.emptySet());
@@ -2063,7 +2063,7 @@ public class KB {
 		IntSet result = new IntOpenHashSet();
 		if (bestPos == -1)
 			return (result);
-		ByteString[] best = query.get(bestPos);
+		int[] best = query.get(bestPos);
 
 		// If the variable is in the most restrictive triple
 		if (Arrays.asList(best).indexOf(variable) != -1) {
@@ -2085,7 +2085,7 @@ public class KB {
 						secondVar, best) : resultsTwoVariablesByPos(secondVar,
 						firstVar, best);
                                 int otherVariable = best[firstVar].equals(variable) ? secondVar : firstVar;
-                                List<ByteString[]> otherTriples = remove(bestPos, query);
+                                List<int[]> otherTriples = remove(bestPos, query);
 				try (Instantiator insty = new Instantiator(
                                         (contains(best[otherVariable], otherTriples)) ? query : otherTriples, variable)) {
 					for (ByteString val : instantiations.keySet()) {
@@ -2129,7 +2129,7 @@ public class KB {
 
 		// If the variable is not in the most restrictive triple...
                 Int2ObjectMap<IntSet> instantiations;
-                List<ByteString[]> others = remove(bestPos, query);
+                List<int[]> others = remove(bestPos, query);
 		switch (numVariables(best)) {
 		case 0:
 			return (selectDistinct(variable, others));
@@ -2210,10 +2210,10 @@ public class KB {
      * A closed iterator can no longer be iterated upon.
      */
     public IntIterator selectDistinctIterator(IntSet result,
-            ByteString variable, List<ByteString[]> query) {
+            ByteString variable, List<int[]> query) {
         // Only one triple
         if (query.size() == 1) {
-            ByteString[] triple = query.get(0);
+            int[] triple = query.get(0);
             switch (numVariables(triple)) {
                 case 0:
                     return (Collections.emptyIterator());
@@ -2253,7 +2253,7 @@ public class KB {
         if (bestPos == -1) {
             return (Collections.emptyIterator());
         }
-        ByteString[] best = query.get(bestPos);
+        int[] best = query.get(bestPos);
 
         // If the variable is in the most restrictive triple
         if (varpos(variable, best) != -1) {
@@ -2271,7 +2271,7 @@ public class KB {
                             secondVar, best).keySet() : resultsTwoVariablesByPos(secondVar,
                                     firstVar, best).keySet();
                     int otherVariable = best[firstVar].equals(variable) ? secondVar : firstVar;
-                    List<ByteString[]> otherTriples = remove(bestPos, query);
+                    List<int[]> otherTriples = remove(bestPos, query);
                     insty = new Instantiator((contains(best[otherVariable], otherTriples)) ? query : otherTriples, variable);
                     break;
                 case 3:
@@ -2308,7 +2308,7 @@ public class KB {
 
         // If the variable is not in the most restrictive triple...
         Int2ObjectMap<IntSet> instantiations;
-        List<ByteString[]> others = remove(bestPos, query);
+        List<int[]> others = remove(bestPos, query);
         switch (numVariables(best)) {
             case 0:
                 return (selectDistinctIterator(result, variable, others));
@@ -2359,7 +2359,7 @@ public class KB {
 
 	/** Returns all (distinct) pairs of values that make the query true */
 	public Int2ObjectMap<IntSet> selectDistinct(
-			ByteString var1, ByteString var2, List<ByteString[]> query) {
+			ByteString var1, ByteString var2, List<int[]> query) {
 		if (query.isEmpty())
 			return (Collections.emptyMap());
 		if (query.size() == 1) {
@@ -2390,13 +2390,13 @@ public class KB {
 	
 	public Int2ObjectMap<Int2ObjectMap<IntSet>> selectDistinct(
 			ByteString var1, ByteString var2, ByteString var3,
-			List<ByteString[]> query) {
+			List<int[]> query) {
 		if (query.isEmpty()) {
 			return Collections.emptyMap();
 		}
 		
 		if (query.size() == 1) {
-			ByteString[] first = query.get(0);
+			int[] first = query.get(0);
 			int numVariables = numVariables(first);
 			if (numVariables == 3) {
 				return resultsThreeVariables(var1, var2, var3, first);
@@ -2461,7 +2461,7 @@ public class KB {
 	
 	public Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> selectDistinct(
 			ByteString var1, ByteString var2, ByteString var3, ByteString var4,
-			List<ByteString[]> query) {
+			List<int[]> query) {
 		if (query.size() < 2) {
 			throw new IllegalArgumentException("The query must have at least 2 atoms");
 		}
@@ -2490,7 +2490,7 @@ public class KB {
 	
 	public Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>>> selectDistinct(
 			ByteString var1, ByteString var2, ByteString var3, ByteString var4, ByteString var5,
-			List<ByteString[]> query) {
+			List<int[]> query) {
 		if (query.size() < 2) {
 			throw new IllegalArgumentException("The query must have at least 2 atoms");
 		}
@@ -2559,11 +2559,11 @@ public class KB {
 	 * @return IntHashMap A map of the form {string : frequency}
 	 **/
 	public Int2IntMap frequentBindingsOf(ByteString variable,
-			ByteString projectionVariable, List<ByteString[]> query) {
+			ByteString projectionVariable, List<int[]> query) {
 		// If only one triple
                 Int2IntMap result = new Int2IntOpenHashMap();
 		if (query.size() == 1) {
-			ByteString[] triple = query.get(0);
+			int[] triple = query.get(0);
 			int varPos = varpos(variable, triple);
 			int projPos = varpos(projectionVariable, triple);
 			if (varPos == -1 || projPos == -1)
@@ -2606,10 +2606,10 @@ public class KB {
 		int bestPos = mostRestrictiveTriple(query, projectionVariable, variable);
 		if (bestPos == -1)
 			return (result);
-		ByteString[] best = query.get(bestPos);
+		int[] best = query.get(bestPos);
 		int varPos = varpos(variable, best);
 		int projPos = varpos(projectionVariable, best);
-		List<ByteString[]> other = remove(bestPos, query);
+		List<int[]> other = remove(bestPos, query);
 
 		// If the variable and the projection variable are in the most
 		// restrictive triple
@@ -2758,7 +2758,7 @@ public class KB {
 	 * projection triple exist in the query
 	 */
 	protected Int2IntMap countProjectionBindings(int pos,
-			ByteString[] projectionTriple, List<ByteString[]> otherTriples) {
+			int[] projectionTriple, List<int[]> otherTriples) {
 		if (!isVariable(projectionTriple[pos]))
 			throw new IllegalArgumentException("Position " + pos + " in "
 					+ toString(projectionTriple) + " must be a variable");
@@ -2809,7 +2809,7 @@ public class KB {
 	 * @return IntHashMap A map of the form {string : frequency}
 	 **/
 	public Int2IntMap countProjectionBindings(
-			ByteString[] projectionTriple, List<ByteString[]> otherTriples,
+			int[] projectionTriple, List<int[]> otherTriples,
 			ByteString variable) {
 		int pos = varpos(variable, projectionTriple);
 
@@ -2825,13 +2825,13 @@ public class KB {
 		}
 
 		// Now let's iterate through all instantiations of the projectionTriple
-		List<ByteString[]> wholeQuery = new ArrayList<ByteString[]>();
+		List<int[]> wholeQuery = new ArrayList<int[]>();
 		wholeQuery.add(projectionTriple);
 		wholeQuery.addAll(otherTriples);
 
 		ByteString instVar = null;
 		int posRestrictive = mostRestrictiveTriple(wholeQuery);
-		ByteString[] mostRestrictive = (posRestrictive != -1) ? wholeQuery
+		int[] mostRestrictive = (posRestrictive != -1) ? wholeQuery
 				.get(posRestrictive) : projectionTriple;
 		Int2IntMap result = new Int2IntOpenHashMap();
 		int posInCommon = (mostRestrictive != projectionTriple) ? firstVariableInCommon(
@@ -2878,9 +2878,9 @@ public class KB {
 								+ toString(otherTriples));
 			}
 		} else {
-			List<ByteString[]> otherTriples2 = new ArrayList<ByteString[]>(
+			List<int[]> otherTriples2 = new ArrayList<int[]>(
 					wholeQuery);
-			List<ByteString[]> projectionTripleList = new ArrayList<ByteString[]>(
+			List<int[]> projectionTripleList = new ArrayList<int[]>(
 					1);
 			projectionTripleList.add(projectionTriple);
 			otherTriples2.remove(projectionTriple);
@@ -2950,7 +2950,7 @@ public class KB {
 	 * @param t2
 	 * @return
 	 */
-	public int firstVariableInCommon(ByteString[] t1, ByteString[] t2) {
+	public int firstVariableInCommon(int[] t1, int[] t2) {
 		for (int i = 0; i < t1.length; ++i) {
 			if (KB.isVariable(t1[i]) && varpos(t1[i], t2) != -1)
 				return i;
@@ -2965,7 +2965,7 @@ public class KB {
 	 * @param b
 	 * @return
 	 */
-	public int numVarsInCommon(ByteString[] a, ByteString[] b) {
+	public int numVarsInCommon(int[] a, int[] b) {
 		int count = 0;
 		for (int i = 0; i < a.length; ++i) {
 			if (KB.isVariable(a[i]) && varpos(a[i], b) != -1)
@@ -2982,10 +2982,10 @@ public class KB {
 	public Int2IntMap countProjectionBindings(
 			CharSequence[] projectionTriple, List<CharSequence[]> query,
 			CharSequence variable) {
-		ByteString[] projection = triple(projectionTriple);
-		List<ByteString[]> otherTriples = new ArrayList<>();
+		int[] projection = triple(projectionTriple);
+		List<int[]> otherTriples = new ArrayList<>();
 		for (CharSequence[] t : query) {
-			ByteString[] triple = triple(t);
+			int[] triple = triple(t);
 			if (!Arrays.equals(triple, projection))
 				otherTriples.add(triple);
 		}
@@ -3003,11 +3003,11 @@ public class KB {
 	 */
 	public long countProjection(CharSequence[] projectionTriple,
 			List<CharSequence[]> query) {
-		ByteString[] projection = triple(projectionTriple);
+		int[] projection = triple(projectionTriple);
 		// Create "otherTriples"
-		List<ByteString[]> otherTriples = new ArrayList<>();
+		List<int[]> otherTriples = new ArrayList<>();
 		for (CharSequence[] t : query) {
-			ByteString[] triple = triple(t);
+			int[] triple = triple(t);
 			if (!Arrays.equals(triple, projection))
 				otherTriples.add(triple);
 		}
@@ -3018,8 +3018,8 @@ public class KB {
 	 * Counts the number of instances of the projection triple that exist in
 	 * joins with the other triples
 	 */
-	public long countProjection(ByteString[] projectionTriple,
-			List<ByteString[]> otherTriples) {
+	public long countProjection(int[] projectionTriple,
+			List<int[]> otherTriples) {
 		if (otherTriples.isEmpty())
 			return (count(projectionTriple));
 		switch (numVariables(projectionTriple)) {
@@ -3070,7 +3070,7 @@ public class KB {
 
 	/** returns the number of distinct pairs (var1,var2) for the query */
 	public long countPairs(CharSequence var1, CharSequence var2,
-			List<ByteString[]> query) {
+			List<int[]> query) {
 		return (countDistinctPairs(compress(var1), compress(var2), triples(query)));
 	}
 
@@ -3081,14 +3081,14 @@ public class KB {
 	 * @param query
 	 * @return
 	 */
-	public int[] identifyHardQueryTypeI(List<ByteString[]> query) {
+	public int[] identifyHardQueryTypeI(List<int[]> query) {
 		if (query.size() < 2)
 			return null;
 
 		int lastIdx = query.size() - 1;
 		for (int idx1 = 0; idx1 < lastIdx; ++idx1) {
 			for (int idx2 = idx1 + 1; idx2 < query.size(); ++idx2) {
-				ByteString[] t1, t2;
+				int[] t1, t2;
 				t1 = query.get(idx1);
 				t2 = query.get(idx2);
 
@@ -3115,14 +3115,14 @@ public class KB {
 	 * @param query
 	 * @return
 	 */
-	public int[] identifyHardQueryTypeII(List<ByteString[]> query) {
+	public int[] identifyHardQueryTypeII(List<int[]> query) {
 		if (query.size() < 2)
 			return null;
 
 		int lastIdx = query.size() - 1;
 		for (int idx1 = 0; idx1 < lastIdx; ++idx1) {
 			for (int idx2 = idx1 + 1; idx2 < query.size(); ++idx2) {
-				ByteString[] t1, t2;
+				int[] t1, t2;
 				t1 = query.get(idx1);
 				t2 = query.get(idx2);
 
@@ -3141,14 +3141,14 @@ public class KB {
 		return null;
 	}
 
-	public int[] identifyHardQueryTypeIII(List<ByteString[]> query) {
+	public int[] identifyHardQueryTypeIII(List<int[]> query) {
 		if (query.size() < 2)
 			return null;
 
 		int lastIdx = query.size() - 1;
 		for (int idx1 = 0; idx1 < lastIdx; ++idx1) {
 			for (int idx2 = idx1 + 1; idx2 < query.size(); ++idx2) {
-				ByteString[] t1, t2;
+				int[] t1, t2;
 				t1 = query.get(idx1);
 				t2 = query.get(idx2);
 
@@ -3175,7 +3175,7 @@ public class KB {
 	}
 
 	public long countPairs(ByteString var1, ByteString var2,
-			List<ByteString[]> query, int[] queryInfo) {
+			List<int[]> query, int[] queryInfo) {
 
 		long result = 0;
 		// Approximate count
@@ -3190,7 +3190,7 @@ public class KB {
 		long duplicatesEstimate, duplicatesCard;
 		double duplicatesFactor;
 
-		List<ByteString[]> subquery = new ArrayList<ByteString[]>(query);
+		List<int[]> subquery = new ArrayList<int[]>(query);
 		subquery.remove(queryInfo[2]); // Remove one of the hard queries
 		duplicatesCard = countDistinct(targetVariable, subquery);
 
@@ -3215,8 +3215,8 @@ public class KB {
 	}
 
 	public long countPairs(ByteString var1, ByteString var2,
-			List<ByteString[]> query, int[] queryInfo,
-			ByteString[] existentialTriple, int nonExistentialPosition) {
+			List<int[]> query, int[] queryInfo,
+			int[] existentialTriple, int nonExistentialPosition) {
 		long result = 0;
 		long duplicatesEstimate, duplicatesCard;
 		double duplicatesFactor;
@@ -3224,7 +3224,7 @@ public class KB {
 		ByteString joinVariable = query.get(queryInfo[2])[queryInfo[0]];
 		ByteString targetVariable = null;
 		ByteString targetRelation = query.get(queryInfo[2])[1];
-		List<ByteString[]> subquery = new ArrayList<ByteString[]>(query);
+		List<int[]> subquery = new ArrayList<int[]>(query);
 
 		// Heuristic
 		if (relationSize.get(targetRelation) < 50000) {
@@ -3278,14 +3278,14 @@ public class KB {
          * @param removeVariable
          * @return New rewritten query
          */
-    public static List<ByteString[]> connectedComponent(List<ByteString[]> query, 
+    public static List<int[]> connectedComponent(List<int[]> query, 
             ByteString fromVariable, ByteString removeVariable) {
         IntSet connectedVariables = new IntOpenHashSet();
         connectedVariables.add(fromVariable);
         boolean fixedpoint;
         do {
             fixedpoint = true;
-            for (ByteString[] atom : query) {
+            for (int[] atom : query) {
                 for (int conpos = 0; conpos < 3; conpos++) {
                     if (connectedVariables.contains(atom[conpos])) {
                         for (int newpos = 0; newpos < 3; newpos++) {
@@ -3300,8 +3300,8 @@ public class KB {
                 }
             }
         } while (!fixedpoint);
-        List<ByteString[]> result = new ArrayList<>();
-        for (ByteString[] atom : query) {
+        List<int[]> result = new ArrayList<>();
+        for (int[] atom : query) {
             for (int pos=0; pos < 3; pos++) {
                 if (connectedVariables.contains(atom[pos])) {
                     result.add(atom);
@@ -3315,7 +3315,7 @@ public class KB {
      * returns the number of distinct pairs (var1,var2) for the query
      */
     public long countDistinctPairs(ByteString var1, ByteString var2,
-            List<ByteString[]> query) {
+            List<int[]> query) {
 
         // Go for the standard plan
         long result = 0;
@@ -3334,7 +3334,7 @@ public class KB {
      * returns the number of distinct pairs (var1,var2) for the query
      */
     public long countDistinctPairsUpTo(long upperBound, ByteString var1, ByteString var2,
-            List<ByteString[]> query) {
+            List<int[]> query) {
 
         // Go for the standard plan
         long result = 0;
@@ -3353,7 +3353,7 @@ public class KB {
     }
     
     public long countDistinctPairsUpToWithIterator(long upperBound, ByteString var1, 
-            ByteString var2, List<ByteString[]> query) {
+            ByteString var2, List<int[]> query) {
 
         // Go for the standard plan
         long result = 0;
@@ -3379,7 +3379,7 @@ public class KB {
     
 	/** Can instantiate a variable in a query with a value */
 	public static class Instantiator implements Closeable {
-		List<ByteString[]> query;
+		List<int[]> query;
 
 		int[] positions;
 
@@ -3387,7 +3387,7 @@ public class KB {
 		
 		private int atomSize;
 
-		public Instantiator(List<ByteString[]> q, ByteString var, int atomSize) {
+		public Instantiator(List<int[]> q, ByteString var, int atomSize) {
 			this.atomSize = atomSize;
 			positions = new int[q.size() * atomSize];
 			int numPos = 0;
@@ -3404,11 +3404,11 @@ public class KB {
 				positions[numPos] = -1;
 		}
 		
-		public Instantiator(List<ByteString[]> q, ByteString var) {
+		public Instantiator(List<int[]> q, ByteString var) {
 			this(q, var, 3);
 		}
 
-		public List<ByteString[]> instantiate(ByteString value) {
+		public List<int[]> instantiate(ByteString value) {
 			for (int i = 0; i < positions.length; i++) {
 				if (positions[i] == -1)
 					break;
@@ -3440,7 +3440,7 @@ public class KB {
 	}
 
 	/** ToString for a query */
-	public static String toString(List<ByteString[]> s) {
+	public static String toString(List<int[]> s) {
 		StringBuilder b = new StringBuilder();
 		for (int i = 0; i < s.size(); i++)
 			b.append(toString(s.get(i))).append(" ");
@@ -3459,29 +3459,29 @@ public class KB {
 	}
 
 	/** Makes a list of triples */
-	public static List<ByteString[]> triples(ByteString[]... triples) {
+	public static List<int[]> triples(int[]... triples) {
 		return (Arrays.asList(triples));
 	}
 
 	/** makes triples */
 	@SuppressWarnings("unchecked")
-	public static List<ByteString[]> triples(
+	public static List<int[]> triples(
 			List<? extends CharSequence[]> triples) {
 		if (iscompressed(triples))
-			return ((List<ByteString[]>) triples);
-		List<ByteString[]> t = new ArrayList<>();
+			return ((List<int[]>) triples);
+		List<int[]> t = new ArrayList<>();
 		for (CharSequence[] c : triples)
 			t.add(triple(c));
 		return (t);
 	}
 	
-	public static ByteString[] triple2Array(
+	public static int[] triple2Array(
 			Triple<ByteString, ByteString, ByteString> t) {
-		return new ByteString[] { t.first, t.second, t.third };
+		return new int[] { t.first, t.second, t.third };
 	}
 	
 	public static Triple<ByteString, ByteString, ByteString> array2Triple(
-			ByteString[] triple) {
+			int[] triple) {
 		return new Triple<ByteString, ByteString, ByteString>(
 				triple[0], triple[1], triple[2]);
 	}
@@ -3490,20 +3490,20 @@ public class KB {
 	public static boolean iscompressed(List<? extends CharSequence[]> triples) {
 		for (int i = 0; i < triples.size(); i++) {
 			CharSequence[] t = triples.get(i);
-			if (!(t instanceof ByteString[]))
+			if (!(t instanceof int[]))
 				return (false);
 		}
 		return true;
 	}
 
 	/** Makes a triple */
-	public static ByteString[] triple(ByteString... triple) {
+	public static int[] triple(ByteString... triple) {
 		return (triple);
 	}
 
 	/** Makes a triple */
-	public static ByteString[] triple(CharSequence... triple) {
-		ByteString[] result = new ByteString[triple.length];
+	public static int[] triple(CharSequence... triple) {
+		int[] result = new ByteString[triple.length];
 		for (int i = 0; i < triple.length; i++)
 			result[i] = compress(triple[i]);
 		return (result);
@@ -3524,7 +3524,7 @@ public class KB {
 	 * @param s
 	 * @return
 	 **/
-	public static ByteString[] triple(String s) {
+	public static int[] triple(String s) {
 		Matcher m = triplePattern.matcher(s);
 		if (m.find())
 			return (triple(m.group(2).trim(), m.group(1).trim(), m.group(3).trim()));
@@ -3540,9 +3540,9 @@ public class KB {
 	 * @param s
 	 * @return
 	 **/
-	public static ArrayList<ByteString[]> triples(String s) {
+	public static ArrayList<int[]> triples(String s) {
 		Matcher m = triplePattern.matcher(s);
-		ArrayList<ByteString[]> result = new ArrayList<>();
+		ArrayList<int[]> result = new ArrayList<>();
 		while (m.find())
 			result.add(triple(m.group(2).trim(), m.group(1).trim(), m.group(3).trim()));
 		if (result.isEmpty()) {
@@ -3559,8 +3559,8 @@ public class KB {
 	 * @return A pair where the first element is the list of body atoms (left-hand side 
 	 * of the rule) and the second element is triple pattern, the head of the rule.
 	 */
-	public static Pair<List<ByteString[]>, ByteString[]> rule(String s) {
-		List<ByteString[]> triples = triples(s);
+	public static Pair<List<int[]>, int[]> rule(String s) {
+		List<int[]> triples = triples(s);
 		if (triples.isEmpty())
 			return null;
 		if (s.contains(":-"))
@@ -3597,7 +3597,7 @@ public class KB {
 	 * @return
 	 */
 	public IntSet difference(ByteString projectionVariable,
-			List<ByteString[]> antecedent, List<ByteString[]> head) {
+			List<int[]> antecedent, List<int[]> head) {
 		// TODO Auto-generated method stub
 		IntSet bodyBindings = new IntOpenHashSet(selectDistinct(
 				projectionVariable, antecedent));
@@ -3636,11 +3636,11 @@ public class KB {
 	 * @return
 	 */
 	public Int2ObjectMap<IntSet> difference(ByteString var1,
-			ByteString var2, List<ByteString[]> antecedent,
-			ByteString[] head) {
+			ByteString var2, List<int[]> antecedent,
+			int[] head) {
 		// Look for all bindings for the variables that appear on the antecedent
 		// but not in the head
-		List<ByteString[]> headList = new ArrayList<ByteString[]>(1);
+		List<int[]> headList = new ArrayList<int[]>(1);
 		headList.add(head);
 		return difference(var1, var2, antecedent, headList);
 	}
@@ -3671,13 +3671,13 @@ public class KB {
 	 * @return
 	 */
 	public Int2ObjectMap<IntSet> differenceNoVarsInCommon(ByteString var1,
-			ByteString var2, List<ByteString[]> antecedent,
-			ByteString[] head) {
+			ByteString var2, List<int[]> antecedent,
+			int[] head) {
 		// Look for all bindings for the variables that appear on the antecedent
 		// but not in the head
-		List<ByteString[]> headList = new ArrayList<ByteString[]>(1);
+		List<int[]> headList = new ArrayList<int[]>(1);
 		headList.add(head);
-		List<ByteString[]> wholeQuery = new ArrayList<ByteString[]>(antecedent);
+		List<int[]> wholeQuery = new ArrayList<int[]>(antecedent);
 		wholeQuery.add(head);
 		Int2ObjectMap<IntSet> results = new Int2ObjectOpenHashMap<IntSet>();
 		
@@ -3713,8 +3713,8 @@ public class KB {
 	 * @return
 	 */
 	public Int2ObjectMap<IntSet> difference(ByteString var1,
-			ByteString var2, List<ByteString[]> antecedent,
-			List<ByteString[]> headList) {
+			ByteString var2, List<int[]> antecedent,
+			List<int[]> headList) {
 		Int2ObjectMap<IntSet> bodyBindings = selectDistinct(
 				var1, var2, antecedent);
 		Int2ObjectMap<IntSet> headBindings = selectDistinct(
@@ -3774,10 +3774,10 @@ public class KB {
 	 */
 	public Int2ObjectMap<Int2ObjectMap<IntSet>> difference(
 			ByteString var1, ByteString var2, ByteString var3,
-			List<ByteString[]> antecedent, ByteString[] head) {
+			List<int[]> antecedent, int[] head) {
 		Int2ObjectMap<Int2ObjectMap<IntSet>> results = null;
 		
-		List<ByteString[]> headList = new ArrayList<>(1);
+		List<int[]> headList = new ArrayList<>(1);
 		headList.add(head);
 		
 		Int2ObjectMap<Int2ObjectMap<IntSet>> bodyBindings = null;
@@ -3912,7 +3912,7 @@ public class KB {
 	 */
 	public Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> difference(
 			ByteString var1, ByteString var2, ByteString var3, ByteString var4,
-			List<ByteString[]> antecedent, ByteString[] head) {
+			List<int[]> antecedent, int[] head) {
 		Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> results = new
 				Int2ObjectMap<Int2ObjectMap<Map<ByteString,IntSet>>>();
 		
@@ -3989,11 +3989,11 @@ public class KB {
 	 */
 	public Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> differenceNotVarsInCommon(
 			ByteString var1, ByteString var2, ByteString var3, ByteString var4,
-			List<ByteString[]> antecedent, ByteString[] head) {
+			List<int[]> antecedent, int[] head) {
 		int headNumVars = numVariables(head);
 		Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> results = 
 				new Int2ObjectOpenHashMap<Map<ByteString,Map<ByteString,IntSet>>>();
-		List<ByteString[]> wholeQuery = new ArrayList<ByteString[]>(antecedent);
+		List<int[]> wholeQuery = new ArrayList<int[]>(antecedent);
 		wholeQuery.add(head);
 		
 		if (headNumVars == 3) {
@@ -4321,7 +4321,7 @@ public class KB {
 	 * @return
 	 */
 	public KB intersect(KB otherKb) {
-		ByteString[] triple = new ByteString[3];
+		int[] triple = new int[3];
 		KB result = new KB();
 		for (ByteString subject : subject2relation2object.keySet()) {
 			triple[0] = subject;
@@ -4559,7 +4559,7 @@ public class KB {
 	 */
 	public KB newEntitiesKB(IntSet oldEntities) {
 		IntSet newEntities = relation2subject2object.get(Schema.typeRelationBS).keySet();
-		ByteString[] triple = new ByteString[3];
+		int[] triple = new int[3];
 		KB result = new KB();
 		for (ByteString subject : subject2relation2object.keySet()) {
 			triple[0] = subject;

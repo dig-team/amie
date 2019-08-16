@@ -63,9 +63,9 @@ public class RelevanceFilter {
 		ByteString s = KB.map("?s");
 		ByteString r = KB.map("?r");
 		ByteString o = KB.map("?o");		
-		List<ByteString[]> query =  KB.triples(KB.triple(s, r, o));
+		List<int[]> query =  KB.triples(KB.triple(s, r, o));
 		for (ByteString relation : kb.selectDistinct(KB.map("?r"), query)) {			
-			ByteString[] query2 = KB.triple(s, relation, o);
+			int[] query2 = KB.triple(s, relation, o);
 			Int2ObjectMap<IntSet> bindings = null;
 			boolean inversed = false;
 			if (kb.isFunctional(relation) || relation.equals(amie.data.Schema.typeRelationBS)) {				

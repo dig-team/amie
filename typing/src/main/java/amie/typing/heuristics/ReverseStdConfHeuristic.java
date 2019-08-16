@@ -31,7 +31,7 @@ public class ReverseStdConfHeuristic extends TypingHeuristic {
 	}
 
 	@Override
-	public double evaluate(ByteString type, List<ByteString[]> clause,
+	public double evaluate(ByteString type, List<int[]> clause,
 			ByteString variable) {
                 // TODO Scale with max value of children
                 ByteString relation = (clause.get(0)[0].equals(variable)) ? clause.get(0)[1] : KB.map(clause.get(0)[1].toString() + "-1");

@@ -20,7 +20,7 @@ import amie.data.KB;
 public class QueryEquivalenceChecker {
 	
 	static class Node implements Comparable<Node>{
-		ByteString[] data;
+		int[] data;
 		
 		boolean removed;
 		
@@ -36,7 +36,7 @@ public class QueryEquivalenceChecker {
 			return "Node [data=" + Arrays.toString(data) + "]";
 		}
 
-		Node(ByteString[] data, boolean isHead){
+		Node(int[] data, boolean isHead){
 			this.data = data;
 			this.removed = false;
 			this.visited = false;
@@ -232,7 +232,7 @@ public class QueryEquivalenceChecker {
 	 * @param q2
 	 * @return
 	 */
-	public static boolean areEquivalent(List<ByteString[]> q1, List<ByteString[]> q2){
+	public static boolean areEquivalent(List<int[]> q1, List<int[]> q2){
 		if(q1.size() == q2.size() && q1.size() == 1){
 			return Rule.areEquivalent(q1.get(0), q2.get(0));
 		}else{
@@ -245,7 +245,7 @@ public class QueryEquivalenceChecker {
 	 * @param q2
 	 * @return
 	 */
-	private static QueryGraph buildQueryGraph(List<ByteString[]> q2) {
+	private static QueryGraph buildQueryGraph(List<int[]> q2) {
 		SortedSet<Node> nodes = new TreeSet<Node>();
 		List<Node> hardNodes = new ArrayList<Node>();
 		List<Node> nodeList = null;
@@ -255,7 +255,7 @@ public class QueryEquivalenceChecker {
 		
 		Node headNode = new Node(q2.get(0), true);
 		
-		for(ByteString[] triple: q2.subList(1, q2.size())){
+		for(int[] triple: q2.subList(1, q2.size())){
 			Node newNode = new Node(triple, false);
 			if(nodes.contains(newNode))
 				hardNodes.add(newNode);

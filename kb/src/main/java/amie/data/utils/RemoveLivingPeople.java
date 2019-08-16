@@ -13,7 +13,7 @@ public class RemoveLivingPeople {
 	public static void main(String[] args) throws IOException {
 		KB kb = amie.data.U.loadFiles(args);
 		ByteString wikicatLivingPeople = KB.map("<wikicat_Living_people>");
-		List<ByteString[]> query = KB.triples(KB.triple("?a", Schema.typeRelation, "<wikicat_Living_people>"),
+		List<int[]> query = KB.triples(KB.triple("?a", Schema.typeRelation, "<wikicat_Living_people>"),
 				KB.triple("?a", "<diedIn>", "?b"));
 		
 		for (ByteString entity : kb.selectDistinct(KB.map("?a"), query)) {

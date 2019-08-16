@@ -45,9 +45,9 @@ public class ExistentialRulesMiningAssistant extends DefaultMiningAssistant {
 	public void getClosingAtoms(Rule rule, double minSupportThreshold, Collection<Rule> output){
 		super.getClosingAtoms(rule, minSupportThreshold, output);
 		List<ByteString> openVariables = rule.getOpenVariables();
-		List<ByteString[]> candidate = new ArrayList<>();
+		List<int[]> candidate = new ArrayList<>();
 		if (openVariables.size() > 0) {
-			for (ByteString[] triple : rule.getTriplesCopy()) {
+			for (int[] triple : rule.getTriplesCopy()) {
 				for (ByteString openVariable : openVariables) {
 					if (triple[0] == openVariable && openVariables.contains(triple[2])) {
 						return;
@@ -63,7 +63,7 @@ public class ExistentialRulesMiningAssistant extends DefaultMiningAssistant {
 				}
 				candidate.add(triple);
 			}
-			ByteString[] head = candidate.get(0);
+			int[] head = candidate.get(0);
 			long cardinality = -1;
 			if (KB.numVariables(head) == 2) {
 				cardinality = kb.countDistinctPairs(head[0], head[2], candidate);

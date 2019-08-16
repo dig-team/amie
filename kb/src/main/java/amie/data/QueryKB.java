@@ -18,7 +18,7 @@ public class QueryKB {
 		String variables = queryParts[0];
 		String[] variableParts = variables.split(",");
 		String selection = queryParts[1].trim();
-		List<ByteString[]> selectionAtoms = KB.triples(selection);
+		List<int[]> selectionAtoms = KB.triples(selection);
 		System.out.println("Projection variables: " + KB.toString(variableParts));
 		System.out.println("Conditions: " + KB.toString(selectionAtoms));
 		if (variableParts.length == 1) {

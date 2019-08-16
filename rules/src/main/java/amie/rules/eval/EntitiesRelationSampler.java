@@ -52,7 +52,7 @@ public class EntitiesRelationSampler {
 			entitiesArray.remove(entitiesArray.size() - 1);
 			
 			//Now take all the triples about this entity
-			List<ByteString[]> query = KB.triples(KB.triple(entity, KB.map("?p"), KB.map("?o")));
+			List<int[]> query = KB.triples(KB.triple(entity, KB.map("?p"), KB.map("?o")));
 			Int2ObjectMap<IntSet> predicateObjects = db.selectDistinct(KB.map("?p"), KB.map("?o"), query);
 			
 			for(ByteString relation: predicateObjects.keySet()){				

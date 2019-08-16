@@ -128,8 +128,8 @@ public class ImpliedFactsEvaluator {
 //            //return new ImpliedFacts(0, 0, 0, 0);
 //        }
 //        final ByteString x = KB.map("?x");
-//        List<ByteString[]> gsSizeQ = KB.triples(KB.triple(x, gsRelation, query));
-//        List<ByteString[]> rtSizeQ = KB.triples(KB.triple(x, rwtr(method), query));
+//        List<int[]> gsSizeQ = KB.triples(KB.triple(x, gsRelation, query));
+//        List<int[]> rtSizeQ = KB.triples(KB.triple(x, rwtr(method), query));
 //        long gsSize = db.countDistinct(x, gsSizeQ);
 //        long rtSize = db.countDistinct(x, rtSizeQ);
 //        gsSizeQ.addAll(rtSizeQ);

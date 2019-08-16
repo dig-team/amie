@@ -52,8 +52,8 @@ public class ExistentialAndNegatedRulesMiningAssistant extends MiningAssistant {
 		// => ~r(x, y). We will use the keywords NOTEXISTSbs and NOTEXISTSINVbs
 		Collection<Rule> output = new ArrayList<>();
 		Rule query = new Rule();
-		ByteString[] newEdge1 = query.fullyUnboundTriplePattern();
-		ByteString[] newEdge2 = query.fullyUnboundTriplePattern();
+		int[] newEdge1 = query.fullyUnboundTriplePattern();
+		int[] newEdge2 = query.fullyUnboundTriplePattern();
 		for (ByteString relation : relations) {
 			if (this.headExcludedRelations != null 
 					&& this.headExcludedRelations.contains(relation)) {
@@ -81,7 +81,7 @@ public class ExistentialAndNegatedRulesMiningAssistant extends MiningAssistant {
 			
 			long support = kb.count(newEdge1);
 			if (support >= minSupportThreshold) {
-				ByteString[] succedent = newEdge1.clone();
+				int[] succedent = newEdge1.clone();
 				Rule rule = new Rule(succedent, support);
 				rule.setFunctionalVariablePosition(2);
 				output.add(rule);
@@ -89,7 +89,7 @@ public class ExistentialAndNegatedRulesMiningAssistant extends MiningAssistant {
 			
 			support = kb.count(newEdge2);
 			if (support >= minSupportThreshold) {
-				ByteString[] succedent = newEdge2.clone();
+				int[] succedent = newEdge2.clone();
 				Rule rule = new Rule(succedent, support);
 				rule.setFunctionalVariablePosition(2);
 				output.add(rule);
@@ -117,7 +117,7 @@ public class ExistentialAndNegatedRulesMiningAssistant extends MiningAssistant {
 		if (rule.getLength() == 1) {
 			// We enforce the type relationship with the domain or range of the relation
 			KB source = null;
-			ByteString[] head = rule.getHead();
+			int[] head = rule.getHead();
 			if (this.kbSchema != null) {
 				source = this.kbSchema;
 			} else {
@@ -131,7 +131,7 @@ public class ExistentialAndNegatedRulesMiningAssistant extends MiningAssistant {
 			}
 			
 			if (typeToEnforce != null) {
-				ByteString[] newEdge = rule.fullyUnboundTriplePattern();
+				int[] newEdge = rule.fullyUnboundTriplePattern();
 				newEdge[0] = rule.getFunctionalVariable();
 				newEdge[1] = Schema.typeRelationBS;
 				newEdge[2] = typeToEnforce;

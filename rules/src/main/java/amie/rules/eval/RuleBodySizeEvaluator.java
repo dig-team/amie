@@ -37,7 +37,7 @@ public class RuleBodySizeEvaluator {
 		
 		//Now calculate the body size for the rules
 		for(Rule q: qList){
-			ByteString[] head = q.getHead();
+			int[] head = q.getHead();
 			q.setFunctionalVariablePosition(Rule.findFunctionalVariable(q, db));
 			long[] result = conditionalBodySize(q, db, predictions);
 			long nSubjects = db.countDistinct(KB.map(head[0]), KB.triples(head));

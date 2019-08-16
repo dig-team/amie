@@ -119,10 +119,10 @@ public class PCAFalseFactsSampler {
 	}
 
 	private Set<Triple<ByteString, ByteString, ByteString>> generateAssumedFalseFacts(Rule rule) {
-		List<ByteString[]> query = new ArrayList<ByteString[]>();	
+		List<int[]> query = new ArrayList<int[]>();	
 		Set<Triple<ByteString, ByteString, ByteString>> result = new LinkedHashSet<Triple<ByteString, ByteString, ByteString>>();
-		ByteString[] head = rule.getHead();
-		ByteString[] existential = head.clone();
+		int[] head = rule.getHead();
+		int[] existential = head.clone();
 		ByteString relation = head[1];
 				
 		if(rule.getFunctionalVariablePosition() == 0)
@@ -131,7 +131,7 @@ public class PCAFalseFactsSampler {
 			existential[0] = KB.map("?x");
 		
 		query.add(existential);
-		for(ByteString[] triple: rule.getAntecedent())
+		for(int[] triple: rule.getAntecedent())
 			query.add(triple.clone());
 		
 		if(KB.numVariables(rule.getHead()) == 2){
@@ -139,7 +139,7 @@ public class PCAFalseFactsSampler {
 			for(ByteString subject: bindingsTwoVars.keySet()){
 				for(ByteString object: bindingsTwoVars.get(subject)){
 					result.add(new Triple<ByteString, ByteString, ByteString>(subject, relation, object));
-					//ByteString[] test = new ByteString[]{subject, relation, object};
+					//int[] test = new int[]{subject, relation, object};
 					//assert(!db.contains(test));
 					
 				}

@@ -30,8 +30,8 @@ public class TrianglePropertyFilter {
 		if(rule.getLength() != 3)
 			return false;
 		
-		List<ByteString[]> body = rule.getBody();
-		ByteString[] head = rule.getHead();
+		List<int[]> body = rule.getBody();
+		int[] head = rule.getHead();
 		
 		if(!body.get(0)[1].equals(body.get(1)[1]))
 			return false;

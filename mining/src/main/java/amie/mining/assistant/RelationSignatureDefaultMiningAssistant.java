@@ -54,7 +54,7 @@ public class RelationSignatureDefaultMiningAssistant extends DefaultMiningAssist
 		relation = candidate.getHead()[1];
 		domain = Schema.getRelationDomain(kb, relation);
 		if(domain != null){
-			ByteString[] domainTriple = new ByteString[3];
+			int[] domainTriple = new int[3];
 			domainTriple[0] = candidate.getHead()[0];
 			domainTriple[1] = KB.map("rdf:type");
 			domainTriple[2] = domain;
@@ -64,7 +64,7 @@ public class RelationSignatureDefaultMiningAssistant extends DefaultMiningAssist
 		
 		range = Schema.getRelationRange(kb, relation);
 		if(range != null){
-			ByteString[] rangeTriple = new ByteString[3];
+			int[] rangeTriple = new int[3];
 			rangeTriple[0] = candidate.getHead()[2];
 			rangeTriple[1] = KB.map("rdf:type");
 			rangeTriple[2] = range;

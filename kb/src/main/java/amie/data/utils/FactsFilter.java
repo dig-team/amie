@@ -70,7 +70,7 @@ public class FactsFilter {
 		BufferedWriter out = new BufferedWriter(fstream);
 		
 		//Now iterate over the trim source and only output triples whose subject appears in the facts source
-		ByteString[] triple = new ByteString[3];
+		int[] triple = new int[3];
 		triple[0] = KB.compress("?s");
 		triple[1] = KB.compress("?p");
 		triple[2] = KB.compress("?o");		

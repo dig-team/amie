@@ -99,7 +99,7 @@ public class SeparationPTreeClassifier extends SeparationTreeClassifier {
     }
     
     @Override
-    public void computeStatistics(List<ByteString[]> query, ByteString variable, int classSizeThreshold) {
+    public void computeStatistics(List<int[]> query, ByteString variable, int classSizeThreshold) {
         IntSet relevantClasses = index.keySet();
         ByteString relation = (query.get(0)[0].equals(variable)) ? query.get(0)[1] : KB.map(query.get(0)[1].toString() + "-1");
 

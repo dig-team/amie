@@ -100,7 +100,7 @@ public class KBTest extends TestCase {
             kb.add(KB.triple("<Villejuif>", "<isLocatedIn>", "<France>"));
             kb.add(KB.triple("<Luis>", "<worksAt>", "<INRIA>"));
             kb.add(KB.triple("<INRIA>", "<isLocatedIn>", "<Paris>"));
-            List<ByteString[]> query = KB.triples(
+            List<int[]> query = KB.triples(
                     KB.triple("?x", "<worksAt>", "?t"),
                     KB.triple("?t", "<isLocatedIn>", "?c"),
                     KB.triple("?x", "<livesIn>", "?c"));
@@ -121,12 +121,12 @@ public class KBTest extends TestCase {
         }
         
         public void testConnectedComponent() {
-            ByteString[] atom1, atom2, atom3;
+            int[] atom1, atom2, atom3;
             atom1 = KB.triple("?x", "a", "?y");
             atom2 = KB.triple("?x", "b", "?z");
             atom3 = KB.triple("?y", "c", "E");
             
-            List<ByteString[]> query = KB.triples(atom1, atom2, atom3);
+            List<int[]> query = KB.triples(atom1, atom2, atom3);
             assertEquals(KB.connectedComponent(query, KB.map("?y"), KB.map("?x")),
                     KB.triples(atom1, atom3));
             assertEquals(KB.connectedComponent(query, KB.map("?y"), KB.map("?z")),

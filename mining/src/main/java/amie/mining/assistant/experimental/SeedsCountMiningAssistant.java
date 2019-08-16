@@ -24,8 +24,8 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 	public SeedsCountMiningAssistant(KB dataSource, KB schemaSource) {
 		super(dataSource);
 		this.kbSchema = schemaSource;
-		ByteString[] rootPattern = Rule.fullyUnboundTriplePattern1();
-		List<ByteString[]> triples = new ArrayList<ByteString[]>();
+		int[] rootPattern = Rule.fullyUnboundTriplePattern1();
+		List<int[]> triples = new ArrayList<int[]>();
 		triples.add(rootPattern);
 		allSubjects = this.kbSchema.selectDistinct(rootPattern[0], triples);
 		subjectSchemaCount = allSubjects.size();
@@ -36,7 +36,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 		return subjectSchemaCount;
 	}
 
-	protected void getInstantiatedAtoms(Rule query, Rule originalQuery, ByteString[] danglingEdge, 
+	protected void getInstantiatedAtoms(Rule query, Rule originalQuery, int[] danglingEdge, 
 			int danglingPosition, double minSupportThreshold, Collection<Rule> output) {
 		Int2IntMap constants = kb.frequentBindingsOf(danglingEdge[danglingPosition], query.getFunctionalVariable(), query.getTriples());
 		for(ByteString constant: constants){
@@ -45,7 +45,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 			int cardinality = seedsCardinality(query);
 			danglingEdge[danglingPosition] = tmp;
 			if(cardinality >= minSupportThreshold){
-				ByteString[] lastPatternCopy = query.getLastTriplePattern().clone();
+				int[] lastPatternCopy = query.getLastTriplePattern().clone();
 				lastPatternCopy[danglingPosition] = constant;
 				long cardLastEdge = kb.count(lastPatternCopy);
 				if(cardLastEdge < 2)
@@ -107,7 +107,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 		Pair<Integer, Integer>[] varSetups = new Pair[2];
 		varSetups[0] = new Pair<Integer, Integer>(0, 2);
 		varSetups[1] = new Pair<Integer, Integer>(2, 0);
-		ByteString[] newEdge = query.fullyUnboundTriplePattern();
+		int[] newEdge = query.fullyUnboundTriplePattern();
 		ByteString relationVariable = newEdge[1];
 		
 		for(Pair<Integer, Integer> varSetup: varSetups){			
@@ -167,7 +167,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 	public Collection<Rule> getInitialAtoms(double minSupportThreshold) {
 		Collection<Rule> output = new ArrayList<>();		
 		Rule query = new Rule();
-		ByteString[] newEdge = query.fullyUnboundTriplePattern();
+		int[] newEdge = query.fullyUnboundTriplePattern();
 		query.getTriples().add(newEdge);
 		Int2IntMap relations = 
 				kb.frequentBindingsOf(newEdge[1], newEdge[0], query.getTriples());
@@ -181,7 +181,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 			double cardinality = (double) seedsCardinality(query);
 			query.setSupport(cardinality);
 			if(cardinality >= minSupportThreshold) {
-				ByteString[] succedent = newEdge.clone();					
+				int[] succedent = newEdge.clone();					
 				Rule candidate = new Rule(succedent, cardinality);
 				candidate.setFunctionalVariablePosition(countVarPos);
 				registerHeadRelation(candidate);
@@ -197,7 +197,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 	@Override
 	@MiningOperator(name="dangling")
 	public void getDanglingAtoms(Rule query, double minCardinality, Collection<Rule> output){		
-		ByteString[] newEdge = query.fullyUnboundTriplePattern();
+		int[] newEdge = query.fullyUnboundTriplePattern();
 		List<ByteString> openVariables = query.getOpenVariables();
 		
 		//General case
@@ -282,13 +282,13 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 	@Override
 	public void calculateConfidenceMetrics(Rule candidate) {		
 		// TODO Auto-generated method stub
-		List<ByteString[]> antecedent = new ArrayList<ByteString[]>();
+		List<int[]> antecedent = new ArrayList<int[]>();
 		antecedent.addAll(candidate.getTriples().subList(1, candidate.getTriples().size()));
-		List<ByteString[]> succedent = new ArrayList<ByteString[]>();
+		List<int[]> succedent = new ArrayList<int[]>();
 		succedent.addAll(candidate.getTriples().subList(0, 1));
 		long denominator = 0;
 		long pcaDenominator = 0;
-		ByteString[] existentialTriple = succedent.get(0).clone();
+		int[] existentialTriple = succedent.get(0).clone();
 		int freeVarPos = 0;
 		
 		if(KB.numVariables(existentialTriple) == 1){

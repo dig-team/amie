@@ -248,8 +248,8 @@ public class U {
 	 * @return
 	 */
 	public static int numberOfFacts(KB kb, ByteString entity) {
-		ByteString[] querySubject = KB.triple(entity, KB.map("?r"), KB.map("?o")); 
-		ByteString[] queryObject = KB.triple(KB.map("?s"), KB.map("?r"), entity); 
+		int[] querySubject = KB.triple(entity, KB.map("?r"), KB.map("?o")); 
+		int[] queryObject = KB.triple(KB.map("?s"), KB.map("?r"), entity); 
 		return (int)kb.count(querySubject) + (int)kb.count(queryObject);
 	}
 	
@@ -262,8 +262,8 @@ public class U {
 	 * @return
 	 */
 	public static int numberOfFacts(KB kb, ByteString entity, Collection<ByteString> omittedRelations) {
-		ByteString[] querySubject = KB.triple(entity, KB.map("?r"), KB.map("?o")); 
-		ByteString[] queryObject = KB.triple(KB.map("?s"), KB.map("?r"), entity); 
+		int[] querySubject = KB.triple(entity, KB.map("?r"), KB.map("?o")); 
+		int[] queryObject = KB.triple(KB.map("?s"), KB.map("?r"), entity); 
 		Int2ObjectMap<IntSet> relationsSubject = 
 				kb.resultsTwoVariables(KB.map("?r"), KB.map("?o"), querySubject);
 		Int2ObjectMap<IntSet> relationsObject = 
@@ -311,7 +311,7 @@ public class U {
 	 */
 	public static IntSet getEntitiesWithCardinality(KB kb, ByteString relation, int cardinality) {
 		Int2ObjectMap<IntSet> results = null;
-		List<ByteString[]> query = KB.triples(KB.triple(KB.map("?s"), 
+		List<int[]> query = KB.triples(KB.triple(KB.map("?s"), 
 				relation, KB.map("?o")));
 		if (kb.isFunctional(relation)) {
 			results = kb.selectDistinct(KB.map("?s"), KB.map("?o"), query);
@@ -395,8 +395,8 @@ public class U {
 	 * @param array
 	 * @return
 	 */
-	public static ByteString[] toArray(Triple<ByteString, ByteString, ByteString> triple) {
-		return new ByteString[] { triple.first, triple.second, triple.third};
+	public static int[] toArray(Triple<ByteString, ByteString, ByteString> triple) {
+		return new int[] { triple.first, triple.second, triple.third};
 	}
 	
 	/**

@@ -22,7 +22,7 @@ public class PopularityHeuristic extends TypingHeuristic {
 	public PopularityHeuristic(KB kb, int popularityThreshold) {
 		super(kb);
 		ByteString variable = KB.map("?v1");
-		List<ByteString[]> typeClause = new ArrayList<>(1);
+		List<int[]> typeClause = new ArrayList<>(1);
 		typeClause.add(KB.triple(variable, amie.data.Schema.typeRelationBS, KB.map("?v2")));
 		IntSet entities = db.selectDistinct(variable, typeClause);
 		for (ByteString e : entities) {
@@ -39,9 +39,9 @@ public class PopularityHeuristic extends TypingHeuristic {
         }
 
 	@Override
-	public double evaluate(ByteString type, List<ByteString[]> clause,
+	public double evaluate(ByteString type, List<int[]> clause,
 			ByteString variable) {
-		List<ByteString[]> body = typeL(type, variable);
+		List<int[]> body = typeL(type, variable);
 		body.add(KB.triple(variable, popularityRelationBS, KB.map("")));
 		return getStandardConfidence(clause, body, variable);
 	}

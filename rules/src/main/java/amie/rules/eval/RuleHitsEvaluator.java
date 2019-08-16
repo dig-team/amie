@@ -16,10 +16,10 @@ import amie.rules.AMIEParser;
 import amie.rules.Rule;
 
 
-class TripleComparator implements Comparator<ByteString[]> {
+class TripleComparator implements Comparator<int[]> {
 
 	@Override
-	public int compare(ByteString[] o1, ByteString[] o2) {
+	public int compare(int[] o1, int[] o2) {
 		if (o1[0].equals(o2[0])) {
 			if (o1[1].equals(o2[1])) {
 				return o1[2].toString().compareTo(o2[2].toString()); 
@@ -68,7 +68,7 @@ public class RuleHitsEvaluator {
 				continue;
 			}
 			
-			ByteString[] head = q.getHead();
+			int[] head = q.getHead();
 			q.setFunctionalVariablePosition(Rule.findFunctionalVariable(q, trainingDataset));
 			Object bindings = null;
 			try {
@@ -110,7 +110,7 @@ public class RuleHitsEvaluator {
 		}
 		
 		for (Triple<ByteString, ByteString, ByteString> t : predictions) {
-			ByteString[] triple = KB.triple2Array(t);
+			int[] triple = KB.triple2Array(t);
 			int eval = Evaluator.evaluate(triple, trainingDataset, targetDataset);
 			if(eval == 0) { 
 				++hitsInTarget;

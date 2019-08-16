@@ -68,7 +68,7 @@ public class Schema {
 	private static MultiInt2ObjectMap<ByteString> superClassMaterialized = new MultiMap<>();
     
 	public static void materializeTaxonomy(KB source) {
-		List<ByteString[]> query = KB.triples(KB.triple("?x", subClassRelationBS, "?y"));
+		List<int[]> query = KB.triples(KB.triple("?x", subClassRelationBS, "?y"));
 		allDefinedTypesMaterialized.addAll(source.selectDistinct(KB.map("?x"), query));
 		allDefinedTypesMaterialized.addAll(source.selectDistinct(KB.map("?y"), query));
 		for (ByteString type : allDefinedTypesMaterialized) {
@@ -139,14 +139,14 @@ public class Schema {
 	 * @return
 	 */
 	public static ByteString getRelationDomain(KB source, ByteString relation){
-		List<ByteString[]> query = KB.triples(KB.triple(relation, domainRelation, "?x"));
+		List<int[]> query = KB.triples(KB.triple(relation, domainRelation, "?x"));
 		IntSet domains = source.selectDistinct(KB.map("?x"), query);
 		if(!domains.isEmpty()){
 			return domains.iterator().next();
 		}
 		
 		//Try looking for the superproperty
-		List<ByteString[]> query2 = KB.triples(KB.triple(relation, subPropertyRelation, "?y"), 
+		List<int[]> query2 = KB.triples(KB.triple(relation, subPropertyRelation, "?y"), 
 				KB.triple("?y", "rdfs:domain", "?x"));
 		
 		domains = source.selectDistinct(KB.map("?x"), query2);
@@ -164,14 +164,14 @@ public class Schema {
 	 * @return
 	 */
 	public static ByteString getRelationRange(KB source, ByteString relation){
-		List<ByteString[]> query = KB.triples(KB.triple(relation, rangeRelation, "?x"));
+		List<int[]> query = KB.triples(KB.triple(relation, rangeRelation, "?x"));
 		IntSet ranges = source.selectDistinct(KB.map("?x"), query);
 		if(!ranges.isEmpty()){
 			return ranges.iterator().next();
 		}
 		
 		//Try looking for the superproperty
-		List<ByteString[]> query2 = KB.triples(KB.triple(relation, subPropertyRelation, "?y"), 
+		List<int[]> query2 = KB.triples(KB.triple(relation, subPropertyRelation, "?y"), 
 				KB.triple("?y", "rdfs:range", "?x"));
 		
 		ranges = source.selectDistinct(KB.map("?x"), query2);
@@ -189,7 +189,7 @@ public class Schema {
 	 * @return
 	 */
 	public static IntSet getMaterializedTypesForEntity(KB source, ByteString entity){
-		List<ByteString[]> query = KB.triples(KB.triple(entity, typeRelationBS, KB.map("?x")));
+		List<int[]> query = KB.triples(KB.triple(entity, typeRelationBS, KB.map("?x")));
 		return source.selectDistinct(KB.map("?x"), query);
 	}
 	
@@ -204,7 +204,7 @@ public class Schema {
 			IntSet subTypes = subClassMaterialized.get(type);
 			return subTypes == null || subTypes.size() == 0;
 		}
-		List<ByteString[]> query = KB.triples(KB.triple("?x", subClassRelation, type));		
+		List<int[]> query = KB.triples(KB.triple("?x", subClassRelation, type));		
 		return source.countDistinct(KB.map("?x"), query) == 0;
 	}
 	
@@ -250,7 +250,7 @@ public class Schema {
 	 * @return
 	 */
 	public static IntSet getSuperTypes(KB source, ByteString type){
-		List<ByteString[]> query = KB.triples(KB.triple(type, subClassRelation, "?x"));		
+		List<int[]> query = KB.triples(KB.triple(type, subClassRelation, "?x"));		
 		return new IntOpenHashSet(source.selectDistinct(KB.map("?x"), query));
 	}
 	
@@ -295,7 +295,7 @@ public class Schema {
 	 * @return
 	 */
 	public static IntSet getAllEntitiesForType(KB source, ByteString type) {
-		List<ByteString[]> query = KB.triples(KB.triple("?x", typeRelation, type));		
+		List<int[]> query = KB.triples(KB.triple("?x", typeRelation, type));		
 		return new IntOpenHashSet(source.selectDistinct(KB.map("?x"), query));	
 	}
 	
@@ -314,7 +314,7 @@ public class Schema {
 	 * @param kb
 	 */
 	public static IntSet getAllTypes(KB kb) {
-		List<ByteString[]> query = KB.triples(KB.triple("?x", typeRelation, "?type"));		
+		List<int[]> query = KB.triples(KB.triple("?x", typeRelation, "?type"));		
 		return new IntOpenHashSet(kb.selectDistinct(KB.map("?type"), query));	
 	}
 	
@@ -341,7 +341,7 @@ public class Schema {
 	 */
 	public static IntSet getDomainSet(KB source, ByteString relation, 
 			ByteString domainType) {
-		List<ByteString[]> query = null;
+		List<int[]> query = null;
 		String queryVar = "?s";
 		query = KB.triples(KB.triple("?s", relation, "?o"), 
 						   KB.triple(KB.map(queryVar), 
@@ -358,7 +358,7 @@ public class Schema {
 	 * @return
 	 */
 	public static IntSet getSubTypes(KB source, ByteString type) {
-		List<ByteString[]> query = KB.triples(KB.triple(KB.map("?x"), subClassRelation, type));		
+		List<int[]> query = KB.triples(KB.triple(KB.map("?x"), subClassRelation, type));		
 		return new IntOpenHashSet(source.selectDistinct(KB.map("?x"), query));	
 	}
 	
@@ -424,7 +424,7 @@ public class Schema {
 	 */
 	public static IntSet getRangeSet(KB source, ByteString relation, 
 			ByteString rangeType) {
-		List<ByteString[]> query = null;
+		List<int[]> query = null;
 		String queryVar = "?o";
 		query = KB.triples(KB.triple("?s", relation, "?o"), 
 						   KB.triple(KB.map(queryVar), 
@@ -444,7 +444,7 @@ public class Schema {
 	 */
 	public static IntHashMap<Integer> getHistogramOnDomain(KB kb, ByteString relation) {
 		IntHashMap<Integer> hist = new IntHashMap<>();
-		List<ByteString[]> query = null;
+		List<int[]> query = null;
 		String queryVar = null;
 		String existVar = null;
 		ByteString targetType = null;
@@ -495,7 +495,7 @@ public class Schema {
 	public static IntHashMap<Integer> getHistogramOnDomain(KB kb,
 			ByteString relation, ByteString domainType) {
 		IntHashMap<Integer> hist = new IntHashMap<>();
-		List<ByteString[]> query = null;
+		List<int[]> query = null;
 		String queryVar = null;
 		String existVar = null;
 	
@@ -545,7 +545,7 @@ public class Schema {
                     System.err.println(Integer.toString(result.size()) + " classes found");
                     return result;
                 } else {
-                    List<ByteString[]> query = KB.triples(KB.triple("?s", typeRelation, "?o"));
+                    List<int[]> query = KB.triples(KB.triple("?s", typeRelation, "?o"));
                     types2Instances = new Int2ObjectOpenHashMap<>();
                     Int2ObjectMap<IntSet> ts = 
                             kb.selectDistinct(KB.map("?o"), KB.map("?s"), query);
@@ -579,7 +579,7 @@ public class Schema {
                 System.err.println();
 		return result;
             }
-		List<ByteString[]> query = KB.triples(KB.triple("?s", typeRelation, "?o1"), KB.triple("?s", typeRelation, "?o2"));
+		List<int[]> query = KB.triples(KB.triple("?s", typeRelation, "?o1"), KB.triple("?s", typeRelation, "?o2"));
 		Int2ObjectMap<Int2ObjectMap<IntSet>> types2types2Instances = 
 				kb.selectDistinct(KB.map("?o1"), KB.map("?o2"), KB.map("?s"), query);
 		

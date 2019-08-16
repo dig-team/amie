@@ -103,7 +103,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		Collection<Rule> output = new ArrayList<>();
 		Rule query = new Rule();
 		
-		ByteString[] newEdge = query.fullyUnboundTriplePattern();
+		int[] newEdge = query.fullyUnboundTriplePattern();
 		
 		for (ByteString relation: relations) {		
 			if (relation.equals(isCompleteBS) ||
@@ -111,7 +111,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 				registerHeadRelation(relation, (double) relations.get(relation));
 				continue;
 			}
-			ByteString[] succedent = newEdge.clone();
+			int[] succedent = newEdge.clone();
 			succedent[1]  = isCompleteBS;
 			succedent[2] = relation;
 			int countVarPos = 0;
@@ -139,7 +139,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	@Override
 	@MiningOperator(name="specializing")
 	public void getTypeSpecializedAtoms(Rule rule, double minSupportThreshold, Collection<Rule> output) {
-		ByteString[] lastAtom = rule.getLastRealTriplePattern();
+		int[] lastAtom = rule.getLastRealTriplePattern();
 		Pair<ByteString, Integer> compositeRelation = KB.parseCardinalityRelation(lastAtom[1]);
 		if (compositeRelation == null) {
 			super.getTypeSpecializedAtoms(rule, minSupportThreshold, output);
@@ -151,7 +151,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 			
 			ByteString targetRelation = lastAtom[2];
 			int newCard = -1;
-			ByteString[] head = rule.getHead(); 
+			int[] head = rule.getHead(); 
 			if (head[1].equals(isCompleteBS)) {
 				if (!head[2].equals(lastAtom[2]))
 					return;
@@ -183,7 +183,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 			long cardinality = kb.countDistinct(rule.getFunctionalVariable(), rule.getTriples());
 			lastAtom[1] = oldRelation;
 			if (cardinality >= minSupportThreshold) {
-				ByteString[] newAtom = lastAtom.clone();
+				int[] newAtom = lastAtom.clone();
 				newAtom[1] = newRelation;				
 				Rule candidate = rule.replaceLastAtom(newAtom, cardinality);
 				candidate.addParent(rule);
@@ -197,10 +197,10 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 			ByteString targetRelation,
 			Collection<Rule> output) {
 		// We'll force a cardinality atom at the end
-		ByteString[] head = rule.getHead();
+		int[] head = rule.getHead();
 		int startCardinality = -1;
 		String inequalityRelation = null;				
-		ByteString[] newAtom = head.clone();
+		int[] newAtom = head.clone();
 		if (this.isFunctional(targetRelation)) {
 			startCardinality  = 0;
 			inequalityRelation = KB.hasNumberOfValuesGreaterThan + startCardinality;
@@ -225,7 +225,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		
 	}
 	
-	private void addAtom(Rule rule, ByteString[] newAtom, double minSupportThreshold, Collection<Rule> output) {
+	private void addAtom(Rule rule, int[] newAtom, double minSupportThreshold, Collection<Rule> output) {
 		rule.getTriples().add(newAtom);
 		long cardinality = kb.countDistinct(rule.getFunctionalVariable(), rule.getTriples());
 		rule.getTriples().remove(rule.getTriples().size() - 1);			
@@ -248,7 +248,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 			}
 		}
 		
-		ByteString[] lastAtom = parentRule.getLastRealTriplePattern();
+		int[] lastAtom = parentRule.getLastRealTriplePattern();
 		if (!parentRule.containsRelation(KB.DIFFERENTFROMbs) && 
 				extendRule && lastAtom[1].equals(Schema.typeRelationBS) 
 				&& !KB.isVariable(lastAtom[2])) {
@@ -280,16 +280,16 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	
 	private void addTypeNegationAtom(Rule parentRule, double minSupportThreshold, Collection<Rule> output) {
 		// First look for the instantiated atom
-		ByteString[] lastAtom = parentRule.getLastRealTriplePattern(); // We assume it is an instantiated type atom
-		ByteString[] atom1 = parentRule.fullyUnboundTriplePattern();
+		int[] lastAtom = parentRule.getLastRealTriplePattern(); // We assume it is an instantiated type atom
+		int[] atom1 = parentRule.fullyUnboundTriplePattern();
 		ByteString countVar = parentRule.getFunctionalVariable();
 		
 		atom1[0] = countVar;
 		atom1[1] = Schema.typeRelationBS;
 		IntSet subtypes = Schema.getSubTypes(this.kbSchema, lastAtom[2]);
-		ByteString[] atom2 = KB.triple(atom1[2], KB.DIFFERENTFROMbs, lastAtom[2]);
+		int[] atom2 = KB.triple(atom1[2], KB.DIFFERENTFROMbs, lastAtom[2]);
 		long baseCardinality = Schema.getNumberOfEntitiesForType(this.kb, lastAtom[2]);
-		List<ByteString[]> parentRuleTriples = parentRule.getTriples();
+		List<int[]> parentRuleTriples = parentRule.getTriples();
 		for (ByteString subtype : subtypes) {
 			long typeCardinality = Schema.getNumberOfEntitiesForType(this.kb, subtype);
 			double ratio = (double) typeCardinality / baseCardinality;
@@ -318,8 +318,8 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		if (mode == Mode.OnlyCard || mode == Mode.OnlyType)
 			return;
 			
-		ByteString[] newEdge = rule.fullyUnboundTriplePattern();
-		ByteString[] head = rule.getHead();
+		int[] newEdge = rule.fullyUnboundTriplePattern();
+		int[] head = rule.getHead();
 		//General case
 		if(!isNotTooLong(rule))
 			return;
@@ -362,9 +362,9 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	}
 
 	private void addTypeAtom(Rule parentRule, double minSupportThreshold, Collection<Rule> output) {
-		ByteString[] head = parentRule.getHead();
+		int[] head = parentRule.getHead();
 		ByteString relation = head[2];
-		ByteString[] newEdge = head.clone();
+		int[] newEdge = head.clone();
 		newEdge[1] = Schema.typeRelationBS;
 		ByteString domain = null;
 		if (this.kbSchema != null) {
@@ -393,10 +393,10 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 
 	private void addChangedAtom(Rule parentRule, ByteString changeRelation, double minSupportThreshold,
 			Collection<Rule> output) {
-		ByteString[] head = parentRule.getHead();
+		int[] head = parentRule.getHead();
 		ByteString targetRelation = head[2];
 		
-		ByteString[] changedAtom = new ByteString[]{parentRule.getFunctionalVariable(), 
+		int[] changedAtom = new int[]{parentRule.getFunctionalVariable(), 
 				changeRelation, targetRelation};
 		
 		parentRule.getTriples().add(changedAtom);
@@ -412,7 +412,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 
 	private void addRelevanceAtom(Rule parentRule, ByteString relevanceRelation,
 			double minSupportThreshold, Collection<Rule> output) {
-		ByteString[] relevanceAtom = new ByteString[]{parentRule.getFunctionalVariable(), 
+		int[] relevanceAtom = new int[]{parentRule.getFunctionalVariable(), 
 				relevanceRelation, KB.map("TRUE")};
 		
 		parentRule.getTriples().add(relevanceAtom);
@@ -470,7 +470,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
         // C: livesIn(x, Paris) (x, Person) => isFamous(x, true), then we need to make the bridge between
         // A and C (namely C is also a father of A)
         int offset = 0;
-        List<ByteString[]> queryPattern = currentRule.getTriplesWithoutSpecialRelations();
+        List<int[]> queryPattern = currentRule.getTriplesWithoutSpecialRelations();
         // Go up until you find a parent that was output
         while (queryPattern.size() - offset > 1) {
         	int currentLength = queryPattern.size() - offset;
@@ -499,10 +499,10 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		int idxOfCardinalityAtomParent = indexOfCardinalityAtom(parent);
 				
 		if (idxOfTypeAtomRule != -1 && idxOfTypeAtomParent != -1) {
-			ByteString[] typeAtomInRule = currentRule.getTriples().get(idxOfTypeAtomRule);
-			ByteString[] typeAtomInParent = parent.getTriples().get(idxOfTypeAtomParent);
-			List<ByteString[]> triplesRule = currentRule.getTriplesCopy();
-			List<ByteString[]> triplesParent = parent.getTriplesCopy();
+			int[] typeAtomInRule = currentRule.getTriples().get(idxOfTypeAtomRule);
+			int[] typeAtomInParent = parent.getTriples().get(idxOfTypeAtomParent);
+			List<int[]> triplesRule = currentRule.getTriplesCopy();
+			List<int[]> triplesParent = parent.getTriplesCopy();
 			triplesParent.remove(idxOfTypeAtomParent);
 			triplesRule.remove(idxOfTypeAtomRule);
 			Rule newRule = new Rule(currentRule.getHead(), triplesRule.subList(1, triplesRule.size()), 0);
@@ -515,10 +515,10 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		}
 		
 		if (idxOfCardinalityAtomRule != -1 && idxOfCardinalityAtomParent != -1) {
-			ByteString[] cardinalityAtomInRule = currentRule.getTriples().get(idxOfCardinalityAtomRule);
-			ByteString[] cardinalityAtomInParent = parent.getTriples().get(idxOfCardinalityAtomParent);
-			List<ByteString[]> triplesParent = parent.getTriplesCopy();
-			List<ByteString[]> triplesRule = currentRule.getTriplesCopy();
+			int[] cardinalityAtomInRule = currentRule.getTriples().get(idxOfCardinalityAtomRule);
+			int[] cardinalityAtomInParent = parent.getTriples().get(idxOfCardinalityAtomParent);
+			List<int[]> triplesParent = parent.getTriplesCopy();
+			List<int[]> triplesRule = currentRule.getTriplesCopy();
 			triplesParent.remove(idxOfCardinalityAtomParent);
 			triplesRule.remove(idxOfCardinalityAtomRule);
 			Rule newRule = new Rule(currentRule.getHead(), triplesRule.subList(1, triplesRule.size()), 0);
@@ -533,7 +533,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 				|| parent.subsumes(currentRule);
 	}
 
-	private boolean subsumesCardinalityAtom(ByteString[] triplesParent, ByteString[] triplesRule) {
+	private boolean subsumesCardinalityAtom(int[] triplesParent, int[] triplesRule) {
 		Pair<ByteString, Integer> relationPairParent = KB.parseCardinalityRelation(triplesParent[1]);
 		Pair<ByteString, Integer> relationPairRule = KB.parseCardinalityRelation(triplesRule[1]);
 		
@@ -567,7 +567,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	}
 
 	private int indexOfCardinalityAtom(Rule rule) {
-		List<ByteString[]> triples = rule.getTriples();
+		List<int[]> triples = rule.getTriples();
 		for (int i = triples.size() - 1; i >= 0; --i) {
 			if (KB.parseCardinalityRelation(triples.get(i)[1]) != null)
 				return i;
@@ -585,7 +585,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	@Override
 	public double computePCAConfidence(Rule rule) {
 		Rule negativeRule = new Rule(rule, rule.getSupport());
-		ByteString[] succedent = negativeRule.getHead();
+		int[] succedent = negativeRule.getHead();
 		succedent[1] = succedent[1].equals(isCompleteBS) ? isIncompleteBS : isCompleteBS;
 		long counterEvidence = 0;
 		double support = rule.getSupport();
@@ -595,8 +595,8 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 			// We have to calculate the support in a different way
 			int differentIdx = negativeRule.firstIndexOfRelation(KB.DIFFERENTFROMbs);
 			int typeIdx = differentIdx - 1;
-			ByteString[] differentAtom = negativeRule.getTriples().get(differentIdx);
-			ByteString[] typeAtom = negativeRule.getTriples().get(typeIdx);
+			int[] differentAtom = negativeRule.getTriples().get(differentIdx);
+			int[] typeAtom = negativeRule.getTriples().get(typeIdx);
 			negativeRule.getTriples().remove(differentAtom);
 			negativeRule.getTriples().remove(typeAtom);
 			IntSet negativeSupportSet = new IntOpenHashSet(kb.selectDistinct(succedent[0], 
@@ -619,11 +619,11 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	
 	public static void main(String args[]) {
 		CompletenessMiningAssistant assistant = new CompletenessMiningAssistant(new KB());
-		List<ByteString[]> ruleTriples = KB.triples(
+		List<int[]> ruleTriples = KB.triples(
 				KB.triple("?a", KB.hasNumberOfValuesSmallerThanInv + "1", "hasChild"), 
 				KB.triple("?l", "marriedTo", "?a"), KB.triple("?a", "marriedTo", "?l"));
-		ByteString[] head = KB.triple("?a", isIncomplete, "hasChild");
-		List<ByteString[]> parentTriples = KB.triples(
+		int[] head = KB.triple("?a", isIncomplete, "hasChild");
+		List<int[]> parentTriples = KB.triples(
 				KB.triple("?a", KB.hasNumberOfValuesSmallerThanInv + "2", "hasChild"));
 		Rule parent = new Rule(head, parentTriples, 1);
 		Rule currentRule = new Rule(head, ruleTriples, 1);

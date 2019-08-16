@@ -78,8 +78,8 @@ public class KBRelationDelta {
 						ByteString domain = null;
 						ByteString qVariable = null;
 						String relationlabel = null;
-						List<ByteString[]> query = KB.triples(KB.triple(KB.map("?s"), relation, KB.map("?o")));
-						ByteString[] query2 = KB.triple(KB.map("?s"), relation, KB.map("?o"));
+						List<int[]> query = KB.triples(KB.triple(KB.map("?s"), relation, KB.map("?o")));
+						int[] query2 = KB.triple(KB.map("?s"), relation, KB.map("?o"));
 						boolean isFunctional = ddb2.isFunctional(relation); 
 						if (isFunctional) {
 							domain = Schema.getRelationDomain(ddb2, relation);

@@ -32,9 +32,9 @@ import javatools.datatypes.ByteString;
  */
 public class KBLFTJ extends KB {
     
-	private IntSet getAllVariables(List<ByteString[]> query) {
+	private IntSet getAllVariables(List<int[]> query) {
 		IntSet result = new IntOpenHashSet();
-		for(ByteString[] atom : query) {
+		for(int[] atom : query) {
 			for(ByteString entity : atom) {
 				if(isVariable(entity))
 					result.add(entity);
@@ -43,7 +43,7 @@ public class KBLFTJ extends KB {
 		return result;
 	}
 	
-	public static int varposInv(ByteString variable, ByteString[] triple) {
+	public static int varposInv(ByteString variable, int[] triple) {
 		for(int i = 0; i < triple.length; i++) {
 			if(isVariable(triple[i]) && !triple[i].equals(variable))
 				return i;
@@ -51,7 +51,7 @@ public class KBLFTJ extends KB {
 		return -1;
 	}
 	
-	private IntSet getPossibleValues(ByteString variable, ByteString[] triple) {
+	private IntSet getPossibleValues(ByteString variable, int[] triple) {
 		switch(numVariables(triple)) {
 		case 1:
 			return resultsOneVariable(triple);
@@ -121,14 +121,14 @@ public class KBLFTJ extends KB {
 	
 	/** returns the instances that fulfill a certain condition */
 	
-	public boolean existsBSLFTJ(List<ByteString[]> query) {
+	public boolean existsBSLFTJ(List<int[]> query) {
 		
-		Iterator<ByteString[]> it = query.iterator();
-		List<ByteString[]> newQuery = new ArrayList<>(query.size());
+		Iterator<int[]> it = query.iterator();
+		List<int[]> newQuery = new ArrayList<>(query.size());
 		
 		// copy query and get rid of all ground atom
 		while(it.hasNext()) {
-			ByteString[] atom = it.next();
+			int[] atom = it.next();
 			if(numVariables(atom) == 0) {
 				if(!contains(atom)) {
 					return false;
@@ -145,7 +145,7 @@ public class KBLFTJ extends KB {
 		
 		IntSet possibleValues = new IntOpenHashSet();
 		boolean first = true;
-		for(ByteString[] atom : newQuery) {
+		for(int[] atom : newQuery) {
 			if(varpos(variable, atom) == -1)
 				continue;
 			if(first) {
@@ -170,15 +170,15 @@ public class KBLFTJ extends KB {
 	}
 	
 	public IntSet selectDistinctLFTJ(ByteString variable,
-			List<ByteString[]> query) {
+			List<int[]> query) {
 		
-		Iterator<ByteString[]> it = query.iterator();
+		Iterator<int[]> it = query.iterator();
 		IntSet result = new IntOpenHashSet();
-		List<ByteString[]> newQuery = new ArrayList<>(query.size());
+		List<int[]> newQuery = new ArrayList<>(query.size());
 		
 		// copy query and get rid of all ground atom
 		while(it.hasNext()) {
-			ByteString[] atom = it.next();
+			int[] atom = it.next();
 			if(numVariables(atom) == 0) {
 				if(!contains(atom)) {
 					return result;
@@ -190,7 +190,7 @@ public class KBLFTJ extends KB {
 		// generate the list of all possible values
 		IntSet possibleValues = new IntOpenHashSet();
 		boolean first = true;
-		for(ByteString[] atom : newQuery) {
+		for(int[] atom : newQuery) {
 			if(varpos(variable, atom) == -1)
 				continue;
 			if(first) {
@@ -218,14 +218,14 @@ public class KBLFTJ extends KB {
 	}
 	
 	public Int2ObjectMap<IntSet> selectDistinctLFTJ(ByteString var1, ByteString var2,
-			List<ByteString[]> query) {
+			List<int[]> query) {
 		
-		Iterator<ByteString[]> it = query.iterator();
+		Iterator<int[]> it = query.iterator();
 		Int2ObjectMap<IntSet> result = new Int2ObjectOpenHashMap<>();
-		List<ByteString[]> newQuery = new ArrayList<>(query.size());
+		List<int[]> newQuery = new ArrayList<>(query.size());
 		
 		while(it.hasNext()) {
-			ByteString[] atom = it.next();
+			int[] atom = it.next();
 			if(numVariables(atom) == 0) {
 				if(!contains(atom)) {
 					return result;
@@ -236,7 +236,7 @@ public class KBLFTJ extends KB {
 		}
 		IntSet possibleValues = new IntOpenHashSet();
 		boolean first = true;
-		for(ByteString[] atom : newQuery) {
+		for(int[] atom : newQuery) {
 			if(varpos(var1, atom) == -1)
 				continue;
 			if(first) {
@@ -268,14 +268,14 @@ public class KBLFTJ extends KB {
 	 */
 	@SuppressWarnings({ "unused" })
 	private long countDistinctLFTJ(ByteString var1, ByteString var2,
-			List<ByteString[]> query) {
+			List<int[]> query) {
 		
-		Iterator<ByteString[]> it = query.iterator();
+		Iterator<int[]> it = query.iterator();
 		long result = 0;
-		List<ByteString[]> newQuery = new ArrayList<>(query.size());
+		List<int[]> newQuery = new ArrayList<>(query.size());
 		
 		while(it.hasNext()) {
-			ByteString[] atom = it.next();
+			int[] atom = it.next();
 			if(numVariables(atom) == 0) {
 				if(!contains(atom)) {
 					return result;
@@ -286,7 +286,7 @@ public class KBLFTJ extends KB {
 		}
 		IntSet possibleValues = new IntOpenHashSet();
 		boolean first = true;
-		for(ByteString[] atom : newQuery) {
+		for(int[] atom : newQuery) {
 			if(varpos(var1, atom) == -1)
 				continue;
 			if(first) {
@@ -307,14 +307,14 @@ public class KBLFTJ extends KB {
 	}
 	
 	public Int2ObjectMap<Int2ObjectMap<IntSet>> selectDistinctLFTJ(ByteString var1, ByteString var2, ByteString var3,
-			List<ByteString[]> query) {
+			List<int[]> query) {
 		
-		Iterator<ByteString[]> it = query.iterator();
+		Iterator<int[]> it = query.iterator();
 		Int2ObjectMap<Int2ObjectMap<IntSet>> result = new Int2ObjectOpenHashMap<>();
-		List<ByteString[]> newQuery = new ArrayList<>(query.size());
+		List<int[]> newQuery = new ArrayList<>(query.size());
 		
 		while(it.hasNext()) {
-			ByteString[] atom = it.next();
+			int[] atom = it.next();
 			if(numVariables(atom) == 0) {
 				if(!contains(atom)) {
 					return result;
@@ -325,7 +325,7 @@ public class KBLFTJ extends KB {
 		}
 		IntSet possibleValues = new IntOpenHashSet();
 		boolean first = true;
-		for(ByteString[] atom : newQuery) {
+		for(int[] atom : newQuery) {
 			if(varpos(var1, atom) == -1)
 				continue;
 			if(first) {

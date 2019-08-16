@@ -27,8 +27,8 @@ public class TwoHopsSubsumptionFilter {
 		if(rule.getLength() != 3)
 			return false;
 		
-		List<ByteString[]> body = rule.getBody();
-		ByteString[] head = rule.getHead();
+		List<int[]> body = rule.getBody();
+		int[] head = rule.getHead();
 		
 		if((body.get(0)[1].toString().trim().startsWith("<ns:") && body.get(1)[1].toString().trim().startsWith("<ns:") && !head[1].toString().trim().startsWith("<ns:"))
 				|| 	(!body.get(0)[1].toString().trim().startsWith("<ns:") && !body.get(1)[1].toString().trim().startsWith("<ns:") && head[1].toString().trim().startsWith("<ns:"))

@@ -38,7 +38,7 @@ public class Rule {
     /**
      * The triple patterns
      */
-    List<ByteString[]> triples;
+    List<int[]> triples;
 
     /**
      * ****** Standard Metrics ************
@@ -194,15 +194,15 @@ public class Rule {
      * @param obj
      * @return
      */
-    public static ByteString[] triple(ByteString sub, ByteString pred, ByteString obj) {
-        ByteString[] newTriple = new ByteString[3];
+    public static int[] triple(ByteString sub, ByteString pred, ByteString obj) {
+        int[] newTriple = new int[3];
         newTriple[0] = sub;
         newTriple[1] = pred;
         newTriple[2] = obj;
         return newTriple;
     }
 
-    public static boolean equal(ByteString[] pattern1, ByteString pattern2[]) {
+    public static boolean equal(int[] pattern1, ByteString pattern2[]) {
         return pattern1[0] == pattern2[0]
                 && pattern1[1] == pattern2[1]
                 && pattern1[2] == pattern2[2];
@@ -214,16 +214,16 @@ public class Rule {
      * than 1.
      * @return
      */
-    public ByteString[] fullyUnboundTriplePattern() {
-        return new ByteString[] {newVariable(), KB.map("?pp"), newVariable()};
+    public int[] fullyUnboundTriplePattern() {
+        return new int[] {newVariable(), KB.map("?pp"), newVariable()};
     }
 
     /** It creates a new unbound atom with fresh variables for the subject and object
     * and an undefined property, i.e., ?s[n] ?p ?o[n]. n is optional and is always greater
     * than 1.
     **/
-    public static synchronized ByteString[] fullyUnboundTriplePattern1() {
-        ByteString[] result = new ByteString[3];
+    public static synchronized int[] fullyUnboundTriplePattern1() {
+        int[] result = new int[3];
         ++varsCount;
         result[0] = KB.map("?s" + varsCount);
         result[1] = KB.map("?p" + varsCount);
@@ -231,7 +231,7 @@ public class Rule {
         return result;
     }
 
-    public static boolean equals(ByteString[] atom1, ByteString[] atom2) {
+    public static boolean equals(int[] atom1, int[] atom2) {
         return atom1[0].equals(atom2[0]) && 
         		atom1[1].equals(atom2[1]) && 
         		atom1[2].equals(atom2[2]);
@@ -263,7 +263,7 @@ public class Rule {
      * @param headAtom The head atom as an array of the form [?a, r, ?b].
      * @param cardinality
      */
-    public Rule(ByteString[] headAtom, double cardinality) {
+    public Rule(int[] headAtom, double cardinality) {
         this.triples = new ArrayList<>();
         this.support = cardinality;
         this.initialSupport = (int) cardinality;
@@ -309,8 +309,8 @@ public class Rule {
         this.generation = -1;        
     }
 
-    public Rule(ByteString[] head, List<ByteString[]> body, double cardinality) {
-        triples = new ArrayList<ByteString[]>();
+    public Rule(int[] head, List<int[]> body, double cardinality) {
+        triples = new ArrayList<int[]>();
         triples.add(head.clone());
         triples.addAll(amie.data.U.deepClone(body));
         this.highestVariable = 96; // The character before letter 'a'
@@ -336,7 +336,7 @@ public class Rule {
      */
     private void parseVariables() {
     	ByteString maxVariable = null;
-    	for (ByteString[] atom : this.triples) {
+    	for (int[] atom : this.triples) {
 	    	for (ByteString particle : atom) {
 	    		if (KB.isVariable(particle)) {
 	    			Matcher m = variablesRegex.matcher(particle.toString());
@@ -434,12 +434,12 @@ public class Rule {
      * list alter the query.
      * @return
      */
-    public List<ByteString[]> getTriples() {
+    public List<int[]> getTriples() {
         return triples;
     }
     
-    public List<ByteString[]> getTriplesCopy() {
-    	List<ByteString[]> copyOfTriples = new ArrayList<>(triples);
+    public List<int[]> getTriplesCopy() {
+    	List<int[]> copyOfTriples = new ArrayList<>(triples);
     	return copyOfTriples;
     }
 
@@ -449,9 +449,9 @@ public class Rule {
      * to the atoms do alter the query.
      * @return
      */
-    public List<ByteString[]> getTriplesWithoutSpecialRelations() {
-        List<ByteString[]> resultList = new ArrayList<>();
-        for (ByteString[] triple : triples) {
+    public List<int[]> getTriplesWithoutSpecialRelations() {
+        List<int[]> resultList = new ArrayList<>();
+        for (int[] triple : triples) {
             if (!triple[1].equals(KB.DIFFERENTFROMbs)) {
                 resultList.add(triple);
             }
@@ -464,7 +464,7 @@ public class Rule {
      * Returns the head of a query B =&gt; r(a, b) as a triple [?a, r, ?b]. 
      * @return
      */
-    public ByteString[] getHead() {
+    public int[] getHead() {
         return triples.get(0);
     }
 
@@ -473,7 +473,7 @@ public class Rule {
      * Alias for the method getHead().
      * @return
      */
-    public ByteString[] getSuccedent() {
+    public int[] getSuccedent() {
         return triples.get(0);
     }
 
@@ -481,7 +481,7 @@ public class Rule {
      * Returns the list of triples in the body of the rule.
      * @return Non-modifiable list of atoms.
      */
-    public List<ByteString[]> getBody() {
+    public List<int[]> getBody() {
         return triples.subList(1, triples.size());
     }
 
@@ -490,7 +490,7 @@ public class Rule {
      * for the method getBody()
      * @return Non-modifiable list of atoms.
      */
-    public List<ByteString[]> getAntecedent() {
+    public List<int[]> getAntecedent() {
         return triples.subList(1, triples.size());
     }
 
@@ -500,9 +500,9 @@ public class Rule {
      *
      * @return 
      */
-    public List<ByteString[]> getAntecedentClone() {
-        List<ByteString[]> cloneList = new ArrayList<>();
-        for (ByteString[] triple : getAntecedent()) {
+    public List<int[]> getAntecedentClone() {
+        List<int[]> cloneList = new ArrayList<>();
+        for (int[] triple : getAntecedent()) {
             cloneList.add(triple.clone());
         }
 
@@ -510,7 +510,7 @@ public class Rule {
     }
    
 
-    protected void setTriples(ArrayList<ByteString[]> triples) {
+    protected void setTriples(ArrayList<int[]> triples) {
         this.triples = triples;
     }
 
@@ -643,7 +643,7 @@ public class Rule {
      *
      * @return
      */
-    public ByteString[] getLastTriplePattern() {
+    public int[] getLastTriplePattern() {
         if (triples.isEmpty()) {
             return null;
         } else {
@@ -656,7 +656,7 @@ public class Rule {
      *
      * @return
      */
-    public ByteString[] getLastRealTriplePattern() {
+    public int[] getLastRealTriplePattern() {
         int index = getLastRealTriplePatternIndex();
         if (index == -1) {
             return null;
@@ -676,7 +676,7 @@ public class Rule {
             return -1;
         } else {
             int index = triples.size() - 1;
-            ByteString[] last = null;
+            int[] last = null;
             while (index >= 0) {
                 last = triples.get(index);
                 if (!last[1].equals(KB.DIFFERENTFROMbs)) {
@@ -700,7 +700,7 @@ public class Rule {
             return -1;
         } else {
             int index = triples.size() - 1;
-            ByteString[] last = null;
+            int[] last = null;
             while (index >= 0) {
                 last = triples.get(index);
                 if (!last[1].equals(Schema.typeRelationBS)) {
@@ -718,7 +718,7 @@ public class Rule {
             return null;
         } else {
             int index = triples.size() - 1;
-            ByteString[] last = null;
+            int[] last = null;
             while (index >= 0) {
                 last = triples.get(index);
                 if (last[0].equals(bs))
@@ -741,7 +741,7 @@ public class Rule {
      */
     public int cardinalityForRelation(ByteString relation) {
         int count = 0;
-        for (ByteString[] triple : triples) {
+        for (int[] triple : triples) {
             if (triple[1].equals(relation)) {
                 ++count;
             }
@@ -756,7 +756,7 @@ public class Rule {
      * @param pattern
      * @return
      */
-    public static boolean isGroundAtom(ByteString[] pattern) {
+    public static boolean isGroundAtom(int[] pattern) {
         // TODO Auto-generated method stub
         return !KB.isVariable(pattern[0])
                 && !KB.isVariable(pattern[1])
@@ -768,10 +768,10 @@ public class Rule {
      * @param withRespectToIdx The index of the reference atom
      * @return
      */
-    public List<ByteString[]> getRedundantAtoms(int withRespectToIdx) {
-        ByteString[] newAtom = triples.get(withRespectToIdx);
-        List<ByteString[]> redundantAtoms = new ArrayList<ByteString[]>();
-        for (ByteString[] pattern : triples) {
+    public List<int[]> getRedundantAtoms(int withRespectToIdx) {
+        int[] newAtom = triples.get(withRespectToIdx);
+        List<int[]> redundantAtoms = new ArrayList<int[]>();
+        for (int[] pattern : triples) {
             if (pattern != newAtom) {
                 if (isUnifiable(pattern, newAtom)
                         || isUnifiable(newAtom, pattern)) {
@@ -787,10 +787,10 @@ public class Rule {
      * Checks whether the last atom in the query is redundant.
      * @return
      */
-    public List<ByteString[]> getRedundantAtoms() {
-        ByteString[] newAtom = getLastTriplePattern();
-        List<ByteString[]> redundantAtoms = new ArrayList<ByteString[]>();
-        for (ByteString[] pattern : triples) {
+    public List<int[]> getRedundantAtoms() {
+        int[] newAtom = getLastTriplePattern();
+        List<int[]> redundantAtoms = new ArrayList<int[]>();
+        for (int[] pattern : triples) {
             if (pattern != newAtom) {
                 if (isUnifiable(pattern, newAtom) || isUnifiable(newAtom, pattern)) {
                     redundantAtoms.add(pattern);
@@ -831,7 +831,7 @@ public class Rule {
      * @param newAtom
      * @return boolean
      */
-    public static boolean isUnifiable(ByteString[] pattern, ByteString[] newAtom) {
+    public static boolean isUnifiable(int[] pattern, int[] newAtom) {
         // TODO Auto-generated method stub
         boolean unifiesSubject = pattern[0].equals(newAtom[0]) || KB.isVariable(pattern[0]);
         if (!unifiesSubject) {
@@ -858,13 +858,13 @@ public class Rule {
      * @param literal
      * @return
      */
-	public static boolean isReflexive(ByteString[] atom) {
+	public static boolean isReflexive(int[] atom) {
 		// TODO Auto-generated method stub
 		return atom[0].equals(atom[1]) || atom[1].equals(atom[2])
 				|| atom[2].equals(atom[0]);
 	}
 
-    public static boolean areEquivalent(ByteString[] pattern, ByteString[] newAtom) {
+    public static boolean areEquivalent(int[] pattern, int[] newAtom) {
         boolean unifiesSubject = pattern[0].equals(newAtom[0])
                 || (KB.isVariable(pattern[0]) && KB.isVariable(newAtom[0]));
         if (!unifiesSubject) {
@@ -896,8 +896,8 @@ public class Rule {
      * @param query
      * @return boolean
      */
-    public static boolean unifies(ByteString[] test, List<ByteString[]> query) {
-        for (ByteString[] pattern : query) {
+    public static boolean unifies(int[] test, List<int[]> query) {
+        for (int[] pattern : query) {
             if (isUnifiable(pattern, test)) {
                 return true;
             }
@@ -914,9 +914,9 @@ public class Rule {
      * @param query
      * @return
      */
-    public static List<ByteString[]> redundantAtoms(ByteString[] test, List<ByteString[]> query) {
-        List<ByteString[]> redundantAtoms = new ArrayList<ByteString[]>();
-        for (ByteString[] pattern : query) {
+    public static List<int[]> redundantAtoms(int[] test, List<int[]> query) {
+        List<int[]> redundantAtoms = new ArrayList<int[]>();
+        for (int[] pattern : query) {
             if (isUnifiable(pattern, test)) {
                 redundantAtoms.add(pattern);
             }
@@ -960,7 +960,7 @@ public class Rule {
      */
     public List<ByteString> getVariables() {
         List<ByteString> variables = new ArrayList<ByteString>();
-        for (ByteString[] triple : triples) {
+        for (int[] triple : triples) {
             if (KB.isVariable(triple[0])) {
                 if (!variables.contains(triple[0])) {
                     variables.add(triple[0]);
@@ -979,7 +979,7 @@ public class Rule {
     
     public List<ByteString> getOpenableVariables() {
         List<ByteString> variables = new ArrayList<ByteString>();
-        for (ByteString[] triple : triples) {
+        for (int[] triple : triples) {
             if (KB.isOpenableVariable(triple[0])) {
                 if (!variables.contains(triple[0])) {
                     variables.add(triple[0]);
@@ -1001,7 +1001,7 @@ public class Rule {
      * @param atom
      * @return
      */
-    public static Collection<ByteString> getVariables(ByteString[] atom) {
+    public static Collection<ByteString> getVariables(int[] atom) {
     	Collection<ByteString> result = new ArrayList<>(4);
     	for (int i = 0; i < atom.length; ++i) {
     		if (KB.isVariable(atom[i])) {
@@ -1020,7 +1020,7 @@ public class Rule {
      */
     public boolean containsRepeatedVariablesInLastPattern() {
         // TODO Auto-generated method stub
-        ByteString[] triple = getLastTriplePattern();
+        int[] triple = getLastTriplePattern();
         return triple[0].equals(triple[1]) || 
         		triple[0].equals(triple[2]) || 
         		triple[1].equals(triple[2]);
@@ -1034,9 +1034,9 @@ public class Rule {
      * @return
      */
     public boolean isRedundantRecursive() {
-        List<ByteString[]> redundantAtoms = getRedundantAtoms();
-        ByteString[] lastPattern = getLastTriplePattern();
-        for (ByteString[] redundantAtom : redundantAtoms) {
+        List<int[]> redundantAtoms = getRedundantAtoms();
+        int[] lastPattern = getLastTriplePattern();
+        for (int[] redundantAtom : redundantAtoms) {
             if (equals(lastPattern, redundantAtom)) {
                 return true;
             }
@@ -1087,7 +1087,7 @@ public class Rule {
     private Int2ObjectMap<Integer> alternativeHistogram() {
         Int2ObjectMap<Integer> hist = new Int2ObjectOpenHashMap<>(triples.size(), 1.0f);
         for (int i = 1; i < triples.size(); ++i) {
-            ByteString[] triple = triples.get(i);
+            int[] triple = triples.get(i);
             if (triple[1].equals(KB.DIFFERENTFROMbs)) {
                 continue;
             }
@@ -1196,7 +1196,7 @@ public class Rule {
      */
     public int getRealLength() {
         int length = 0;
-        for (ByteString[] triple : triples) {
+        for (int[] triple : triples) {
             if (!KB.specialRelations.contains(triple[1])) {
                 ++length;
             }
@@ -1214,7 +1214,7 @@ public class Rule {
      */
     public int getRealLengthWithoutTypes(ByteString typeString) {
         int length = 0;
-        for (ByteString[] triple : triples) {
+        for (int[] triple : triples) {
             if (!triple[1].equals(KB.DIFFERENTFROMbs)
                     && (!triple[1].equals(typeString) 
                     		|| KB.isVariable(triple[2]))) {
@@ -1233,7 +1233,7 @@ public class Rule {
      */
     public int getLengthWithoutTypes(ByteString typeString) {
         int size = 0;
-        for (ByteString[] triple : triples) {
+        for (int[] triple : triples) {
             if (!triple[1].equals(typeString)
                     || KB.isVariable(triple[2])) {
                 ++size;
@@ -1252,7 +1252,7 @@ public class Rule {
      */
     public int getLengthWithoutTypesAndLinksTo(ByteString typeString, ByteString linksString) {
         int size = 0;
-        for (ByteString[] triple : triples) {
+        for (int[] triple : triples) {
             if ((!triple[1].equals(typeString) 
             		|| KB.isVariable(triple[2]))
                     && !triple[1].equals(linksString)) {
@@ -1290,22 +1290,22 @@ public class Rule {
      * atom.
      * @return
      */
-    public Rule addAtom(ByteString[] newAtom,
+    public Rule addAtom(int[] newAtom,
             double cardinality, ByteString joinedVariable, ByteString danglingVariable) {
         Rule newQuery = new Rule(this, cardinality);
-        ByteString[] copyNewEdge = newAtom.clone();
+        int[] copyNewEdge = newAtom.clone();
         newQuery.triples.add(copyNewEdge);
         return newQuery;
     }
     
-    public Rule addAtoms(ByteString[] atom1, ByteString[] atom2, double cardinality) {
+    public Rule addAtoms(int[] atom1, int[] atom2, double cardinality) {
 		Rule newQuery = new Rule(this, cardinality);
 		newQuery.triples.add(atom1.clone());
 		newQuery.triples.add(atom2.clone());
 		return newQuery;
 	}
     
-    public Rule addAtoms(ByteString[] atom1, ByteString[] atom2, ByteString[] atom3, double cardinality) {
+    public Rule addAtoms(int[] atom1, int[] atom2, int[] atom3, double cardinality) {
 		Rule newQuery = new Rule(this, cardinality);
 		newQuery.triples.add(atom1.clone());
 		newQuery.triples.add(atom2.clone());
@@ -1313,9 +1313,9 @@ public class Rule {
 		return newQuery;
 	}
 
-    public Rule addAtom(ByteString[] newAtom, double cardinality) {
+    public Rule addAtom(int[] newAtom, double cardinality) {
         Rule newQuery = new Rule(this, cardinality);
-        ByteString[] copyNewEdge = newAtom.clone();
+        int[] copyNewEdge = newAtom.clone();
         newQuery.triples.add(copyNewEdge);
         return newQuery;
     }
@@ -1326,7 +1326,7 @@ public class Rule {
      * @param newAtom
      * @return
      */
-	public Rule replaceLastAtom(ByteString[] newAtom, double cardinality) {
+	public Rule replaceLastAtom(int[] newAtom, double cardinality) {
 		Rule newRule = new Rule(this, cardinality);
 		int ruleSize = newRule.getLength();
 		newRule.getTriples().set(ruleSize - 1, newAtom.clone());
@@ -1342,7 +1342,7 @@ public class Rule {
      */
     public Rule specializeTypeAtom(ByteString subtype, double cardinality) {
 		Rule newRule = new Rule(this.getHead(), this.getBody(), cardinality);
-		ByteString[] lastTriple = newRule.getLastTriplePattern();
+		int[] lastTriple = newRule.getLastTriplePattern();
 		lastTriple[1] = Schema.typeRelationBS;
 		lastTriple[2] = subtype;
 		newRule.setFunctionalVariablePosition(functionalVariablePosition);
@@ -1430,7 +1430,7 @@ public class Rule {
 
     public String getRuleString() {
         StringBuilder strBuilder = new StringBuilder();
-        for (ByteString[] pattern : sortBody()) {
+        for (int[] pattern : sortBody()) {
             if (pattern[1].equals(KB.DIFFERENTFROMbs)) {
             	strBuilder.append(pattern[0]);
                 strBuilder.append("!=");
@@ -1447,7 +1447,7 @@ public class Rule {
         }
 
         strBuilder.append(" => ");
-        ByteString[] head = triples.get(0);
+        int[] head = triples.get(0);
         strBuilder.append(head[0]);
         strBuilder.append("  ");
         strBuilder.append(head[1]);
@@ -1459,7 +1459,7 @@ public class Rule {
     
     public String getRuleRawString() {
         StringBuilder strBuilder = new StringBuilder();
-        for (ByteString[] pattern : getBody()) {
+        for (int[] pattern : getBody()) {
             strBuilder.append(pattern[0]);
             strBuilder.append("  ");
             strBuilder.append(pattern[1]);
@@ -1469,7 +1469,7 @@ public class Rule {
         }
 
         strBuilder.append(" => ");
-        ByteString[] head = triples.get(0);
+        int[] head = triples.get(0);
         strBuilder.append(head[0]);
         strBuilder.append("  ");
         strBuilder.append(head[1]);
@@ -1479,11 +1479,11 @@ public class Rule {
         return strBuilder.toString();
     }
     
-    public Collection<ByteString[]> sortBody() {
+    public Collection<int[]> sortBody() {
     	   //Guarantee that atoms in rules are output in the same order across runs of the program
-        class TripleComparator implements Comparator<ByteString[]> {
+        class TripleComparator implements Comparator<int[]> {
 
-            public int compare(ByteString[] t1, ByteString[] t2) {
+            public int compare(int[] t1, int[] t2) {
                 int predicateCompare = t1[1].toString().compareTo(t2[1].toString());
                 if (predicateCompare == 0) {
                     int objectCompare = t1[2].toString().compareTo(t2[2].toString());
@@ -1497,14 +1497,14 @@ public class Rule {
             }
         }
 
-        TreeSet<ByteString[]> sortedBody = new TreeSet<ByteString[]>(new TripleComparator());
+        TreeSet<int[]> sortedBody = new TreeSet<int[]>(new TripleComparator());
         sortedBody.addAll(getAntecedent());
         return sortedBody;
     }
     
     public String getDatalogRuleString(Metric... metrics2Ommit) {
         StringBuilder strBuilder = new StringBuilder();
-        for (ByteString[] pattern : sortBody()) {
+        for (int[] pattern : sortBody()) {
             if (pattern[1].equals(KB.DIFFERENTFROMbs)) {
                 strBuilder.append(pattern[0]);
                 strBuilder.append("!=");
@@ -1521,7 +1521,7 @@ public class Rule {
         }
 
         strBuilder.append(" => ");
-        ByteString[] head = triples.get(0);
+        int[] head = triples.get(0);
         strBuilder.append(head[1]);
         strBuilder.append("(");
         strBuilder.append(head[0]);
@@ -1624,7 +1624,7 @@ public class Rule {
         return strBuilder.toString();
     }
 
-    public static String toDatalog(ByteString[] atom) {
+    public static String toDatalog(int[] atom) {
         return atom[1].toString().replace("<", "").replace(">", "") 
         		+ "(" + atom[0] + ", " + atom[2] + ")";
     }
@@ -1634,7 +1634,7 @@ public class Rule {
 
         builder.append(Rule.toDatalog(getHead()));
         builder.append(" <=");
-        for (ByteString[] atom : getBody()) {
+        for (int[] atom : getBody()) {
             builder.append(" ");
             builder.append(Rule.toDatalog(atom));
             builder.append(",");
@@ -1658,7 +1658,7 @@ public class Rule {
      */
     public Rule instantiateConstant(int danglingPosition, ByteString constant, double cardinality) {
         Rule newQuery = new Rule(this, cardinality);
-        ByteString[] lastNewPattern = newQuery.getLastTriplePattern();
+        int[] lastNewPattern = newQuery.getLastTriplePattern();
         lastNewPattern[danglingPosition] = constant;
         newQuery.computeHeadKey();
         return newQuery;
@@ -1676,16 +1676,16 @@ public class Rule {
      */
     public Rule instantiateConstant(int triplePos, int danglingPosition, ByteString constant, double cardinality) {
         Rule newQuery = new Rule(this, cardinality);
-        ByteString[] targetEdge = newQuery.getTriples().get(triplePos);
+        int[] targetEdge = newQuery.getTriples().get(triplePos);
         targetEdge[danglingPosition] = constant;
         newQuery.cleanInequalityConstraints();
         return newQuery;
     }
 
     private void cleanInequalityConstraints() {
-        List<ByteString[]> toRemove = new ArrayList<>();
+        List<int[]> toRemove = new ArrayList<>();
         Int2IntMap varHistogram = variablesHistogram(true);
-        for (ByteString[] triple : triples) {
+        for (int[] triple : triples) {
             if (triple[1].equals(KB.DIFFERENTFROMbs)) {
                 int varPos = KB.firstVariablePos(triple);
                 // Check if the variable became orphan
@@ -1745,11 +1745,11 @@ public class Rule {
         return pcaBodySize;
     }
 
-    public Rule rewriteQuery(ByteString[] remove, ByteString[] target, ByteString victimVar, ByteString targetVar) {
-        List<ByteString[]> newTriples = new ArrayList<ByteString[]>();
-        for (ByteString[] t : triples) {
+    public Rule rewriteQuery(int[] remove, int[] target, ByteString victimVar, ByteString targetVar) {
+        List<int[]> newTriples = new ArrayList<int[]>();
+        for (int[] t : triples) {
             if (t != remove) {
-                ByteString[] clone = t.clone();
+                int[] clone = t.clone();
                 for (int i = 0; i < clone.length; ++i) {
                     if (clone[i].equals(victimVar)) {
                         clone[i] = targetVar;
@@ -1791,7 +1791,7 @@ public class Rule {
     }
 
     public static int findFunctionalVariable(Rule q, KB d) {
-        ByteString[] head = q.getHead();
+        int[] head = q.getHead();
         if (KB.numVariables(head) == 1) {
             return KB.firstVariablePos(head);
         }
@@ -1835,7 +1835,7 @@ public class Rule {
         }
 
         Int2IntMap relationCardinalities = new Int2IntOpenHashMap();
-        for (ByteString[] pattern : triples) {
+        for (int[] pattern : triples) {
             relationCardinalities.increase(pattern[1]);
         }
 
@@ -1854,11 +1854,11 @@ public class Rule {
         }
 
         // Calculate the relation count
-        Int2ObjectMap<List<ByteString[]>> subgraphs = new Int2ObjectOpenHashMap<List<ByteString[]>>();
-        for (ByteString[] pattern : triples) {
-            List<ByteString[]> subgraph = subgraphs.get(pattern[1]);
+        Int2ObjectMap<List<int[]>> subgraphs = new Int2ObjectOpenHashMap<List<int[]>>();
+        for (int[] pattern : triples) {
+            List<int[]> subgraph = subgraphs.get(pattern[1]);
             if (subgraph == null) {
-                subgraph = new ArrayList<ByteString[]>();
+                subgraph = new ArrayList<int[]>();
                 subgraphs.put(pattern[1], subgraph);
                 if (subgraphs.size() > 2) {
                     return false;
@@ -1874,11 +1874,11 @@ public class Rule {
 
         Object[] relations = subgraphs.keySet().toArray();
         List<int[]> joinInfoList = new ArrayList<int[]>();
-        for (ByteString[] p1 : subgraphs.get(relations[0])) {
+        for (int[] p1 : subgraphs.get(relations[0])) {
             int[] bestJoinInfo = null;
             int bestCount = -1;
-            ByteString[] bestMatch = null;
-            for (ByteString[] p2 : subgraphs.get(relations[1])) {
+            int[] bestMatch = null;
+            for (int[] p2 : subgraphs.get(relations[1])) {
                 int[] joinInfo = Rule.doTheyJoin(p1, p2);
                 if (joinInfo != null) {
                     int joinCount = joinCount(joinInfo);
@@ -1912,7 +1912,7 @@ public class Rule {
         return count;
     }
 
-    private static int[] doTheyJoin(ByteString[] p1, ByteString[] p2) {
+    private static int[] doTheyJoin(int[] p1, int[] p2) {
         int subPos = KB.varpos(p1[0], p2);
         int objPos = KB.varpos(p1[2], p2);
 
@@ -1936,8 +1936,8 @@ public class Rule {
      * @param inputTriples 
      */
     public static void bind(Int2ObjectMap<ByteString> mappings,
-            List<ByteString[]> inputTriples) {
-        for (ByteString[] triple : inputTriples) {
+            List<int[]> inputTriples) {
+        for (int[] triple : inputTriples) {
             ByteString binding = mappings.get(triple[0]);
             if (binding != null) {
                 triple[0] = binding;
@@ -1958,8 +1958,8 @@ public class Rule {
      * @param query
      */
     public static void bind(ByteString oldVal,
-            ByteString newVal, List<ByteString[]> query) {
-        for (ByteString[] triple : query) {
+            ByteString newVal, List<int[]> query) {
+        for (int[] triple : query) {
             if (triple[0].equals(oldVal)) {
                 triple[0] = newVal;
             }
@@ -1995,16 +1995,16 @@ public class Rule {
      *
      * @return
      */
-    public List<ByteString[]> getPCAQuery() {
+    public List<int[]> getPCAQuery() {
         if (isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<ByteString[]> newTriples = new ArrayList<>();
-        for (ByteString[] triple : triples) {
+        List<int[]> newTriples = new ArrayList<>();
+        for (int[] triple : triples) {
             newTriples.add(triple.clone());
         }
-        ByteString[] existentialTriple = newTriples.get(0);
+        int[] existentialTriple = newTriples.get(0);
         existentialTriple[getNonFunctionalVariablePosition()] = KB.map("?x");
         return newTriples;
     }
@@ -2033,15 +2033,15 @@ public class Rule {
         }
 
         // We need to rewrite the rules	
-        ByteString[] canonicalHead = canonicalHeadRule.getHead().clone();
+        int[] canonicalHead = canonicalHeadRule.getHead().clone();
         ByteString canonicalSubjectExp = canonicalHead[0];
         ByteString canonicalObjectExp = canonicalHead[2];
         IntSet nonHeadVariables = new IntOpenHashSet();
         int varCount = 0;
-        List<ByteString[]> commonAntecendent = new ArrayList<>();
+        List<int[]> commonAntecendent = new ArrayList<>();
 
         for (Rule rule : rules) {
-            List<ByteString[]> antecedentClone = rule.getAntecedentClone();
+            List<int[]> antecedentClone = rule.getAntecedentClone();
 
             IntSet otherVariables = rule.getNonHeadVariables();
             for (ByteString var : otherVariables) {
@@ -2050,15 +2050,15 @@ public class Rule {
                 nonHeadVariables.add(var);
             }
 
-            ByteString[] head = rule.getHead();
+            int[] head = rule.getHead();
             Int2ObjectMap<ByteString> mappings = new Int2ObjectOpenHashMap<>();
             mappings.put(head[0], canonicalSubjectExp);
             mappings.put(head[2], canonicalObjectExp);
             Rule.bind(mappings, antecedentClone);
 
-            for (ByteString[] atom : antecedentClone) {
+            for (int[] atom : antecedentClone) {
             	boolean repeated = false;
-            	for (ByteString[] otherAtom : commonAntecendent) {
+            	for (int[] otherAtom : commonAntecendent) {
             		if (equals(atom, otherAtom)) {
             			repeated = true;
             			break;
@@ -2078,9 +2078,9 @@ public class Rule {
      * The set of variables that are not in the conclusion of the rule.
      */
     private IntSet getNonHeadVariables() {
-        ByteString[] head = getHead();
+        int[] head = getHead();
         IntSet nonHeadVars = new IntOpenHashSet();
-        for (ByteString[] triple : getAntecedent()) {
+        for (int[] triple : getAntecedent()) {
             if (KB.isVariable(triple[0])
                     && KB.varpos(triple[0], head) == -1) {
                 nonHeadVars.add(triple[0]);
@@ -2103,8 +2103,8 @@ public class Rule {
     	return firstIndexOfRelation(triples, relation);
     }
     
-    public boolean containsAtom(ByteString[] atom) {
-		for (ByteString[] triple : triples) {
+    public boolean containsAtom(int[] atom) {
+		for (int[] triple : triples) {
 			if (Arrays.equals(triple, atom))
 				return true;
 		}
@@ -2119,7 +2119,7 @@ public class Rule {
      * @param relation
      * @return
      */
-    public static boolean containsRelation(List<ByteString[]> triples, 
+    public static boolean containsRelation(List<int[]> triples, 
     		ByteString relation) {
     	return firstIndexOfRelation(triples, relation) != -1;
 	}
@@ -2131,7 +2131,7 @@ public class Rule {
      * @return the index of the atom containing the relation or -1 if such atom
      * does not exist.
      */
-    public static int firstIndexOfRelation(List<ByteString[]> triples, 
+    public static int firstIndexOfRelation(List<int[]> triples, 
     		ByteString relation) {
     	for (int i = 0; i < triples.size(); ++i) {
             if (triples.get(i)[1].equals(relation)) {
@@ -2144,7 +2144,7 @@ public class Rule {
 
     public int numberOfAtomsWithRelation(ByteString relation) {
         int count = 0;
-        for (ByteString[] triple : triples) {
+        for (int[] triple : triples) {
             if (triple[1].equals(relation)) {
                 ++count;
             }
@@ -2160,9 +2160,9 @@ public class Rule {
      * @param antecedent
      * @param head
      */
-    public static void getParentsOfSize(List<ByteString[]> queryPattern,
-            int windowSize, List<List<ByteString[]>> output) {
-        List<ByteString[]> antecedent = queryPattern.subList(1, queryPattern.size());
+    public static void getParentsOfSize(List<int[]> queryPattern,
+            int windowSize, List<List<int[]>> output) {
+        List<int[]> antecedent = queryPattern.subList(1, queryPattern.size());
     	int newAntecedentSize = windowSize - 1; // -1 because of the head 
         
         if (queryPattern.size() >= windowSize) {
@@ -2171,9 +2171,9 @@ public class Rule {
         
         List<int[]> combinations = telecom.util.collections.Collections.subsetsOfSize(antecedent.size(), 
         		newAntecedentSize);
-        ByteString[] head = queryPattern.get(0);
+        int[] head = queryPattern.get(0);
         for (int[] combination : combinations) {
-            List<ByteString[]> combinationList = new ArrayList<>();
+            List<int[]> combinationList = new ArrayList<>();
             // Add the head atom.
             combinationList.add(head);
             for (int idx : combination) {
@@ -2193,7 +2193,7 @@ public class Rule {
      * @return
      */
     public boolean containsSinglePath() {
-        ByteString[] head = getHead();
+        int[] head = getHead();
         if (!KB.isVariable(head[0])
                 || !KB.isVariable(head[2])) {
             // We are not interested in rules with a constant in the head.
@@ -2202,7 +2202,7 @@ public class Rule {
 
         Int2ObjectMap<Integer> histogram = alternativeHistogram();
         for (int i = 1; i < triples.size(); ++i) {
-            ByteString[] atom = triples.get(i);
+            int[] atom = triples.get(i);
             for (int k : new int[]{0, 2}) {
                 if (KB.isVariable(atom[k])) {
                     Integer freq = histogram.get(atom[k]);
@@ -2233,7 +2233,7 @@ public class Rule {
      * @return
      */
     private boolean occursInHead(ByteString expression) {
-        ByteString[] head = getHead();
+        int[] head = getHead();
         return expression.equals(head[0]) || expression.equals(head[2]);
     }
 
@@ -2245,7 +2245,7 @@ public class Rule {
     public IntSet getBodyVariables() {
         List<ByteString> headVariables = getHeadVariables();
         IntSet result = new IntOpenHashSet();
-        for (ByteString[] triple : getBody()) {
+        for (int[] triple : getBody()) {
             if (KB.isVariable(triple[2])
                     && !headVariables.contains(triple[2])) {
                 result.add(triple[2]);
@@ -2266,7 +2266,7 @@ public class Rule {
      */
     public List<ByteString> getHeadVariables() {
         List<ByteString> headVariables = new ArrayList<>();
-        ByteString[] head = getHead();
+        int[] head = getHead();
         if (KB.isVariable(head[0])) {
             headVariables.add(head[0]);
         }
@@ -2283,15 +2283,15 @@ public class Rule {
      *
      * @return
      */
-    public List<ByteString[]> getCanonicalPath() {
+    public List<int[]> getCanonicalPath() {
         // First check the most functional variable
         ByteString funcVar = getFunctionalVariable();
         ByteString nonFuncVar = getNonFunctionalVariable();
-        List<ByteString[]> body = getBody();
-        Int2ObjectMap<List<ByteString[]>> variablesToAtom = new Int2ObjectOpenHashMap<>(triples.size(), 1.0f);
-        List<ByteString[]> path = new ArrayList<>();
+        List<int[]> body = getBody();
+        Int2ObjectMap<List<int[]>> variablesToAtom = new Int2ObjectOpenHashMap<>(triples.size(), 1.0f);
+        List<int[]> path = new ArrayList<>();
         // Build a multimap, variable -> {atoms where the variable occurs}
-        for (ByteString[] bodyAtom : body) {
+        for (int[] bodyAtom : body) {
             if (KB.isVariable(bodyAtom[0])) {
                 telecom.util.collections.Collections.addToMap(
                 		variablesToAtom, bodyAtom[0], bodyAtom);
@@ -2305,14 +2305,14 @@ public class Rule {
 
         // Start with the functional variable.
         ByteString joinVariable = funcVar;
-        ByteString[] lastAtom = null;
+        int[] lastAtom = null;
         while (true) {
-            List<ByteString[]> atomsList = variablesToAtom.get(joinVariable);
+            List<int[]> atomsList = variablesToAtom.get(joinVariable);
             // This can be only the head variable
             if (atomsList.size() == 1) {
                 lastAtom = atomsList.get(0);
             } else {
-                for (ByteString[] atom : atomsList) {
+                for (int[] atom : atomsList) {
                     if (atom != lastAtom) {
                         // Bingo
                         lastAtom = atom;
@@ -2339,7 +2339,7 @@ public class Rule {
      * @param a2
      * @return
      */
-    public static int[] joinPositions(ByteString[] a1, ByteString[] a2) {
+    public static int[] joinPositions(int[] a1, int[] a2) {
         if (a1[0].equals(a2[0])) {
             return new int[]{0, 0};
         } else if (a1[2].equals(a2[2])) {
@@ -2361,7 +2361,7 @@ public class Rule {
      * @param newEdge2
      * @return
      */
-    public Rule addEdges(ByteString[] newEdge1, ByteString[] newEdge2) {
+    public Rule addEdges(int[] newEdge1, int[] newEdge2) {
         Rule newQuery = new Rule(this, (int) this.support);
         newQuery.triples.add(newEdge1.clone());
         newQuery.triples.add(newEdge2.clone());
@@ -2375,7 +2375,7 @@ public class Rule {
      */
     public List<ByteString> getBodyRelationsBS() {
         List<ByteString> bodyRelations = new ArrayList<>();
-        for (ByteString[] atom : getBody()) {
+        for (int[] atom : getBody()) {
             if (!bodyRelations.contains(atom[1])) {
                 bodyRelations.add(atom[1]);
             }
@@ -2385,7 +2385,7 @@ public class Rule {
 
 	public List<ByteString> getAllRelationsBS() {
 		List<ByteString> relations = new ArrayList<>();
-        for (ByteString[] atom : triples) {
+        for (int[] atom : triples) {
             if (!relations.contains(atom[1])) {
                 relations.add(atom[1]);
             }
@@ -2410,9 +2410,9 @@ public class Rule {
 		
 		List<int[]> combinations = telecom.util.collections.Collections.subsetsOfSize(
 				someRule.getLength() - 1, getLength() - 1);
-		List<ByteString[]> targetAntecedent = someRule.getAntecedent();
+		List<int[]> targetAntecedent = someRule.getAntecedent();
 		for (int[] cmb : combinations) {
-			List<ByteString[]> subsetOfAtoms = new ArrayList<>();
+			List<int[]> subsetOfAtoms = new ArrayList<>();
 			subsetOfAtoms.add(someRule.getHead());
 			for (int idx : cmb) {
 				subsetOfAtoms.add(targetAntecedent.get(idx));

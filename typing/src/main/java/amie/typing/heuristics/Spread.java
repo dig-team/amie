@@ -15,7 +15,7 @@ public class Spread extends TypingHeuristic {
 	}
 
 	@Override
-	public double evaluate(ByteString type, List<ByteString[]> clause,
+	public double evaluate(ByteString type, List<int[]> clause,
 			ByteString variable) {
 		// TODO Auto-generated method stub
 		double sc = getStandardConfidence(typeL(type, variable), clause, variable, true);

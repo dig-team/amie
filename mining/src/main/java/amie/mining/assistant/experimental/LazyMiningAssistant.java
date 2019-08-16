@@ -69,7 +69,7 @@ public class LazyMiningAssistant extends DefaultMiningAssistantWithOrder {
      * @return
      */
     @Override
-    protected double computePcaBodySize(ByteString var1, ByteString var2, Rule query, List<ByteString[]> antecedent, ByteString[] existentialTriple, int nonExistentialPosition) {
+    protected double computePcaBodySize(ByteString var1, ByteString var2, Rule query, List<int[]> antecedent, int[] existentialTriple, int nonExistentialPosition) {
         antecedent.add(existentialTriple);
         long t1 = System.currentTimeMillis();
         long result;

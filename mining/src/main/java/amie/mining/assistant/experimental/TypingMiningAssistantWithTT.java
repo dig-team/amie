@@ -32,8 +32,8 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 	
 	public Rule getInitialRule() {
 		Rule query = new Rule();
-		ByteString[] newEdge = query.fullyUnboundTriplePattern();
-		ByteString[] succedent = newEdge.clone();
+		int[] newEdge = query.fullyUnboundTriplePattern();
+		int[] succedent = newEdge.clone();
 		succedent[1] = KB.TRANSITIVETYPEbs;
 		succedent[2] = topTypeBS;
 		Rule candidate = new Rule(succedent, (double)kb.countOneVariable(succedent));
@@ -76,8 +76,8 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 		if (rule.getBody().isEmpty()) {
 			return;
 		}
-		ByteString[] head = rule.getHead();
-		List<ByteString[]> body = rule.getBody();
+		int[] head = rule.getHead();
+		List<int[]> body = rule.getBody();
 		IntSet subTypes = amie.data.Schema.getSubTypes(kb, head[2]);
 		int parentTypePos = Rule.firstIndexOfRelation(body, KB.TRANSITIVETYPEbs);
 		for (ByteString subType : subTypes) {
@@ -111,7 +111,7 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 		}
 		int cardinality;
 		for (ByteString openVariable : openVariables) {
-			ByteString[] newEdge = rule.fullyUnboundTriplePattern();
+			int[] newEdge = rule.fullyUnboundTriplePattern();
 			newEdge[0] = openVariable;
 			newEdge[1] = KB.TRANSITIVETYPEbs;
 			

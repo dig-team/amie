@@ -38,9 +38,9 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 	public void getDanglingAtoms(Rule query, double minCardinality, Collection<Rule> output) {		
 		if (query.isEmpty()) {
 			//Initial case
-			ByteString[] newEdge = query.fullyUnboundTriplePattern();
+			int[] newEdge = query.fullyUnboundTriplePattern();
 			query.getTriples().add(newEdge);
-			List<ByteString[]> emptyList = Collections.emptyList();
+			List<int[]> emptyList = Collections.emptyList();
 			Int2IntMap relations = kb.countProjectionBindings(query.getHead(), emptyList, newEdge[1]);
 			for(ByteString relation: relations){
 				// Language bias test
@@ -55,7 +55,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 				
 				int cardinality = relations.get(relation);
 				if(cardinality >= minCardinality){
-					ByteString[] succedent = newEdge.clone();
+					int[] succedent = newEdge.clone();
 					succedent[1] = relation;
 					int countVarPos = countAlwaysOnSubject? 0 : findCountingVariable(succedent);
 					Rule candidate = new Rule(succedent, cardinality);
@@ -76,11 +76,11 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 			return;
 		
 		List<Rule> tmpCandidates = new ArrayList<Rule>();
-		ByteString[] head = query.getHead();
+		int[] head = query.getHead();
 		
 		//Specialization by type
 		if(KB.isVariable(head[0])){
-			ByteString[] newEdge = query.fullyUnboundTriplePattern();
+			int[] newEdge = query.fullyUnboundTriplePattern();
 			newEdge[0] = head[0];
 			newEdge[1] = typeString;				
 			query.getTriples().add(newEdge);
@@ -103,7 +103,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 		
 		if(KB.isVariable(head[2])){
 			for(Rule candidate: tmpCandidates){
-				ByteString[] newEdge = query.fullyUnboundTriplePattern();
+				int[] newEdge = query.fullyUnboundTriplePattern();
 				newEdge[0] = head[2];
 				newEdge[1] = typeString;
 				candidate.getTriples().add(newEdge);
@@ -134,7 +134,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 	@Override
 	public void getClosingAtoms(Rule query, double minSupportThreshold, Collection<Rule> output) {
 		int length = query.getLengthWithoutTypesAndLinksTo(typeString, KB.map(wikiLinkProperty));
-		ByteString[] head = query.getHead();
+		int[] head = query.getHead();
 		if (length == maxDepth - 1) {
 			List<ByteString> openVariables = query.getOpenVariables();
 			for (ByteString openVar : openVariables) {
@@ -149,9 +149,9 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 		}
 		
 		if (!query.containsRelation(KB.map(wikiLinkProperty))) {
-			ByteString[] newEdge = head.clone();
+			int[] newEdge = head.clone();
 			newEdge[1] = KB.map(wikiLinkProperty);
-			List<ByteString[]> queryAtoms = new ArrayList<>();
+			List<int[]> queryAtoms = new ArrayList<>();
 			queryAtoms.addAll(query.getTriples());
 			queryAtoms.add(newEdge);
 			long cardinality = kb.countDistinctPairs(head[0], head[2], queryAtoms);

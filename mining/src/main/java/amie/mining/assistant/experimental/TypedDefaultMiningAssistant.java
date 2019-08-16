@@ -55,11 +55,11 @@ public class TypedDefaultMiningAssistant extends DefaultMiningAssistant {
 		
 	public void getSpecializationCandidates(Rule query, double minSupportThreshold, Collection<Rule> output) {
 		List<Rule> tmpCandidates = new ArrayList<Rule>();
-		ByteString[] head = query.getHead();
+		int[] head = query.getHead();
 		
 		//Specialization by type
 		if(KB.isVariable(head[0])){
-			ByteString[] newEdge = query.fullyUnboundTriplePattern();
+			int[] newEdge = query.fullyUnboundTriplePattern();
 			newEdge[0] = head[0];
 			newEdge[1] = typeString;				
 			query.getTriples().add(newEdge);
@@ -81,7 +81,7 @@ public class TypedDefaultMiningAssistant extends DefaultMiningAssistant {
 		
 		if(KB.isVariable(head[2])){
 			for(Rule candidate: tmpCandidates){
-				ByteString[] newEdge = query.fullyUnboundTriplePattern();
+				int[] newEdge = query.fullyUnboundTriplePattern();
 				newEdge[0] = head[2];
 				newEdge[1] = typeString;
 				candidate.getTriples().add(newEdge);

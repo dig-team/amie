@@ -3783,7 +3783,7 @@ public class KB {
 		Int2ObjectMap<Int2ObjectMap<IntSet>> headBindings = null;
 		
 		if (numVariables(head) == 3) {
-			results = new Int2ObjectOpenHashMap<Map<ByteString,IntSet>>();
+			results = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 			bodyBindings = selectDistinct(var1, var2, var3, antecedent);
 			headBindings = selectDistinct(var1, var2, var3, headList);
 		
@@ -3913,7 +3913,7 @@ public class KB {
 			int var1, int var2, int var3, int var4,
 			List<int[]> antecedent, int[] head) {
 		Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> results = new
-				Int2ObjectMap<Int2ObjectMap<Map<ByteString,IntSet>>>();
+				Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>>();
 		
 		int headNumVars = numVariables(head);
 		if (headNumVars == 3) {
@@ -3935,7 +3935,7 @@ public class KB {
 					for (int val1 : resultsTwoVars.keySet()) {
 						insty1.instantiate(val1);
 						Int2ObjectMap<Int2ObjectMap<IntSet>> level1 =
-								new Int2ObjectOpenHashMap<Map<ByteString,IntSet>>();
+								new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 						for (int val2 : resultsTwoVars.get(val1)) {
 							insty2.instantiate(val2);
 							Int2ObjectMap<IntSet> diff = 
@@ -3991,7 +3991,7 @@ public class KB {
 			List<int[]> antecedent, int[] head) {
 		int headNumVars = numVariables(head);
 		Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> results = 
-				new Int2ObjectOpenHashMap<Map<ByteString,Map<ByteString,IntSet>>>();
+				new Int2ObjectOpenHashMap<Int2ObjectMap<Int2ObjectMap<IntSet>>>();
 		List<int[]> wholeQuery = new ArrayList<int[]>(antecedent);
 		wholeQuery.add(head);
 		
@@ -4013,7 +4013,7 @@ public class KB {
 					for (int val1 : resultsTwoVars.keySet()) {
 						insty1.instantiate(val1);
 						Int2ObjectMap<Int2ObjectMap<IntSet>> level1 =
-								new Int2ObjectOpenHashMap<Map<ByteString,IntSet>>();
+								new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 						for (int val2 : resultsTwoVars.get(val1)) {
 							insty2.instantiate(val2);
 							if (!existsBS1(wholeQuery)) {

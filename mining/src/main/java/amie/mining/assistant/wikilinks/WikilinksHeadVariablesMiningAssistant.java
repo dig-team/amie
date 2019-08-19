@@ -9,8 +9,9 @@ import java.util.List;
 import amie.data.KB;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.Rule;
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
+
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntList;
 
 public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistant {
 	

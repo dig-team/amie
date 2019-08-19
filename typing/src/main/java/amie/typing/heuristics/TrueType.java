@@ -2,9 +2,8 @@ package amie.typing.heuristics;
 
 import java.util.List;
 
-import javatools.datatypes.Integer;
+
 import amie.data.KB;
-import amie.data.U;
 
 public class TrueType extends TypingHeuristic {
 

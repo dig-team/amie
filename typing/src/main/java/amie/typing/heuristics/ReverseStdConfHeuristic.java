@@ -6,10 +6,10 @@ import amie.data.KB;
 import amie.data.Schema;
 import amie.data.SetU;
 import amie.data.SimpleTypingKB;
-import java.util.HashMap;
-import java.util.Map;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
-import javatools.datatypes.Integer;
+
 
 public class ReverseStdConfHeuristic extends TypingHeuristic {
 

@@ -1,12 +1,12 @@
 package amie.mining.assistant;
 
-import java.util.Arrays;
-import java.util.List;
 
-import javatools.datatypes.Integer;
+
 import amie.data.KB;
 import amie.data.Schema;
+import amie.data.tuple.IntArrays;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.IntList;
 
 /**
  * This class overrides the default mining assistant enforcing type constraints on the 

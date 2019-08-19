@@ -7,7 +7,7 @@ import java.util.List;
 import amie.data.KB;
 import amie.data.U;
 
-import javatools.datatypes.Integer;
+
 
 public abstract class TypingHeuristic {
 	

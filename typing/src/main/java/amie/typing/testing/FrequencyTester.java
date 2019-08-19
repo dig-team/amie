@@ -3,14 +3,15 @@ package amie.typing.testing;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import amie.data.KB;
-import amie.data.U;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
-import javatools.datatypes.Integer;
+
 import javatools.datatypes.FrequencyVector;
 import javatools.filehandlers.FileLines;
 

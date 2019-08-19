@@ -5,15 +5,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
-import javatools.datatypes.Pair;
+
 import amie.data.KB;
+import amie.data.tuple.IntPair;
 import amie.rules.AMIEParser;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 public class EquivalenceRulesBuilder {
 

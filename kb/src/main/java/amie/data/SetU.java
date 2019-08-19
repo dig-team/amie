@@ -5,17 +5,8 @@
  */
 package amie.data;
 
-import amie.data.KB.Instantiator;
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
 
 /**
  *

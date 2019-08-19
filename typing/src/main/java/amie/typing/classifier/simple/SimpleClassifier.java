@@ -8,15 +8,15 @@ package amie.typing.classifier.simple;
 import amie.data.Schema;
 import amie.data.SetU;
 import amie.data.SimpleTypingKB;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.locks.Lock;
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
+
 
 /**
  *

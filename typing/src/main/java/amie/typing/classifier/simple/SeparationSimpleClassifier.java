@@ -8,13 +8,13 @@ package amie.typing.classifier.simple;
 import amie.data.CardinalitySimpleTypingKB;
 import amie.data.SetU;
 import amie.data.SimpleTypingKB;
-import java.util.HashSet;
-import java.util.Map;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
+
 import javatools.datatypes.Pair;
 
 /**

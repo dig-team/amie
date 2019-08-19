@@ -5,12 +5,11 @@ import java.util.Collection;
 import java.util.List;
 
 import amie.data.KB;
-import amie.data.U;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.ConfidenceMetric;
 import amie.rules.Rule;
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
+
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 
 public class UnclosedMiningAssistant extends DefaultMiningAssistant {
 

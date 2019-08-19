@@ -1,7 +1,7 @@
 package amie.rules.eval;
 
-import javatools.datatypes.Integer;
-import javatools.datatypes.Triple;
+
+import amie.data.tuple.IntTriple;
 import amie.rules.Rule;
 
 public class Evaluation {

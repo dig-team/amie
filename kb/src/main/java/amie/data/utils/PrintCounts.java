@@ -1,5 +1,6 @@
 package amie.data.utils;
 
+import amie.data.KB;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -8,7 +9,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import javatools.datatypes.Integer;
+
 
 import amie.data.Schema;
 import amie.data.SetU;

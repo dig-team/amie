@@ -5,7 +5,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.List;
 
-import javatools.datatypes.Integer;
+
 import javatools.datatypes.Pair;
 import javatools.filehandlers.TSVFile;
 import amie.data.KB;

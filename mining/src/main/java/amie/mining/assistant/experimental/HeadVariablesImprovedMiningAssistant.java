@@ -2,7 +2,7 @@ package amie.mining.assistant.experimental;
 
 import java.util.List;
 
-import javatools.datatypes.Integer;
+
 import amie.data.KB;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.Rule;

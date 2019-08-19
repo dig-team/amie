@@ -2,11 +2,11 @@ package amie.data.utils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
-import javatools.datatypes.Integer;
+
 import amie.data.KB;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 /**
  * Summarize 2 KBs and print their common relations. It also accepts

@@ -6,7 +6,7 @@ import java.util.List;
 import amie.data.KB;
 import amie.data.Schema;
 import javatools.administrative.D;
-import javatools.datatypes.Integer;
+
 
 public class RemoveLivingPeople {
 

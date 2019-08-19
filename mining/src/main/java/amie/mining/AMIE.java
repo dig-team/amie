@@ -42,8 +42,10 @@ import amie.mining.assistant.variableorder.InverseOrder;
 import amie.mining.assistant.variableorder.VariableOrder;
 import amie.rules.Metric;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntCollection;
 import javatools.administrative.Announce;
-import javatools.datatypes.Integer;
+
 import javatools.datatypes.MultiMap;
 import javatools.parsers.NumberFormatter;
 
@@ -958,7 +960,7 @@ public class AMIE {
         }
 
         if (cli.hasOption("bexr")) {
-            bodyExcludedRelations = new ArrayList<>();
+            bodyExcludedRelations = new IntArrayList();
             String excludedValuesStr = cli.getOptionValue("bexr");
             String[] excludedValueArr = excludedValuesStr.split(",");
             for (String excludedValue : excludedValueArr) {
@@ -967,7 +969,7 @@ public class AMIE {
         }
 
         if (cli.hasOption("btr")) {
-            bodyTargetRelations = new ArrayList<>();
+            bodyTargetRelations = new IntArrayList();
             String targetBodyValuesStr = cli.getOptionValue("btr");
             String[] bodyTargetRelationsArr = targetBodyValuesStr.split(",");
             for (String targetString : bodyTargetRelationsArr) {
@@ -976,7 +978,7 @@ public class AMIE {
         }
 
         if (cli.hasOption("htr")) {
-            headTargetRelations = new ArrayList<>();
+            headTargetRelations = new IntArrayList();
             String targetValuesStr = cli.getOptionValue("htr");
             String[] targetValueArr = targetValuesStr.split(",");
             for (String targetValue : targetValueArr) {
@@ -985,7 +987,7 @@ public class AMIE {
         }
 
         if (cli.hasOption("hexr")) {
-            headExcludedRelations = new ArrayList<>();
+            headExcludedRelations = new IntArrayList();
             String excludedValuesStr = cli.getOptionValue("hexr");
             String[] excludedValueArr = excludedValuesStr.split(",");
             for (String excludedValue : excludedValueArr) {

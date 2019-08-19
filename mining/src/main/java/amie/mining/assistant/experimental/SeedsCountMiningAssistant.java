@@ -2,18 +2,17 @@ package amie.mining.assistant.experimental;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
 import javatools.datatypes.Pair;
 import amie.data.KB;
 import amie.mining.assistant.MiningAssistant;
 import amie.mining.assistant.MiningOperator;
 import amie.rules.ConfidenceMetric;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 public class SeedsCountMiningAssistant extends MiningAssistant {
 

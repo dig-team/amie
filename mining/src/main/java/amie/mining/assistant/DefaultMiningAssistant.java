@@ -9,11 +9,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
+
 import javatools.datatypes.Pair;
 import amie.data.KB;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntCollection;
+import it.unimi.dsi.fastutil.ints.IntList;
 
 /**
  * Mining assistant that defines support and confidence as the number of 

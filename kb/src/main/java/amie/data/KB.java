@@ -1,6 +1,17 @@
 package amie.data;
 
 import amie.data.starpattern.SignedPredicate;
+import amie.data.tuple.IntArrays;
+import amie.data.tuple.IntTriple;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntCollection;
+import it.unimi.dsi.fastutil.ints.IntIterator;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -11,18 +22,9 @@ import java.io.UnsupportedEncodingException;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,10 +34,9 @@ import java.util.regex.Pattern;
 import javax.naming.OperationNotSupportedException;
 
 import javatools.administrative.Announce;
-import javatools.datatypes.Integer;
+
 import javatools.datatypes.IntHashMap;
 import javatools.datatypes.Pair;
-import javatools.datatypes.Triple;
 import javatools.filehandlers.FileLines;
 import javatools.parsers.Char17;
 import javatools.parsers.NumberFormatter;

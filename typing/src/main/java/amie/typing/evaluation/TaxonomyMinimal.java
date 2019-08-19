@@ -7,13 +7,13 @@ package amie.typing.evaluation;
 
 import amie.data.KB;
 import amie.data.Schema;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import javatools.datatypes.Integer;
+
 import javatools.filehandlers.FileLines;
 
 /**

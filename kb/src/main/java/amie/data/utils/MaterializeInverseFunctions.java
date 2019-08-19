@@ -5,11 +5,11 @@
 package amie.data.utils;
 
 import java.io.IOException;
-import java.util.Map;
 
 import amie.data.KB;
-import java.util.Set;
-import javatools.datatypes.Integer;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
+
 
 /**
  * @author lgalarra

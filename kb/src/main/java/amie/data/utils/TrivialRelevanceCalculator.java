@@ -3,10 +3,10 @@ package amie.data.utils;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 
 import amie.data.KB;
-import javatools.datatypes.Integer;
+import it.unimi.dsi.fastutil.ints.IntSet;
+
 
 public class TrivialRelevanceCalculator {
 

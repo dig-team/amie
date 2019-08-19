@@ -1,13 +1,13 @@
 package amie.typing.classifier;
 
 import amie.data.KB;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
-import javatools.datatypes.Integer;
+
 import junit.framework.TestCase;
 
 public class MinCutMaxClassifierTest extends TestCase {

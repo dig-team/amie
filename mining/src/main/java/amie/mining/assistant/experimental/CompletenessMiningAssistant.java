@@ -3,18 +3,21 @@ package amie.mining.assistant.experimental;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 import amie.data.KB;
 import amie.data.Schema;
+import amie.data.tuple.IntArrays;
 import amie.mining.assistant.MiningAssistant;
 import amie.mining.assistant.MiningOperator;
 import amie.rules.QueryEquivalenceChecker;
 import amie.rules.Rule;
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
+
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import javatools.datatypes.MultiMap;
 import javatools.datatypes.Pair;
 

@@ -5,12 +5,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.Set;
 
 import amie.data.KB;
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
+
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 /**
  * Given two sets of KBs: trim KBs and fact KBs, it outputs all the triples

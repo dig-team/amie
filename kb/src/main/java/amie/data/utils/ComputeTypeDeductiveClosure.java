@@ -4,14 +4,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Set;
-import java.util.LinkedHashSet;
-import java.util.Map;
 
 import amie.data.KB;
 import amie.data.U;
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
+
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 public class ComputeTypeDeductiveClosure {
 

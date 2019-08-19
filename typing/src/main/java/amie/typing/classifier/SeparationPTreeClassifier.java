@@ -8,13 +8,12 @@ package amie.typing.classifier;
 import amie.data.KB;
 import amie.data.SetU;
 import amie.data.SimpleTypingKB;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.File;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
 import org.apache.commons.math3.distribution.HypergeometricDistribution;
 
 /**

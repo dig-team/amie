@@ -4,7 +4,7 @@ import java.util.List;
 
 import amie.data.KB;
 
-import javatools.datatypes.Integer;
+
 
 public class CommonAttributeOfClass extends TypingHeuristic {
 

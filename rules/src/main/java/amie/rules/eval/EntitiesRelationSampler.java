@@ -3,17 +3,18 @@ package amie.rules.eval;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
-import java.util.Set;
-
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
-import javatools.datatypes.Pair;
 
 import amie.data.KB;
+import amie.data.tuple.IntPair;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 /**
  * For each relation r of a given KB, it takes a sample of the entities x in the domain of the relation r

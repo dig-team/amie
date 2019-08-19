@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
+
 import amie.data.KB;
 import amie.data.Schema;
 import amie.mining.assistant.MiningAssistant;
 import amie.rules.ConfidenceMetric;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 
 /**
  * This mining assistant drives the AMIE algorithm so that it outputs rules of the forms

@@ -5,12 +5,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
+
 import amie.data.KB;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.mining.assistant.MiningOperator;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntCollection;
 
 public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 

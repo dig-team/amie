@@ -1,15 +1,15 @@
 package amie.data;
 
+import amie.data.tuple.IntArrays;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntIterator;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
 
 import java.util.List;
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
+
 import javatools.datatypes.Pair;
 import junit.framework.TestCase;
 

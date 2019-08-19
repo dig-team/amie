@@ -8,20 +8,21 @@ package amie.typing.utils;
 import amie.data.KB;
 import amie.data.Schema;
 import amie.typing.heuristics.TypingHeuristic;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import javatools.datatypes.Integer;
+
 import javatools.datatypes.Pair;
 
 /**

@@ -8,12 +8,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
+
 import amie.data.KB;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.mining.assistant.MiningOperator;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 
 /**
  * This class overrides the default mining assistant and adds to the rule

@@ -5,20 +5,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
-import javatools.datatypes.MultiMap;
-import javatools.datatypes.Pair;
 import amie.data.KB;
-import amie.data.TransitiveTypesKB;
 import amie.data.Schema;
 import amie.mining.assistant.*;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntCollection;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 public class TypingMiningAssistant extends DefaultMiningAssistant {
 	

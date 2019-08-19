@@ -2,12 +2,11 @@ package amie.typing.heuristics;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import amie.data.KB;
-import amie.data.U;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
-import javatools.datatypes.Integer;
+
 
 public class PopularityHeuristic extends TypingHeuristic {
 

@@ -6,7 +6,7 @@ import java.util.List;
 
 import amie.rules.AMIEParser;
 import amie.rules.Rule;
-import javatools.datatypes.Integer;
+
 import javatools.filehandlers.TSVFile;
 
 public class CrossOntologyFilter {

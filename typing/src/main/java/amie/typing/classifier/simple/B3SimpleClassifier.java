@@ -7,12 +7,12 @@ package amie.typing.classifier.simple;
 
 import amie.data.Schema;
 import amie.data.SimpleTypingKB;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.locks.Lock;
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
+
 
 /**
  *

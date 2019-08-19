@@ -6,11 +6,11 @@
 package amie.typing.utils;
 
 import amie.data.KB;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
-import javatools.datatypes.Integer;
+
 import javatools.filehandlers.FileLines;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.KosarajuStrongConnectivityInspector;

@@ -4,15 +4,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
+
 import amie.data.KB;
+import amie.data.tuple.IntTriple;
 import amie.rules.AMIEParser;
 import amie.rules.Rule;
-import javatools.datatypes.Triple;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
 /**
  * 

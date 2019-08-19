@@ -5,8 +5,6 @@
  */
 package amie.data;
 
-import javatools.datatypes.Integer;
-
 /**
  *
  * @author jlajus

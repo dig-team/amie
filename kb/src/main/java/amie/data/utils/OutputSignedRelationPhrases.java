@@ -12,10 +12,11 @@ import java.util.Map;
 import java.util.Set;
 
 import amie.data.KB;
-import java.util.HashSet;
-import javatools.datatypes.Integer;
-import javatools.datatypes.Pair;
-import javatools.datatypes.Triple;
+import amie.data.tuple.IntPair;
+import amie.data.tuple.IntTriple;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 /**
  * Given a KB with non-canonicalized verbal phrases and types for the entities, 

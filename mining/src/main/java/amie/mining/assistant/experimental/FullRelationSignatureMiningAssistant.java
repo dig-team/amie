@@ -2,12 +2,12 @@ package amie.mining.assistant.experimental;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
-import javatools.datatypes.Integer;
+
 import amie.data.KB;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.IntList;
 
 public class FullRelationSignatureMiningAssistant extends DefaultMiningAssistant {
 

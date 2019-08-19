@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.Set;
 
 import amie.data.KB;
-import javatools.datatypes.Integer;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+
 import javatools.datatypes.IntHashMap;
 import javatools.filehandlers.TSVFile;
 

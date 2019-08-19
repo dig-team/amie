@@ -5,14 +5,14 @@
  */
 package amie.data;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntIterator;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.Closeable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
+
 import javatools.datatypes.Pair;
 
 /**

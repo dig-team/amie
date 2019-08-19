@@ -1,12 +1,9 @@
 package amie.data;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
 
 public class QueryKB {
 

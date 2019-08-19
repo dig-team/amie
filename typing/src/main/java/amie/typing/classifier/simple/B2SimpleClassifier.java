@@ -6,11 +6,11 @@
 package amie.typing.classifier.simple;
 
 import amie.data.SimpleTypingKB;
-import java.util.Map;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.util.Queue;
 import java.util.concurrent.locks.Lock;
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
+
 
 /**
  *

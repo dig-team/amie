@@ -7,9 +7,8 @@ package amie.typing.evaluation;
 
 import amie.data.KB;
 import amie.data.Schema;
-import java.util.Set;
-import javatools.datatypes.Integer;
-import javatools.datatypes.IntHashMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import javatools.datatypes.Pair;
 
 /**

@@ -1935,15 +1935,15 @@ public class Rule {
      * @param mappings
      * @param inputTriples 
      */
-    public static void bind(Int2ObjectMap<ByteString> mappings,
+    public static void bind(Int2IntMap mappings,
             List<int[]> inputTriples) {
         for (int[] triple : inputTriples) {
             int binding = mappings.get(triple[0]);
-            if (binding != null) {
+            if (binding != 0) {
                 triple[0] = binding;
             }
             binding = mappings.get(triple[2]);
-            if (binding != null) {
+            if (binding != 0) {
                 triple[2] = binding;
             }
         }
@@ -2051,7 +2051,7 @@ public class Rule {
             }
 
             int[] head = rule.getHead();
-            Int2ObjectMap<ByteString> mappings = new Int2ObjectOpenHashMap<>();
+            Int2IntMap mappings = new Int2IntOpenHashMap();
             mappings.put(head[0], canonicalSubjectExp);
             mappings.put(head[2], canonicalObjectExp);
             Rule.bind(mappings, antecedentClone);

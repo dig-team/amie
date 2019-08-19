@@ -28,7 +28,7 @@ public class TransitiveTypesKB extends KB {
 	public static final int TRANSITIVETYPEbs = KB.map(TRANSITIVETYPEstr);
 	
 	@Override
-	protected boolean contains(ByteString... fact) {
+	protected boolean contains(int... fact) {
 		if (fact[1].equals(TRANSITIVETYPEbs)) {
 			for (int type : get(this.subject2relation2object, fact[0], Schema.typeRelationBS)) {
 				if (Schema.isTransitiveSuperType(this, fact[2], type)) {
@@ -42,7 +42,7 @@ public class TransitiveTypesKB extends KB {
 	}
 
 	@Override
-	protected long countTwoVariables(ByteString... triple) {
+	protected long countTwoVariables(int... triple) {
 		if (triple[1].equals(TRANSITIVETYPEbs)) {
 			Int2ObjectMap<IntSet> resultTwoVars = 
 					resultsTwoVariablesByPos(0, 2, triple);
@@ -57,7 +57,7 @@ public class TransitiveTypesKB extends KB {
 	}
 	
 	@Override
-	public IntSet resultsOneVariable(ByteString... triple) {
+	public IntSet resultsOneVariable(int... triple) {
 		if (triple[1].equals(TRANSITIVETYPEbs)) {
 			if (isVariable(triple[0])) {
 				/*

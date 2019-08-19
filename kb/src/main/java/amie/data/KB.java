@@ -250,7 +250,7 @@ public class KB {
 	 * @param fact
 	 * @return TRUE if the KB was changed, i.e., the fact did not exist before.
 	 */
-	public boolean add(ByteString... fact) {
+	public boolean add(int... fact) {
 		if (fact.length == 3) {
 			return add(fact[0], fact[1], fact[2]);
 		} else if (fact.length == 4) {
@@ -938,7 +938,7 @@ public class KB {
 	/**
 	 * It returns TRUE if the 0th component is different from the 2n, 3rd, 4th, etc. 
 	 **/
-	public static boolean differentFrom(ByteString... triple) {
+	public static boolean differentFrom(int... triple) {
 		if (!triple[1].equals(DIFFERENTFROMbs))
 			throw new IllegalArgumentException(
 					"DifferentFrom can only be called with a differentFrom predicate: "
@@ -960,7 +960,7 @@ public class KB {
 	/**
 	 * It returns TRUE if the 0th component is different from the 2n, 3rd, 4th, etc. 
 	 **/
-	public static boolean equalTo(ByteString... triple) {
+	public static boolean equalTo(int... triple) {
 		if (!triple[1].equals(EQUALSbs))
 			throw new IllegalArgumentException(
 					"equalTo can only be called with a equals predicate: "
@@ -1025,7 +1025,7 @@ public class KB {
 	 * Returns the results of the triple pattern query, if it contains exactly 1
 	 * variable
 	 */
-	public IntSet resultsOneVariable(ByteString... triple) {
+	public IntSet resultsOneVariable(int... triple) {
 		if (triple[1].equals(TRANSITIVETYPEbs)) {
 			if (isVariable(triple[0])) {
 				/*
@@ -1183,7 +1183,7 @@ public class KB {
 	 * if the expression evaluates to TRUE.
 	 * @param fact A triple without variables, e.g., [Barack_Obama, wasBornIn, Hawaii]
 	 **/
-	protected boolean contains(ByteString... fact) {
+	protected boolean contains(int... fact) {
 		if (fact[1] == TRANSITIVETYPEbs) {
 			for (int type : get(this.subject2relation2object, fact[0], Schema.typeRelationBS)) {
 				if (Schema.isTransitiveSuperType(this, fact[2], type)) {
@@ -1522,7 +1522,7 @@ public class KB {
 	 * with 1 variable.
 	 * @throws OperationNotSupportedException 
 	 **/
-	public long countOneVariable(ByteString... triple)  {
+	public long countOneVariable(int... triple)  {
 		if (triple[1].equals(DIFFERENTFROMbs))
 			return (Long.MAX_VALUE);
 		if (triple[1].equals(EQUALSbs))
@@ -1628,7 +1628,7 @@ public class KB {
 	 * Returns the number of distinct results of the triple pattern query 
 	 * with 2 variables. 
 	 **/
-	protected long countTwoVariables(ByteString... triple) {
+	protected long countTwoVariables(int... triple) {
 		if (triple[1].equals(TRANSITIVETYPEbs)) {
 			Int2ObjectMap<IntSet> resultTwoVars = 
 					resultsTwoVariablesByPos(0, 2, triple);
@@ -1712,7 +1712,7 @@ public class KB {
 	}
 
 	/** returns number of instances of this triple */
-	protected long count(ByteString... triple) {
+	protected long count(int... triple) {
 		switch (numVariables(triple)) {
 		case 0:
 			return (contains(triple) ? 1 : 0);
@@ -1883,7 +1883,7 @@ public class KB {
 	 * @param fact
 	 * @return
 	 */
-	public static int firstVariablePos(ByteString... fact) {
+	public static int firstVariablePos(int... fact) {
 		for (int i = 0; i < fact.length; i++)
 			if (isVariable(fact[i]))
 				return (i);
@@ -1895,7 +1895,7 @@ public class KB {
 	 * @param fact
 	 * @return
 	 */
-	public static int secondVariablePos(ByteString... fact) {
+	public static int secondVariablePos(int... fact) {
 		for (int i = firstVariablePos(fact) + 1; i < fact.length; i++)
 			if (isVariable(fact[i]))
 				return (i);
@@ -2728,7 +2728,7 @@ public class KB {
 	 * instantiations of the triple
 	 */
 	protected Int2IntMap countBindings(int pos,
-			ByteString... triple) {
+			int... triple) {
 		switch (numVariables(triple)) {
 		case 1:
 			return (new Int2IntOpenHashMap(resultsOneVariable(triple)));
@@ -3496,7 +3496,7 @@ public class KB {
 	}
 
 	/** Makes a triple */
-	public static int[] triple(ByteString... triple) {
+	public static int[] triple(int... triple) {
 		return (triple);
 	}
 
@@ -4526,7 +4526,7 @@ public class KB {
 		}
 	}
 	
-	public void loadDiff(File file, KB oldKB, ByteString... exceptions)
+	public void loadDiff(File file, KB oldKB, int... exceptions)
 			throws IOException {
 		long size = size();
 		IntList exceptionsList = IntArrays.asList(exceptions);

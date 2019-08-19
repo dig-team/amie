@@ -44,7 +44,7 @@ public class ExistentialRulesMiningAssistant extends DefaultMiningAssistant {
 	 */
 	public void getClosingAtoms(Rule rule, double minSupportThreshold, Collection<Rule> output){
 		super.getClosingAtoms(rule, minSupportThreshold, output);
-		List<ByteString> openVariables = rule.getOpenVariables();
+		IntList openVariables = rule.getOpenVariables();
 		List<int[]> candidate = new ArrayList<>();
 		if (openVariables.size() > 0) {
 			for (int[] triple : rule.getTriplesCopy()) {

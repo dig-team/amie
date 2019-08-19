@@ -102,7 +102,7 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 		if (!rule.getHeadRelationBS().equals(KB.TRANSITIVETYPEbs)) {
 			return;
 		}
-		List<ByteString> openVariables = rule.getOpenVariables();
+		IntList openVariables = rule.getOpenVariables();
 		if (openVariables.isEmpty()) {
 			return;
 		}

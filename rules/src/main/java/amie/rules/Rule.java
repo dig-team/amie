@@ -517,9 +517,9 @@ public class Rule {
     /**
      * @return the mustBindVariables
      */
-    public List<ByteString> getOpenVariables() {
+    public IntList getOpenVariables() {
         Int2IntMap histogram = variablesHistogram(false);
-        List<ByteString> variables = new ArrayList<ByteString>();
+        IntList variables = new IntArrayList();
         for (int var : histogram) {
             if (histogram.get(var) < 2 && KB.isOpenableVariable(var)) {
                 variables.add(var);
@@ -958,8 +958,8 @@ public class Rule {
      *
      * @return 
      */
-    public List<ByteString> getVariables() {
-        List<ByteString> variables = new ArrayList<ByteString>();
+    public IntList getVariables() {
+        IntList variables = new IntArrayList();
         for (int[] triple : triples) {
             if (KB.isVariable(triple[0])) {
                 if (!variables.contains(triple[0])) {
@@ -977,8 +977,8 @@ public class Rule {
         return variables;
     }
     
-    public List<ByteString> getOpenableVariables() {
-        List<ByteString> variables = new ArrayList<ByteString>();
+    public IntList getOpenableVariables() {
+        IntList variables = new IntArrayList();
         for (int[] triple : triples) {
             if (KB.isOpenableVariable(triple[0])) {
                 if (!variables.contains(triple[0])) {
@@ -2243,7 +2243,7 @@ public class Rule {
      * @return
      */
     public IntSet getBodyVariables() {
-        List<ByteString> headVariables = getHeadVariables();
+        IntList headVariables = getHeadVariables();
         IntSet result = new IntOpenHashSet();
         for (int[] triple : getBody()) {
             if (KB.isVariable(triple[2])
@@ -2264,8 +2264,8 @@ public class Rule {
      *
      * @return
      */
-    public List<ByteString> getHeadVariables() {
-        List<ByteString> headVariables = new ArrayList<>();
+    public IntList getHeadVariables() {
+        IntList headVariables = new IntArrayList();
         int[] head = getHead();
         if (KB.isVariable(head[0])) {
             headVariables.add(head[0]);
@@ -2373,8 +2373,8 @@ public class Rule {
      * no duplicates.
      * @return
      */
-    public List<ByteString> getBodyRelationsBS() {
-        List<ByteString> bodyRelations = new ArrayList<>();
+    public IntList getBodyRelationsBS() {
+        IntList bodyRelations = new IntArrayList();
         for (int[] atom : getBody()) {
             if (!bodyRelations.contains(atom[1])) {
                 bodyRelations.add(atom[1]);
@@ -2383,8 +2383,8 @@ public class Rule {
         return bodyRelations;
     }
 
-	public List<ByteString> getAllRelationsBS() {
-		List<ByteString> relations = new ArrayList<>();
+	public IntList getAllRelationsBS() {
+		IntList relations = new IntArrayList();
         for (int[] atom : triples) {
             if (!relations.contains(atom[1])) {
                 relations.add(atom[1]);

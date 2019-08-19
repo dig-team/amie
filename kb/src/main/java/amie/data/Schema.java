@@ -53,7 +53,7 @@ public class Schema {
 	
 	public static int rangeRelationBS = KB.map(rangeRelation);
 	
-	public static List<ByteString> schemaRelationsBS = Arrays.asList(typeRelationBS, subClassRelationBS, 
+	public static IntList schemaRelationsBS = IntArrays.asList(typeRelationBS, subClassRelationBS, 
 			subPropertyRelationBS, domainRelationBS, rangeRelationBS);
 	
 	public static List<String> schemaRelations = Arrays.asList(typeRelation, subClassRelation, 

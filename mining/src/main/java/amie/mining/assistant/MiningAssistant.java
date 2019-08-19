@@ -587,7 +587,7 @@ public class MiningAssistant {
 			}
 		}
 		
-		List<ByteString> joinVariables = null;
+		IntList joinVariables = null;
 		
 		//Then do it for all values
 		if(rule.isClosed(true)){
@@ -693,9 +693,9 @@ public class MiningAssistant {
 		if(!isNotTooLong(rule))
 			return;
 		
-		List<ByteString> sourceVariables = null;
-		List<ByteString> allVariables = rule.getOpenableVariables();
-		List<ByteString> openVariables = rule.getOpenVariables();
+		IntList sourceVariables = null;
+		IntList allVariables = rule.getOpenableVariables();
+		IntList openVariables = rule.getOpenVariables();
 		
 		if(rule.isClosed(true)){
 			sourceVariables = rule.getOpenableVariables();
@@ -770,7 +770,7 @@ public class MiningAssistant {
 			return;
 		}
 		
-		List<ByteString> queryFreshVariables = rule.getOpenVariables();
+		IntList queryFreshVariables = rule.getOpenVariables();
 		if (this.exploitMaxLengthOption 
 				|| rule.getRealLength() < this.maxDepth - 1 
 				|| queryFreshVariables.size() < 2) {	
@@ -779,7 +779,7 @@ public class MiningAssistant {
 				int lastTriplePatternIndex = candidate.getLastRealTriplePatternIndex();
 				int[] lastTriplePattern = candidate.getTriples().get(lastTriplePatternIndex);
 				
-				List<ByteString> candidateFreshVariables = candidate.getOpenVariables();
+				IntList candidateFreshVariables = candidate.getOpenVariables();
 				int danglingPosition = 0;
 				if (candidateFreshVariables.contains(lastTriplePattern[0])) {
 					danglingPosition = 0;

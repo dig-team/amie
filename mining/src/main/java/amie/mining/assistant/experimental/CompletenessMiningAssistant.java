@@ -51,7 +51,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	
 	public static final int isRelevanthasNumberOfFactsBS = KB.map(isRelevanthasNumberOfFacts);
 	
-	private static final List<ByteString> functionalExceptions = Arrays.asList(KB.map("<hasChild>"), 
+	private static final IntList functionalExceptions = IntArrays.asList(KB.map("<hasChild>"), 
 			KB.map("<child_P40>"), KB.map("<spokenIn>"));
 	
 	public CompletenessMiningAssistant(KB dataSource) {
@@ -537,10 +537,10 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		Pair<ByteString, Integer> relationPairParent = KB.parseCardinalityRelation(triplesParent[1]);
 		Pair<ByteString, Integer> relationPairRule = KB.parseCardinalityRelation(triplesRule[1]);
 		
-		List<ByteString> gtList = Arrays.asList(KB.hasNumberOfValuesGreaterThanBS, 
+		IntList gtList = IntArrays.asList(KB.hasNumberOfValuesGreaterThanBS, 
 				KB.hasNumberOfValuesGreaterThanInvBS);
 		
-		List<ByteString> stList = Arrays.asList(KB.hasNumberOfValuesSmallerThanBS, 
+		IntList stList = IntArrays.asList(KB.hasNumberOfValuesSmallerThanBS, 
 				KB.hasNumberOfValuesSmallerThanInvBS);
 		
 		if (relationPairParent != null && relationPairRule != null) {

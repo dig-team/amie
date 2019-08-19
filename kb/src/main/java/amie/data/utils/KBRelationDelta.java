@@ -46,7 +46,7 @@ public class KBRelationDelta {
 		db1.load(oldFiles);
 		db2.load(newFiles);
 		
-		List<ByteString> r1 = db1.getRelationsList();
+		IntList r1 = db1.getRelationsList();
 		Queue<ByteString> r2 = new LinkedList<>(db2.getRelationsList());
 		
 		r2.retainAll(r1);

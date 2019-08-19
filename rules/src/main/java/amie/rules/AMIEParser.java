@@ -61,7 +61,7 @@ public class AMIEParser {
 	    	triples.add(0, last);
 	    	Rule query=new Rule();
 	 
-	    	ArrayList<ByteString> variables = new ArrayList<ByteString>();
+	    	IntList variables = new IntArrayList();
 	    	for(int[] triple: triples){
 	    		if(!variables.contains(triple[0]))
 	    			variables.add(triple[0]);

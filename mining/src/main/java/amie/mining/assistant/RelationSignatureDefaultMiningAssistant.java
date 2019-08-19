@@ -22,7 +22,7 @@ public class RelationSignatureDefaultMiningAssistant extends DefaultMiningAssist
 	 */
 	public RelationSignatureDefaultMiningAssistant(KB dataSource) {
 		super(dataSource);
-        List<ByteString> excludedRelationsSignatured = Arrays.asList(KB.map("rdf:type"),
+        IntList excludedRelationsSignatured = IntArrays.asList(KB.map("rdf:type"),
                 KB.map("rdfs:domain"), KB.map("rdfs:range"));
         bodyExcludedRelations = excludedRelationsSignatured;
         headExcludedRelations = excludedRelationsSignatured;

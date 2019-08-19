@@ -33,8 +33,8 @@ public class EntitiesRelationSampler {
 		int maxOccurrencePerRelation = Integer.parseInt(args[0]);		
 		db.load(new File(args[1]));
 		IntSet allEntities = db.selectDistinct(KB.map("?s"), KB.triples(KB.triple(KB.map("?s"), KB.map("?p"), KB.map("?o"))));
-		List<ByteString> allRelations = new ArrayList<ByteString>(db.selectDistinct(KB.map("?p"), KB.triples(KB.triple(KB.map("?s"), KB.map("?p"), KB.map("?o")))));
-		List<ByteString> entitiesArray = new ArrayList<ByteString>(allEntities); 
+		IntList allRelations = new IntArrayList(db.selectDistinct(KB.map("?p"), KB.triples(KB.triple(KB.map("?s"), KB.map("?p"), KB.map("?o")))));
+		IntList entitiesArray = new IntArrayList(allEntities); 
 		Int2ObjectMap<List<IntPair>> relationsMap = new Int2ObjectOpenHashMap<List<IntPair>>();
 		Int2IntMap relationEntityCount = new Int2IntOpenHashMap();
 		
@@ -78,7 +78,7 @@ public class EntitiesRelationSampler {
 		
 	}
 
-	private static void swap(List<ByteString> entitiesArray, int i, int j) {
+	private static void swap(IntList entitiesArray, int i, int j) {
 		int tmp = entitiesArray.get(i);
 		entitiesArray.set(i, entitiesArray.get(j));
 		entitiesArray.set(j, tmp);

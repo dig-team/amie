@@ -156,7 +156,7 @@ public long countPairs(int var1, int var2,
 		
 		public static AtomicLong queryCount = new AtomicLong();
 		
-		public queryCache(List<int[]> query, List<ByteString> countVariables) {
+		public queryCache(List<int[]> query, IntList countVariables) {
 			
 			queryRep = stringRepresentation(query, countVariables);
 			queryCount.incrementAndGet();
@@ -224,7 +224,7 @@ public long countPairs(int var1, int var2,
 		
 		public static AtomicLong collisionCount = new AtomicLong();
 		
-		public String stringRepresentation(List<int[]> _query, List<ByteString> _cV) {
+		public String stringRepresentation(List<int[]> _query, IntList _cV) {
 			String r = "";
 			for (int[] atom : _query) {
 				r += atom[0].toString() + " " + atom[1].toString() + " " + atom[2].toString() + "; ";

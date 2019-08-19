@@ -79,10 +79,10 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 		if(!isNotTooLong(query))
 			return;
 		
-		List<ByteString> sourceVariables = null;
-		List<ByteString> allVariables = query.getVariables();
-		List<ByteString> targetVariables = null;		
-		List<ByteString> openVariables = query.getOpenVariables();
+		IntList sourceVariables = null;
+		IntList allVariables = query.getVariables();
+		IntList targetVariables = null;		
+		IntList openVariables = query.getOpenVariables();
 		
 		if(query.isClosed(true)){
 			sourceVariables = allVariables;
@@ -198,7 +198,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 	@MiningOperator(name="dangling")
 	public void getDanglingAtoms(Rule query, double minCardinality, Collection<Rule> output){		
 		int[] newEdge = query.fullyUnboundTriplePattern();
-		List<ByteString> openVariables = query.getOpenVariables();
+		IntList openVariables = query.getOpenVariables();
 		
 		//General case
 		if(!isNotTooLong(query))
@@ -215,7 +215,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 			}
 		}
 		
-		List<ByteString> joinVariables = null;
+		IntList joinVariables = null;
 		
 		//Then do it for all values
 		if(query.isClosed(true)){

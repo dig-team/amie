@@ -153,7 +153,7 @@ public class KB {
 	/** Variable sign (as defined in SPARQL) **/
 	public static final char VariableSign = '?';
 	
-	public static final List<ByteString> specialRelations = Collections.unmodifiableList(Arrays.asList(TRANSITIVETYPEbs, DIFFERENTFROMbs, 
+	public static final IntList specialRelations = Collections.unmodifiableList(Arrays.asList(TRANSITIVETYPEbs, DIFFERENTFROMbs, 
 			EQUALSbs, EXISTSbs, EXISTSINVbs, NOTEXISTSbs, NOTEXISTSINVbs));
 
 	/** Identifiers for the overlap maps */
@@ -4129,7 +4129,7 @@ public class KB {
 	 * Get a list of the relations of the KB.
 	 * @return
 	 */
-	public List<ByteString> getRelationsList() {
+	public IntList getRelationsList() {
 		return relationSize.decreasingKeys();
 	}
 	
@@ -4425,7 +4425,7 @@ public class KB {
 	public void summarizeDistributions(boolean useSignatureTypes) {
 		summarize(true);
 		System.out.println();
-		List<ByteString> ommittedRelations = Arrays.asList(KB.map("rdf:type"),
+		IntList ommittedRelations = IntArrays.asList(KB.map("rdf:type"),
 				KB.map("rdfs:domain"), KB.map("rdfs:range"));
 		PrintWriter writer = null;
 		try {
@@ -4530,7 +4530,7 @@ public class KB {
 	public void loadDiff(File file, KB oldKB, ByteString... exceptions)
 			throws IOException {
 		long size = size();
-		List<ByteString> exceptionsList = Arrays.asList(exceptions);
+		IntList exceptionsList = IntArrays.asList(exceptions);
 		if (file.isDirectory()) 
 			throw new UnsupportedOperationException("Expected kb file, not a directory");
 		for (String line : new FileLines(file, "UTF-8", null)) {

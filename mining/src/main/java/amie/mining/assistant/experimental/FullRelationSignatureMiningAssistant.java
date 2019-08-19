@@ -36,7 +36,7 @@ public class FullRelationSignatureMiningAssistant extends DefaultMiningAssistant
 		} else if (query.getLength() == 1) {
 			getDanglingAtoms(query, newEdge, minCardinality, output);
 		} else if (query.getLength() == 2) {
-			List<ByteString> variables = query.getOpenVariables();
+			IntList variables = query.getOpenVariables();
 			// There must be one
 			newEdge[0] = variables.get(0);
 			newEdge[1] = rdfType;

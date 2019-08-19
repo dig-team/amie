@@ -136,7 +136,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 		int length = query.getLengthWithoutTypesAndLinksTo(typeString, KB.map(wikiLinkProperty));
 		int[] head = query.getHead();
 		if (length == maxDepth - 1) {
-			List<ByteString> openVariables = query.getOpenVariables();
+			IntList openVariables = query.getOpenVariables();
 			for (int openVar : openVariables) {
 				if (KB.isVariable(head[0]) && !openVar.equals(head[0])) {
 					return;

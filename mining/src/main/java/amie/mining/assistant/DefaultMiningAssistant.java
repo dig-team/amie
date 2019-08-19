@@ -113,10 +113,10 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		if(!isNotTooLong(rule))
 			return;
 		
-		List<ByteString> sourceVariables = null;
-		List<ByteString> targetVariables = null;
-		List<ByteString> openVariables = rule.getOpenVariables();
-		List<ByteString> allVariables = rule.getOpenableVariables();
+		IntList sourceVariables = null;
+		IntList targetVariables = null;
+		IntList openVariables = rule.getOpenVariables();
+		IntList allVariables = rule.getOpenableVariables();
 		
 		if (allVariables.size() < 2) {
 			return;
@@ -182,7 +182,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 							promisingRelations = this.kb.countProjectionBindings(rule.getHead(), rule.getAntecedent(), newEdge[1]);
 						}
 						rule.getTriples().remove(nPatterns);
-						List<ByteString> listOfPromisingRelations = promisingRelations.decreasingKeys();
+						IntList listOfPromisingRelations = promisingRelations.decreasingKeys();
 						for(int relation: listOfPromisingRelations){
 							int cardinality = promisingRelations.get(relation);
 							if (cardinality < minSupportThreshold) {
@@ -264,8 +264,8 @@ public class DefaultMiningAssistant extends MiningAssistant{
 	 * @param output
 	 */
 	protected void getDanglingAtoms(Rule query, int[] edge, double minSupportThreshold, Collection<Rule> output) {
-		List<ByteString> joinVariables = null;
-		List<ByteString> openVariables = query.getOpenVariables();
+		IntList joinVariables = null;
+		IntList openVariables = query.getOpenVariables();
 		
 		//Then do it for all values
 		if(query.isClosed(false)) {
@@ -306,7 +306,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 				query.getTriples().remove(nPatterns);					
 				int danglingPosition = (joinPosition == 0 ? 2 : 0);
 				boolean boundHead = !KB.isVariable(query.getTriples().get(0)[danglingPosition]);
-				List<ByteString> listOfPromisingRelations = promisingRelations.decreasingKeys();				
+				IntList listOfPromisingRelations = promisingRelations.decreasingKeys();				
 				// The relations are sorted by support, therefore we can stop once we have reached
 				// the minimum support.
 				for(int relation: listOfPromisingRelations){

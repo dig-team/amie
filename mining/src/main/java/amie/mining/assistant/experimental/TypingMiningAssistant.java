@@ -105,8 +105,8 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 	 * @param output
 	 */
 	protected void getDanglingAtoms(Rule query, int[] edge, double minSupportThreshold, Collection<Rule> output) {
-		List<ByteString> joinVariables = null;
-		List<ByteString> openVariables = query.getOpenVariables();
+		IntList joinVariables = null;
+		IntList openVariables = query.getOpenVariables();
 		
 		//Then do it for all values
 		if(query.isClosed(true)) {				
@@ -228,7 +228,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 		if (rule.getId() < 6)
 			return;
 		
-		List<ByteString> openVariables = rule.getOpenVariables();
+		IntList openVariables = rule.getOpenVariables();
 		if (openVariables.isEmpty()) {
 			return;
 		}
@@ -295,7 +295,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 			return;
 		int[] lastTriplePattern = rule.getTriples().get(lastTriplePatternIndex);
 		
-		List<ByteString> openVariables = rule.getOpenVariables();
+		IntList openVariables = rule.getOpenVariables();
 		int danglingPosition = 0;
 		if (openVariables.contains(lastTriplePattern[0])) {
 			danglingPosition = 0;

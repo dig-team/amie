@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntSets;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -84,7 +85,7 @@ public class Schema {
 	}
 	
 	public static IntSet getAllDefinedTypes() {
-		return Collections.unmodifiableSet(allDefinedTypesMaterialized);
+		return IntSets.unmodifiable(allDefinedTypesMaterialized);
 	}
 	
 	public static void loadSchemaConf() {
@@ -235,10 +236,10 @@ public class Schema {
 	 * @param entity
 	 * @return
 	 */
-	public static Int2IntMap getAllTypesForEntity(KB source, int entity){
+	public static IntSet getAllTypesForEntity(KB source, int entity){
 		IntSet leafTypes = getMaterializedTypesForEntity(source, entity);
-		Int2IntMap resultTypes = new Int2IntOpenHashMap(leafTypes);
-		for(int leafType: leafTypes){
+		IntSet resultTypes = new IntOpenHashSet(leafTypes);
+		for (int leafType: leafTypes) {
 			resultTypes.addAll(getAllSuperTypes(source, leafType));
 		}
 		return resultTypes;
@@ -252,7 +253,7 @@ public class Schema {
 	 */
 	public static IntSet getSuperTypes(KB source, int type){
 		List<int[]> query = KB.triples(KB.triple(type, subClassRelation, "?x"));		
-		return new IntOpenHashSet(source.selectDistinct(KB.map("?x"), query));
+		return source.selectDistinct(KB.map("?x"), query);
 	}
 	
 	/**
@@ -261,33 +262,33 @@ public class Schema {
 	 * @param type
 	 * @return
 	 */
-	public static IntSet getAllSuperTypes(KB source, int type) {
+    public static IntSet getAllSuperTypes(KB source, int type) {
+
+        if (taxonomyMaterialized) {
+            return superClassMaterialized.get(type);
+        }
+
+        IntSet resultSet = new IntOpenHashSet();
+        Queue<Integer> queue = new LinkedList<>();
+        IntSet seenTypes = new IntOpenHashSet();
+        IntSet superTypes = getSuperTypes(source, type);
+        queue.addAll(superTypes);
+        seenTypes.addAll(superTypes);
+
+        while (!queue.isEmpty()) {
+            int currentType = queue.poll();
+            resultSet.add(currentType);
+            superTypes = getSuperTypes(source, currentType);
+            for (int st : superTypes) {
+                if (!seenTypes.contains(st)) {
+                    seenTypes.add(st);
+                    queue.add(st);
+                }
+            }
+        }
 		
-		if (taxonomyMaterialized) {
-			return superClassMaterialized.get(type);
-		}
-		
-		IntSet resultSet = new IntOpenHashSet();
-		Queue<Integer> queue = new LinkedList<>();
-		IntSet seenTypes = new IntOpenHashSet();
-		IntSet superTypes = getSuperTypes(source, type);
-		queue.addAll(superTypes);
-		seenTypes.addAll(superTypes);
-		
-		while (!queue.isEmpty()) {
-			int currentType = queue.poll();
-			resultSet.add(currentType);
-			superTypes = getSuperTypes(source, currentType);
-			for (int st : superTypes) {
-		        if (!seenTypes.contains(st)) {
-	                seenTypes.add(st);
-	                queue.add(st);
-		        }
-			}
-		}
-		
-		return resultSet;
-	}
+	return resultSet;
+    }
 	
 	/**
 	 * It returns all the instances of a given type.

@@ -6,7 +6,9 @@
 package amie.data;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.IntIterator;
+import it.unimi.dsi.fastutil.ints.IntIterators;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.Closeable;
 import java.util.Collections;
@@ -35,7 +37,7 @@ public class KBIteratorU {
         public void close();
     }
     
-    public static class addNotInIfExistsIterator extends SetU.addNotInIterator<Integer> implements IntIterator, CloseableNoThrow {
+    public static class addNotInIfExistsIterator extends SetU.addNotInIntIterator implements IntIterator, CloseableNoThrow {
         
         KB kb;
         KB.Instantiator insty;
@@ -48,15 +50,15 @@ public class KBIteratorU {
 
         @Override
         public boolean hasNext() {
-            if (next != null) { return true; }
+            if (next != 0) { return true; }
             if (toIterate == null) { return false; }
             while(toIterate.hasNext()) {
-                if (!addTo.contains(next = toIterate.next()) && kb.existsBS1(insty.instantiate(next))) { 
+                if (!addTo.contains(next = toIterate.nextInt()) && kb.existsBS1(insty.instantiate(next))) { 
                     addTo.add(next);
                     return true;
                 }
             }
-            next = null;
+            next = 0;
             insty.close();
             return false;
         }
@@ -68,7 +70,7 @@ public class KBIteratorU {
         }
     }
     
-    
+        
     public static class recursiveSelectForOneVarIterator extends addNotInIfExistsIterator implements IntIterator, CloseableNoThrow {
         
         IntIterator subIterator;
@@ -77,22 +79,22 @@ public class KBIteratorU {
         public recursiveSelectForOneVarIterator(KB kb, KB.Instantiator insty, int variable, IntSet toIterate, IntSet addTo) {
             super(kb, insty, toIterate, addTo);
             this.variable = variable;
-            this.subIterator = Collections.emptyIterator();
+            this.subIterator = IntIterators.EMPTY_ITERATOR;
         }
         
         @Override
         public boolean hasNext() {
-            if (next != null) { return true; }
+            if (next != 0) { return true; }
             if (toIterate == null) { return false; }
             while (subIterator.hasNext() || toIterate.hasNext()) {
                 if (subIterator.hasNext()) {
-                    next = subIterator.next();
+                    next = subIterator.nextInt();
                     return true;
                 } else { // if (toIterate.hasNext()) {
-                    subIterator = kb.selectDistinctIterator(addTo, variable, insty.instantiate(toIterate.next()));
+                    subIterator = kb.selectDistinctIterator(addTo, variable, insty.instantiate(toIterate.nextInt()));
                 }
             }
-            next = null;
+            next = 0;
             insty.close();
             return false;
         }
@@ -122,38 +124,38 @@ public class KBIteratorU {
             this.insty1 = insty1;
             this.insty2 = insty2;
             this.variable = variable;
-            this.it1 = (toIterate == null) ? null : toIterate.entrySet().iterator();
-            this.it2 = Collections.emptyIterator();
-            this.subIterator = Collections.emptyIterator();
+            this.it1 = (toIterate == null) ? null : toIterate.int2ObjectEntrySet().iterator();
+            this.it2 = IntIterators.EMPTY_ITERATOR;
+            this.subIterator = IntIterators.EMPTY_ITERATOR;
             this.addTo = addTo;
         }
         
         @Override
         public boolean hasNext() {
-            if (next != null) { return true; }
+            if (next != 0) { return true; }
             if (it1 == null) { return false; }
             while (subIterator.hasNext() || it2.hasNext() || it1.hasNext()) {
                 if (subIterator.hasNext()) {
-                    next = subIterator.next();
+                    next = subIterator.nextInt();
                     return true;
                 } else if (it2.hasNext()) {
-                    subIterator = kb.selectDistinctIterator(addTo, variable, insty2.instantiate(it2.next()));
+                    subIterator = kb.selectDistinctIterator(addTo, variable, insty2.instantiate(it2.nextInt()));
                 } else {
                     Int2ObjectMap.Entry<IntSet> e1 = it1.next();
-                    insty1.instantiate(e1.getKey());
+                    insty1.instantiate(e1.getIntKey());
                     it2 = e1.getValue().iterator();
                 }
             }
-            next = null;
+            next = 0;
             insty1.close();
             insty2.close();
             return false;
         }
 
         @Override
-        public int next() {
-            int r = null;
-            if (next != null || hasNext()) { r = next; next = null; }
+        public int nextInt() {
+            int r = 0;
+            if (next != 0 || hasNext()) { r = next; next = 0; }
             return r;
         }
 
@@ -185,34 +187,34 @@ public class KBIteratorU {
             this.insty2 = insty2;
             this.insty3 = insty3;
             this.variable = variable;
-            this.it1 = (toIterate == null) ? null : toIterate.entrySet().iterator();
+            this.it1 = (toIterate == null) ? null : toIterate.int2ObjectEntrySet().iterator();
             this.it2 = Collections.emptyIterator();
-            this.it3 = Collections.emptyIterator();
-            this.subIterator = Collections.emptyIterator();
+            this.it3 = IntIterators.EMPTY_ITERATOR;
+            this.subIterator = IntIterators.EMPTY_ITERATOR;
             this.addTo = addTo;
         }
         
         @Override
         public boolean hasNext() {
-            if (next != null) { return true; }
+            if (next != 0) { return true; }
             if (it1 == null) { return false; }
             while (subIterator.hasNext() || it3.hasNext() || it2.hasNext() || it1.hasNext()) {
                 if (subIterator.hasNext()) {
-                    next = subIterator.next();
+                    next = subIterator.nextInt();
                     return true;
                 } else if (it3.hasNext()) {
-                    subIterator = kb.selectDistinctIterator(addTo, variable, insty3.instantiate(it3.next()));
+                    subIterator = kb.selectDistinctIterator(addTo, variable, insty3.instantiate(it3.nextInt()));
                 } else if (it2.hasNext()) {
                     Int2ObjectMap.Entry<IntSet> e2 = it2.next();
-                    insty2.instantiate(e2.getKey());
+                    insty2.instantiate(e2.getIntKey());
                     it3 = e2.getValue().iterator();
                 } else {
                     Int2ObjectMap.Entry<Int2ObjectMap<IntSet>> e1 = it1.next();
-                    insty1.instantiate(e1.getKey());
-                    it2 = e1.getValue().entrySet().iterator();
+                    insty1.instantiate(e1.getIntKey());
+                    it2 = e1.getValue().int2ObjectEntrySet().iterator();
                 }
             }
-            next = null;
+            next = 0;
             insty1.close();
             insty2.close();
             insty3.close();
@@ -220,9 +222,9 @@ public class KBIteratorU {
         }
 
         @Override
-        public int next() {
-            int r = null;
-            if (next != null || hasNext()) { r = next; next = null; }
+        public int nextInt() {
+            int r = 0;
+            if (next != 0 || hasNext()) { r = next; next = 0; }
             return r;
         }
 

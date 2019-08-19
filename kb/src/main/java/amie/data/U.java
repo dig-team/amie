@@ -1,8 +1,12 @@
 package amie.data;
 
 import amie.data.tuple.IntTriple;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntCollection;
+import it.unimi.dsi.fastutil.ints.IntComparator;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.File;
@@ -24,6 +28,67 @@ import javatools.datatypes.Triple;
  */
 public class U {
 
+        // IntHashMap utilities
+    
+        public static IntList decreasingKeys(Int2IntMap r) {
+            IntList result = new IntArrayList(r.keySet());
+            result.unstableSort((int e1, int e2) -> Integer.compare(r.get(e2), r.get(e1)));
+            return result;
+        }
+    
+        public static void increase(Int2IntMap r, Int2IntMap p) {
+            for (int k : p.keySet()) {
+                increase(r, k, p.get(k));
+            }
+        }
+        
+        public static void increase(Int2IntMap r, Int2ObjectMap<IntSet> p) {
+            for (int k : p.keySet()) {
+                increase(r, k, p.get(k).size());
+            }
+        }
+        
+        public static void increase(Int2IntMap r, IntSet p) {
+            for (int k : p) {
+                increase(r, k);
+            }
+        }
+        
+        public static void increase(Int2IntMap r, int k, int delta) {
+            r.put(k, r.getOrDefault(k, 0) + delta);
+            //r.put(k, r.get(k, 0) + delta);
+        }
+        
+        public static void increase(Int2IntMap r, int k) {
+            increase(r, k, 1);
+        }
+        
+        public static void decrease(Int2IntMap r, Int2IntMap p) {
+            for (int k : p.keySet()) {
+                decrease(r, k, p.get(k));
+            }
+        }
+        
+        public static void decrease(Int2IntMap r, Int2ObjectMap<IntSet> p) {
+            for (int k : p.keySet()) {
+                decrease(r, k, p.get(k).size());
+            }
+        }
+        
+        public static void decrease(Int2IntMap r, IntSet p) {
+            for (int k : p) {
+                decrease(r, k);
+            }
+        }
+        
+        public static void decrease(Int2IntMap r, int k, int delta) {
+            r.put(k, r.getOrDefault(k, 0) - delta);
+            //r.put(k, r.get(k, 0) + delta);
+        }
+        
+        public static void decrease(Int2IntMap r, int k) {
+            decrease(r, k, 1);
+        }
 	
 	/**
 	 * It performs a KB coalesce between 2 KBs consisting of all the facts in both ontologies
@@ -36,8 +101,8 @@ public class U {
 	public static void coalesce(KB source1, 
 			KB source2, boolean withObjs) {
 		IntSet sourceEntities = new IntOpenHashSet();
-		sourceEntities.addAll(source1.subjectSize);
-		sourceEntities.addAll(source1.objectSize);
+		sourceEntities.addAll(source1.subjectSize.keySet());
+		sourceEntities.addAll(source1.objectSize.keySet());
 		for(int entity: sourceEntities){
 			//Print all facts of the source ontology
 			Int2ObjectMap<IntSet> tail1 = source1.subject2relation2object.get(entity);
@@ -59,7 +124,7 @@ public class U {
 		}
 		
 		if(withObjs){
-			for(int entity: source2.objectSize){
+			for(int entity: source2.objectSize.keySet()){
 				if(sourceEntities.contains(entity)) continue;
 				
 				Int2ObjectMap<IntSet> tail2 = source2.subject2relation2object.get(entity);
@@ -84,13 +149,13 @@ public class U {
 		System.out.println("Relation1\tRelation2\tRelation1-subjects"
 				+ "\tRelation1-objects\tRelation2-subjects\tRelation2-objects"
 				+ "\tSubject-Subject\tSubject-Object\tObject-Subject\tObject-Object");
-		for(int r1: source.relationSize){
+		for(int r1: source.relationSize.keySet()){
 			IntSet subjects1 = source.relation2subject2object.get(r1).keySet();
 			IntSet objects1 = source.relation2object2subject.get(r1).keySet();
 			int nSubjectsr1 = subjects1.size();
 			int nObjectsr1 = objects1.size();
-			for(int r2: source.relationSize){
-				if(r1.equals(r2))
+			for(int r2: source.relationSize.keySet()){
+				if(r1 == (r2))
 					continue;				
 				System.out.print(r1 + "\t");
 				System.out.print(r2 + "\t");

@@ -6,12 +6,17 @@ import amie.data.tuple.IntTriple;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntIterator;
+import it.unimi.dsi.fastutil.ints.IntIterators;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntSets;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -34,6 +39,7 @@ import java.util.regex.Pattern;
 import javax.naming.OperationNotSupportedException;
 
 import javatools.administrative.Announce;
+import javatools.datatypes.ByteString;
 
 import javatools.datatypes.IntHashMap;
 import javatools.datatypes.Pair;
@@ -51,6 +57,22 @@ import javatools.parsers.NumberFormatter;
  * 
  */
 public class KB {
+    
+    
+        protected static ArrayList<ByteString> idToEntity = new ArrayList(Arrays.asList(ByteString.of("null")));
+        
+        protected static Object2IntMap<ByteString> entityToId = new Object2IntOpenHashMap<ByteString>();
+        
+        public static int map(CharSequence cs) {
+            return 0;
+            if (cs.charAt(0) == '?') {
+                return parseVariable(cs);
+            }
+        }
+        
+        public static String unmap(int e) {
+            return "";
+        }
 
 	// ---------------------------------------------------------------------------
 	// Indexes
@@ -153,8 +175,8 @@ public class KB {
 	/** Variable sign (as defined in SPARQL) **/
 	public static final char VariableSign = '?';
 	
-	public static final IntList specialRelations = Collections.unmodifiableList(Arrays.asList(TRANSITIVETYPEbs, DIFFERENTFROMbs, 
-			EQUALSbs, EXISTSbs, EXISTSINVbs, NOTEXISTSbs, NOTEXISTSINVbs));
+	public static final IntList specialRelations = IntArrays.asList(TRANSITIVETYPEbs, DIFFERENTFROMbs, 
+			EQUALSbs, EXISTSbs, EXISTSINVbs, NOTEXISTSbs, NOTEXISTSINVbs);
 
 	/** Identifiers for the overlap maps */
 	public static final int SUBJECT2SUBJECT = 0;
@@ -277,17 +299,17 @@ public class KB {
 		add(object, relation, subject, object2relation2subject);
 		add(subject, object, relation, subject2object2relation);
 		synchronized (subjectSize) {
-			subjectSize.increase(subject);
+			increase(subjectSize, subject);
 		}
 		synchronized (relationSize) {
-			relationSize.increase(relation);
+			increase(relationSize, relation);
 		}
 		synchronized (objectSize) {
-			objectSize.increase(object);
+			increase(objectSize, object);
 		}
 
 		synchronized (subject2subjectOverlap) {
-			IntSet overlaps = subject2subjectOverlap
+			Int2IntMap overlaps = subject2subjectOverlap
 					.get(relation);
 			if (overlaps == null) {
 				subject2subjectOverlap.put(relation,
@@ -296,7 +318,7 @@ public class KB {
 		}
 
 		synchronized (subject2objectOverlap) {
-			IntSet overlaps = subject2objectOverlap
+			Int2IntMap overlaps = subject2objectOverlap
 					.get(relation);
 			if (overlaps == null) {
 				subject2objectOverlap.put(relation,
@@ -305,7 +327,7 @@ public class KB {
 		}
 
 		synchronized (object2objectOverlap) {
-			IntSet overlaps = object2objectOverlap
+			Int2IntMap overlaps = object2objectOverlap
 					.get(relation);
 			if (overlaps == null) {
 				object2objectOverlap.put(relation,
@@ -377,8 +399,8 @@ public class KB {
 	 * @return
 	 */
 	public long entitiesSize() {
-		IntSet entities = new IntOpenHashSet(subjectSize);
-		entities.addAll(objectSize);
+		IntSet entities = new IntOpenHashSet(subjectSize.keySet());
+		entities.addAll(objectSize.keySet());
 		return entities.size();
 	}
 
@@ -386,10 +408,18 @@ public class KB {
 	public static boolean isVariable(CharSequence s) {
 		return (s.length() > 0 && s.charAt(0) == VariableSign);
 	}
+        
+        public static boolean isVariable(int s) {
+            return (s < 0 && s > -2048);
+        }
 	
         
         public static boolean isOpenableVariable(CharSequence s) {
             return (s.length() > 1 && s.charAt(0) == VariableSign && s.charAt(1) != '_');
+        }
+        
+        public static boolean isOpenableVariable(int s) {
+            return (s < -1024 && s > -2048);
         }
 
 	/**
@@ -431,18 +461,18 @@ public class KB {
 	 * objects in common between pairs of relations. They can be used for join cardinality estimation.
 	 */
 	public void buildOverlapTables() {
-		for (int r1 : relationSize) {
+		for (int r1 : relationSize.keySet()) {
 			IntSet subjects1 = relation2subject2object.get(r1)
 					.keySet();
 			IntSet objects1 = relation2object2subject.get(r1)
 					.keySet();
-			for (int r2 : relationSize) {
+			for (int r2 : relationSize.keySet()) {
 				IntSet subjects2 = relation2subject2object.get(r2)
 						.keySet();
 				IntSet objects2 = relation2object2subject.get(r2)
 						.keySet();
 
-				if (!r1.equals(r2)) {
+				if (r1 != r2) {
 					int ssoverlap = computeOverlap(subjects1, subjects2);
 					subject2subjectOverlap.get(r1).put(r2, ssoverlap);
 					subject2subjectOverlap.get(r2).put(r1, ssoverlap);
@@ -455,7 +485,7 @@ public class KB {
 				int soverlap2 = computeOverlap(subjects2, objects1);
 				subject2objectOverlap.get(r2).put(r1, soverlap2);
 
-				if (!r1.equals(r2)) {
+				if (r1 != r2) {
 					int oooverlap = computeOverlap(objects1, objects2);
 					object2objectOverlap.get(r1).put(r2, oooverlap);
 					object2objectOverlap.get(r2).put(r1, oooverlap);
@@ -479,16 +509,16 @@ public class KB {
         public static LinkedList<Pair<SignedPredicate, SignedPredicate>> initQueue(KB db, int nThread) {
             LinkedList<Pair<SignedPredicate, SignedPredicate>> queue = new LinkedList<>();
             SignedPredicate sp1, sp1i, sp2, sp2i;
-            for (int r1 : db.relationSize) {
+            for (int r1 : db.relationSize.keySet()) {
                 sp1 = new SignedPredicate(r1, true);
                 sp1i = new SignedPredicate(r1, false);
                 db.subject2subjectOverlap.put(r1, new Int2IntOpenHashMap());
                 db.subject2objectOverlap.put(r1, new Int2IntOpenHashMap());
                 db.object2objectOverlap.put(r1, new Int2IntOpenHashMap());
                 
-                for (int r2 : db.relationSize) {
+                for (int r2 : db.relationSize.keySet()) {
                 
-                    if (r1.compareTo(r2) < 0) { 
+                    if (r1 < r2) { 
                         continue;
                     }
                     
@@ -525,13 +555,13 @@ public class KB {
         }
         
         public static void set(KB db, SignedPredicate sp1, SignedPredicate sp2, int overlap) {
-            IntHashMap e;
+            Int2IntMap e;
             if (sp1.subject && sp2.subject) {
                 e = db.subject2subjectOverlap.get(sp1.predicate);
                 synchronized(e) {
                     e.put(sp2.predicate, overlap);
                 }
-                if (!sp1.predicate.equals(sp2.predicate)) {
+                if (sp1.predicate != sp2.predicate) {
                     e = db.subject2subjectOverlap.get(sp2.predicate);
                     synchronized(e) {
                         e.put(sp1.predicate, overlap);
@@ -542,7 +572,7 @@ public class KB {
                 synchronized(e) {
                     e.put(sp2.predicate, overlap);
                 }
-                if (!sp1.predicate.equals(sp2.predicate)) {
+                if (sp1.predicate != sp2.predicate) {
                     e = db.object2objectOverlap.get(sp2.predicate);
                     synchronized(e) {
                         e.put(sp1.predicate, overlap);
@@ -733,7 +763,7 @@ public class KB {
 	 * https://www.lri.fr/~cr/Publications_Master_2013/Brigitte_Safar/p157_fabianmsuchanek_vldb2011.pdf
 	 **/
 	public double functionality(int relation) {
-		if (relation.equals(EQUALSbs)) {
+		if (relation == EQUALSbs) {
 			return 1.0;
 		} else {
 			if (relation2subject2object.containsKey(relation)) {
@@ -758,7 +788,7 @@ public class KB {
 	 * https://www.lri.fr/~cr/Publications_Master_2013/Brigitte_Safar/p157_fabianmsuchanek_vldb2011.pdf
 	 */
 	public double inverseFunctionality(int relation) {
-		if (relation.equals(EQUALSbs)) {
+		if (relation == EQUALSbs) {
 			return 1.0;
 		} else {
 			if (relation2object2subject.containsKey(relation)) {
@@ -940,12 +970,12 @@ public class KB {
 	 * It returns TRUE if the 0th component is different from the 2n, 3rd, 4th, etc. 
 	 **/
 	public static boolean differentFrom(int... triple) {
-		if (!triple[1].equals(DIFFERENTFROMbs))
+		if (triple[1] != DIFFERENTFROMbs)
 			throw new IllegalArgumentException(
 					"DifferentFrom can only be called with a differentFrom predicate: "
 							+ toString(triple));
 		for (int i = 2; i < triple.length; i++) {
-			if (triple[0].equals(triple[i]))
+			if (triple[0] == triple[i])
 				return (false);
 		}
 		return (true);
@@ -962,12 +992,12 @@ public class KB {
 	 * It returns TRUE if the 0th component is different from the 2n, 3rd, 4th, etc. 
 	 **/
 	public static boolean equalTo(int... triple) {
-		if (!triple[1].equals(EQUALSbs))
+		if (triple[1] != EQUALSbs)
 			throw new IllegalArgumentException(
 					"equalTo can only be called with a equals predicate: "
 							+ toString(triple));
 		for (int i = 2; i < triple.length; i++) {
-			if (!triple[0].equals(triple[i]))
+			if (triple[0] != triple[i])
 				return (false);
 		}
 		return (true);
@@ -1005,7 +1035,7 @@ public class KB {
 			int key) {
 		Int2ObjectMap<IntSet> m = map.get(key);
 		if (m == null)
-			return (Collections.emptyMap());
+			return (Int2ObjectMaps.emptyMap());
 		else
 			return (m);
 	}
@@ -1027,7 +1057,7 @@ public class KB {
 	 * variable
 	 */
 	public IntSet resultsOneVariable(int... triple) {
-		if (triple[1].equals(TRANSITIVETYPEbs)) {
+		if (triple[1] == TRANSITIVETYPEbs) {
 			if (isVariable(triple[0])) {
 				/*
 				 * Return all the entities in subclasses of triple[2]
@@ -1044,10 +1074,10 @@ public class KB {
 				return Schema.getAllTypesForEntity(this, triple[0]);
 			}
 		}
-		if (triple[1].equals(DIFFERENTFROMbs))
+		if (triple[1] == DIFFERENTFROMbs)
 			throw new IllegalArgumentException("Cannot query differentFrom: "
 					+ toString(triple));
-		if (triple[1].equals(EQUALSbs)) {
+		if (triple[1] == EQUALSbs) {
 			IntSet result = new IntOpenHashSet();
 			if (isVariable(triple[0]))
 				result.add(triple[2]);
@@ -1055,38 +1085,38 @@ public class KB {
 				result.add(triple[0]);
 			return (result);
 		}		
-		if (triple[1].equals(EXISTSbs)) {
+		if (triple[1] == EXISTSbs) {
 			if (isVariable(triple[0])) 
 				return (new IntOpenHashSet(get(subject2relation2object, triple[2]).keySet()));
 			else 
 				return (new IntOpenHashSet(get(relation2subject2object, triple[0]).keySet()));
 		}		
-		if (triple[1].equals(EXISTSINVbs)) {
+		if (triple[1] == EXISTSINVbs) {
 			if (isVariable(triple[0])) 
 				return (new IntOpenHashSet(get(object2relation2subject, triple[2]).keySet()));
 			else 
 				return (new IntOpenHashSet(get(relation2object2subject, triple[0]).keySet()));
 		}
 		
-		if (triple[1].equals(NOTEXISTSbs)) {
+		if (triple[1] == NOTEXISTSbs) {
 			IntSet values = new IntOpenHashSet();
 			if (isVariable(triple[0])) {
-				values.addAll(relationSize);
+				values.addAll(relationSize.keySet());
 				values.removeAll(get(subject2relation2object, triple[2]).keySet());
 			} else {
-				values.addAll(subjectSize);
+				values.addAll(subjectSize.keySet());
 				values.removeAll(get(relation2subject2object, triple[0]).keySet());
 			}			
 			return new IntOpenHashSet(values);
 		}
 		
-		if (triple[1].equals(NOTEXISTSINVbs)) {
+		if (triple[1] == NOTEXISTSINVbs) {
 			IntSet values = new IntOpenHashSet();
 			if (isVariable(triple[0])) {
-				values.addAll(relationSize);
+				values.addAll(relationSize.keySet());
 				values.removeAll(get(object2relation2subject, triple[2]).keySet());
 			} else { 
-				values.addAll(objectSize);
+				values.addAll(objectSize.keySet());
 				values.removeAll(get(relation2object2subject, triple[0]).keySet());
 			}
 			return new IntOpenHashSet(values);
@@ -1100,10 +1130,10 @@ public class KB {
 						+ " does not support variables in the object position");
 			}
 			IntSet results = new IntOpenHashSet();
-			if (cardinalityRelation.first.equals(hasNumberOfValuesEqualsBS) 
-					|| cardinalityRelation.first.equals(hasNumberOfValuesEqualsInvBS)) {
-				Int2ObjectMap<IntSet> map = 
-						cardinalityRelation.first.equals(hasNumberOfValuesEqualsBS) ?
+			if (cardinalityRelation.first == hasNumberOfValuesEqualsBS
+					|| cardinalityRelation.first == hasNumberOfValuesEqualsInvBS) {
+				Int2ObjectMap<IntSet> map =(
+						cardinalityRelation.first == hasNumberOfValuesEqualsBS)?
 								get(relation2subject2object, triple[2]) :
 								get(relation2object2subject, triple[2]);			
 				if (cardinalityRelation.second.intValue() > 0) {
@@ -1112,16 +1142,16 @@ public class KB {
 							results.add(entity);
 					}
 				} else {
-					IntSet set = cardinalityRelation.first.equals(hasNumberOfValuesEqualsBS) ?
-							subjectSize : objectSize;
+					IntSet set =(cardinalityRelation.first == hasNumberOfValuesEqualsBS)?
+							subjectSize.keySet() : objectSize.keySet();
 					for (int entity : set) {
 						if (!map.containsKey(entity)) {
 							results.add(entity);
 						}
 					}
 				}
-			} else if (cardinalityRelation.first.equals(hasNumberOfValuesGreaterThanBS)
-					|| cardinalityRelation.first.equals(hasNumberOfValuesGreaterThanInvBS)) {
+			} else if ((cardinalityRelation.first == hasNumberOfValuesGreaterThanBS)
+					||(cardinalityRelation.first == hasNumberOfValuesGreaterThanInvBS)) {
 				Int2ObjectMap<IntSet> map = 
 						cardinalityRelation.first.equals(hasNumberOfValuesGreaterThanBS) ?
 								get(relation2subject2object, triple[2]) :
@@ -1136,10 +1166,10 @@ public class KB {
 						results.add(entity);
 				}
 			} else {
-				IntSet set = cardinalityRelation.first.equals(hasNumberOfValuesSmallerThanBS) ?
-						subjectSize : objectSize;
-				Int2ObjectMap<IntSet> map = 
-						cardinalityRelation.first.equals(hasNumberOfValuesSmallerThanBS) ?
+				IntSet set =(cardinalityRelation.first == hasNumberOfValuesSmallerThanBS)?
+						subjectSize.keySet() : objectSize.keySet();
+				Int2ObjectMap<IntSet> map =(
+						cardinalityRelation.first == hasNumberOfValuesSmallerThanBS)?
 								get(relation2subject2object, triple[2]) :
 								get(relation2object2subject, triple[2]);	
 				for (int entity : set) {
@@ -1212,42 +1242,42 @@ public class KB {
 		Pair<Integer, Integer> cardinalityRelation = 
 				parseCardinalityRelation(fact[1]);
 		if (cardinalityRelation != null) {
-			if (cardinalityRelation.first.equals(hasNumberOfValuesEqualsBS)) {
+			if (cardinalityRelation.first == hasNumberOfValuesEqualsBS) {
 				if (get(subject2relation2object, fact[0]).containsKey(fact[2])) {
 					return get(subject2relation2object, fact[0]).get(fact[2]).size() 
 							== cardinalityRelation.second.intValue();
 				} else {
 					return cardinalityRelation.second == 0;
 				}
-			} else if (cardinalityRelation.first.equals(hasNumberOfValuesEqualsInvBS)) {
+			} else if (cardinalityRelation.first == hasNumberOfValuesEqualsInvBS) {
 				if (get(object2relation2subject, fact[0]).containsKey(fact[2])) {
 					return get(object2relation2subject, fact[0]).get(fact[2]).size() 
 					== cardinalityRelation.second.intValue();
 				} else {
 					return cardinalityRelation.second == 0;
 				}
-			} else if (cardinalityRelation.first.equals(hasNumberOfValuesGreaterThanBS)) {
+			} else if (cardinalityRelation.first == hasNumberOfValuesGreaterThanBS) {
 				if (get(subject2relation2object, fact[0]).containsKey(fact[2])) {
 					return get(subject2relation2object, fact[0]).get(fact[2]).size() 
 							> cardinalityRelation.second.intValue();
 				} else {
 					return false;
 				}								
-			} else if (cardinalityRelation.first.equals(hasNumberOfValuesGreaterThanInvBS)) {
+			} else if (cardinalityRelation.first == hasNumberOfValuesGreaterThanInvBS) {
 				if (get(object2relation2subject, fact[0]).containsKey(fact[2])) {
 					return get(object2relation2subject, fact[0]).get(fact[2]).size() 
 							> cardinalityRelation.second.intValue();
 				} else { 
 					return false;
 				}
-			} else if (cardinalityRelation.first.equals(hasNumberOfValuesSmallerThanBS)) {
+			} else if (cardinalityRelation.first == hasNumberOfValuesSmallerThanBS) {
 				if (get(subject2relation2object, fact[0]).containsKey(fact[2])) {
 					return get(subject2relation2object, fact[0]).get(fact[2]).size() 
 								< cardinalityRelation.second.intValue();
 				} else {
 					return true;
 				}
-			} else if (cardinalityRelation.first.equals(hasNumberOfValuesSmallerThanInvBS)) {
+			} else if (cardinalityRelation.first == hasNumberOfValuesSmallerThanInvBS) {
 				if (get(object2relation2subject, fact[0]).containsKey(fact[2])) {
 					return get(object2relation2subject, fact[0]).get(fact[2]).size() 
 							< cardinalityRelation.second.intValue();
@@ -1335,7 +1365,7 @@ public class KB {
 	 */
 	public Int2ObjectMap<IntSet> resultsTwoVariablesByPos(
 			int pos1, int pos2, int[] triple) {
-		if (triple[1].equals(TRANSITIVETYPEbs)) {
+		if (triple[1] == TRANSITIVETYPEbs) {
 			Int2ObjectMap<IntSet> result = new Int2ObjectOpenHashMap<>();
 			switch(pos1) {
 			case 0:
@@ -1361,10 +1391,10 @@ public class KB {
 						+ " should be a variable");
 			}
 		}
-		if (triple[1].equals(DIFFERENTFROMbs))
+		if (triple[1] == DIFFERENTFROMbs)
 			throw new IllegalArgumentException(
 					"Cannot query with differentFrom: " + toString(triple));
-		if (triple[1].equals(EQUALSbs)) {
+		if (triple[1] == EQUALSbs) {
 			Int2ObjectMap<IntSet> result = new Int2ObjectOpenHashMap<>();
 			for (int entity : subject2object2relation.keySet()) {
 				IntSet innerResult = new IntOpenHashSet();
@@ -1373,9 +1403,9 @@ public class KB {
 			}
 			return (result);
 		}
-		if (triple[1].equals(EXISTSbs) || triple[1].equals(EXISTSINVbs)) {
-			Int2ObjectMap<Int2ObjectMap<IntSet>> map = 
-					triple[1].equals(EXISTSbs) ? relation2subject2object
+		if ((triple[1] == EXISTSbs)||(triple[1] == EXISTSINVbs)) {
+			Int2ObjectMap<Int2ObjectMap<IntSet>> map =(
+					triple[1] == EXISTSbs)? relation2subject2object
 							: relation2object2subject;
 			Int2ObjectMap<IntSet> result = new Int2ObjectOpenHashMap<>();
 			for (int relation : map.keySet()) {
@@ -1386,14 +1416,14 @@ public class KB {
 			return (result);
 		}
 		
-		if (triple[1].equals(NOTEXISTSbs) || triple[1].equals(NOTEXISTSINVbs)) {
-			Int2ObjectMap<Int2ObjectMap<IntSet>> map = 
-					triple[1].equals(NOTEXISTSbs) ? relation2subject2object
+		if ((triple[1] == NOTEXISTSbs)||(triple[1] == NOTEXISTSINVbs)) {
+			Int2ObjectMap<Int2ObjectMap<IntSet>> map =(
+					triple[1] == NOTEXISTSbs)? relation2subject2object
 							: relation2object2subject;
 			Int2ObjectMap<IntSet> result = new Int2ObjectOpenHashMap<>();
 			for (int relation : map.keySet()) {
-				IntSet uMap = triple[1].equals(NOTEXISTSbs) ? 
-						new IntOpenHashSet(subjectSize) : new IntOpenHashSet(objectSize);				
+				IntSet uMap =(triple[1] == NOTEXISTSbs)? 
+						new IntOpenHashSet(subjectSize.keySet()) : new IntOpenHashSet(objectSize.keySet());				
 				uMap.removeAll(map.get(relation).keySet());	
 				result.put(relation, new IntOpenHashSet(uMap));
 			}	
@@ -1524,29 +1554,29 @@ public class KB {
 	 * @throws OperationNotSupportedException 
 	 **/
 	public long countOneVariable(int... triple)  {
-		if (triple[1].equals(DIFFERENTFROMbs))
+		if (triple[1] == DIFFERENTFROMbs)
 			return (Long.MAX_VALUE);
-		if (triple[1].equals(EQUALSbs))
+		if (triple[1] == EQUALSbs)
 			return (1);
-		if (triple[1].equals(EXISTSbs)) {
+		if (triple[1] == EXISTSbs) {
 			if (isVariable(triple[2]))
 				return get(relation2subject2object, triple[0]).size();
 			else 
 				return get(subject2relation2object, triple[2]).size();
 		}
-		if (triple[1].equals(EXISTSINVbs)) {
+		if (triple[1] == EXISTSINVbs) {
 			if (isVariable(triple[2]))
 				return get(relation2object2subject, triple[0]).size();
 			else
 				return get(object2relation2subject, triple[2]).size();
 		}
-		if (triple[1].equals(NOTEXISTSbs)) {
+		if (triple[1] == NOTEXISTSbs) {
 			if (isVariable(triple[2]))
 				return subjectSize.size() - get(relation2subject2object, triple[0]).size();
 			else
 				return relationSize.size() - get(subject2relation2object, triple[2]).size();
 		}
-		if (triple[1].equals(NOTEXISTSINVbs)) {
+		if (triple[1] == NOTEXISTSINVbs) {
 			if (isVariable(triple[2]))
 				return objectSize.size() - get(relation2object2subject, triple[0]).size();
 			else
@@ -1571,7 +1601,7 @@ public class KB {
 				} else {
 					IntSet set =
 					compositeRelation.first.equals(hasNumberOfValuesEqualsBS) ? 
-							subjectSize : objectSize;
+							subjectSize.keySet() : objectSize.keySet();
 					for (int s : set) {
 						if (!map.containsKey(s)) {
 							++count;
@@ -1606,7 +1636,7 @@ public class KB {
 				long count = 0;
 				IntSet set =
 					compositeRelation.first.equals(hasNumberOfValuesSmallerThanBS) ? 
-							subjectSize : objectSize;
+							subjectSize.keySet() : objectSize.keySet();
 				for (int s : set) {					
 					if (map.containsKey(s)) {						
 						if (compositeRelation.second.intValue() == 1)
@@ -1630,7 +1660,7 @@ public class KB {
 	 * with 2 variables. 
 	 **/
 	protected long countTwoVariables(int... triple) {
-		if (triple[1].equals(TRANSITIVETYPEbs)) {
+		if (triple[1] == TRANSITIVETYPEbs) {
 			Int2ObjectMap<IntSet> resultTwoVars = 
 					resultsTwoVariablesByPos(0, 2, triple);
 			long count = 0;
@@ -1639,25 +1669,25 @@ public class KB {
 			}
 			return count;
 		}
-		if (triple[1].equals(DIFFERENTFROMbs))
+		if (triple[1] == DIFFERENTFROMbs)
 			return (Long.MAX_VALUE);
-		if (triple[1].equals(EQUALSbs))
+		if (triple[1] == EQUALSbs)
 			return (subject2relation2object.size());
-		if (triple[1].equals(EXISTSbs)) {
+		if (triple[1] == EXISTSbs) {
 			long count = 0;
-			for (int relation : relationSize) {
+			for (int relation : relationSize.keySet()) {
 				count += get(relation2subject2object, relation).size();
 			}
 			return count;
 		}
-		if (triple[1].equals(EXISTSINVbs)) {
+		if (triple[1] == EXISTSINVbs) {
 			long count = 0;
-			for (int relation : relationSize) {
+			for (int relation : relationSize.keySet()) {
 				count += get(relation2object2subject, relation).size();
 			}
 			return count;
 		}
-		if (triple[1].equals(NOTEXISTSbs) || triple[1].equals(NOTEXISTSINVbs)) {			
+		if ((triple[1] == NOTEXISTSbs)||(triple[1] == NOTEXISTSINVbs)) {			
 			Int2ObjectMap<IntSet> resultTwoVars = 
 					resultsTwoVariables(triple[0], triple[2], triple);
 			long count = 0;
@@ -1668,11 +1698,11 @@ public class KB {
 		}
 		
 		if (!isVariable(triple[0]))
-			return (long) (subjectSize.get(triple[0], 0));
+			return (long) (subjectSize.getOrDefault(triple[0], 0));
 		if (!isVariable(triple[1])) {
-			return (long) (relationSize.get(triple[1], 0));
+			return (long) (relationSize.getOrDefault(triple[1], 0));
 		}
-		return (long) (objectSize.get(triple[2], 0));
+		return (long) (objectSize.getOrDefault(triple[2], 0));
 	}
 
 	/** 
@@ -1680,6 +1710,14 @@ public class KB {
 	 * start with "?".
 	 **/
 	public static int numVariables(CharSequence... fact) {
+		int counter = 0;
+		for (int i = 0; i < fact.length; i++)
+			if (isVariable(fact[i]))
+				counter++;
+		return (counter);
+	}
+        
+        public static int numVariables(int... fact) {
 		int counter = 0;
 		for (int i = 0; i < fact.length; i++)
 			if (isVariable(fact[i]))
@@ -1842,8 +1880,8 @@ public class KB {
 	 * @return
 	 */
 	private boolean contains(int var, int[] triple) {
-		return triple[0].equals(var) || triple[1].equals(var)
-				|| triple[2].equals(var);
+		return(triple[0] == var || triple[1] == var
+				|| triple[2] == var);
 	}
         
         private boolean contains(int var, List<int[]> triples) {
@@ -1860,7 +1898,7 @@ public class KB {
 	 **/
 	public static int varpos(int var, int[] triple) {
 		for (int i = 0; i < triple.length; i++) {
-			if (var.equals(triple[i]))
+			if (var == triple[i])
 				return (i);
 		}
 		return (-1);
@@ -2029,7 +2067,7 @@ public class KB {
 			int[] triple = query.get(0);
 			switch (numVariables(triple)) {
 			case 0:
-				return (Collections.emptySet());
+				return (IntSets.EMPTY_SET);
 			case 1:
 				return (resultsOneVariable(triple));
 			case 2:
@@ -2039,7 +2077,7 @@ public class KB {
 					System.out.println("[DEBUG] Problem with query "
 							+ KB.toString(query));
 				}
-				if (triple[firstVar].equals(variable))
+				if (triple[firstVar] == variable)
 					return (resultsTwoVariablesByPos(firstVar, secondVar, triple)
 							.keySet());
 				else
@@ -2048,11 +2086,11 @@ public class KB {
 			default:
 				switch (Arrays.asList(query.get(0)).indexOf(variable)) {
 				case 0:
-					return (subjectSize);
+					return (subjectSize.keySet());
 				case 1:
-					return (relationSize);
+					return (relationSize.keySet());
 				case 2:
-					return (objectSize);
+					return (objectSize.keySet());
 				}
 			}
 			throw new RuntimeException("Very weird: SELECT " + variable
@@ -2080,11 +2118,11 @@ public class KB {
 			case 2:
 				int firstVar = firstVariablePos(best);
 				int secondVar = secondVariablePos(best);
-				Int2ObjectMap<IntSet> instantiations = best[firstVar]
-						.equals(variable) ? resultsTwoVariablesByPos(firstVar,
+				Int2ObjectMap<IntSet> instantiations =(best[firstVar]
+						 == variable)? resultsTwoVariablesByPos(firstVar,
 						secondVar, best) : resultsTwoVariablesByPos(secondVar,
 						firstVar, best);
-                                int otherVariable = best[firstVar].equals(variable) ? secondVar : firstVar;
+                                int otherVariable =(best[firstVar] == variable)? secondVar : firstVar;
                                 List<int[]> otherTriples = remove(bestPos, query);
 				try (Instantiator insty = new Instantiator(
                                         (contains(best[otherVariable], otherTriples)) ? query : otherTriples, variable)) {
@@ -2216,9 +2254,9 @@ public class KB {
             int[] triple = query.get(0);
             switch (numVariables(triple)) {
                 case 0:
-                    return (Collections.emptyIterator());
+                    return IntIterators.EMPTY_ITERATOR;
                 case 1:
-                    return (new SetU.addNotInIterator(resultsOneVariable(triple), result));
+                    return (new SetU.addNotInIntIterator(resultsOneVariable(triple), result));
                 case 2:
                     int firstVar = firstVariablePos(triple);
                     int secondVar = secondVariablePos(triple);
@@ -2226,23 +2264,23 @@ public class KB {
                         System.out.println("[DEBUG] Problem with query "
                                 + KB.toString(query));
                     }
-                    if (triple[firstVar].equals(variable)) {
-                        return (new SetU.addNotInIterator(
+                    if (triple[firstVar] == variable) {
+                        return (new SetU.addNotInIntIterator(
                                 resultsTwoVariablesByPos(firstVar, secondVar, triple)
                                         .keySet(), result));
                     } else {
-                        return (new SetU.addNotInIterator(
+                        return (new SetU.addNotInIntIterator(
                                 resultsTwoVariablesByPos(secondVar, firstVar, triple)
                                         .keySet(), result));
                     }
                 default:
                     switch (Arrays.asList(query.get(0)).indexOf(variable)) {
                         case 0:
-                            return (new SetU.addNotInIterator(subjectSize, result));
+                            return (new SetU.addNotInIntIterator(subjectSize.keySet(), result));
                         case 1:
-                            return (new SetU.addNotInIterator(relationSize, result));
+                            return (new SetU.addNotInIntIterator(relationSize.keySet(), result));
                         case 2:
-                            return (new SetU.addNotInIterator(objectSize, result));
+                            return (new SetU.addNotInIntIterator(objectSize.keySet(), result));
                     }
             }
             throw new RuntimeException("Very weird: SELECT " + variable
@@ -2251,7 +2289,7 @@ public class KB {
 
         int bestPos = mostRestrictiveTriple(query);
         if (bestPos == -1) {
-            return (Collections.emptyIterator());
+            return IntIterators.EMPTY_ITERATOR;
         }
         int[] best = query.get(bestPos);
 
@@ -2267,10 +2305,10 @@ public class KB {
                 case 2:
                     int firstVar = firstVariablePos(best);
                     int secondVar = secondVariablePos(best);
-                    instantiations = best[firstVar].equals(variable) ? resultsTwoVariablesByPos(firstVar,
+                    instantiations =(best[firstVar] == variable)? resultsTwoVariablesByPos(firstVar,
                             secondVar, best).keySet() : resultsTwoVariablesByPos(secondVar,
                                     firstVar, best).keySet();
-                    int otherVariable = best[firstVar].equals(variable) ? secondVar : firstVar;
+                    int otherVariable =(best[firstVar] == variable)? secondVar : firstVar;
                     List<int[]> otherTriples = remove(bestPos, query);
                     insty = new Instantiator((contains(best[otherVariable], otherTriples)) ? query : otherTriples, variable);
                     break;
@@ -2361,7 +2399,7 @@ public class KB {
 	public Int2ObjectMap<IntSet> selectDistinct(
 			int var1, int var2, List<int[]> query) {
 		if (query.isEmpty())
-			return (Collections.emptyMap());
+			return Int2ObjectMaps.emptyMap();
 		if (query.size() == 1) {
 			return (resultsTwoVariables(var1, var2, query.get(0)));
 		}
@@ -2392,7 +2430,7 @@ public class KB {
 			int var1, int var2, int var3,
 			List<int[]> query) {
 		if (query.isEmpty()) {
-			return Collections.emptyMap();
+			return Int2ObjectMaps.emptyMap();
 		}
 		
 		if (query.size() == 1) {
@@ -2425,7 +2463,7 @@ public class KB {
 	private Int2ObjectMap<Int2ObjectMap<IntSet>> fixResultMap(
 			Int2ObjectMap<IntSet> resultsTwoVars, int fixLevel, int constant) {
 		Int2ObjectMap<Int2ObjectMap<IntSet>> extendedMap = new
-				Int2ObjectMap<Int2ObjectMap<IntSet>>();
+				Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 		switch (fixLevel) {
 		case 1:
 			extendedMap.put(constant, resultsTwoVars);
@@ -2519,39 +2557,12 @@ public class KB {
 	 * Maps each value of the variable to the number of distinct values of the
 	 * projection variable
 	 */
-	public IntSet frequentBindingsOf(CharSequence variable,
+	public Int2IntMap frequentBindingsOf(CharSequence variable,
 			CharSequence projectionVariable, List<CharSequence[]> query) {
 		return (frequentBindingsOf(compress(variable),
 				compress(projectionVariable), triples(query)));
 	}
 
-        
-        public void increase(Int2IntMap r, Int2IntMap p) {
-            for (int k : p) {
-                increase(r, k, p.get(k));
-            }
-        }
-        
-        public void increase(Int2IntMap r, Int2ObjectMap<IntSet> p) {
-            for (int k : p.keySet()) {
-                increase(r, k, p.get(k).size());
-            }
-        }
-        
-        public void increase(Int2IntMap r, IntSet p) {
-            for (int k : p) {
-                increase(r, k);
-            }
-        }
-        
-        public void increase(Int2IntMap r, int k, int delta) {
-            //r.put(k, r.getOrDefault(k, 0) + delta);
-            r.put(k, r.get(k, 0) + delta);
-        }
-        
-        public void increase(Int2IntMap r, int k) {
-            increase(r, k, 1);
-        }
 	/**
 	 * For each instantiation of variable, it returns the number of different
 	 * instances of projectionVariable that satisfy the query.
@@ -2594,7 +2605,7 @@ public class KB {
 				return result;
 			}
 
-			for (int predicate : relationSize.keys()) {
+			for (int predicate : relationSize.keySet()) {
 				triple[1] = predicate;
 				increase(result, predicate, resultsTwoVariablesByPos(varPos, 2-varPos, triple).size());
 			}
@@ -2618,8 +2629,8 @@ public class KB {
 			case 2:
 				int firstVar = firstVariablePos(best);
 				int secondVar = secondVariablePos(best);
-				Int2ObjectMap<IntSet> instantiations = best[firstVar]
-						.equals(variable) ? resultsTwoVariablesByPos(firstVar,
+				Int2ObjectMap<IntSet> instantiations =(best[firstVar]
+						 == variable)? resultsTwoVariablesByPos(firstVar,
 						secondVar, best) : resultsTwoVariablesByPos(secondVar,
 						firstVar, best);
 				try (Instantiator insty1 = new Instantiator(other, variable);
@@ -2659,8 +2670,8 @@ public class KB {
 			case 2:
 				int firstVar = firstVariablePos(best);
 				int secondVar = secondVariablePos(best);
-				Int2ObjectMap<IntSet> instantiations = best[firstVar]
-						.equals(variable) ? resultsTwoVariablesByPos(firstVar,
+				Int2ObjectMap<IntSet> instantiations =(best[firstVar]
+						 == variable)? resultsTwoVariablesByPos(firstVar,
 						secondVar, best) : resultsTwoVariablesByPos(secondVar,
 						firstVar, best);
 				try (Instantiator insty1 = new Instantiator(query, variable)) {
@@ -2696,8 +2707,8 @@ public class KB {
 			case 2:
 				int firstVar = firstVariablePos(best);
 				int secondVar = secondVariablePos(best);
-				Int2ObjectMap<IntSet> instantiations = best[firstVar]
-						.equals(projectionVariable) ? resultsTwoVariablesByPos(
+				Int2ObjectMap<IntSet> instantiations =(best[firstVar]
+						 == projectionVariable)? resultsTwoVariablesByPos(
 						firstVar, secondVar, best) : resultsTwoVariablesByPos(
 						secondVar, firstVar, best);
 				try (Instantiator insty1 = new Instantiator(query,
@@ -2730,9 +2741,11 @@ public class KB {
 	 */
 	protected Int2IntMap countBindings(int pos,
 			int... triple) {
+                Int2IntMap result = new Int2IntOpenHashMap();
 		switch (numVariables(triple)) {
 		case 1:
-			return (new Int2IntOpenHashMap(resultsOneVariable(triple)));
+                        increase(result, resultsOneVariable(triple));
+			return (result);
 		case 2:
 			int pos2 = -1;
 			switch (pos) {
@@ -2740,7 +2753,6 @@ public class KB {
 			case 1: pos2 = (isVariable(triple[2])) ? 2 : 0; break; // We want the most frequent predicates
 			case 2: pos2 = (isVariable(triple[1])) ? 1 : 0; break; // we want the most frequent objects
 			}
-                        Int2IntMap result = new Int2IntOpenHashMap();
                         increase(result, resultsTwoVariablesByPos(pos, pos2, triple));
 			return (result);
 		case 3:
@@ -2829,7 +2841,7 @@ public class KB {
 		wholeQuery.add(projectionTriple);
 		wholeQuery.addAll(otherTriples);
 
-		int instVar = null;
+		int instVar = 0;
 		int posRestrictive = mostRestrictiveTriple(wholeQuery);
 		int[] mostRestrictive = (posRestrictive != -1) ? wholeQuery
 				.get(posRestrictive) : projectionTriple;
@@ -2912,9 +2924,9 @@ public class KB {
 							Instantiator insty3 = new Instantiator(
 									projectionTripleList,
 									projectionTriple[projectionPosition])) {
-						IntSet instantiations = countBindings(
+						Int2IntMap instantiations = countBindings(
 								posInCommon, mostRestrictive);
-						for (int b1 : instantiations) {
+						for (int b1 : instantiations.keySet()) {
 							increase(result, countProjectionBindings(insty3
 									.instantiate(b1).get(0), insty1
 									.instantiate(b1), variable));
@@ -3093,14 +3105,14 @@ public class KB {
 				t2 = query.get(idx2);
 
 				// Not the same relation
-				if (!t1[1].equals(t2[1]) || numVariables(t1) != 2
+				if ((t1[1] != t2[1])|| numVariables(t1) != 2
 						|| numVariables(t2) != 2)
 					return null;
                                         //continue;
 
-				if (!t1[0].equals(t2[0]) && t1[2].equals(t2[2])) {
+				if ((t1[0] != t2[0])&&(t1[2] == t2[2])) {
 					return new int[] { 2, 0, idx1, idx2 };
-				} else if (t1[0].equals(t2[0]) && !t1[2].equals(t2[2])) {
+				} else if ((t1[0] == t2[0])&&(t1[2] != t2[2])) {
 					return new int[] { 0, 2, idx1, idx2 };
 				}
 			}
@@ -3130,9 +3142,9 @@ public class KB {
 				if (numVariables(t1) != 2 || numVariables(t2) != 2)
 					continue;
 
-				if (!t1[0].equals(t2[0]) && t1[2].equals(t2[2])) {
+				if ((t1[0] != t2[0])&&(t1[2] == t2[2])) {
 					return new int[] { 2, 0, idx1, idx2 };
-				} else if (t1[0].equals(t2[0]) && !t1[2].equals(t2[2])) {
+				} else if ((t1[0] == t2[0])&&(t1[2] != t2[2])) {
 					return new int[] { 0, 2, idx1, idx2 };
 				}
 			}
@@ -3222,7 +3234,7 @@ public class KB {
 		double duplicatesFactor;
 		// Approximate count
 		int joinVariable = query.get(queryInfo[2])[queryInfo[0]];
-		int targetVariable = null;
+		int targetVariable = 0;
 		int targetRelation = query.get(queryInfo[2])[1];
 		List<int[]> subquery = new ArrayList<int[]>(query);
 
@@ -3291,7 +3303,7 @@ public class KB {
                         for (int newpos = 0; newpos < 3; newpos++) {
                             if (newpos != conpos && isVariable(atom[newpos])
                                     && !connectedVariables.contains(atom[newpos])
-                                    && !removeVariable.equals(atom[newpos])) {
+                                    && removeVariable != atom[newpos]) {
                                 connectedVariables.add(atom[newpos]);
                                 fixedpoint = false;
                             }
@@ -3365,9 +3377,9 @@ public class KB {
             for (IntIterator bindingsIt = selectDistinctIterator(bindings, var1, query); bindingsIt.hasNext(); ) {
                 bindings2 = new IntOpenHashSet();
                 for (IntIterator bindingsIt2 = selectDistinctIterator(bindings2, var2, 
-                        insty1.instantiate(bindingsIt.next())); bindingsIt2.hasNext(); ) {
+                        insty1.instantiate(bindingsIt.nextInt())); bindingsIt2.hasNext(); ) {
                     result += 1;
-                    bindingsIt2.next();
+                    bindingsIt2.nextInt();
                     if (result > upperBound) {
                         break;
                     }
@@ -3395,7 +3407,7 @@ public class KB {
 			variable = var;
 			for (int i = 0; i < query.size(); i++) {
 				for (int j = 0; j < query.get(i).length; j++) {
-					if (query.get(i)[j].equals(variable))
+					if (query.get(i)[j] == (variable))
 						positions[numPos++] = i * atomSize + j;
 				}
 			}
@@ -3438,6 +3450,14 @@ public class KB {
 			b.append(s[i]).append(" ");
 		return (b.toString());
 	}
+        
+        /** ToString for a triple */
+	public static String toString(int[] s) {
+		StringBuilder b = new StringBuilder();
+		for (int i = 0; i < s.length; i++)
+			b.append(unmap(s[i])).append(" ");
+		return (b.toString());
+	}
 
 	/** ToString for a query */
 	public static String toString(List<int[]> s) {
@@ -3449,13 +3469,13 @@ public class KB {
 
 	/** Compresses a string to an internal string */
 	public static int compress(CharSequence s) {
-		if (s instanceof Integer)
-			return ((Integer) s);
+		if (s instanceof ByteString)
+			return (KB.map(s));
 		String str = s.toString();
 		int pos = str.indexOf("\"^^");
 		if (pos != -1)
 			str = str.substring(0, pos + 1);
-		return (KB.map(str));
+		return (KB.map(ByteString.of(str)));
 	}
 
 	/** Makes a list of triples */
@@ -3467,8 +3487,6 @@ public class KB {
 	@SuppressWarnings("unchecked")
 	public static List<int[]> triples(
 			List<? extends CharSequence[]> triples) {
-		if (iscompressed(triples))
-			return ((List<int[]>) triples);
 		List<int[]> t = new ArrayList<>();
 		for (CharSequence[] c : triples)
 			t.add(triple(c));
@@ -3490,7 +3508,7 @@ public class KB {
 	public static boolean iscompressed(List<? extends CharSequence[]> triples) {
 		for (int i = 0; i < triples.size(); i++) {
 			CharSequence[] t = triples.get(i);
-			if (!(t instanceof int[]))
+			if (!(t instanceof ByteString[]))
 				return (false);
 		}
 		return true;
@@ -3847,7 +3865,7 @@ public class KB {
 				fixLevel = 3;
 			}
 			
-			int constant = null;
+			int constant = 0;
 			for (int t : head) {
 				if (!isVariable(t)) {
 					constant = t;
@@ -3869,13 +3887,6 @@ public class KB {
 	/**
 	 * Bindings of the projection variables that satisfy the first list of atoms 
 	 * but not the atom 'head'
-	 * @param var1
-	 * @param var2
-	 * @param var3
-	 * @param var4
-	 * @param antecedent
-	 * @param head
-	 * @return
 	 */
 	public Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> difference(
 			CharSequence var1, CharSequence var2, CharSequence var3, CharSequence var4,
@@ -3887,12 +3898,6 @@ public class KB {
 	/**
 	 * Bindings of the projection variables that satisfy the first list of atoms 
 	 * but not the second.
-	 * @param var1
-	 * @param var2
-	 * @param antecedent
-	 * @param head
-	 * @param swap
-	 * @return
 	 */
 	public Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> difference(
 			CharSequence var1, CharSequence var2, CharSequence var3, CharSequence var4,
@@ -3904,17 +3909,12 @@ public class KB {
 	/**
 	 * Bindings of the projection variables that satisfy the first list of atoms 
 	 * but not the second.
-	 * @param var1
-	 * @param var2
-	 * @param antecedent
-	 * @param head
-	 * @return
 	 */
 	public Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> difference(
 			int var1, int var2, int var3, int var4,
 			List<int[]> antecedent, int[] head) {
 		Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> results = new
-				Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>>();
+				Int2ObjectOpenHashMap<Int2ObjectMap<Int2ObjectMap<IntSet>>>();
 		
 		int headNumVars = numVariables(head);
 		if (headNumVars == 3) {
@@ -4057,7 +4057,7 @@ public class KB {
 	 * @return
 	 */
 	public IntCollection getRelations() {
-		return relationSize.decreasingKeys();
+		return relationSize.keySet();
 	}
 	
 	/**
@@ -4067,9 +4067,9 @@ public class KB {
 	 * @return
 	 */
 	public IntCollection getAllEntities() {
-		IntCollection result = new ArrayList<>();
-		result.addAll(subjectSize);
-		result.addAll(objectSize);
+		IntCollection result = new IntOpenHashSet();
+		result.addAll(subjectSize.keySet());
+		result.addAll(objectSize.keySet());
 		return result;
 	}
 	
@@ -4095,8 +4095,8 @@ public class KB {
 	public Int2IntMap getEntitiesOccurrences(IntCollection entities) {
 		Int2IntMap result = new Int2IntOpenHashMap();
 		for (int entity : entities) {
-			if (subjectSize.contains(entity)) increase(result, entity, subjectSize.get(entity));
-			if (objectSize.contains(entity)) increase(result, entity, objectSize.get(entity));
+			if (subjectSize.containsKey(entity)) increase(result, entity, subjectSize.get(entity));
+			if (objectSize.containsKey(entity)) increase(result, entity, objectSize.get(entity));
 		}
 		return result;
 	}
@@ -4130,7 +4130,7 @@ public class KB {
 	 * @return
 	 */
 	public IntList getRelationsList() {
-		return relationSize.decreasingKeys();
+		return relationSize.keySet().decreasingKeys();
 	}
 	
 	@Override
@@ -4355,9 +4355,9 @@ public class KB {
 	 */
 	public boolean delete(int subject, int predicate, int object) {
 		if (contains(subject, predicate, object)) {
-			subjectSize.decrease(subject);
-			relationSize.decrease(predicate);
-			objectSize.decrease(object);
+			decrease(subjectSize, subject);
+			decrease(relationSize, predicate);
+			decrease(objectSize, object);
 			removeFromIndex(subject, predicate, object, subject2relation2object);
 			removeFromIndex(subject, object, predicate, subject2object2relation);
 			removeFromIndex(predicate, subject, object, relation2subject2object);
@@ -4405,7 +4405,7 @@ public class KB {
 			System.out.println("Relation\tTriples\tFunctionality"
 					+ "\tInverse functionality\tVariance\tInverse Variance"
 					+ "\tNumber of subjects\tNumber of objects");
-			for(int relation: relationSize.keys()){
+			for(int relation: relationSize.keySet()){
 				System.out.println(relation + "\t" + relationSize.get(relation) + 
 						"\t" + functionality(relation) + 
 						"\t" + inverseFunctionality(relation) + 
@@ -4437,7 +4437,7 @@ public class KB {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		for (int relation : relationSize.keys()) {
+		for (int relation : relationSize.keySet()) {
 			if (ommittedRelations.contains(relation))
 				continue;
 			
@@ -4511,7 +4511,7 @@ public class KB {
 	 * @return
 	 */
 	public boolean containsRelation(int relation) {
-		return relationSize.contains(relation);
+		return relationSize.keySet().contains(relation);
 	}
 
 	/**
@@ -4592,7 +4592,7 @@ public class KB {
     }
         
         public IntSet getRelationSet() {
-            return new IntOpenHashSet(relationSize);
+            return new IntOpenHashSet(relationSize.keySet());
         }
         
         public IntSet getClassSet() {

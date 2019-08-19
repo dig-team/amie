@@ -63,17 +63,17 @@ public class Schema {
 	
 	private static IntSet allDefinedTypesMaterialized = new IntOpenHashSet();
 	
-	private static MultiInt2ObjectMap<ByteString> subClassMaterialized = new MultiMap<>();
+	private static Int2ObjectMap<IntSet> subClassMaterialized = new Int2ObjectOpenHashMap<>();
 	
-	private static MultiInt2ObjectMap<ByteString> superClassMaterialized = new MultiMap<>();
+	private static Int2ObjectMap<IntSet> superClassMaterialized = new Int2ObjectOpenHashMap<>();
     
 	public static void materializeTaxonomy(KB source) {
 		List<int[]> query = KB.triples(KB.triple("?x", subClassRelationBS, "?y"));
 		allDefinedTypesMaterialized.addAll(source.selectDistinct(KB.map("?x"), query));
 		allDefinedTypesMaterialized.addAll(source.selectDistinct(KB.map("?y"), query));
 		for (int type : allDefinedTypesMaterialized) {
-			for (int subtype : getAllSubTypes(source, type)) subClassMaterialized.put(type, subtype);
-			for (int supertype : getAllSuperTypes(source, type)) superClassMaterialized.put(type, supertype);
+			subClassMaterialized.put(type, getAllSubTypes(source, type));
+			superClassMaterialized.put(type, getAllSuperTypes(source, type));
 		}
 		taxonomyMaterialized = true;
 	}

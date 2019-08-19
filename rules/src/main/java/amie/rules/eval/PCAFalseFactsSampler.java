@@ -73,9 +73,9 @@ public class PCAFalseFactsSampler {
 
 	private void run(Collection<Rule> rules){
 		for(Rule rule: rules){	
-			Collection<Triple<ByteString, ByteString, ByteString>> ruleAssumedFalse = generateAssumedFalseFacts(rule);			
-			Collection<Triple<ByteString, ByteString, ByteString>> sample =  Predictor.sample(ruleAssumedFalse, sampleSize);
-			for(Triple<ByteString, ByteString, ByteString> fact: sample){
+			Collection<IntTriple> ruleAssumedFalse = generateAssumedFalseFacts(rule);			
+			Collection<IntTriple> sample =  Predictor.sample(ruleAssumedFalse, sampleSize);
+			for(IntTriple fact: sample){
 				System.out.println(rule.getRuleString() + "\t" + fact.first + "\t" + fact.second + "\t" + fact.third);
 			}
 		}
@@ -98,29 +98,29 @@ public class PCAFalseFactsSampler {
 		}
 		
 		for(int relation: headsToRules.keySet()){
-			Map<Triple<ByteString, ByteString, ByteString>, Rule> factToRule = new HashMap<Triple<ByteString, ByteString, ByteString>, Rule>();
-			Set<Triple<ByteString, ByteString, ByteString>> allAssumedFalse = new LinkedHashSet<Triple<ByteString, ByteString, ByteString>>();	
+			Map<IntTriple, Rule> factToRule = new HashMap<IntTriple, Rule>();
+			Set<IntTriple> allAssumedFalse = new LinkedHashSet<IntTriple>();	
 			for(Rule rule: headsToRules.get(relation)){		
-				Collection<Triple<ByteString, ByteString, ByteString>> ruleAssumedFalse = generateAssumedFalseFacts(rule);
-				for(Triple<ByteString, ByteString, ByteString> fact: ruleAssumedFalse){
+				Collection<IntTriple> ruleAssumedFalse = generateAssumedFalseFacts(rule);
+				for(IntTriple fact: ruleAssumedFalse){
 					factToRule.put(fact, rule);
 				}	
 				allAssumedFalse.addAll(ruleAssumedFalse);				
 			}
-			Collection<Triple<ByteString, ByteString, ByteString>> sample =  Predictor.sample(allAssumedFalse, sampleSize);
+			Collection<IntTriple> sample =  Predictor.sample(allAssumedFalse, sampleSize);
 			printSample(sample, factToRule);
 		}
 	}
 
-	private void printSample(Collection<Triple<ByteString, ByteString, ByteString>> sample, Map<Triple<ByteString, ByteString, ByteString>, Rule> factToRule) {
-		for(Triple<ByteString, ByteString, ByteString> fact: sample){
+	private void printSample(Collection<IntTriple> sample, Map<IntTriple, Rule> factToRule) {
+		for(IntTriple fact: sample){
 			System.out.println(factToRule.get(fact).getRuleString() + "\t" + fact.first + "\t" + fact.second + "\t" + fact.third);
 		}
 	}
 
-	private Set<Triple<ByteString, ByteString, ByteString>> generateAssumedFalseFacts(Rule rule) {
+	private Set<IntTriple> generateAssumedFalseFacts(Rule rule) {
 		List<int[]> query = new ArrayList<int[]>();	
-		Set<Triple<ByteString, ByteString, ByteString>> result = new LinkedHashSet<Triple<ByteString, ByteString, ByteString>>();
+		Set<IntTriple> result = new LinkedHashSet<IntTriple>();
 		int[] head = rule.getHead();
 		int[] existential = head.clone();
 		int relation = head[1];
@@ -138,7 +138,7 @@ public class PCAFalseFactsSampler {
 			Int2ObjectMap<IntSet> bindingsTwoVars = db.difference(head[0], head[2], query, rule.getTriples());
 			for(int subject: bindingsTwoVars.keySet()){
 				for(int object: bindingsTwoVars.get(subject)){
-					result.add(new Triple<ByteString, ByteString, ByteString>(subject, relation, object));
+					result.add(new IntTriple(subject, relation, object));
 					//int[] test = new int[]{subject, relation, object};
 					//assert(!db.contains(test));
 					

@@ -3476,13 +3476,13 @@ public class KB {
 	}
 	
 	public static int[] triple2Array(
-			Triple<ByteString, ByteString, ByteString> t) {
+			IntTriple t) {
 		return new int[] { t.first, t.second, t.third };
 	}
 	
-	public static Triple<ByteString, ByteString, ByteString> array2Triple(
+	public static IntTriple array2Triple(
 			int[] triple) {
-		return new Triple<ByteString, ByteString, ByteString>(
+		return new IntTriple(
 				triple[0], triple[1], triple[2]);
 	}
 

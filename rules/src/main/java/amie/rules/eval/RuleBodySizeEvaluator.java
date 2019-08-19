@@ -33,7 +33,7 @@ public class RuleBodySizeEvaluator {
 		KB db = new KB();
 		db.load(new File(args[1]));
 		List<Rule> qList = AMIEParser.rules(new File(args[0]));
-		Set<Triple<ByteString, ByteString, ByteString>> predictions = new HashSet<Triple<ByteString, ByteString, ByteString>>();	
+		Set<IntTriple> predictions = new HashSet<IntTriple>();	
 		
 		//Now calculate the body size for the rules
 		for(Rule q: qList){
@@ -55,7 +55,7 @@ public class RuleBodySizeEvaluator {
 		
 	}
 
-	private static long[] conditionalBodySize(Rule q, KB db, Set<Triple<ByteString, ByteString, ByteString>> allPredictions) {
+	private static long[] conditionalBodySize(Rule q, KB db, Set<IntTriple> allPredictions) {
 		Predictor pp = new Predictor(db);
 		Object predictionsObj = pp.generatePredictions(q);
 		Int2ObjectMap<Int2IntMap> predictions = (Int2ObjectMap<Int2IntMap>)predictionsObj;
@@ -64,7 +64,7 @@ public class RuleBodySizeEvaluator {
 		
 		for(int value1: predictions.keySet()){
 			for(int value2: predictions.get(value1)){
-				Triple<ByteString, ByteString, ByteString> triple = new Triple<ByteString, ByteString, ByteString>(null, null, null);
+				IntTriple triple = new IntTriple(null, null, null);
 				
 				if(value1.equals(value2)){ 
 					continue;

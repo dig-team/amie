@@ -395,7 +395,7 @@ public class U {
 	 * @param array
 	 * @return
 	 */
-	public static int[] toArray(Triple<ByteString, ByteString, ByteString> triple) {
+	public static int[] toArray(IntTriple triple) {
 		return new int[] { triple.first, triple.second, triple.third};
 	}
 	

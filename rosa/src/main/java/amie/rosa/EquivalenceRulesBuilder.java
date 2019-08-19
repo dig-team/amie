@@ -84,17 +84,17 @@ public class EquivalenceRulesBuilder {
 		if(KB.numVariables(head) == 2){
 			Int2ObjectMap<IntSet> headBindings = source.selectDistinct(head[0], head[2], KB.triples(head));		
 			Int2ObjectMap<IntSet> bodyBindings = source.selectDistinct(head[0], head[2], KB.triples(body));		
-			Set<Pair<ByteString, ByteString> > pairs = new HashSet<Pair<ByteString, ByteString>>();
+			Set<IntPair > pairs = new HashSet<IntPair>();
 			
 			for(int key1: headBindings.keySet()){
 				for(int key2: headBindings.get(key1)){
-					pairs.add(new Pair<ByteString, ByteString>(key1, key2));
+					pairs.add(new IntPair(key1, key2));
 				}
 			}
 			
 			for(int key1: bodyBindings.keySet()){
 				for(int key2: bodyBindings.get(key1)){
-					pairs.add(new Pair<ByteString, ByteString>(key1, key2));
+					pairs.add(new IntPair(key1, key2));
 				}
 			}		
 			

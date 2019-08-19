@@ -59,7 +59,7 @@ public class RuleHitsEvaluator {
 		trainingDataset.load(new File(args[1]));
 		targetDataset.load(new File(args[2]));
 		Predictor predictor = new Predictor(trainingDataset);	
-		IntHashMap<Triple<ByteString, ByteString, ByteString>> predictions = 
+		IntHashMap<IntTriple> predictions = 
 				new IntHashMap<>();
 		// Collect all predictions made by the rules.
 		for(List<String> record: tsvFile) {
@@ -80,8 +80,8 @@ public class RuleHitsEvaluator {
 			if(KB.numVariables(head) == 1){
 				IntSet oneVarBindings = (IntSet)bindings;
 				for(int binding: oneVarBindings){
-					Triple<ByteString, ByteString, ByteString> t = 
-							new Triple<>(KB.map("?a"), head[1], KB.map("?b"));
+					IntTriple t = 
+							new IntTriple(KB.map("?a"), head[1], KB.map("?b"));
 					if (q.getFunctionalVariablePosition() == 0) {
 						t.first = binding;
 					} else {
@@ -94,8 +94,8 @@ public class RuleHitsEvaluator {
 						(Int2ObjectMap<Int2IntMap>)bindings;
 				for(int value1: twoVarsBindings.keySet()){
 					for(int value2: twoVarsBindings.get(value1)){
-						Triple<ByteString, ByteString, ByteString> t = 
-								new Triple<>(KB.map("?a"), head[1], KB.map("?b"));
+						IntTriple t = 
+								new IntTriple(KB.map("?a"), head[1], KB.map("?b"));
 						if(q.getFunctionalVariablePosition() == 0){
 							t.first = value1;
 							t.third = value2;
@@ -109,7 +109,7 @@ public class RuleHitsEvaluator {
 			}		
 		}
 		
-		for (Triple<ByteString, ByteString, ByteString> t : predictions) {
+		for (IntTriple t : predictions) {
 			int[] triple = KB.triple2Array(t);
 			int eval = Evaluator.evaluate(triple, trainingDataset, targetDataset);
 			if(eval == 0) { 

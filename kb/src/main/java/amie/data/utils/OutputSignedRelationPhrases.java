@@ -40,21 +40,21 @@ public class OutputSignedRelationPhrases {
 			files.add(new File(args[i]));
 		}
 		db.load(files);
-		Map<Triple<ByteString, ByteString, ByteString>, Set<Pair<ByteString, ByteString>>> signedRelations = 
+		Map<IntTriple, Set<IntPair>> signedRelations = 
 				buildSignedRelations(db);
-		List<Triple<ByteString, ByteString, ByteString>> signatures = 
+		List<IntTriple> signatures = 
 				new ArrayList<>(signedRelations.keySet());
 		FileWriter out = new FileWriter(new File("relations.txt"));
 		PrintWriter pWriter = new PrintWriter (out);
 		for (int i = 0; i < signatures.size(); ++i) {
 			pWriter.println(signatures.get(i).toString());
-			Set<Pair<ByteString, ByteString>> seti = signedRelations.get(signatures.get(i));
+			Set<IntPair> seti = signedRelations.get(signatures.get(i));
 			if (seti.size() < 3) {
 				continue;
 			}
 			IntSet subjectsI = projectPairSet(seti);
 			for (int j = i + 1; j < signatures.size(); ++j) {
-				Set<Pair<ByteString, ByteString>> setj = signedRelations.get(signatures.get(j));				
+				Set<IntPair> setj = signedRelations.get(signatures.get(j));				
 				if (setj.size() < 3) {
 					continue;
 				}
@@ -74,10 +74,10 @@ public class OutputSignedRelationPhrases {
 	}
 
 	private static int pcaIntersection(
-			Set<Pair<ByteString, ByteString>> seti,
+			Set<IntPair> seti,
 			IntSet subjectsJ) {
 		int count = 0;
-		for (Pair<ByteString, ByteString> pair : seti) {
+		for (IntPair pair : seti) {
 			if (subjectsJ.contains(pair.first)) {
 				++count;
 			}
@@ -87,21 +87,21 @@ public class OutputSignedRelationPhrases {
 	}
 
 	private static IntSet projectPairSet(
-			Set<Pair<ByteString, ByteString>> seti) {
+			Set<IntPair> seti) {
 		IntSet result = new IntOpenHashSet();
-		for (Pair<ByteString, ByteString> pair : seti) {
+		for (IntPair pair : seti) {
 			result.add(pair.first);
 		}
 		return result;
 	}
 
 	private static int intersectionSize(
-			Set<Pair<ByteString, ByteString>> set,
-			Set<Pair<ByteString, ByteString>> set2) {
+			Set<IntPair> set,
+			Set<IntPair> set2) {
 		int count = 0;
-		Set<Pair<ByteString, ByteString>> smaller = set.size() < set2.size() ? set : set2;
-		Set<Pair<ByteString, ByteString>> bigger = smaller == set ? set2 : set;
-		for (Pair<ByteString, ByteString> pair : smaller) {
+		Set<IntPair> smaller = set.size() < set2.size() ? set : set2;
+		Set<IntPair> bigger = smaller == set ? set2 : set;
+		for (IntPair pair : smaller) {
 			if (bigger.contains(pair)) {
 				++count;
 			}
@@ -110,11 +110,11 @@ public class OutputSignedRelationPhrases {
 		return count;
 	}
 
-	private static Map<Triple<ByteString, ByteString, ByteString>, 
-	Set<Pair<ByteString, ByteString>>> buildSignedRelations(KB db) {
+	private static Map<IntTriple, 
+	Set<IntPair>> buildSignedRelations(KB db) {
 		// TODO Auto-generated method stub
-		Map<Triple<ByteString, ByteString, ByteString>, Set<Pair<ByteString, ByteString>>> result 
-		= new HashMap<Triple<ByteString, ByteString, ByteString>, Set<Pair<ByteString, ByteString>>>();
+		Map<IntTriple, Set<IntPair>> result 
+		= new HashMap<IntTriple, Set<IntPair>>();
 		int typeRelation = KB.map("<rdf:type>");
 		int defaultStr = KB.map("default");
 		Int2ObjectMap<Int2ObjectMap<IntSet>> map =
@@ -142,15 +142,15 @@ public class OutputSignedRelationPhrases {
 						
 						for (int domain : subjectTypes) {
 							for (int range : objectTypes) {
-								Triple<ByteString, ByteString, ByteString> triple = 
-										new Triple<ByteString, ByteString, ByteString>(
+								IntTriple triple = 
+										new IntTriple(
 												relation, domain, range);
-								Set<Pair<ByteString, ByteString>> pairs = result.get(triple);
+								Set<IntPair> pairs = result.get(triple);
 								if (pairs == null) {
-									pairs = new LinkedHashSet<Pair<ByteString, ByteString>>();
+									pairs = new LinkedHashSet<IntPair>();
 									result.put(triple, pairs);
 								}
-								pairs.add(new Pair<>(subject, object));
+								pairs.add(new IntPair(subject, object));
 							}
 						}
 					}

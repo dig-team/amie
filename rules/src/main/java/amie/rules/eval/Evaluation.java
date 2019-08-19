@@ -8,20 +8,20 @@ public class Evaluation {
 
 	public Rule rule;
 	
-	public Triple<ByteString, ByteString, ByteString> fact;
+	public IntTriple fact;
 		
 	public EvalResult result;
 	
 	public EvalSource source;
 	
-	public Evaluation(Rule rule, Triple<ByteString, ByteString, ByteString> fact, EvalResult result){
+	public Evaluation(Rule rule, IntTriple fact, EvalResult result){
 		this.rule = rule;
 		this.fact = fact;
 		this.result = result;
 		source = EvalSource.Undefined;
 	}
 	
-	public Evaluation(Rule rule, Triple<ByteString, ByteString, ByteString> fact, EvalResult result, EvalSource source){
+	public Evaluation(Rule rule, IntTriple fact, EvalResult result, EvalSource source){
 		this.rule = rule;
 		this.fact = fact;
 		this.result = result;

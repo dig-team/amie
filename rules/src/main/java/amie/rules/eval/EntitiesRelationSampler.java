@@ -35,12 +35,12 @@ public class EntitiesRelationSampler {
 		IntSet allEntities = db.selectDistinct(KB.map("?s"), KB.triples(KB.triple(KB.map("?s"), KB.map("?p"), KB.map("?o"))));
 		List<ByteString> allRelations = new ArrayList<ByteString>(db.selectDistinct(KB.map("?p"), KB.triples(KB.triple(KB.map("?s"), KB.map("?p"), KB.map("?o")))));
 		List<ByteString> entitiesArray = new ArrayList<ByteString>(allEntities); 
-		Int2ObjectMap<List<Pair<ByteString, ByteString>>> relationsMap = new Int2ObjectOpenHashMap<List<Pair<ByteString, ByteString>>>();
+		Int2ObjectMap<List<IntPair>> relationsMap = new Int2ObjectOpenHashMap<List<IntPair>>();
 		Int2IntMap relationEntityCount = new Int2IntOpenHashMap();
 		
 		for(int relation: allRelations){
 			relationEntityCount.put(relation, 0);
-			relationsMap.put(relation, new ArrayList<Pair<ByteString, ByteString>>());
+			relationsMap.put(relation, new ArrayList<IntPair>());
 		}
 		
 		while(!allRelations.isEmpty() && !entitiesArray.isEmpty()){
@@ -61,9 +61,9 @@ public class EntitiesRelationSampler {
 				}
 				
 				relationEntityCount.increase(relation);
-				List<Pair<ByteString, ByteString>> facts = relationsMap.get(relation);
+				List<IntPair> facts = relationsMap.get(relation);
 				for(int object: predicateObjects.get(relation)){
-					facts.add(new Pair<ByteString, ByteString>(entity, object));
+					facts.add(new IntPair(entity, object));
 				}
 				
 				if(relationEntityCount.get(relation) >= maxOccurrencePerRelation)
@@ -72,7 +72,7 @@ public class EntitiesRelationSampler {
 		}
 		
 		for(int relation: relationsMap.keySet()){
-			for(Pair<ByteString, ByteString> entityObject: relationsMap.get(relation))
+			for(IntPair entityObject: relationsMap.get(relation))
 				System.out.println(entityObject.first + "\t" + relation + "\t" + entityObject.second);
 		}
 		

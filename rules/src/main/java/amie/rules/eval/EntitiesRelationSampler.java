@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.IntHashMap;
 import javatools.datatypes.Pair;
 

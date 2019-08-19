@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.IntHashMap;
 import javatools.datatypes.Pair;
 

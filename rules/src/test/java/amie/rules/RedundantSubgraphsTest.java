@@ -1,6 +1,6 @@
 package amie.rules;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import junit.framework.TestCase;
 import amie.data.KB;
 import amie.rules.Rule;

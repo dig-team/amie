@@ -9,7 +9,7 @@ import java.util.Map;
 
 import amie.data.KB;
 import java.util.Set;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 
 /**
  * @author lgalarra

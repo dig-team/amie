@@ -5,7 +5,7 @@
  */
 package amie.data.starpattern;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 
 /**
  *

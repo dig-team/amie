@@ -11,7 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 
 /**
  * Class Transitive Types KB

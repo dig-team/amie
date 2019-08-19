@@ -10,7 +10,7 @@ import java.util.Set;
 import amie.data.KB;
 import amie.data.U;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.FrequencyVector;
 import javatools.filehandlers.FileLines;
 
@@ -69,7 +69,7 @@ public class FrequencyTester {
 	}
 	
 	public void test(String heuristic, int attribute) {
-		FrequencyVector<ByteString, Double> resultFV = new FrequencyVector<>(heuristic2attribute2class2score.get(heuristic).get(attribute));
+		FrequencyVector<Integer, Double> resultFV = new FrequencyVector<>(heuristic2attribute2class2score.get(heuristic).get(attribute));
 		double precision = resultFV.weightedPrecisionWithRespectTo(attribute2classes.get(attribute));
 		double recall = resultFV.recallWithRespectTo(attribute2classes.get(attribute));
 		System.out.println(heuristic + "\t" + attribute.toString() + "\t" 

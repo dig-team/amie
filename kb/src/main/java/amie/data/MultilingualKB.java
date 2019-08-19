@@ -5,7 +5,7 @@
  */
 package amie.data;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 
 /**
  *

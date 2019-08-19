@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import amie.data.KB;
 
 /**

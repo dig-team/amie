@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.IntHashMap;
 import amie.data.KB;
 import amie.mining.assistant.DefaultMiningAssistant;

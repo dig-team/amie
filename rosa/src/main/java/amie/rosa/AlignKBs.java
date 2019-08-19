@@ -15,7 +15,7 @@ import amie.data.KB;
 import amie.mining.AMIE;
 import amie.rules.Metric;
 import amie.rules.Rule;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.Pair;
 import javatools.datatypes.Triple;
 import javatools.filehandlers.TSVFile;

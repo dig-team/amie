@@ -7,7 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -35,11 +35,11 @@ public class Typing {
 
     public static class TypingMT extends Thread {
 
-        private BlockingQueue<Triple<List<int[]>, ByteString, TypingHeuristic>> queryQ;
+        private BlockingQueue<Triple<List<int[]>, Integer, TypingHeuristic>> queryQ;
         private IntSet classes;
         private double outputThreshold;
 
-        public TypingMT(BlockingQueue<Triple<List<int[]>, ByteString, TypingHeuristic>> queryQ,
+        public TypingMT(BlockingQueue<Triple<List<int[]>, Integer, TypingHeuristic>> queryQ,
                 IntSet classes, double outputThreshold) {
             this.queryQ = queryQ;
             this.classes = classes;
@@ -47,7 +47,7 @@ public class Typing {
         }
 
         public void run() {
-            Triple<List<int[]>, ByteString, TypingHeuristic> q;
+            Triple<List<int[]>, Integer, TypingHeuristic> q;
             BufferedWriter out;
             while (true) {
                 try {

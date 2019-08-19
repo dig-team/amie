@@ -43,7 +43,7 @@ import amie.mining.assistant.variableorder.VariableOrder;
 import amie.rules.Metric;
 import amie.rules.Rule;
 import javatools.administrative.Announce;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.MultiMap;
 import javatools.parsers.NumberFormatter;
 

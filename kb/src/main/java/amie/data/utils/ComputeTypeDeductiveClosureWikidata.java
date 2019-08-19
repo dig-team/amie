@@ -11,7 +11,7 @@ import java.util.Map;
 import amie.data.KB;
 import amie.data.Schema;
 import amie.data.U;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.IntHashMap;
 
 public class ComputeTypeDeductiveClosureWikidata {

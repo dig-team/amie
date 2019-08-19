@@ -9,7 +9,7 @@ import java.util.Map;
 
 import amie.data.KB;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.Pair;
 import javatools.filehandlers.FileLines;
 

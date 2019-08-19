@@ -21,7 +21,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.Pair;
 
 /**
@@ -63,11 +63,11 @@ public class GoldStandardHelper {
         this.query = query;
         current = new GSnode(Schema.topBS);
         index.put(Schema.topBS, current);
-        Pair<List<int[]>, ByteString> queryPair = queryStrToQuery(query);
+        Pair<List<int[]>, Integer> queryPair = queryStrToQuery(query);
         current.generate(supportThreshold, queryPair.first, queryPair.second);
     }
     
-    private Pair<List<int[]>, ByteString> queryStrToQuery(String query) {
+    private Pair<List<int[]>, Integer> queryStrToQuery(String query) {
         List<int[]> queryL = KB.triples(KB.triple(KB.map("?x"), KB.map(query.substring(0, query.length()-1)), KB.map("?y")));
         int variable = KB.map("?"+query.substring(query.length()-1));
         return new Pair<>(queryL, variable);

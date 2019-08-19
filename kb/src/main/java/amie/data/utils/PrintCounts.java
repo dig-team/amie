@@ -8,7 +8,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 
 import amie.data.Schema;
 import amie.data.SetU;

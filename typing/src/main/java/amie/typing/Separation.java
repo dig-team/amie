@@ -26,7 +26,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.IntHashMap;
 import javatools.datatypes.Pair;
 import org.apache.commons.cli.CommandLine;
@@ -47,7 +47,7 @@ public class Separation extends Thread {
     KB source; 
     Int2IntMap cS;
     Int2ObjectMap<Int2IntMap> cIS;
-    BlockingQueue<Pair<List<int[]>, ByteString>> queryQ; 
+    BlockingQueue<Pair<List<int[]>, Integer>> queryQ; 
     int classSizeThreshold; 
     int supportThreshold; 
     double[] thresholds;
@@ -56,7 +56,7 @@ public class Separation extends Thread {
     
     public Separation(KB source, Int2IntMap cS, Int2ObjectMap<
             Int2IntMap> cIS, BlockingQueue<Pair<List<int[]>, 
-            ByteString>> queryQ, int classSizeThreshold, int supportThreshold, 
+            Integer>> queryQ, int classSizeThreshold, int supportThreshold, 
             double[] thresholds, boolean supportForTarget, String classifier) {
         this.source = source;
         this.cS = cS;
@@ -73,7 +73,7 @@ public class Separation extends Thread {
     
         @Override
     public void run() {
-        Pair<List<int[]>, ByteString> q;
+        Pair<List<int[]>, Integer> q;
         while(true) {
             try {
                 q = queryQ.take();

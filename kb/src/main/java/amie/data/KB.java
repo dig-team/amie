@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 import javax.naming.OperationNotSupportedException;
 
 import javatools.administrative.Announce;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.IntHashMap;
 import javatools.datatypes.Pair;
 import javatools.datatypes.Triple;
@@ -1091,7 +1091,7 @@ public class KB {
 			return new IntOpenHashSet(values);
 		}
 		
-		Pair<ByteString, Integer> cardinalityRelation = 
+		Pair<Integer, Integer> cardinalityRelation = 
 				parseCardinalityRelation(triple[1]);
 		if (cardinalityRelation != null) {
 			if (isVariable(triple[2])) {
@@ -1208,7 +1208,7 @@ public class KB {
 		if (fact[1] == NOTEXISTSINVbs)
 			return (!get(relation2object2subject, fact[0])
 					.containsKey(fact[2]));
-		Pair<ByteString, Integer> cardinalityRelation = 
+		Pair<Integer, Integer> cardinalityRelation = 
 				parseCardinalityRelation(fact[1]);
 		if (cardinalityRelation != null) {
 			if (cardinalityRelation.first.equals(hasNumberOfValuesEqualsBS)) {
@@ -1272,10 +1272,10 @@ public class KB {
 	 * @param byteString
 	 * @return
 	 */
-	public static Pair<ByteString, Integer> parseCardinalityRelation(int relation) {
+	public static Pair<Integer, Integer> parseCardinalityRelation(int relation) {
 		Matcher m = cardinalityRelationsRegexPattern.matcher(relation);
 		if (m.matches()) {
-			Pair<ByteString, Integer> pair = new Pair<>(KB.map(m.group(1)), 
+			Pair<Integer, Integer> pair = new Pair<>(KB.map(m.group(1)), 
 					Integer.parseInt(m.group(2)));
 			if (pair.first.equals(hasNumberOfValuesSmallerThanBS) || 
 					pair.first.equals(hasNumberOfValuesSmallerThanInvBS)) {
@@ -1552,7 +1552,7 @@ public class KB {
 				return relationSize.size() - get(object2relation2subject, triple[2]).size();
 		}
 		
-		Pair<ByteString, Integer> compositeRelation = parseCardinalityRelation(triple[1]);				
+		Pair<Integer, Integer> compositeRelation = parseCardinalityRelation(triple[1]);				
 		if (compositeRelation != null) {			
 			if (compositeRelation.first.equals(hasNumberOfValuesEqualsBS)
 					|| compositeRelation.first.equals(hasNumberOfValuesEqualsInv)) {
@@ -3448,8 +3448,8 @@ public class KB {
 
 	/** Compresses a string to an internal string */
 	public static int compress(CharSequence s) {
-		if (s instanceof ByteString)
-			return ((ByteString) s);
+		if (s instanceof Integer)
+			return ((Integer) s);
 		String str = s.toString();
 		int pos = str.indexOf("\"^^");
 		if (pos != -1)

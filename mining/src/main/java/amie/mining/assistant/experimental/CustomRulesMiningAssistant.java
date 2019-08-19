@@ -12,7 +12,7 @@ import amie.rules.AMIEParser;
 import amie.rules.Rule;
 import java.util.ArrayList;
 import java.util.Collection;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 
 /**
  *

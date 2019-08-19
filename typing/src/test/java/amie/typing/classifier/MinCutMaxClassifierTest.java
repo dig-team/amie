@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import junit.framework.TestCase;
 
 public class MinCutMaxClassifierTest extends TestCase {

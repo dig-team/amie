@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.Pair;
 
 import org.apache.commons.cli.CommandLine;
@@ -62,7 +62,7 @@ public class MinCutMaxClassifier extends SeparationClassifier {
 		return r;
 	}
 	
-	private Pair<ByteString, Double> getMaxEdge(Int2ObjectMap<LinkedList<Int2ObjectMap.Entry<Double>>> graph, IntSet CV) {
+	private Pair<Integer, Double> getMaxEdge(Int2ObjectMap<LinkedList<Int2ObjectMap.Entry<Double>>> graph, IntSet CV) {
 		Double maxD = Double.NEGATIVE_INFINITY;
 		int maxN = null;
 		for(int t : CV) {
@@ -98,7 +98,7 @@ public class MinCutMaxClassifier extends SeparationClassifier {
 		IntSet S = null;
 		Double currentMin = Double.POSITIVE_INFINITY;
 		while(!V.isEmpty()) {
-			Pair<ByteString, Double> cMax = getMaxEdge(smm, CV);
+			Pair<Integer, Double> cMax = getMaxEdge(smm, CV);
                         if (cMax.first == null) break;
 			if (cMax.second < currentMin) {
 				currentMin = cMax.second;

@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import amie.data.KB;
 import amie.rules.AMIEParser;
 import amie.rules.Rule;

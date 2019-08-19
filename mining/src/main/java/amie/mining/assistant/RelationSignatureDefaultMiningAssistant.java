@@ -3,7 +3,7 @@ package amie.mining.assistant;
 import java.util.Arrays;
 import java.util.List;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import amie.data.KB;
 import amie.data.Schema;
 import amie.rules.Rule;

@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.IntHashMap;
 import javatools.datatypes.MultiMap;
 import javatools.filehandlers.FileLines;
@@ -267,7 +267,7 @@ public class Schema {
 		}
 		
 		IntSet resultSet = new IntOpenHashSet();
-		Queue<ByteString> queue = new LinkedList<>();
+		Queue<Integer> queue = new LinkedList<>();
 		IntSet seenTypes = new IntOpenHashSet();
 		IntSet superTypes = getSuperTypes(source, type);
 		queue.addAll(superTypes);
@@ -379,7 +379,7 @@ public class Schema {
 		}
 		
 		IntSet resultSet = new IntOpenHashSet();
-		Queue<ByteString> queue = new LinkedList<>();
+		Queue<Integer> queue = new LinkedList<>();
 		IntSet seenTypes = new IntOpenHashSet();
 		IntSet subTypes = getSubTypes(source, type);
 		queue.addAll(subTypes);

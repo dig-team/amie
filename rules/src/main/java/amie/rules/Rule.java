@@ -20,7 +20,7 @@ import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.IntHashMap;
 import javatools.datatypes.Pair;
 import amie.data.Schema;
@@ -1171,7 +1171,7 @@ public class Rule {
     }
 
     /**
-     * Returns the rule's head relation as ByteString.
+     * Returns the rule's head relation as Integer.
      *
      * @return
      */

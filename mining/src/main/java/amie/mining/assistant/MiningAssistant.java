@@ -17,7 +17,7 @@ import amie.data.Schema;
 import amie.rules.ConfidenceMetric;
 import amie.rules.Metric;
 import amie.rules.Rule;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.IntHashMap;
 import javatools.datatypes.MultiMap;
 import javatools.datatypes.Pair;

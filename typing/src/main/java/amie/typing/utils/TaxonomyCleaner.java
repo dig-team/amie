@@ -10,7 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.filehandlers.FileLines;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
@@ -26,8 +26,8 @@ public class TaxonomyCleaner {
 
     public static void main(String[] args) throws IOException {
         Class c = DefaultEdge.class;
-        DirectedGraph<ByteString, DefaultEdge> g 
-                = new SimpleDirectedGraph<ByteString, DefaultEdge>(DefaultEdge.class);
+        DirectedGraph<Integer, DefaultEdge> g 
+                = new SimpleDirectedGraph<Integer, DefaultEdge>(DefaultEdge.class);
         for (String line : new FileLines(new File(args[0]), "UTF-8", null)) {
             String[] split = line.split("/t");
             if (split.length == 4) {
@@ -42,7 +42,7 @@ public class TaxonomyCleaner {
                 }
             }
         }
-        StrongConnectivityAlgorithm<ByteString, DefaultEdge> gi = new KosarajuStrongConnectivityInspector<>(g);
+        StrongConnectivityAlgorithm<Integer, DefaultEdge> gi = new KosarajuStrongConnectivityInspector<>(g);
         List<IntSet> scc = gi.stronglyConnectedSets();
         for (IntSet scs : scc) {
             if (scs.size() > 1) {

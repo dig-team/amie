@@ -3,7 +3,7 @@ package amie.typing.heuristics;
 import java.util.List;
 
 import amie.data.KB;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 
 public class StdConfHeuristic extends TypingHeuristic {
 	

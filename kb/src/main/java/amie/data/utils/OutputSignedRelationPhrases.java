@@ -13,7 +13,7 @@ import java.util.Set;
 
 import amie.data.KB;
 import java.util.HashSet;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.Pair;
 import javatools.datatypes.Triple;
 

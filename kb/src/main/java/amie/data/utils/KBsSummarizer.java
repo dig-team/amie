@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import amie.data.KB;
 
 /**

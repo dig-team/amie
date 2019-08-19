@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import amie.data.KB;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 
 public class TrivialRelevanceCalculator {
 

@@ -1,6 +1,6 @@
 package amie.rules.eval;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.Triple;
 import amie.rules.Rule;
 

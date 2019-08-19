@@ -21,7 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.Pair;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -247,7 +247,7 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
             try {
                 eval.readFile(rsFiles[i]);
             } catch (IllegalArgumentException e) {
-                Pair<ByteString, String> rm = extractQueryArgs(rsFiles[i]);
+                Pair<Integer, String> rm = extractQueryArgs(rsFiles[i]);
                 eval.addResult(rm.first, rm.second, readClassFile(rsFiles[i]));
             }
         }
@@ -263,7 +263,7 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
         eval.computeImpliedFactsMT(nThreads);
         
         output.println("T\tMethod\tClassifier\tParameter\tRelation\tTrue Positives\tPredicted Size\tGS Size\tNFTP\tNFPS\tNFGS\tP\tR\tF1\tNFP\tNFR\tNFF1");
-        Pair<Pair<ByteString, String>, ImpliedFacts> result;
+        Pair<Pair<Integer, String>, ImpliedFacts> result;
         while((result = eval.resultQ.poll()) != null) {
             ImpliedFacts s = result.second;
             String rString = String.join("\t", 

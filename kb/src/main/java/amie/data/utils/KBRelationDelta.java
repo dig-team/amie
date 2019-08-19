@@ -14,7 +14,7 @@ import java.util.Set;
 
 import amie.data.KB;
 import amie.data.Schema;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 
 public class KBRelationDelta {
 
@@ -47,7 +47,7 @@ public class KBRelationDelta {
 		db2.load(newFiles);
 		
 		IntList r1 = db1.getRelationsList();
-		Queue<ByteString> r2 = new LinkedList<>(db2.getRelationsList());
+		Queue<Integer> r2 = new LinkedList<>(db2.getRelationsList());
 		
 		r2.retainAll(r1);
 		

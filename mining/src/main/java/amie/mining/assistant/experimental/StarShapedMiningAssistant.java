@@ -7,7 +7,7 @@ import amie.mining.assistant.MiningAssistant;
 import amie.mining.assistant.MiningOperator;
 import amie.rules.ConfidenceMetric;
 import amie.rules.Rule;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.IntHashMap;
 
 public class StarShapedMiningAssistant extends MiningAssistant {

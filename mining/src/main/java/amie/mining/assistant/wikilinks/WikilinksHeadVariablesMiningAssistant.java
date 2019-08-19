@@ -9,7 +9,7 @@ import java.util.List;
 import amie.data.KB;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.Rule;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.IntHashMap;
 
 public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistant {

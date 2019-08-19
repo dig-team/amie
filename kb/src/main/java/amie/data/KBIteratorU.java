@@ -11,7 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.IntHashMap;
 import javatools.datatypes.Pair;
 
@@ -35,7 +35,7 @@ public class KBIteratorU {
         public void close();
     }
     
-    public static class addNotInIfExistsIterator extends SetU.addNotInIterator<ByteString> implements IntIterator, CloseableNoThrow {
+    public static class addNotInIfExistsIterator extends SetU.addNotInIterator<Integer> implements IntIterator, CloseableNoThrow {
         
         KB kb;
         KB.Instantiator insty;

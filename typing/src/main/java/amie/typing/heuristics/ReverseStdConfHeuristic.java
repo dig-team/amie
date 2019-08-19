@@ -9,7 +9,7 @@ import amie.data.SimpleTypingKB;
 import java.util.HashMap;
 import java.util.Map;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 
 public class ReverseStdConfHeuristic extends TypingHeuristic {
 

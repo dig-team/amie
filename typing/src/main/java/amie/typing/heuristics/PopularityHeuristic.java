@@ -7,7 +7,7 @@ import java.util.Set;
 import amie.data.KB;
 import amie.data.U;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 
 public class PopularityHeuristic extends TypingHeuristic {
 

@@ -13,7 +13,7 @@ import amie.mining.assistant.MiningAssistant;
 import amie.mining.assistant.MiningOperator;
 import amie.rules.QueryEquivalenceChecker;
 import amie.rules.Rule;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.IntHashMap;
 import javatools.datatypes.MultiMap;
 import javatools.datatypes.Pair;
@@ -140,7 +140,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	@MiningOperator(name="specializing")
 	public void getTypeSpecializedAtoms(Rule rule, double minSupportThreshold, Collection<Rule> output) {
 		int[] lastAtom = rule.getLastRealTriplePattern();
-		Pair<ByteString, Integer> compositeRelation = KB.parseCardinalityRelation(lastAtom[1]);
+		Pair<Integer, Integer> compositeRelation = KB.parseCardinalityRelation(lastAtom[1]);
 		if (compositeRelation == null) {
 			super.getTypeSpecializedAtoms(rule, minSupportThreshold, output);
 		} else {
@@ -534,8 +534,8 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	}
 
 	private boolean subsumesCardinalityAtom(int[] triplesParent, int[] triplesRule) {
-		Pair<ByteString, Integer> relationPairParent = KB.parseCardinalityRelation(triplesParent[1]);
-		Pair<ByteString, Integer> relationPairRule = KB.parseCardinalityRelation(triplesRule[1]);
+		Pair<Integer, Integer> relationPairParent = KB.parseCardinalityRelation(triplesParent[1]);
+		Pair<Integer, Integer> relationPairRule = KB.parseCardinalityRelation(triplesRule[1]);
 		
 		IntList gtList = IntArrays.asList(KB.hasNumberOfValuesGreaterThanBS, 
 				KB.hasNumberOfValuesGreaterThanInvBS);

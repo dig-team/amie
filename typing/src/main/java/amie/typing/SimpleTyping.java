@@ -34,7 +34,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.IntHashMap;
 import javatools.datatypes.Pair;
 import org.apache.commons.cli.CommandLine;
@@ -51,11 +51,11 @@ import org.apache.commons.cli.PosixParser;
  * @author jlajus
  */
 public class SimpleTyping extends Thread {
-    private BlockingQueue<Pair<Pair<Integer, ByteString>, SimpleClassifier>> queryQ;
+    private BlockingQueue<Pair<Pair<Integer, Integer>, SimpleClassifier>> queryQ;
     //public Iterable<Integer> classSizeThresholds; 
     public int supportThreshold;
     
-    public SimpleTyping(BlockingQueue<Pair<Pair<Integer, ByteString>, SimpleClassifier>> queryQ,
+    public SimpleTyping(BlockingQueue<Pair<Pair<Integer, Integer>, SimpleClassifier>> queryQ,
             //Iterable<Integer> classSizeThresholds, 
             int supportThreshold) {
         this.queryQ = queryQ;
@@ -65,7 +65,7 @@ public class SimpleTyping extends Thread {
     
     @Override
     public void run() {
-        Pair<Pair<Integer, ByteString>, SimpleClassifier> q;
+        Pair<Pair<Integer, Integer>, SimpleClassifier> q;
         while(true) {
             try {
                 q = queryQ.take();

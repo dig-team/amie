@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -44,7 +44,7 @@ public class MinCutClassifier extends SeparationClassifier {
 	}
 
 	public void classify(Int2ObjectMap<Int2ObjectMap<Double>> statistics) {
-		SimpleDirectedWeightedGraph<ByteString, DefaultWeightedEdge>  graph = 
+		SimpleDirectedWeightedGraph<Integer, DefaultWeightedEdge>  graph = 
 	            new SimpleDirectedWeightedGraph<>(DefaultWeightedEdge.class); 
 		for (int t1 : statistics.keySet()) {
 			graph.addVertex(t1);
@@ -55,7 +55,7 @@ public class MinCutClassifier extends SeparationClassifier {
 				graph.setEdgeWeight(e, statistics.get(t2).get(t1));
 			}
 		}
-		PushRelabelMFImpl<ByteString, DefaultWeightedEdge> mf = new PushRelabelMFImpl<>(graph);
+		PushRelabelMFImpl<Integer, DefaultWeightedEdge> mf = new PushRelabelMFImpl<>(graph);
 		IntSet result = Collections.emptySet();
 		double mcMinVal = Double.POSITIVE_INFINITY, mcVal;
 		for (int t1 : graph.vertexSet()) {

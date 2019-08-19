@@ -3,7 +3,7 @@ package amie.typing.heuristics;
 import java.util.List;
 import java.util.Set;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import amie.data.KB;
 import amie.data.U;
 

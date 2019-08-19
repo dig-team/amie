@@ -21,7 +21,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.Pair;
 import javatools.filehandlers.FileLines;
 import org.apache.commons.cli.CommandLine;
@@ -42,8 +42,8 @@ public class ImpliedFactsEvaluator {
     private KB db;
     public IntSet queried;
     public Set<String> querySet;
-    public BlockingQueue<Pair<ByteString, String>> queryQ = new LinkedBlockingQueue<>();
-    public BlockingQueue<Pair<Pair<ByteString, String>, ImpliedFacts>> resultQ = new LinkedBlockingQueue<>();
+    public BlockingQueue<Pair<Integer, String>> queryQ = new LinkedBlockingQueue<>();
+    public BlockingQueue<Pair<Pair<Integer, String>, ImpliedFacts>> resultQ = new LinkedBlockingQueue<>();
 
     public static final int gsRelation = KB.map("<inGoldStandardOf>");
 
@@ -147,7 +147,7 @@ public class ImpliedFactsEvaluator {
     public class ImpliedFactsMTEvaluator extends Thread {
         @Override
         public void run() {
-            Pair<ByteString, String> qP;
+            Pair<Integer, String> qP;
             while(true) {
                 try {
                     qP = queryQ.take();
@@ -179,7 +179,7 @@ public class ImpliedFactsEvaluator {
         }
     }
     
-    public static Pair<ByteString, String> extractQueryArgs(String path) {
+    public static Pair<Integer, String> extractQueryArgs(String path) {
         String[] t = path.split("/");
         String filename = t[t.length - 1];
         filename = filename.replace("_cleaned", "");
@@ -313,7 +313,7 @@ public class ImpliedFactsEvaluator {
             try {
                 eval.readFile(rsFiles[i]);
             } catch (IllegalArgumentException e) {
-                Pair<ByteString, String> rm = extractQueryArgs(rsFiles[i]);
+                Pair<Integer, String> rm = extractQueryArgs(rsFiles[i]);
                 eval.addResult(rm.first, rm.second, readClassFile(rsFiles[i]));
             }
         }
@@ -328,7 +328,7 @@ public class ImpliedFactsEvaluator {
         eval.computeImpliedFactsMT(nThreads);
         
         System.out.println("Method\tClassifier\tParameter\tRelation\tTrue Positives\tPredicted Size\tGS Size\tNFTP\tNFPS\tNFGS\tP\tR\tF1\tNFP\tNFR\tNFF1");
-        Pair<Pair<ByteString, String>, ImpliedFacts> result;
+        Pair<Pair<Integer, String>, ImpliedFacts> result;
         while((result = eval.resultQ.poll()) != null) {
             ImpliedFacts s = result.second;
             String rString = String.join("\t", 

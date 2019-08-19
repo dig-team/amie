@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javatools.datatypes.ByteString;
+import javatools.datatypes.Integer;
 import javatools.datatypes.IntHashMap;
 import javatools.datatypes.Pair;
 import amie.data.KB;
@@ -25,12 +25,12 @@ public class DefaultMiningAssistant extends MiningAssistant{
 	/**
 	 * Store counts for hard queries
 	 */
-	protected Map<Pair<ByteString, Boolean>, Long> hardQueries;
+	protected Map<Pair<Integer, Boolean>, Long> hardQueries;
 	
 	
 	public DefaultMiningAssistant(KB dataSource) {
 		super(dataSource);
-		this.hardQueries = Collections.synchronizedMap(new HashMap<Pair<ByteString, Boolean>, Long>());
+		this.hardQueries = Collections.synchronizedMap(new HashMap<Pair<Integer, Boolean>, Long>());
 		// TODO Auto-generated constructor stub
 	}
 	

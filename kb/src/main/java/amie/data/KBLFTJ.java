@@ -43,7 +43,7 @@ public class KBLFTJ extends KB {
 	
 	public static int varposInv(int variable, int[] triple) {
 		for(int i = 0; i < triple.length; i++) {
-			if(isVariable(triple[i]) && !triple[i].equals(variable))
+			if(isVariable(triple[i]) && triple[i]!=(variable))
 				return i;
 		}
 		return -1;
@@ -54,7 +54,7 @@ public class KBLFTJ extends KB {
 		case 1:
 			return resultsOneVariable(triple);
 		case 2:
-			if (triple[1].equals(TRANSITIVETYPEbs)) {
+			if (triple[1] == TRANSITIVETYPEbs) {
 				switch(varpos(variable, triple)) {
 				case 0:
 					return get(relation2subject2object, Schema.typeRelationBS).keySet();
@@ -67,9 +67,9 @@ public class KBLFTJ extends KB {
 					 */
 				}
 			}
-			if (triple[1].equals(DIFFERENTFROMbs) || triple[1].equals(EQUALSbs))
+			if (triple[1]==(DIFFERENTFROMbs) || triple[1]==(EQUALSbs))
 				return subject2object2relation.keySet();
-			if (triple[1].equals(EXISTSbs) || triple[1].equals(EXISTSINVbs) || triple[1].equals(NOTEXISTSbs) || triple[1].equals(NOTEXISTSINVbs)) {
+			if (triple[1]==(EXISTSbs) || triple[1]==(EXISTSINVbs) || triple[1]==(NOTEXISTSbs) || triple[1]==(NOTEXISTSINVbs)) {
 				switch(varpos(variable, triple)) {
 				case 0: return subject2object2relation.keySet();
 				case 2: return relation2subject2object.keySet();

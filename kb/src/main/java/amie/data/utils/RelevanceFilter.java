@@ -66,7 +66,7 @@ public class RelevanceFilter {
 			int[] query2 = KB.triple(s, relation, o);
 			Int2ObjectMap<IntSet> bindings = null;
 			boolean inversed = false;
-			if (kb.isFunctional(relation) || relation.equals(amie.data.Schema.typeRelationBS)) {				
+			if (kb.isFunctional(relation) || relation == amie.data.Schema.typeRelationBS) {				
 				bindings = kb.resultsTwoVariables(s, o, query2);
 			} else {
 				inversed = true;

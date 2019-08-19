@@ -122,7 +122,7 @@ public class OutputSignedRelationPhrases {
 				db.resultsThreeVariables(KB.map("?p"), KB.map("?s"), KB.map("o"), 
 						KB.triple("?s", "?p", "?o"));
 		for (int relation : map.keySet()) {
-			if (!relation.equals(typeRelation)) {
+			if (relation != typeRelation) {
 				Int2ObjectMap<IntSet> tail = map.get(relation);
 				for (int subject : tail.keySet()) {
 					for (int object : tail.get(subject)) {

@@ -12,9 +12,9 @@ package amie.data;
 public class SexismSimpleTypingKB extends SimpleTypingKB {
     @Override
     protected boolean add(int subject, int relation, int object) {
-        if (relation.equals(Schema.typeRelationBS) || relation.equals(Schema.subClassRelationBS)) {
+        if (relation==(Schema.typeRelationBS) || relation==(Schema.subClassRelationBS)) {
             return super.add(subject, relation, object);
-        } else if (relation.equals(KB.map("<hasGender>"))) {
+        } else if (relation==(KB.map("<hasGender>"))) {
             return super.add(subject, object, relation);
         } else {
             return false;

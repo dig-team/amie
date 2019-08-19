@@ -48,7 +48,7 @@ public class SimpleTypingKB extends KB {
     
     @Override
     protected boolean add(int subject, int relation, int object) {
-        if (relation.equals(Schema.typeRelationBS)) {
+        if (relation == Schema.typeRelationBS) {
             //System.err.println(object);
             synchronized (classes) {
                 IntSet eS = classes.get(object);
@@ -57,7 +57,7 @@ public class SimpleTypingKB extends KB {
                 }
                 return eS.add(subject);
             }
-        } else if (relation.equals(Schema.subClassRelationBS)) {
+        } else if (relation == Schema.subClassRelationBS) {
             return super.add(subject, relation, object);
         } else {
             //System.err.println(relation);
@@ -67,7 +67,7 @@ public class SimpleTypingKB extends KB {
                     relations.put(relation, eS = new IntOpenHashSet());
                 }
                 eS.add(subject);
-                int relationy = KB.map(relation.toString() + "-1");
+                int relationy = KB.map(KB.unmap(relation) + "-1");
                 eS = relations.get(relationy);
                 if (eS == null) {
                     relations.put(relationy, eS = new IntOpenHashSet());
@@ -79,7 +79,7 @@ public class SimpleTypingKB extends KB {
     }
 
     private IntSet lazyIntersectionSet(int c1, int c2) {
-        if (c1.compareTo(c2) < 0) {
+        if (c1 < c2) {
             return lazyIntersectionSet(c2, c1);
         }
         throw new UnsupportedOperationException();

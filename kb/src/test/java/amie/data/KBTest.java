@@ -34,7 +34,7 @@ public class KBTest extends TestCase {
 	
 	public void testNegationCountOneVar() {
 		assert(kb.count(KB.triple("<hasChild>", KB.NOTEXISTSstr, "?x")) == 6);
-		assert(kb.count(KB.triple("<hasChild>", KB.NOTEXISTSINVbs, "?x")) == 6);
+		assert(kb.count(KB.triple("<hasChild>", KB.NOTEXISTSINVstr, "?x")) == 6);
 	}
 	
 	public void testContains() {
@@ -46,14 +46,14 @@ public class KBTest extends TestCase {
 	}
 	
 	public void testValuesOneVar1() {
-		IntSet values = kb.resultsOneVariable(KB.triple("<worksAt>", KB.NOTEXISTSbs, "?x"));
+		IntSet values = kb.resultsOneVariable(KB.triple("<worksAt>", KB.NOTEXISTSstr, "?x"));
 		assertEquals(2, values.size());
 		assertTrue(values.contains(KB.map("<Oana>")));
 		assertTrue(values.contains(KB.map("<Telecom>")));
 	}
 	
 	public void testValuesOneVar2() {
-		IntSet values = kb.resultsOneVariable(KB.triple("?x", KB.NOTEXISTSbs, "<Luis>"));
+		IntSet values = kb.resultsOneVariable(KB.triple("?x", KB.NOTEXISTSstr, "<Luis>"));
 		assertEquals(1, values.size());
 		assertTrue(values.contains(KB.map("<isLocatedIn>")));
 	}
@@ -64,7 +64,7 @@ public class KBTest extends TestCase {
 		kb.add(KB.triple("<Colmar>", "<rdf:type>", "<City>"));		
 		kb.add(KB.triple("<Paris>", "<rdf:type>", "<City>"));		
 		IntSet values = kb.selectDistinct(KB.map("?x"), 
-				KB.triples(KB.triple("<wasBornIn>", KB.NOTEXISTSINVbs, "?x"),
+				KB.triples(KB.triple("<wasBornIn>", KB.NOTEXISTSINVstr, "?x"),
 						KB.triple("?x", "<rdf:type>", "<City>")));
 		assertEquals(1, values.size());
 		assertTrue(values.contains(KB.map("<Paris>")));
@@ -81,13 +81,13 @@ public class KBTest extends TestCase {
 		kb.add(KB.triple("<Oana>", "<rdf:type>", "<Person>"));	
 		kb.add(KB.triple("<Thomas>", "<rdf:type>", "<Person>"));
 		Int2ObjectMap<IntSet> values = kb.selectDistinct(KB.map("?x"), KB.map("?y"),
-				KB.triples(KB.triple("?x", KB.NOTEXISTSbs, "?y"),
+				KB.triples(KB.triple("?x", KB.NOTEXISTSstr, "?y"),
 						KB.triple("?y", "<rdf:type>", "<Person>")));
 		assertTrue(values.containsKey(KB.map("<wasBornIn>")));
 		assertTrue(values.get(KB.map("<wasBornIn>")).contains(KB.map("<Ambar>")));
 		
 		values = kb.selectDistinct(KB.map("?x"), KB.map("?y"),
-				KB.triples(KB.triple("?x", KB.NOTEXISTSINVbs, "?y"),
+				KB.triples(KB.triple("?x", KB.NOTEXISTSINVstr, "?y"),
 						KB.triple("?y", "<rdf:type>", "<City>")));
 		assertTrue(values.containsKey(KB.map("<wasBornIn>")));
 		assertTrue(values.get(KB.map("<wasBornIn>")).contains(KB.map("<Paris>")));

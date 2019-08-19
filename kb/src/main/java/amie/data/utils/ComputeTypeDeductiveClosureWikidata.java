@@ -43,7 +43,7 @@ public class ComputeTypeDeductiveClosureWikidata {
             }
             if (superTypes.contains(Schema.topBS)) {
                 output(entity, superTypes, pw);
-                pw2.println(entity.toString().replace("<", "").replace(">", ""));
+                pw2.println(KB.unmap(entity).replace("<", "").replace(">", ""));
             }
         }
     }

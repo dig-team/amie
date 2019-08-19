@@ -87,11 +87,11 @@ public class EntityFilter {
 					for(int object: objects){
 						int nTimes = 1;
 						for(int k = 0; k < nTimes; ++k){
-							out.append(subject);
+							out.append(KB.unmap(subject));
 							out.append('\t');
-							out.append(predicate);
+							out.append(KB.unmap(predicate));
 							out.append('\t');
-							out.append(object);
+							out.append(KB.unmap(object));
 							out.append('\n');
 						}
 					}

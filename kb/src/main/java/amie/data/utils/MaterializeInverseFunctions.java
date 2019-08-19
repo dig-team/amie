@@ -38,7 +38,7 @@ public class MaterializeInverseFunctions {
 				} else {
 					for(int subject: predicates.get(predicate))
 						System.out.println(object + "\t" + "<inv-" 
-					+ predicate.subSequence(1, predicate.length()) + "\t" + subject);					
+					+ KB.unmap(predicate).subSequence(1, KB.unmap(predicate).length()) + "\t" + subject);					
 				}
 			}
 		}

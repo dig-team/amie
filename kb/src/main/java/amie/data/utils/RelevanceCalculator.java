@@ -85,7 +85,7 @@ public class RelevanceCalculator {
 	private static void calculateRelevance(String args[]) throws IOException {
 		KB kb = amie.data.U.loadFiles(args);
 		Int2IntMap allEntities = kb.getEntitiesOccurrences();
-		for (int entity : allEntities) {
+		for (int entity : allEntities.keySet()) {
 			System.out.println(entity + "\t<hasRelevance>\t" + allEntities.get(entity));
 		}
 	}

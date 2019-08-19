@@ -87,11 +87,11 @@ public class FactsFilter {
 			for(int predicate: predicates){
 				IntSet objects = subjectsMap.get(predicate);
 				for(int object: objects){
-					out.append(subject);
+					out.append(KB.unmap(subject));
 					out.append('\t');
-					out.append(predicate);
+					out.append(KB.unmap(predicate));
 					out.append('\t');
-					out.append(object);
+					out.append(KB.unmap(object));
 					out.append('\n');
 				}
 			}

@@ -59,7 +59,7 @@ public class KBRelationDelta {
 			for (int i = 0; i < Math.max(1, Runtime.getRuntime().availableProcessors() / 2); ++i) {
 				final int relation = r2.poll();
 				System.out.println("Analyzing relation " + relation);
-				if (relation == null)
+				if (relation == 0)
 					break;
 				
 				final KB ddb1 = db1;
@@ -76,8 +76,8 @@ public class KBRelationDelta {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-						int domain = null;
-						int qVariable = null;
+						int domain = 0;
+						int qVariable = 0;
 						String relationlabel = null;
 						List<int[]> query = KB.triples(KB.triple(KB.map("?s"), relation, KB.map("?o")));
 						int[] query2 = KB.triple(KB.map("?s"), relation, KB.map("?o"));
@@ -85,11 +85,11 @@ public class KBRelationDelta {
 						if (isFunctional) {
 							domain = Schema.getRelationDomain(ddb2, relation);
 							qVariable = query.get(0)[0];
-							relationlabel = relation.toString();
+							relationlabel = KB.unmap(relation);
 						} else {
 							domain = Schema.getRelationRange(ddb2, relation);
 							qVariable = query.get(0)[2];
-							relationlabel = relation.toString().replace(">", "-inv>");
+							relationlabel = KB.unmap(relation).replace(">", "-inv>");
 						}
 						System.out.println("Getting the values for the domain");
 						IntSet entities = new IntOpenHashSet(Schema.getAllEntitiesForType(ddb2, domain));					

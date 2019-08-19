@@ -65,13 +65,13 @@ public class PrintCounts {
 
         for (int t : kb.classes.keySet()) {
             if ((s = kb.classes.get(t).size()) >= threshold) {
-                out1.append(t.toString() + "\t" + Integer.toString(s) + "\n");
+                out1.append(KB.unmap(t) + "\t" + Integer.toString(s) + "\n");
             }
         }
         for (int t1 : kb.classes.keySet()) {
             for (int t2 : kb.classes.keySet()) {
                 if ((s = (int) SetU.countIntersection(kb.classes.get(t1), kb.classes.get(t2))) >= threshold) {
-                    out2.append(t1.toString() + "\t" + t2.toString() + "\t" + s + "\n");
+                    out2.append(KB.unmap(t1) + "\t" + KB.unmap(t2) + "\t" + s + "\n");
                 }
             }
         }

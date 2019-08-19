@@ -18,7 +18,7 @@ public class TrivialRelevanceCalculator {
 		allEntities.addAll(kb.selectDistinct(KB.map("?o"), query));
 		for (int entity : allEntities) {			
 			int nFacts = (int) kb.count(entity, KB.map("?p"), KB.map("?o"));
-			nFacts += kb.count(KB.map("?s"), KB.map("?p"), KB.map(entity));
+			nFacts += kb.count(KB.map("?s"), KB.map("?p"), entity);
 			
 			System.out.println(entity + "\t<hasNumberOfFacts>\t" + nFacts);								
 		}

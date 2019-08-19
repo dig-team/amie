@@ -6,6 +6,7 @@
 package amie.data;
 
 import static amie.data.KB.isVariable;
+import amie.data.tuple.IntArrays;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -31,7 +32,7 @@ public class CountCacheKB extends KB {
     @Override
     public long countDistinct(int variable, List<int[]> query) {
         if (countCacheEnabled) {
-            queryCache qC = new queryCache(query, Arrays.asList(variable));
+            queryCache qC = new queryCache(query, IntArrays.asList(variable));
             Long count = countCache.get(qC);
             if (count != null) {
                 countCacheMatch.incrementAndGet();
@@ -54,7 +55,7 @@ public class CountCacheKB extends KB {
 
         queryCache qC = null;
         if (countCacheEnabled) {
-            qC = new queryCache(query, Arrays.asList(var1, var2));
+            qC = new queryCache(query, IntArrays.asList(var1, var2));
             Long count = countCache.get(qC);
             if (count != null) {
                 countCacheMatch.incrementAndGet();
@@ -83,7 +84,7 @@ public long countPairs(int var1, int var2,
 		
 		queryCache qC = null;
 		if (countCacheEnabled) {
-			qC = new queryCache(query, Arrays.asList(var1, var2));
+			qC = new queryCache(query, IntArrays.asList(var1, var2));
 			Long count = countCache.get(qC);
 			if(count != null) {
 				countCacheMatch.incrementAndGet();
@@ -185,12 +186,12 @@ public long countPairs(int var1, int var2,
 					}
 				}
 				else {
-					repr[i][0] = arg.hashCode();
+					repr[i][0] = arg;
 					constants.add(arg);
 				}
 				j = 2;
 				for (int[] atom : query) {
-					repr[i][j] = ((atom[0].equals(arg)) ? ((atom[2].equals(arg)) ? 1 : 2) : ((atom[2].equals(arg)) ? 3 : 5) * (atom[1].hashCode()+1));
+					repr[i][j] = ((atom[0]==(arg)) ? ((atom[2]==(arg)) ? 1 : 2) : ((atom[2]==(arg)) ? 3 : 5) * (atom[1]+1));
 					j++;
 				}
 				i++;
@@ -229,7 +230,7 @@ public long countPairs(int var1, int var2,
 		public String stringRepresentation(List<int[]> _query, IntList _cV) {
 			String r = "";
 			for (int[] atom : _query) {
-				r += atom[0].toString() + " " + atom[1].toString() + " " + atom[2].toString() + "; ";
+				r += KB.unmap(atom[0]) + " " + KB.unmap(atom[1]) + " " + KB.unmap(atom[2]) + "; ";
 			}
 			r += _cV.toString();
 			return r;

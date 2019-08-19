@@ -29,7 +29,7 @@ public class TransitiveTypesKB extends KB {
 	
 	@Override
 	protected boolean contains(int... fact) {
-		if (fact[1].equals(TRANSITIVETYPEbs)) {
+		if (fact[1] == TRANSITIVETYPEbs) {
 			for (int type : get(this.subject2relation2object, fact[0], Schema.typeRelationBS)) {
 				if (Schema.isTransitiveSuperType(this, fact[2], type)) {
 					return true;
@@ -43,7 +43,7 @@ public class TransitiveTypesKB extends KB {
 
 	@Override
 	protected long countTwoVariables(int... triple) {
-		if (triple[1].equals(TRANSITIVETYPEbs)) {
+		if (triple[1] == TRANSITIVETYPEbs) {
 			Int2ObjectMap<IntSet> resultTwoVars = 
 					resultsTwoVariablesByPos(0, 2, triple);
 			long count = 0;
@@ -58,7 +58,7 @@ public class TransitiveTypesKB extends KB {
 	
 	@Override
 	public IntSet resultsOneVariable(int... triple) {
-		if (triple[1].equals(TRANSITIVETYPEbs)) {
+		if (triple[1] == TRANSITIVETYPEbs) {
 			if (isVariable(triple[0])) {
 				/*
 				 * Return all the entities in subclasses of triple[2]
@@ -83,7 +83,7 @@ public class TransitiveTypesKB extends KB {
 	@Override
 	public Int2ObjectMap<IntSet> resultsTwoVariablesByPos(
 			int pos1, int pos2, int[] triple) {
-		if (triple[1].equals(TRANSITIVETYPEbs)) {
+		if (triple[1] == TRANSITIVETYPEbs) {
 			Int2ObjectMap<IntSet> result = new Int2ObjectOpenHashMap<>();
 			switch(pos1) {
 			case 0:

@@ -29,10 +29,10 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 	}
 	
 	@Override
-	public void setHeadExcludedRelations(java.util.Collection<ByteString> headExcludedRelations) {};
+	public void setHeadExcludedRelations(java.util.IntCollection headExcludedRelations) {};
 	
 	@Override
-	public void setBodyExcludedRelations(java.util.Collection<ByteString> excludedRelations) {};
+	public void setBodyExcludedRelations(java.util.IntCollection excludedRelations) {};
 	
 	@Override
 	public void getDanglingAtoms(Rule query, double minCardinality, Collection<Rule> output) {		

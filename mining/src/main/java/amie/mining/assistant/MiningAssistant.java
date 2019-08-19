@@ -114,17 +114,17 @@ public class MiningAssistant {
 	/**
 	 * List of excluded relations for the body of rules;
 	 */
-	protected Collection<ByteString> bodyExcludedRelations;
+	protected IntCollection bodyExcludedRelations;
 	
 	/**
 	 * List of excluded relations for the head of rules;
 	 */
-	protected Collection<ByteString> headExcludedRelations;
+	protected IntCollection headExcludedRelations;
 	
 	/**
 	 * List of target relations for the body of rules;
 	 */
-	protected Collection<ByteString> bodyTargetRelations;
+	protected IntCollection bodyTargetRelations;
 
 	/**
 	 * Count directly on subject or use functional information
@@ -321,7 +321,7 @@ public class MiningAssistant {
 	 * Builds a dictionary with the relations and their sizes.
 	 */
 	protected void buildRelationsDictionary() {
-		Collection<ByteString> relations = kb.getRelations();
+		IntCollection relations = kb.getRelations();
 		for (int relation : relations) {
 			int[] query = KB.triple(KB.map("?x"), relation, KB.map("?y"));
 			double relationSize = kb.count(query);
@@ -476,7 +476,7 @@ public class MiningAssistant {
 	 * @param relations
 	 * @param minSupportThreshold Only relations of size bigger or equal than this value will be considered.
 	 */
-	public Collection<Rule> getInitialAtomsFromSeeds(Collection<ByteString> relations, 
+	public Collection<Rule> getInitialAtomsFromSeeds(IntCollection relations, 
 			double minSupportThreshold) {
 		Collection<Rule> output = new ArrayList<>();
 		Rule emptyQuery = new Rule();
@@ -1406,24 +1406,24 @@ public class MiningAssistant {
 		this.enforceConstants = enforceConstants;
 	}
 
-	public Collection<ByteString> getBodyExcludedRelations() {
+	public IntCollection getBodyExcludedRelations() {
 		return bodyExcludedRelations;
 	}
 	
-	public void setBodyExcludedRelations(Collection<ByteString> excludedRelations) {
+	public void setBodyExcludedRelations(IntCollection excludedRelations) {
 		this.bodyExcludedRelations = excludedRelations;
 	}
 	
-	public Collection<ByteString> getHeadExcludedRelations() {
+	public IntCollection getHeadExcludedRelations() {
 		return headExcludedRelations;
 	}
 
 	public void setHeadExcludedRelations(
-			Collection<ByteString> headExcludedRelations) {
+			IntCollection headExcludedRelations) {
 		this.headExcludedRelations = headExcludedRelations;
 	}
 
-	public Collection<ByteString> getBodyTargetRelations() {
+	public IntCollection getBodyTargetRelations() {
 		return bodyTargetRelations;
 	}
 	
@@ -1436,7 +1436,7 @@ public class MiningAssistant {
 	}
 
 	public void setTargetBodyRelations(
-			Collection<ByteString> bodyTargetRelations) {
+			IntCollection bodyTargetRelations) {
 		this.bodyTargetRelations = bodyTargetRelations;
 	}	
 

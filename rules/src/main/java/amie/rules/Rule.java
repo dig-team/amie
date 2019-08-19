@@ -1001,8 +1001,8 @@ public class Rule {
      * @param atom
      * @return
      */
-    public static Collection<ByteString> getVariables(int[] atom) {
-    	Collection<ByteString> result = new ArrayList<>(4);
+    public static IntCollection getVariables(int[] atom) {
+    	IntCollection result = new ArrayList<>(4);
     	for (int i = 0; i < atom.length; ++i) {
     		if (KB.isVariable(atom[i])) {
     			result.add(atom[i]);

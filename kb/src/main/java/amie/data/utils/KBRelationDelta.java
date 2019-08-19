@@ -51,7 +51,7 @@ public class KBRelationDelta {
 		
 		r2.retainAll(r1);
 		
-		final Collection<ByteString> allEntitiesOldKB = db1.getAllEntities();
+		final IntCollection allEntitiesOldKB = db1.getAllEntities();
 		
 		while (!r2.isEmpty()) {
 			List<Thread> threads = new ArrayList<>();

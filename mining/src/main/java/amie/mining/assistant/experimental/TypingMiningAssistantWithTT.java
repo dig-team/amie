@@ -49,7 +49,7 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 	}
 	
 	@Override
-	public Collection<Rule> getInitialAtomsFromSeeds(Collection<ByteString> relations, 
+	public Collection<Rule> getInitialAtomsFromSeeds(IntCollection relations, 
 			double minSupportThreshold) {
 		return Arrays.asList(getInitialRule());
 	}

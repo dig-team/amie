@@ -118,8 +118,8 @@ public class AMIE {
     /**
      * List of target head relations.
      */
-    protected Collection<ByteString> seeds;
-
+    protected IntCollection seeds;
+    
     /**
      * Column headers
      */
@@ -165,12 +165,12 @@ public class AMIE {
         this.realTime = realTime;
     }
 
-    public Collection<ByteString> getSeeds() {
-        return seeds;
+    public IntCollection getSeeds() {
+    	return seeds;
     }
-
-    public void setSeeds(Collection<ByteString> seeds) {
-        this.seeds = seeds;
+    
+    public void setSeeds(IntCollection seeds) {
+    	this.seeds = seeds;
     }
 
     public double getMinSignificanceThreshold() {
@@ -621,10 +621,10 @@ public class AMIE {
         Metric metric = Metric.HeadCoverage; // Metric used to prune the search space.
         VariableOrder variableOrder = new FunctionalOrder();
         MiningAssistant mineAssistant = null;
-        Collection<ByteString> bodyExcludedRelations = null;
-        Collection<ByteString> headExcludedRelations = null;
-        Collection<ByteString> headTargetRelations = null;
-        Collection<ByteString> bodyTargetRelations = null;
+        IntCollection bodyExcludedRelations = null;
+        IntCollection headExcludedRelations = null;
+        IntCollection headTargetRelations = null;
+        IntCollection bodyTargetRelations = null;
         KB targetSource = null;
         KB schemaSource = null;
         int nThreads = nProcessors; // By default use as many threads as processors.

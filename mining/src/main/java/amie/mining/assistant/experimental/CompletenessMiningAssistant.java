@@ -74,10 +74,10 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	}
 	
 	@Override
-	public void setHeadExcludedRelations(java.util.Collection<ByteString> headExcludedRelations) {};
+	public void setHeadExcludedRelations(java.util.IntCollection headExcludedRelations) {};
 	
 	@Override
-	public void setBodyExcludedRelations(java.util.Collection<ByteString> bodyExcludedRelations) {};
+	public void setBodyExcludedRelations(java.util.IntCollection bodyExcludedRelations) {};
 	
 	@Override
 	public void getClosingAtoms(Rule rule, double minSupportThreshold, Collection<Rule> output){}

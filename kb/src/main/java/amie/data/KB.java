@@ -117,8 +117,7 @@ public class KB {
 	public static final String DIFFERENTFROMstr = "differentFrom";
 
 	/** (X differentFrom Y Z ...) predicate */
-	public static final int DIFFERENTFROMbs = ByteString
-			.of(DIFFERENTFROMstr);
+	public static final int DIFFERENTFROMbs = KB.map(DIFFERENTFROMstr);
 
 	/** (X equals Y Z ...) predicate */
 	public static final String EQUALSstr = "equals";
@@ -3503,7 +3502,7 @@ public class KB {
 
 	/** Makes a triple */
 	public static int[] triple(CharSequence... triple) {
-		int[] result = new ByteString[triple.length];
+		int[] result = new int[triple.length];
 		for (int i = 0; i < triple.length; i++)
 			result[i] = compress(triple[i]);
 		return (result);
@@ -4056,7 +4055,7 @@ public class KB {
 	 * Get a collection with all the relations of the KB.
 	 * @return
 	 */
-	public Collection<ByteString> getRelations() {
+	public IntCollection getRelations() {
 		return relationSize.decreasingKeys();
 	}
 	
@@ -4066,8 +4065,8 @@ public class KB {
 	 * @param kb
 	 * @return
 	 */
-	public Collection<ByteString> getAllEntities() {
-		Collection<ByteString> result = new ArrayList<>();
+	public IntCollection getAllEntities() {
+		IntCollection result = new ArrayList<>();
 		result.addAll(subjectSize);
 		result.addAll(objectSize);
 		return result;
@@ -4092,7 +4091,7 @@ public class KB {
 	 * @param kb
 	 * @return
 	 */
-	public Int2IntMap getEntitiesOccurrences(Collection<ByteString> entities) {
+	public Int2IntMap getEntitiesOccurrences(IntCollection entities) {
 		Int2IntMap result = new Int2IntOpenHashMap();
 		for (int entity : entities) {
 			if (subjectSize.contains(entity)) increase(result, entity, subjectSize.get(entity));

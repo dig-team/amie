@@ -43,7 +43,7 @@ public class ExistentialAndNegatedRulesMiningAssistant extends MiningAssistant {
 	public void setAllowConstants(boolean allowConstants) {};
 	
 	@Override
-	public void setHeadExcludedRelations(java.util.Collection<ByteString> headExcludedRelations) {};
+	public void setHeadExcludedRelations(java.util.IntCollection headExcludedRelations) {};
 	
 	@Override
 	protected Collection<Rule> buildInitialQueries(Int2IntMap relations, 

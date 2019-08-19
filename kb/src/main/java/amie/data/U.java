@@ -261,7 +261,7 @@ public class U {
 	 * @param omittedRelations These relations are not counted as facts.
 	 * @return
 	 */
-	public static int numberOfFacts(KB kb, int entity, Collection<ByteString> omittedRelations) {
+	public static int numberOfFacts(KB kb, int entity, IntCollection omittedRelations) {
 		int[] querySubject = KB.triple(entity, KB.map("?r"), KB.map("?o")); 
 		int[] queryObject = KB.triple(KB.map("?s"), KB.map("?r"), entity); 
 		Int2ObjectMap<IntSet> relationsSubject = 

@@ -24,7 +24,7 @@ public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 	}
 	
 	@Override
-	public Collection<Rule> getInitialAtomsFromSeeds(Collection<ByteString> relations, double minCardinality) {
+	public Collection<Rule> getInitialAtomsFromSeeds(IntCollection relations, double minCardinality) {
 		Collection<Rule> output = new ArrayList<>();
 		Rule query = new Rule();
 		//The query must be empty

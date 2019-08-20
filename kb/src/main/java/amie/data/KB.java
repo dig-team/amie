@@ -3902,17 +3902,6 @@ public class KB {
 	 * but not the second.
 	 */
 	public Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> difference(
-			CharSequence var1, CharSequence var2, CharSequence var3, CharSequence var4,
-			List<? extends CharSequence[]> antecedent, CharSequence[] head, boolean swap) {
-		return difference(compress(var1), compress(var2), compress(var3), compress(var4),
-				triples(antecedent), triple(head), swap);
-	}
-	
-	/**
-	 * Bindings of the projection variables that satisfy the first list of atoms 
-	 * but not the second.
-	 */
-	public Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> difference(
 			int var1, int var2, int var3, int var4,
 			List<int[]> antecedent, int[] head) {
 		Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> results = new

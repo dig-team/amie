@@ -64,7 +64,7 @@ public class FrequencyTester {
 	public void printGoldStandard() {
 		for (int attribute : attribute2classes.keySet()) {
 			for (int classes : attribute2classes.get(attribute)) {
-				System.out.println(attribute.toString() + "\t" + classes.toString());
+				System.out.println(KB.unmap(attribute) + "\t" + KB.unmap(classes));
 			}
 		}
 	}
@@ -73,7 +73,7 @@ public class FrequencyTester {
 		FrequencyVector<Integer, Double> resultFV = new FrequencyVector<>(heuristic2attribute2class2score.get(heuristic).get(attribute));
 		double precision = resultFV.weightedPrecisionWithRespectTo(attribute2classes.get(attribute));
 		double recall = resultFV.recallWithRespectTo(attribute2classes.get(attribute));
-		System.out.println(heuristic + "\t" + attribute.toString() + "\t" 
+		System.out.println(heuristic + "\t" + KB.unmap(attribute) + "\t" 
 							+ String.valueOf(precision) + "\t" + String.valueOf(recall) 
 							+ ((attribute2classes.get(attribute).isEmpty())?"\tE":""));
 	}

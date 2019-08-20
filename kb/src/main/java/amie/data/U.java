@@ -478,5 +478,18 @@ public class U {
 		}
 		return newList;
 	}
+        
+        /**
+	 * Performs a deep clone of the given list, i.e., it returns a new list where 
+	 * each element has been cloned.
+	 * @param collection
+	 */
+	public static List<int[]> deepCloneInt(List<int[]> collection) {
+		List<int[]> newList = new ArrayList<>(collection.size());
+		for (int[] t : collection) {
+			newList.add(t.clone());
+		}
+		return newList;
+	}
 	
 }

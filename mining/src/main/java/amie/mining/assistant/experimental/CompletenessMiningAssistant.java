@@ -15,6 +15,7 @@ import amie.rules.QueryEquivalenceChecker;
 import amie.rules.Rule;
 
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -61,7 +62,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		super(dataSource);
 		mode = Mode.Standard;
 		this.allowConstants = false;
-		this.bodyExcludedRelations = Arrays.asList(Schema.typeRelationBS, 
+		this.bodyExcludedRelations = IntArrays.asList(Schema.typeRelationBS, 
 				Schema.subClassRelationBS, Schema.domainRelationBS, 
 				Schema.rangeRelationBS, isCompleteBS, isIncompleteBS,
 				isRelevanthasWikiLengthBS, isRelevanthasIngoingLinksBS, isRelevanthasNumberOfFactsBS,
@@ -77,10 +78,10 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	}
 	
 	@Override
-	public void setHeadExcludedRelations(java.util.IntCollection headExcludedRelations) {};
+	public void setHeadExcludedRelations(IntCollection headExcludedRelations) {};
 	
 	@Override
-	public void setBodyExcludedRelations(java.util.IntCollection bodyExcludedRelations) {};
+	public void setBodyExcludedRelations(IntCollection bodyExcludedRelations) {};
 	
 	@Override
 	public void getClosingAtoms(Rule rule, double minSupportThreshold, Collection<Rule> output){}
@@ -108,9 +109,9 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		
 		int[] newEdge = query.fullyUnboundTriplePattern();
 		
-		for (int relation: relations) {		
-			if (relation.equals(isCompleteBS) ||
-					relation.equals(isIncompleteBS)) {
+		for (int relation: relations.keySet()) {		
+			if (relation == isCompleteBS ||
+					relation == isIncompleteBS) {
 				registerHeadRelation(relation, (double) relations.get(relation));
 				continue;
 			}
@@ -149,14 +150,14 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		} else {
 			int oldRelation = lastAtom[1];
 			// Do not specialize the equals relation
-			if (oldRelation.toString().startsWith(KB.hasNumberOfValuesEquals)) 
+			if (KB.unmap(oldRelation).startsWith(KB.hasNumberOfValuesEquals)) 
 				return;
 			
 			int targetRelation = lastAtom[2];
 			int newCard = -1;
 			int[] head = rule.getHead(); 
-			if (head[1].equals(isCompleteBS)) {
-				if (!head[2].equals(lastAtom[2]))
+			if (head[1] == isCompleteBS) {
+				if (head[2] != lastAtom[2])
 					return;
 					
 				if (this.isFunctional(targetRelation)) {
@@ -169,7 +170,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 				if (newCard == -1)
 					return;
 			} else {
-				if (!head[2].equals(lastAtom[2]))
+				if (head[2] != lastAtom[2])
 					return;
 				if (this.isFunctional(targetRelation)) {
 					newCard = kb.maximalCardinality(targetRelation, compositeRelation.second.intValue());
@@ -253,7 +254,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		
 		int[] lastAtom = parentRule.getLastRealTriplePattern();
 		if (!parentRule.containsRelation(KB.DIFFERENTFROMbs) && 
-				extendRule && lastAtom[1].equals(Schema.typeRelationBS) 
+				extendRule &&(lastAtom[1] == Schema.typeRelationBS)
 				&& !KB.isVariable(lastAtom[2])) {
 			addTypeNegationAtom(parentRule, minSupportThreshold, output);
 		}
@@ -334,7 +335,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 				rule.getFunctionalVariable(), rule.getTriples());
 		rule.getTriples().remove(nPatterns);
 		
-		for(int relation: promisingRelations){
+		for(int relation: promisingRelations.keySet()){
 			if (this.bodyExcludedRelations != null && 
 					this.bodyExcludedRelations.contains(relation))
 				continue;
@@ -342,7 +343,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 			int cardinality = promisingRelations.get(relation);
 			if(cardinality >= minSupportThreshold) {
 				if(rule.containsRelation(relation) 
-						|| relation.equals(head[2])) {
+						||(relation == head[2])) {
 					continue;
 				}
 				
@@ -369,7 +370,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		int relation = head[2];
 		int[] newEdge = head.clone();
 		newEdge[1] = Schema.typeRelationBS;
-		int domain = null;
+		int domain = 0;
 		if (this.kbSchema != null) {
 			if (this.isFunctional(relation)) {
 				domain = Schema.getRelationDomain(this.kbSchema, relation);
@@ -378,7 +379,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 			}
 		}
 		
-		if (domain == null)
+		if (domain == 0)
 			return;
 		
 		newEdge[2] = domain;
@@ -454,7 +455,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 		if (idx == -1) {
 			return false;
 		} else {
-			return rule.getTriples().get(idx)[2].equals(targetRelation);
+			return rule.getTriples().get(idx)[2] == (targetRelation);
 		}
 	}
 	
@@ -510,7 +511,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 			triplesRule.remove(idxOfTypeAtomRule);
 			Rule newRule = new Rule(currentRule.getHead(), triplesRule.subList(1, triplesRule.size()), 0);
 			Rule newParent = new Rule(parent.getHead(), triplesParent.subList(1, triplesParent.size()), 0);
-			boolean hasSameType = typeAtomInParent[2].equals(typeAtomInRule[2]);
+			boolean hasSameType = typeAtomInParent[2] == typeAtomInRule[2];
 			boolean isSuperType = Schema.isSuperType(this.kbSchema, typeAtomInParent[2], typeAtomInRule[2]);
 			if (hasSameType || isSuperType) {
 				return subsumesWithSpecialAtoms(newParent, newRule);
@@ -589,7 +590,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	public double computePCAConfidence(Rule rule) {
 		Rule negativeRule = new Rule(rule, rule.getSupport());
 		int[] succedent = negativeRule.getHead();
-		succedent[1] = succedent[1].equals(isCompleteBS) ? isIncompleteBS : isCompleteBS;
+		succedent[1] =(succedent[1] == isCompleteBS)? isIncompleteBS : isCompleteBS;
 		long counterEvidence = 0;
 		double support = rule.getSupport();
 		if (!rule.containsRelation(KB.DIFFERENTFROMbs)) {

@@ -57,7 +57,7 @@ public class TaxonomyMinimal {
                     }
                     if (Schema.isTransitiveSuperType(taxo, c2, c1)) {
                         clean = false;
-                        System.err.println("ERROR:"+args[i]+": "+ c1.toString() + " in " + c2.toString());
+                        System.err.println("ERROR:"+args[i]+": "+ KB.unmap(c1) + " in " + KB.unmap(c2));
                         cleanedResults.remove(c1);
                         break;
                     }
@@ -66,7 +66,7 @@ public class TaxonomyMinimal {
             if (!clean) {
                 BufferedWriter w = new BufferedWriter(new FileWriter(args[i]+"_cleaned"));
                 for (int c : cleanedResults) {
-                    w.write(c.toString()+"\n");
+                    w.write(KB.unmap(c)+"\n");
                 }
                 w.close();
             }

@@ -70,7 +70,7 @@ public class QueryEquivalenceChecker {
 				if(KB.isVariable(b2)){
 					return 1;
 				}else{
-					return b1.toString().compareTo(b2.toString());
+					return Integer.compare(b1, b2);
 				}				
 			}
 		}
@@ -280,7 +280,7 @@ public class QueryEquivalenceChecker {
 						int vari, varj;
 						vari = nodeList.get(i).data[i1];
 						varj = nodeList.get(j).data[j1];
-						if(KB.isVariable(vari) && vari.equals(varj)){
+						if(KB.isVariable(vari) && vari == (varj)){
 							int[] edge = new int[3];
 							edge[0] = j; // Target pattern
 							edge[1] = i1; //Position in local pattern

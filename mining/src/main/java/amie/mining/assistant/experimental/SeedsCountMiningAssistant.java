@@ -38,7 +38,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 	protected void getInstantiatedAtoms(Rule query, Rule originalQuery, int[] danglingEdge, 
 			int danglingPosition, double minSupportThreshold, Collection<Rule> output) {
 		Int2IntMap constants = kb.frequentBindingsOf(danglingEdge[danglingPosition], query.getFunctionalVariable(), query.getTriples());
-		for(int constant: constants){
+		for(int constant: constants.keySet()){
 			int tmp = danglingEdge[danglingPosition];
 			danglingEdge[danglingPosition] = constant;
 			int cardinality = seedsCardinality(query);
@@ -119,14 +119,14 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 				newEdge[joinPosition] = sourceVariable;
 				
 				for(int variable: targetVariables){
-					if(!variable.equals(sourceVariable)){
+					if(variable != sourceVariable){
 						newEdge[closeCirclePosition] = variable;
 						
 						query.getTriples().add(newEdge);
 						Int2IntMap promisingRelations = kb.frequentBindingsOf(newEdge[1], query.getFunctionalVariable(), query.getTriples());
 						query.getTriples().remove(nPatterns);
 						
-						for(int relation: promisingRelations){
+						for(int relation: promisingRelations.keySet()){
 							if(bodyExcludedRelations != null && bodyExcludedRelations.contains(relation))
 								continue;
 							
@@ -170,7 +170,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 		query.getTriples().add(newEdge);
 		Int2IntMap relations = 
 				kb.frequentBindingsOf(newEdge[1], newEdge[0], query.getTriples());
-		for (int relation: relations) {
+		for (int relation: relations.keySet()) {
 			if(headExcludedRelations != null && headExcludedRelations.contains(newEdge[1]))
 				continue;
 
@@ -237,7 +237,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 				
 				int danglingPosition = (joinPosition == 0 ? 2 : 0);
 				boolean boundHead = !KB.isVariable(query.getTriples().get(0)[danglingPosition]);
-				for(int relation: promisingRelations){
+				for(int relation: promisingRelations.keySet()){
 					if(bodyExcludedRelations != null && bodyExcludedRelations.contains(relation))
 						continue;
 					//Here we still have to make a redundancy check		
@@ -293,7 +293,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 		if(KB.numVariables(existentialTriple) == 1){
 			freeVarPos = KB.firstVariablePos(existentialTriple);
 		}else{
-			if(existentialTriple[0].equals(candidate.getFunctionalVariable()))
+			if(existentialTriple[0] == candidate.getFunctionalVariable())
 				freeVarPos = 2;
 			else
 				freeVarPos = 0;

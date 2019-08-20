@@ -6,6 +6,7 @@ import amie.data.KB;
 import amie.data.Schema;
 import amie.data.tuple.IntArrays;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntList;
 
 /**
@@ -36,10 +37,10 @@ public class RelationSignatureDefaultMiningAssistant extends DefaultMiningAssist
 	}
 	
 	@Override
-	public void setHeadExcludedRelations(java.util.IntCollection headExcludedRelations) {};
+	public void setHeadExcludedRelations(IntCollection headExcludedRelations) {};
 	
 	@Override
-	public void setBodyExcludedRelations(java.util.IntCollection excludedRelations) {};
+	public void setBodyExcludedRelations(IntCollection excludedRelations) {};
 	
 	@Override
 	public boolean testConfidenceThresholds(Rule candidate) {
@@ -53,7 +54,7 @@ public class RelationSignatureDefaultMiningAssistant extends DefaultMiningAssist
 		int domain, range, relation;
 		relation = candidate.getHead()[1];
 		domain = Schema.getRelationDomain(kb, relation);
-		if(domain != null){
+		if(domain != 0){
 			int[] domainTriple = new int[3];
 			domainTriple[0] = candidate.getHead()[0];
 			domainTriple[1] = KB.map("rdf:type");
@@ -63,7 +64,7 @@ public class RelationSignatureDefaultMiningAssistant extends DefaultMiningAssist
 		}
 		
 		range = Schema.getRelationRange(kb, relation);
-		if(range != null){
+		if(range != 0){
 			int[] rangeTriple = new int[3];
 			rangeTriple[0] = candidate.getHead()[2];
 			rangeTriple[1] = KB.map("rdf:type");

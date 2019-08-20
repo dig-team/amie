@@ -1,16 +1,17 @@
 package amie.mining.assistant.experimental;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 
 
 import amie.data.KB;
 import amie.data.Schema;
+import amie.data.tuple.IntArrays;
 import amie.mining.assistant.MiningAssistant;
 import amie.rules.ConfidenceMetric;
 import amie.rules.Rule;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntCollection;
 
 /**
  * This mining assistant drives the AMIE algorithm so that it outputs rules of the forms
@@ -25,7 +26,7 @@ public class ExistentialAndNegatedRulesMiningAssistant extends MiningAssistant {
 		super(dataSource);
 		this.maxDepth = 2;
 		this.allowConstants = false;
-		this.headExcludedRelations = Arrays.asList(KB.map(Schema.typeRelationBS));
+		this.headExcludedRelations = IntArrays.asList(Schema.typeRelationBS);
 		this.confidenceMetric = ConfidenceMetric.StandardConfidence;
 	}
 	
@@ -43,7 +44,7 @@ public class ExistentialAndNegatedRulesMiningAssistant extends MiningAssistant {
 	public void setAllowConstants(boolean allowConstants) {};
 	
 	@Override
-	public void setHeadExcludedRelations(java.util.IntCollection headExcludedRelations) {};
+	public void setHeadExcludedRelations(IntCollection headExcludedRelations) {};
 	
 	@Override
 	protected Collection<Rule> buildInitialQueries(Int2IntMap relations, 
@@ -54,14 +55,14 @@ public class ExistentialAndNegatedRulesMiningAssistant extends MiningAssistant {
 		Rule query = new Rule();
 		int[] newEdge1 = query.fullyUnboundTriplePattern();
 		int[] newEdge2 = query.fullyUnboundTriplePattern();
-		for (int relation : relations) {
+		for (int relation : relations.keySet()) {
 			if (this.headExcludedRelations != null 
 					&& this.headExcludedRelations.contains(relation)) {
 				continue;
 			}
 						
-			if (relation.equals(KB.EQUALSbs) || 
-					relation.equals(KB.DIFFERENTFROMbs))
+			if (relation == KB.EQUALSbs ||
+					relation == KB.DIFFERENTFROMbs)
 				continue;
 			
 			newEdge1[0] = relation;
@@ -123,14 +124,14 @@ public class ExistentialAndNegatedRulesMiningAssistant extends MiningAssistant {
 			} else {
 				source = this.kb;
 			}
-			int typeToEnforce = null;
-			if (head[1].equals(KB.NOTEXISTSbs) || head[1].equals(KB.EXISTSbs)) {
+			int typeToEnforce = 0;
+			if (head[1] == KB.NOTEXISTSbs || head[1] == KB.EXISTSbs) {
 				typeToEnforce = Schema.getRelationDomain(source, head[0]);
-			} else if (head[1].equals(KB.NOTEXISTSINVbs) || head[1].equals(KB.EXISTSINVbs)) {
+			} else if (head[1] == KB.NOTEXISTSINVbs || head[1] == KB.EXISTSINVbs) {
 				typeToEnforce = Schema.getRelationRange(source, head[0]);
 			}
 			
-			if (typeToEnforce != null) {
+			if (typeToEnforce != 0) {
 				int[] newEdge = rule.fullyUnboundTriplePattern();
 				newEdge[0] = rule.getFunctionalVariable();
 				newEdge[1] = Schema.typeRelationBS;

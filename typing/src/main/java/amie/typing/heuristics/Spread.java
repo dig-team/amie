@@ -22,7 +22,10 @@ public class Spread extends TypingHeuristic {
 		clause.add(typeT(type, variable));
 		for (int subType : amie.data.Schema.getSubtypes(db, type)) {
 			t = getStandardConfidence(typeL(subType, variable), clause, variable, true);
-			System.err.println("S\t"+clause.get(0)[1].toString()+(variable.toString().equals("?y") ? "-1" : "")+"\t"+type.toString()+"\t"+subType.toString()+"\t"+Double.toString((t == 0) ? sc : sc / t));
+                        System.err.println("S\t"+KB.unmap(clause.get(0)[1])
+                                + ((variable == KB.map("?y")) ? "-1" : "")
+                                +"\t"+KB.unmap(type)
+                                +"\t"+KB.unmap(subType)+"\t"+Double.toString((t == 0) ? sc : sc / t));
 			if (t > scm)
 				scm = t;
 		}

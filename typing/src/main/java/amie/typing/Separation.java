@@ -78,7 +78,7 @@ public class Separation extends Thread {
             try {
                 q = queryQ.take();
                 if (q.second.equals(KB.map("STOP"))) { System.out.println("Thread terminating"); break; }
-                System.out.println("Beginning "+q.first.get(0)[1].toString() + " (" + q.second + ") ...");
+                System.out.println("Beginning "+ KB.unmap(q.first.get(0)[1]) + " (" + q.second + ") ...");
                 SeparationTreeClassifier st;
                 switch(classifier) {
                     case "P":
@@ -96,7 +96,7 @@ public class Separation extends Thread {
                     default: st = new SeparationTreeClassifier(source, cS, cIS, supportForTarget);
                 }
                 st.classify(q.first, q.second, classSizeThreshold, supportThreshold, thresholds);
-                System.out.println("Finished: "+q.first.get(0)[1].toString() + " (" + q.second + ")");
+                System.out.println("Finished: "+ KB.unmap(q.first.get(0)[1]) + " (" + q.second + ")");
             } catch (InterruptedException ex) {
                 Logger.getLogger(Separation.class.getName()).log(Level.SEVERE, null, ex);
                 break;
@@ -202,7 +202,7 @@ public class Separation extends Thread {
         
         // Load the KB
         KB dataSource;
-        if (pa.query != null && pa.query.get(0)[1].equals(KB.map("sexism"))) {
+        if (pa.query != null && pa.query.get(0)[1] == (KB.map("sexism"))) {
             dataSource = new SexismSimpleTypingKB();
         } else {
             dataSource = new SimpleTypingKB();
@@ -236,7 +236,7 @@ public class Separation extends Thread {
                 queryQ.add(new Pair<>(KB.triples(q), KB.map("?x")));
                 queryQ.add(new Pair<>(KB.triples(q), KB.map("?y")));
             }
-        } else if (pa.query.get(0)[1].equals(KB.map("sexism"))) {
+        } else if (pa.query.get(0)[1] == (KB.map("sexism"))) {
             nThreads = Math.min(nProcessors, 2);
             // Note: KB instanceof SexismSimpleTypingKB
             queryQ.add(new Pair<>(KB.triples(KB.triple("?x", "<male>", "?y")), KB.map("?x")));

@@ -12,6 +12,7 @@ import java.util.Map;
 
 import javatools.datatypes.Pair;
 import amie.data.KB;
+import static amie.data.U.decreasingKeys;
 import amie.rules.Rule;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.IntCollection;
@@ -70,7 +71,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 			candidate.setFunctionalVariablePosition(countVarPos);
 			registerHeadRelation(candidate);
 			ArrayList<Rule> tmpOutput = new ArrayList<>();
-			if(canAddInstantiatedAtoms() && !relation.equals(KB.EQUALSbs)) {
+			if(canAddInstantiatedAtoms() && relation != KB.EQUALSbs) {
 				getInstantiatedAtoms(candidate, null, 0, countVarPos == 0 ? 2 : 0, minCardinality, tmpOutput);			
 				output.addAll(tmpOutput);
 			}
@@ -159,7 +160,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 				newEdge[joinPosition] = sourceVariable;
 				
 				for(int variable: targetVariables){
-					if(!variable.equals(sourceVariable)){
+					if(variable != sourceVariable){
 						newEdge[closeCirclePosition] = variable;
 						
 						rule.getTriples().add(newEdge);
@@ -184,7 +185,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 							promisingRelations = this.kb.countProjectionBindings(rule.getHead(), rule.getAntecedent(), newEdge[1]);
 						}
 						rule.getTriples().remove(nPatterns);
-						IntList listOfPromisingRelations = promisingRelations.decreasingKeys();
+						IntList listOfPromisingRelations = decreasingKeys(promisingRelations);
 						for(int relation: listOfPromisingRelations){
 							int cardinality = promisingRelations.get(relation);
 							if (cardinality < minSupportThreshold) {
@@ -308,7 +309,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 				query.getTriples().remove(nPatterns);					
 				int danglingPosition = (joinPosition == 0 ? 2 : 0);
 				boolean boundHead = !KB.isVariable(query.getTriples().get(0)[danglingPosition]);
-				IntList listOfPromisingRelations = promisingRelations.decreasingKeys();				
+				IntList listOfPromisingRelations = decreasingKeys(promisingRelations);				
 				// The relations are sorted by support, therefore we can stop once we have reached
 				// the minimum support.
 				for(int relation: listOfPromisingRelations){
@@ -439,7 +440,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		}
 		
 		int joinPosition = (danglingPosition == 0 ? 2 : 0);
-		for(int constant: constants){
+		for(int constant: constants.keySet()){
 			int cardinality = constants.get(constant);
 			if(cardinality >= minSupportThreshold){
 				int[] targetEdge = danglingEdge.clone();
@@ -605,7 +606,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		if(noOfHeadVars == 1){
 			freeVarPos = KB.firstVariablePos(succedent) == 0 ? 2 : 0;
 		}else{
-			if(existentialTriple[0].equals(rule.getFunctionalVariable()))
+			if(existentialTriple[0] == rule.getFunctionalVariable())
 				freeVarPos = 2;
 			else
 				freeVarPos = 0;

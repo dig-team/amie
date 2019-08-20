@@ -336,7 +336,7 @@ public class ImpliedFactsEvaluator {
                     result.first.second,
                     result.first.second.split("_")[0],
                     result.first.second.split("_")[1],
-                    result.first.first,
+                    KB.unmap(result.first.first),
                     Long.toString(s.TP),
                     Long.toString(s.PS),
                     Long.toString(s.GS),

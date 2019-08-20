@@ -16,8 +16,9 @@ import org.apache.commons.cli.PosixParser;
 
 import amie.data.KB;
 import amie.typing.classifier.SeparationClassifier.ParsedArguments;
+import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
+import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 public class MinMaxHierarchicalClassifier extends MinCutClassifier {
 
@@ -38,18 +39,18 @@ public class MinMaxHierarchicalClassifier extends MinCutClassifier {
 	}
 
 	@Override
-	public void classify(Int2ObjectMap<Int2ObjectMap<Double>> statistics) {
+	public void classify(Int2ObjectMap<Int2DoubleMap> statistics) {
 		// TODO Auto-generated method stub
-		Int2ObjectMap<Double> result = new Int2ObjectOpenHashMap<>();
+		Int2DoubleMap result = new Int2DoubleOpenHashMap();
 		for (int t1 : statistics.keySet()) {
 			for (int t2 : statistics.get(t1).keySet()) {
-				if (statistics.get(t2).get(t1).isNaN() || classIntersectionSize.get(t1).get(t2) == classSize.get(t2))
+				if (Double.isNaN(statistics.get(t2).get(t1)) || classIntersectionSize.get(t1).get(t2) == classSize.get(t2))
 					continue;
-				result.put(t1, (result.get(t1) == null || result.get(t1) < statistics.get(t2).get(t1)) ? statistics.get(t2).get(t1) : result.get(t1));
+				result.put(t1, (!result.containsKey(t1) || result.get(t1) < statistics.get(t2).get(t1)) ? statistics.get(t2).get(t1) : result.get(t1));
 			}
 		}
 		for (int t1 : result.keySet()) {
-			System.out.println(t1.toString() + "\t" + Double.toString(result.get(t1)));
+			System.out.println(KB.unmap(t1) + "\t" + Double.toString(result.get(t1)));
 		}
 	}
 

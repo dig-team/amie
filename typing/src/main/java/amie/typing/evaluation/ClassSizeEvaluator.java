@@ -25,7 +25,7 @@ public class ClassSizeEvaluator {
         for (int c : answer) {
             int subTP = 0;
             for (int gc : goldStandard) {
-                if (gc.equals(c) || Schema.isTransitiveSuperType(taxo, gc, c)) {
+                if (gc == (c) || Schema.isTransitiveSuperType(taxo, gc, c)) {
                     subTP = classSize.get(c);
                     break;
                 }

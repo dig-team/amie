@@ -1,10 +1,10 @@
 package amie.mining.assistant.experimental;
 
-import java.util.Arrays;
 import java.util.Collection;
 
 
 import amie.data.KB;
+import amie.data.tuple.IntArrays;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.Rule;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -13,7 +13,7 @@ public class FullRelationSignatureMiningAssistant extends DefaultMiningAssistant
 
 	public FullRelationSignatureMiningAssistant(KB dataSource) {
 		super(dataSource);
-		bodyExcludedRelations = Arrays.asList(KB.map("<rdf:type>"));
+		bodyExcludedRelations = IntArrays.asList(KB.map("<rdf:type>"));
 	}
 	
 	@Override

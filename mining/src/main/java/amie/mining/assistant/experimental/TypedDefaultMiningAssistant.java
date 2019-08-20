@@ -65,7 +65,7 @@ public class TypedDefaultMiningAssistant extends DefaultMiningAssistant {
 			query.getTriples().add(newEdge);
 			Int2IntMap subjectTypes = kb.countProjectionBindings(query.getHead(), query.getAntecedent(), newEdge[2]);
 			if(!subjectTypes.isEmpty()){
-				for(int type: subjectTypes){
+				for(int type: subjectTypes.keySet()){
 					int cardinality = subjectTypes.get(type);
 					if(cardinality >= minSupportThreshold){
 						Rule newCandidate = new Rule(query, cardinality);
@@ -87,7 +87,7 @@ public class TypedDefaultMiningAssistant extends DefaultMiningAssistant {
 				candidate.getTriples().add(newEdge);
 				Int2IntMap objectTypes = kb.countProjectionBindings(candidate.getHead(), candidate.getAntecedent(), newEdge[2]);
 				if(!objectTypes.isEmpty()){
-					for(int type: objectTypes){
+					for(int type: objectTypes.keySet()){
 						int cardinality = objectTypes.get(type);
 						if(cardinality >= minSupportThreshold){
 							Rule newCandidate = new Rule(candidate, cardinality);

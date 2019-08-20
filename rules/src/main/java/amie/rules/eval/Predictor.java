@@ -19,6 +19,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import java.util.HashSet;
 
 /**
  * This class defines objects that take rules extracted from a training 
@@ -92,7 +93,7 @@ public class Predictor {
 			Int2ObjectMap<Int2IntMap> pairs = (Int2ObjectMap<Int2IntMap>) bindings; 
 			int functionalPosition = rule.getFunctionalVariablePosition();
 			for (int subject : pairs.keySet()) {
-				for (int object : pairs.get(subject)) {
+				for (int object : pairs.get(subject).keySet()) {
 					if (functionalPosition == 0) {
 						triples.add(new IntTriple(subject, relation, object));
 					} else {
@@ -240,14 +241,14 @@ public class Predictor {
 		//Depending on the counting variable the order is different
 		int countingVarPos = rule.getFunctionalVariablePosition();
 		Set<IntTriple> samplingCandidates = 
-				new LinkedHashSet<IntTriple>();
+				new HashSet<IntTriple>();
 		
 		for(int value1: keySet){
-			for(int value2: predictions.get(value1)){
+			for(int value2: predictions.get(value1).keySet()){
 				IntTriple triple = 
-						new IntTriple(null, null, null);
+						new IntTriple(0, 0, 0);
 				
-				if(value1.equals(value2)) continue;
+				if(value1 == value2) continue;
 				
 				if(countingVarPos == 0){
 					triple.first = value1;
@@ -309,11 +310,11 @@ public class Predictor {
 				new LinkedHashSet<IntTriple>();
 		
 		for(int value1: keySet){
-			for(int value2: predictions.get(value1)){
+			for(int value2: predictions.get(value1).keySet()){
 				IntTriple triple = 
-						new IntTriple(null, null, null);
+						new IntTriple(0, 0, 0);
 				
-				if(value1.equals(value2)) continue;
+				if(value1 == value2) continue;
 				
 				if(countingVarPos == 0){
 					triple.first = value1;

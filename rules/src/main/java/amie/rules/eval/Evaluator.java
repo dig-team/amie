@@ -73,7 +73,7 @@ public class Evaluator {
 			int[] triple, KB training, KB target){
 		// TODO Auto-generated method stub
 		int[] head = rule.getHead();
-		int boundVariable = null;
+		int boundVariable = 0;
 		int returnVal = 3;
 		boolean relationIsFunctional = 
 				(rule.getFunctionalVariablePosition() == 0 && training.functionality(rule.getHead()[1]) >= 0.9) ||

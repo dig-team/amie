@@ -38,15 +38,15 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 		for (int type : types) {
 			int[] query_c = KB.triple(KB.map("?x"), Schema.typeRelationBS, type);
 			double relationSize = kb.count(query_c);
-			headCardinalities.put(type.toString(), relationSize);
+			headCardinalities.put(type, relationSize);
 		}
 	}
 	
 	@Override
 	public long getHeadCardinality(Rule query){
 		int[] head = query.getHead();
-		if(head[1].equals(Schema.typeRelationBS)) {
-			return headCardinalities.get(head[2].toString()).longValue();
+		if(head[1] == Schema.typeRelationBS) {
+			return (long) headCardinalities.get(head[2]);
 		}
 		return super.getHeadCardinality(query);
 	}
@@ -144,7 +144,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 				query.getTriples().remove(nPatterns);								
 				// The relations are sorted by support, therefore we can stop once we have reached
 				// the minimum support.
-				for(int relation: promisingRelations){
+				for(int relation: promisingRelations.keySet()){
 					int cardinality = promisingRelations.get(relation);
 					
 					if (cardinality < minSupportThreshold) {
@@ -187,7 +187,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 	}
 	
 	public void getSubTypingRules(Rule rule, double minSupportThreshold, Collection<Rule> output) {
-		if (!rule.getHeadRelationBS().equals(Schema.typeRelationBS)) {
+		if (rule.getHeadRelationBS() != Schema.typeRelationBS) {
 			return;
 		}
 		if (rule.getBody().isEmpty()) {
@@ -217,7 +217,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 	}
 	
 	public void getDomainRangeRules(Rule rule, double minSupportThreshold, Collection<Rule> output) {
-		if (!rule.getHeadRelationBS().equals(Schema.typeRelationBS)) {
+		if (rule.getHeadRelationBS() != Schema.typeRelationBS) {
 			return;
 		}
 		
@@ -239,7 +239,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 			
 			Rule pattern = rule.addAtom(newEdge, 0);
 			Int2IntMap promisingTypes = kb.frequentBindingsOf(newEdge[2], pattern.getFunctionalVariable(), pattern.getTriples());
-			for (int promisingType : promisingTypes) {
+			for (int promisingType : promisingTypes.keySet()) {
 				cardinality = promisingTypes.get(promisingType);
 				if (cardinality >= minSupportThreshold) {
 					newEdge[2] = promisingType;

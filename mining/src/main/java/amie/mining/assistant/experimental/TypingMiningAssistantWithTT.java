@@ -67,7 +67,7 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 	}
 	
 	public void getSubTypingRules(Rule rule, double minSupportThreshold, Collection<Rule> output) {
-		if (!rule.getHeadRelationBS().equals(KB.TRANSITIVETYPEbs)) {
+		if (rule.getHeadRelationBS() != KB.TRANSITIVETYPEbs) {
 			return;
 		}
 		if (rule.getBody().isEmpty()) {
@@ -96,7 +96,7 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 	}
 	
 	public void getDomainRangeRules(Rule rule, double minSupportThreshold, Collection<Rule> output) {
-		if (!rule.getHeadRelationBS().equals(KB.TRANSITIVETYPEbs)) {
+		if (rule.getHeadRelationBS() != KB.TRANSITIVETYPEbs) {
 			return;
 		}
 		IntList openVariables = rule.getOpenVariables();
@@ -114,7 +114,7 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 			
 			Rule pattern = rule.addAtom(newEdge, 0);
 			Int2IntMap promisingTypes = kb.frequentBindingsOf(newEdge[2], pattern.getFunctionalVariable(), pattern.getTriples());
-			for (int promisingType : promisingTypes) {
+			for (int promisingType : promisingTypes.keySet()) {
 				cardinality = promisingTypes.get(promisingType);
 				if (cardinality >= minSupportThreshold) {
 					newEdge[2] = promisingType;

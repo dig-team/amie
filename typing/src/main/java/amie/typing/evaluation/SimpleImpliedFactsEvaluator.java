@@ -104,7 +104,7 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
     
     @Override
     public ImpliedFacts computeImpliedFacts(int query, String method) {
-        System.err.println("Computing " + query.toString() + ":" + method);
+        System.err.println("Computing " + KB.unmap(query) + ":" + method);
         if (!queried.contains(query)) {
             return new ImpliedFacts(0, 0, 0, 0, 0, 0);
         }
@@ -274,7 +274,7 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
                     result.first.second,
                     result.first.second.split("_")[0],
                     result.first.second.split("_")[1],
-                    result.first.first,
+                    KB.unmap(result.first.first),
                     Long.toString(s.TP),
                     Long.toString(s.PS),
                     Long.toString(s.GS),

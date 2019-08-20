@@ -90,9 +90,9 @@ public class SeparationTreeClassifier extends SeparationClassifier {
     private void createFiles(List<int[]> query, int variable, double[] thresholds) throws IOException {
         if (query.size() > 1) throw new UnsupportedOperationException("Not supported yet.");
         int[] singleton = query.get(0);
-        String fnb = singleton[1].toString().substring(1, singleton[1].toString().length()-1) + ((singleton[2].equals(variable)) ? "-1" : "") + "_";
+        String fnb = KB.unmap(singleton[1]).substring(1, KB.unmap(singleton[1]).length()-1) + ((singleton[2] == (variable)) ? "-1" : "") + "_";
         // Hack for sexism query
-        if (!KB.isVariable(singleton[2])) { fnb = singleton[2].toString().substring(1, singleton[2].toString().length()-1) + "_"; }
+        if (!KB.isVariable(singleton[2])) { fnb = KB.unmap(singleton[2]).substring(1, KB.unmap(singleton[2]).length()-1) + "_"; }
         for (int i = 0; i < thresholds.length; i++) {
             writers.add(new BufferedWriter(new FileWriter(fnb + Double.toString(Math.exp(-thresholds[i])))));
         }
@@ -146,7 +146,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
      * Class of node n should be printed in file i if n.thresholdI > -1 and i \in [n.thresholdMask + 1; n.thresholdI]
      */
     private void export(int i, int className) throws IOException {
-        writers.get(i).write(className.toString() + "\n");
+        writers.get(i).write(KB.unmap(className) + "\n");
     }
     
     private void close() throws IOException {
@@ -191,7 +191,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
             for (i = 0; i < n.thresholdMask; i++) {
                 str += " ";
             }
-            str += "|" + n.className.toString() + ": " + Double.toString(n.separationScore) + "\n";
+            str += "|" + KB.unmap(n.className) + ": " + Double.toString(n.separationScore) + "\n";
             System.err.println(str);
             for (SeparationTreeNode c : n.children) {
                 c.thresholdMask = n.thresholdMask + 1;
@@ -204,7 +204,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
     
     public void computeStatistics(List<int[]> query, int variable, int classSizeThreshold) {
         IntSet relevantClasses = index.keySet();
-        int relation = (query.get(0)[0].equals(variable)) ? query.get(0)[1] : KB.map(query.get(0)[1].toString() + "-1");
+        int relation = (query.get(0)[0] == (variable)) ? query.get(0)[1] : KB.map(KB.unmap(query.get(0)[1]) + "-1");
 
         for (int class1 : relevantClasses) {
             int c1size = classSize.get(class1);
@@ -220,7 +220,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
 
             List<int[]> clause = TypingHeuristic.typeL(class1, variable);
             clause.addAll(query);
-            IntSet targetClasses = (supportForTarget) ? relevantClasses : classIntersectionSize.get(class1);
+            IntSet targetClasses = (supportForTarget) ? relevantClasses : classIntersectionSize.get(class1).keySet();
 
             for (int class2 : targetClasses) {
                 assert (clause.size() == query.size() + 1);
@@ -231,7 +231,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
                     // Ensure the symmetry of the output.
                     continue;
                 }
-                if (!classIntersectionSize.containsKey(class1) || !classIntersectionSize.get(class1).contains(class2)) {
+                if (!classIntersectionSize.containsKey(class1) || !classIntersectionSize.get(class1).containsKey(class2)) {
                     continue;
                 }
 

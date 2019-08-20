@@ -1,5 +1,8 @@
 package amie.data;
 
+import static amie.data.U.decrease;
+import static amie.data.U.decreasingKeys;
+import static amie.data.U.increase;
 import amie.data.starpattern.SignedPredicate;
 import amie.data.tuple.IntArrays;
 import amie.data.tuple.IntTriple;
@@ -1751,7 +1754,7 @@ public class KB {
 	}
 
 	/** returns number of instances of this triple */
-	protected long count(int... triple) {
+	public long count(int... triple) {
 		switch (numVariables(triple)) {
 		case 0:
 			return (contains(triple) ? 1 : 0);
@@ -3079,10 +3082,9 @@ public class KB {
 	// ---------------------------------------------------------------------------
 	// Counting pairs
 	// ---------------------------------------------------------------------------
-
-	/** returns the number of distinct pairs (var1,var2) for the query */
-	public long countPairs(CharSequence var1, CharSequence var2,
-			List<int[]> query) {
+        
+        public long countPairs(CharSequence var1, CharSequence var2,
+			List<CharSequence[]> query) {
 		return (countDistinctPairs(compress(var1), compress(var2), triples(query)));
 	}
 
@@ -4130,7 +4132,7 @@ public class KB {
 	 * @return
 	 */
 	public IntList getRelationsList() {
-		return relationSize.keySet().decreasingKeys();
+		return decreasingKeys(relationSize);
 	}
 	
 	@Override

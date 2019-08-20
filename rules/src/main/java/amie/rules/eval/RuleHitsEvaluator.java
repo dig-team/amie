@@ -21,14 +21,14 @@ class TripleComparator implements Comparator<int[]> {
 
 	@Override
 	public int compare(int[] o1, int[] o2) {
-		if (o1[0].equals(o2[0])) {
-			if (o1[1].equals(o2[1])) {
-				return o1[2].toString().compareTo(o2[2].toString()); 
+		if (o1[0] == o2[0]) {
+			if (o1[1] == o2[1]) {
+				return Integer.compare(o1[2], o2[2]); 
 			} else {
-				return o1[1].toString().compareTo(o2[1].toString());
+				return Integer.compare(o1[1], o2[1]);
 			}
 		} else {
-			return o1[0].toString().compareTo(o2[0].toString());
+			return Integer.compare(o1[0], o2[0]);
 		}
 	}
 }
@@ -94,7 +94,7 @@ public class RuleHitsEvaluator {
 				Int2ObjectMap<Int2IntMap> twoVarsBindings = 
 						(Int2ObjectMap<Int2IntMap>)bindings;
 				for(int value1: twoVarsBindings.keySet()){
-					for(int value2: twoVarsBindings.get(value1)){
+					for(int value2: twoVarsBindings.get(value1).keySet()){
 						IntTriple t = 
 								new IntTriple(KB.map("?a"), head[1], KB.map("?b"));
 						if(q.getFunctionalVariablePosition() == 0){

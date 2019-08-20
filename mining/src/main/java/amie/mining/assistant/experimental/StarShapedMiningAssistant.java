@@ -69,7 +69,7 @@ public class StarShapedMiningAssistant extends MiningAssistant {
 				rule.getFunctionalVariable(), rule.getTriples());
 		rule.getTriples().remove(nPatterns);
 		
-		for(int relation: promisingRelations){
+		for(int relation: promisingRelations.keySet()){
 			if (this.bodyExcludedRelations != null && 
 					this.bodyExcludedRelations.contains(relation))
 				continue;
@@ -77,7 +77,7 @@ public class StarShapedMiningAssistant extends MiningAssistant {
 			int cardinality = promisingRelations.get(relation);
 			if(cardinality >= minSupportThreshold) {
 				if(rule.containsRelation(relation) 
-						|| relation.equals(head[2])) {
+						||(relation == head[2])) {
 					continue;
 				}
 				

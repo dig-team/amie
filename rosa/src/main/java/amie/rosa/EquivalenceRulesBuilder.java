@@ -35,7 +35,7 @@ public class EquivalenceRulesBuilder {
 		if(KB.numVariables(existentialTriple) == 1){
 			freeVarPos = KB.firstVariablePos(existentialTriple) == 0 ? 2 : 0;
 		}else{
-			freeVarPos = existentialTriple[0].equals(candidate.getFunctionalVariable()) ? 2 : 0;
+			freeVarPos = (existentialTriple[0] == candidate.getFunctionalVariable()) ? 2 : 0;
 		}
 
 		existentialTriple[freeVarPos] = KB.map("?x");
@@ -130,9 +130,9 @@ public class EquivalenceRulesBuilder {
 				t1p = rules.get(j).getHead()[2];
 				t2p = rules.get(j).getBody().get(0)[2];
 				if(twoVars){
-					match = r1.equals(r2p) && r2.equals(r1p);
+					match = (r1 == r2p) && (r2 == r1p);
 				}else{
-					match = r1.equals(r2p) && r2.equals(r1p) && t1.equals(t2p) && t2.equals(t1p);					
+                                        match = (r1 == r2p) && (r2 == r1p) && (t1 == t2p) && (t2 == t1p);
 				}
 				if(match){
 					flags[i] = true;
@@ -180,9 +180,9 @@ public class EquivalenceRulesBuilder {
 				t1p = rules.get(j).getHead()[2];
 				t2p = rules.get(j).getBody().get(0)[2];
 				if(twoVars){
-					match = r1.equals(r2p) && r2.equals(r1p);
+					match = (r1 == r2p) && (r2 == r1p);
 				}else{
-					match = r1.equals(r2p) && r2.equals(r1p) && t1.equals(t2p) && t2.equals(t1p);					
+					match = (r1 == r2p) && (r2 == r1p) && (t1 == t2p) && (t2 == t1p);		
 				}
 				if(match){
 					flags[i] = true;

@@ -32,8 +32,8 @@ public class TwoValueTranslationFilter {
 		int[] head = rule.getHead();
 		boolean containsObject = !KB.isVariable(body.get(0)[2]) || !KB.isVariable(body.get(1)[2]);
 		
-		if(containsObject && (body.get(0)[1].toString().trim().startsWith("<ns:") && body.get(1)[1].toString().trim().startsWith("<ns:") && !head[1].toString().trim().startsWith("<ns:"))
-				|| 	(!body.get(0)[1].toString().trim().startsWith("<ns:") && !body.get(1)[1].toString().trim().startsWith("<ns:") && head[1].toString().trim().startsWith("<ns:"))
+		if(containsObject && (KB.unmap(body.get(0)[1]).trim().startsWith("<ns:") && KB.unmap(body.get(1)[1]).trim().startsWith("<ns:") && !KB.unmap(head[1]).trim().startsWith("<ns:"))
+				|| 	(!KB.unmap(body.get(0)[1]).trim().startsWith("<ns:") && !KB.unmap(body.get(1)[1]).trim().startsWith("<ns:") && KB.unmap(head[1]).trim().startsWith("<ns:"))
 			  )
 				return true;
 		

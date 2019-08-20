@@ -6,10 +6,10 @@
 package amie.typing.utils;
 
 import amie.data.KB;
-import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import javatools.filehandlers.FileLines;
 import org.jgrapht.DirectedGraph;
@@ -33,8 +33,8 @@ public class TaxonomyCleaner {
             if (split.length == 4) {
                 int s = KB.map(split[1]);
                 int o = KB.map(split[3]);
-                if (s.equals(o)) {
-                    System.err.println(s.toString());
+                if (s == (o)) {
+                    System.err.println(KB.unmap(s));
                 } else {
                     g.addVertex(s);
                     g.addVertex(o);
@@ -43,11 +43,11 @@ public class TaxonomyCleaner {
             }
         }
         StrongConnectivityAlgorithm<Integer, DefaultEdge> gi = new KosarajuStrongConnectivityInspector<>(g);
-        List<IntSet> scc = gi.stronglyConnectedSets();
-        for (IntSet scs : scc) {
+        List<Set<Integer>> scc = gi.stronglyConnectedSets();
+        for (Set<Integer> scs : scc) {
             if (scs.size() > 1) {
                 for (int v : scs) {
-                    System.out.print(v.toString() + " ");
+                    System.out.print(KB.unmap(v) + " ");
                 }
                 System.out.println();
             }

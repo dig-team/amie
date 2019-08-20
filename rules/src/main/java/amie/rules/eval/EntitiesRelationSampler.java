@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Random;
 
 import amie.data.KB;
+import static amie.data.U.increase;
 import amie.data.tuple.IntPair;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
@@ -50,7 +51,7 @@ public class EntitiesRelationSampler {
 			int position = r.nextInt(entitiesArray.size());
 			int entity = entitiesArray.get(position);
 			swap(entitiesArray, position, entitiesArray.size() - 1);
-			entitiesArray.remove(entitiesArray.size() - 1);
+			entitiesArray.removeInt(entitiesArray.size() - 1);
 			
 			//Now take all the triples about this entity
 			List<int[]> query = KB.triples(KB.triple(entity, KB.map("?p"), KB.map("?o")));
@@ -61,14 +62,14 @@ public class EntitiesRelationSampler {
 					continue;
 				}
 				
-				relationEntityCount.increase(relation);
+				increase(relationEntityCount, relation);
 				List<IntPair> facts = relationsMap.get(relation);
 				for(int object: predicateObjects.get(relation)){
 					facts.add(new IntPair(entity, object));
 				}
 				
 				if(relationEntityCount.get(relation) >= maxOccurrencePerRelation)
-					allRelations.remove(relation);
+					allRelations.removeInt(relation);
 			}
 		}
 		
@@ -80,8 +81,8 @@ public class EntitiesRelationSampler {
 	}
 
 	private static void swap(IntList entitiesArray, int i, int j) {
-		int tmp = entitiesArray.get(i);
-		entitiesArray.set(i, entitiesArray.get(j));
+		int tmp = entitiesArray.getInt(i);
+		entitiesArray.set(i, entitiesArray.getInt(j));
 		entitiesArray.set(j, tmp);
 	}
 

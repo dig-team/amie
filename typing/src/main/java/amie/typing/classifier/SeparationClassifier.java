@@ -20,6 +20,8 @@ import amie.data.KB;
 import amie.data.Schema;
 import amie.data.SimpleTypingKB;
 import amie.typing.heuristics.TypingHeuristic;
+import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
+import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -39,11 +41,11 @@ public class SeparationClassifier {
             SimpleTypingKB simpledb = (SimpleTypingKB) db;
             int relation;
             if (body.size() == 1) {
-                relation = (body.get(0)[0].equals(variable)) ? body.get(0)[1] : KB.map(body.get(0)[1].toString() + "-1");
+                relation = (body.get(0)[0] == (variable)) ? body.get(0)[1] : KB.map(KB.unmap(body.get(0)[1]) + "-1");
                 bodySize = simpledb.countElements(relation);
                 support = simpledb.countElements(relation, head.get(0)[2]);
             } else if (body.size() == 2) {
-                relation = (body.get(1)[0].equals(variable)) ? body.get(1)[1] : KB.map(body.get(1)[1].toString() + "-1");
+                relation = (body.get(1)[0] == (variable)) ? body.get(1)[1] : KB.map(KB.unmap(body.get(1)[1]) + "-1");
                 return simpledb.typingStdConf(relation, body.get(0)[2], head.get(0)[2], threshold);
                 //bodySize = simpledb.countElements(relation, body.get(0)[2]);
                 //support = simpledb.countElements(relation, body.get(0)[2], head.get(0)[2]);
@@ -75,7 +77,7 @@ public class SeparationClassifier {
      */
     public IntSet getRelevantClasses(List<int[]> query, int variable, int supportThreshold) {
         IntSet result = new IntOpenHashSet();
-        for (int c : classSize) {
+        for (int c : classSize.keySet()) {
             if (getStandardConfidenceWithThreshold(TypingHeuristic.typeL(c, variable), query, variable, supportThreshold, true) != 0) {
                 result.add(c);
             }
@@ -83,8 +85,8 @@ public class SeparationClassifier {
         return result;
     }
 
-    public Int2ObjectMap<Int2ObjectMap<Double>> computeStatistics(List<int[]> query, int variable, int classSizeThreshold, int supportThreshold) {
-        Int2ObjectMap<Int2ObjectMap<Double>> result = new Int2ObjectOpenHashMap<>();
+    public Int2ObjectMap<Int2DoubleMap> computeStatistics(List<int[]> query, int variable, int classSizeThreshold, int supportThreshold) {
+        Int2ObjectMap<Int2DoubleMap> result = new Int2ObjectOpenHashMap<>();
         IntSet relevantClasses = getRelevantClasses(query, variable, supportThreshold);
 
         for (int class1 : relevantClasses) {
@@ -94,7 +96,7 @@ public class SeparationClassifier {
                 continue;
             }
 
-            Int2ObjectMap<Double> r = new Int2ObjectOpenHashMap<>();
+            Int2DoubleMap r = new Int2DoubleOpenHashMap();
             List<int[]> clause = TypingHeuristic.typeL(class1, variable);
             clause.addAll(query);
 
@@ -108,7 +110,7 @@ public class SeparationClassifier {
                     // Ensure the symmetry of the output.
                     continue;
                 }
-                if (!classIntersectionSize.containsKey(class1) || !classIntersectionSize.get(class1).contains(class2)) {
+                if (!classIntersectionSize.containsKey(class1) || !classIntersectionSize.get(class1).containsKey(class2)) {
                     continue;
                 }
 
@@ -151,7 +153,7 @@ public class SeparationClassifier {
         return result;
     }
 
-    public void classify(Int2ObjectMap<Int2ObjectMap<Double>> statistics, double eliminationRatio) {
+    public void classify(Int2ObjectMap<Int2DoubleMap> statistics, double eliminationRatio) {
         // add an unionRatio ?
         double lratio = Math.abs(Math.log(eliminationRatio));
         IntSet V = new IntOpenHashSet(statistics.keySet());
@@ -193,7 +195,7 @@ public class SeparationClassifier {
             }
         }
         for (int t : V) {
-            System.out.println(t.toString());
+            System.out.println(KB.unmap(t));
         }
     }
 

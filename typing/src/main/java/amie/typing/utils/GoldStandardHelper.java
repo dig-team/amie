@@ -106,7 +106,7 @@ public class GoldStandardHelper {
 
         @Override
         public int compareTo(Object t) {
-            return className.compareTo(((GSnode) t).className);
+            return Integer.compare(className, ((GSnode) t).className);
         }
     }
     
@@ -141,7 +141,7 @@ public class GoldStandardHelper {
         else {
             try {
                 int id = Integer.parseInt(query.substring(0, query.length()-1));
-                query = handler.ids.get(id).className.toString() + query.substring(query.length() - 1);
+                query = KB.unmap(handler.ids.get(id).className) + query.substring(query.length() - 1);
             } catch (Exception e) {}
             System.out.print(" Loading query '"+query+"'... ");
             handler = new GoldStandardHelper(query);
@@ -220,7 +220,7 @@ public class GoldStandardHelper {
     private String _markTag(GSnode n) {
         if (marked.contains(n)) return "\tX";
         for (GSnode m : marked) {
-            if (Schema.isTransitiveSuperType(db, m.className, n.className)) return "\tx\t"+m.className.toString();
+            if (Schema.isTransitiveSuperType(db, m.className, n.className)) return "\tx\t"+KB.unmap(m.className);
         }
         //if (_isMarked(n)) return "\tx";
         return "";
@@ -235,7 +235,7 @@ public class GoldStandardHelper {
     
     public void current() {
         System.out.println();
-        System.out.println(current.className.toString() + _markTag(current));
+        System.out.println(KB.unmap(current.className) + _markTag(current));
     }
     
     public void move(String id) {
@@ -330,7 +330,7 @@ public class GoldStandardHelper {
     public void search(String s) {
         ids = new LinkedList<>();
         for (int c: index.keySet()) {
-            if(c.toString().contains(s)) ids.add(index.get(c));
+            if(KB.unmap(c).contains(s)) ids.add(index.get(c));
         }
         _printIds();
     }
@@ -340,7 +340,7 @@ public class GoldStandardHelper {
         System.out.println();
         int i = 0;
         for (GSnode n : ids) {
-            System.out.println("["+Integer.toString(i)+"] "+n.className.toString()+_markTag(n));
+            System.out.println("["+Integer.toString(i)+"] "+KB.unmap(n.className)+_markTag(n));
             ++i;
         }
     }
@@ -360,7 +360,7 @@ public class GoldStandardHelper {
             }
         }
         for (GSnode c : cleanedResults) {
-            output.write(c.className.toString()+"\n");
+            output.write(KB.unmap(c.className)+"\n");
         }
         output.close();
         System.out.println(" GS of '"+query+"' written to file");

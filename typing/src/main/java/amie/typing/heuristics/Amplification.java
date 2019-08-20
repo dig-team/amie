@@ -22,7 +22,10 @@ public class Amplification extends TypingHeuristic {
 		if (stdConf == 0) return 0;
 		for (int c : amie.data.Schema.getSuperTypes(db, type)) {
 			t = getStandardConfidence(c, clause, variable);
-			System.err.println("A\t"+clause.get(0)[1].toString()+(variable.toString().equals("?y") ? "-1" : "")+"\t"+type.toString()+"\t"+c.toString()+"\t"+Double.toString((t == 0) ? stdConf : stdConf / t));
+			System.err.println("A\t"+KB.unmap(clause.get(0)[1])
+                                + ((variable == KB.map("?y")) ? "-1" : "")
+                                +"\t"+KB.unmap(type)
+                                +"\t"+KB.unmap(c)+"\t"+Double.toString((t == 0) ? stdConf : stdConf / t));
 			if (t > superClassMaxConf) {
 				superClassMaxConf = t;
 			}

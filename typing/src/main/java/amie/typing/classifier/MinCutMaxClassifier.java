@@ -21,6 +21,7 @@ import org.apache.commons.cli.PosixParser;
 
 import amie.data.KB;
 import amie.typing.classifier.SeparationClassifier.ParsedArguments;
+import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
@@ -58,14 +59,14 @@ public class MinCutMaxClassifier extends SeparationClassifier {
 		return r;
 	}
 	
-	private Pair<Integer, Double> getMaxEdge(Int2ObjectMap<LinkedList<Int2ObjectMap.Entry<Double>>> graph, IntSet CV) {
+	private Pair<Integer, Double> getMaxEdge(Int2ObjectMap<LinkedList<Map.Entry<Integer, Double>>> graph, IntSet CV) {
 		Double maxD = Double.NEGATIVE_INFINITY;
-		int maxN = null;
+		int maxN = 0;
 		for(int t : CV) {
-			LinkedList<Int2ObjectMap.Entry<Double>> tt = graph.get(t);
+			LinkedList<Map.Entry<Integer, Double>> tt = graph.get(t);
                         if(tt == null) continue;
 			while(!tt.isEmpty()) {
-				Int2ObjectMap.Entry<Double> tmaxP = tt.peek();
+				Map.Entry<Integer, Double> tmaxP = tt.peek();
 				if (CV.contains(tmaxP.getKey())) {
 					tt.remove();
 					continue;
@@ -77,12 +78,12 @@ public class MinCutMaxClassifier extends SeparationClassifier {
 				break;
 			}
 		}
-                if (maxN != null) System.err.println(maxN.toString() + " " + Double.toString(maxD));
+                if (maxN != 0) System.err.println(KB.unmap(maxN) + " " + Double.toString(maxD));
 		return new Pair<>(maxN, maxD);
 	}
 	
-	public IntSet t_MinCutMax(Int2ObjectMap<Int2ObjectMap<Double>> statistics, int t) {
-		Int2ObjectMap<LinkedList<Int2ObjectMap.Entry<Double>>> smm = new Int2ObjectOpenHashMap<>();
+	public IntSet t_MinCutMax(Int2ObjectMap<Int2DoubleMap> statistics, int t) {
+		Int2ObjectMap<LinkedList<Map.Entry<Integer, Double>>> smm = new Int2ObjectOpenHashMap<>();
 		for (int t1 : statistics.keySet()) {
 			smm.put(t1, linkSortMap(statistics.get(t1), Collections.reverseOrder()));
 		}
@@ -106,9 +107,9 @@ public class MinCutMaxClassifier extends SeparationClassifier {
                 return S;
         }
                 
-        public void classify(Int2ObjectMap<Int2ObjectMap<Double>> statistics) {         
+        public void classify(Int2ObjectMap<Int2DoubleMap> statistics) {         
             for(int s : t_MinCutMax(statistics, KB.map("owl:Thing"))) {
-                System.out.println(s.toString());
+                System.out.println(KB.unmap(s));
             }
 	}
 	

@@ -63,7 +63,7 @@ public class ExistentialRulesHeadVariablesMiningAssistant extends
 				if(KB.numVariables(existentialTriple) == 1){
 					freeVarPos = KB.firstVariablePos(existentialTriple) == 0 ? 2 : 0;
 				}else{
-					freeVarPos = existentialTriple[0].equals(candidate.getFunctionalVariable()) ? 2 : 0;
+					freeVarPos = (existentialTriple[0] == candidate.getFunctionalVariable()) ? 2 : 0;
 				}
 				existentialTriple[freeVarPos] = KB.map("?x");
 				
@@ -73,7 +73,7 @@ public class ExistentialRulesHeadVariablesMiningAssistant extends
 					
 					//If the counting variable is in the same position of any of the unifiable patterns => redundant
 					for(int[] atom: redundantAtoms){
-						if(existentialTriple[countVarPos].equals(atom[countVarPos]))
+						if(existentialTriple[countVarPos] == atom[countVarPos])
 							existentialQueryRedundant = true;
 					}
 						

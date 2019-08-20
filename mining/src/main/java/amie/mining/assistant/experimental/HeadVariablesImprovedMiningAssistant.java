@@ -32,7 +32,7 @@ public class HeadVariablesImprovedMiningAssistant extends
 		typeConstraint1[1] = typeConstraint2[1] = KB.map("rdf:type");
 		typeConstraint1[2] = typeConstraint2[2] = KB.map("?w");
 		typeConstraint1[0] = existentialTriple[nonExistentialPosition == 0 ? 2 : 0];
-		typeConstraint2[0] = existentialTriple[nonExistentialPosition].equals(var1) ? var2 : var1;
+		typeConstraint2[0] = existentialTriple[nonExistentialPosition] == (var1) ? var2 : var1;
 		antecedent.add(typeConstraint1);
 		antecedent.add(typeConstraint2);
 		long result = kb.countDistinctPairs(var1, var2, antecedent);

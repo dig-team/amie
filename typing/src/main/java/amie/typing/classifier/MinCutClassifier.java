@@ -3,7 +3,6 @@ package amie.typing.classifier;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 
@@ -20,8 +19,11 @@ import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
 import amie.data.KB;
 import amie.typing.classifier.SeparationClassifier.ParsedArguments;
+import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntSets;
 
 public class MinCutClassifier extends SeparationClassifier {
 
@@ -40,7 +42,7 @@ public class MinCutClassifier extends SeparationClassifier {
 		// TODO Auto-generated constructor stub
 	}
 
-	public void classify(Int2ObjectMap<Int2ObjectMap<Double>> statistics) {
+	public void classify(Int2ObjectMap<Int2DoubleMap> statistics) {
 		SimpleDirectedWeightedGraph<Integer, DefaultWeightedEdge>  graph = 
 	            new SimpleDirectedWeightedGraph<>(DefaultWeightedEdge.class); 
 		for (int t1 : statistics.keySet()) {
@@ -53,19 +55,19 @@ public class MinCutClassifier extends SeparationClassifier {
 			}
 		}
 		PushRelabelMFImpl<Integer, DefaultWeightedEdge> mf = new PushRelabelMFImpl<>(graph);
-		IntSet result = Collections.emptySet();
+		IntSet result = IntSets.EMPTY_SET;
 		double mcMinVal = Double.POSITIVE_INFINITY, mcVal;
 		for (int t1 : graph.vertexSet()) {
 			for (int t2 : graph.vertexSet()) {
 				if (t1 == t2) continue;
 				if ((mcVal = mf.calculateMinCut(t1, t2)) < mcMinVal) {
 					mcMinVal = mcVal;
-					result = mf.getSourcePartition();
+					result = new IntOpenHashSet(mf.getSourcePartition());
 				}
 			}
 		}
 		for (int r : result) {
-			System.out.println(r.toString());
+			System.out.println(KB.unmap(r));
 		}
 	}
 	

@@ -62,15 +62,15 @@ public class Typing {
 
                     int[] singleton = q.first.get(0);
                     String fn = q.third.name + "_";
-                    fn += singleton[1].toString().substring(1, singleton[1].toString().length() - 1);
-                    fn += (singleton[2].equals(q.second)) ? "-1" : "";
+                    fn += KB.unmap(singleton[1]).substring(1, KB.unmap(singleton[1]).length() - 1);
+                    fn += (singleton[2] == (q.second)) ? "-1" : "";
 
                     out = new BufferedWriter(new FileWriter(fn));
                     double s;
                     for (int c : classes) {
                         s = q.third.evaluate(c, q.first, q.second);
                         if (outputThreshold <= s) {
-                            out.write(c.toString() + "\t" + Double.toString(s) + "\n");
+                            out.write(KB.unmap(c) + "\t" + Double.toString(s) + "\n");
                         }
                     }
                     out.close();
@@ -366,8 +366,8 @@ public class Typing {
                         mrc_score2 = prob;
                     }
                 }
-                System.out.println("MRC(" + r.toString() + ")\t=" + mrc.toString());
-                System.out.println("MRC(" + r.toString() + "-1)\t=" + mrc2.toString());
+                System.out.println("MRC(" + KB.unmap(r) + ")\t=" + KB.unmap(mrc));
+                System.out.println("MRC(" + KB.unmap(r) + "-1)\t=" + KB.unmap(mrc2));
                 mrc_score = mrc_score2 = 0;
                 mrc = KB.map("NONE");
                 mrc2 = KB.map("NONE");

@@ -17,6 +17,8 @@ import amie.data.Schema;
 import amie.rules.ConfidenceMetric;
 import amie.rules.Metric;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
+import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.IntCollection;
@@ -102,7 +104,7 @@ public class MiningAssistant {
 	/**
 	 * Contains the number of triples per relation in the database
 	 */
-	protected HashMap<String, Double> headCardinalities;
+	protected Int2DoubleMap headCardinalities;
 
 	/**
 	 * Allow constants for refinements
@@ -221,7 +223,7 @@ public class MiningAssistant {
 		this.totalObjectCount = this.kb.countDistinct(rootPattern[2], triples);
 		this.typeString = KB.map("rdf:type");
 		this.subPropertyString = KB.map("rdfs:subPropertyOf");
-		this.headCardinalities = new HashMap<String, Double>();
+		this.headCardinalities = new Int2DoubleOpenHashMap();
 		int[] subclassPattern = Rule.fullyUnboundTriplePattern1();
 		subclassPattern[1] = subPropertyString;
 		this.subclassQuery = new Rule(subclassPattern, 0);
@@ -328,7 +330,7 @@ public class MiningAssistant {
 		for (int relation : relations) {
 			int[] query = KB.triple(KB.map("?x"), relation, KB.map("?y"));
 			double relationSize = kb.count(query);
-			headCardinalities.put(relation.toString(), relationSize);
+			headCardinalities.put(relation, relationSize);
 		}
 	}
 
@@ -436,24 +438,23 @@ public class MiningAssistant {
 	}
 
 	public boolean registerHeadRelation(Rule query){		
-		return headCardinalities.put(query.getHeadRelation(), 
-				new Double(query.getSupport())) == null;		
+		return headCardinalities.put(KB.map(query.getHeadRelation()), query.getSupport()) == 0;		
 	}
 	
 	public boolean registerHeadRelation(int relation, double cardinality){		
-		return headCardinalities.put(relation.toString(), cardinality) == null;		
+		return headCardinalities.put(relation, cardinality) == 0;		
 	}
 	
 	public long getHeadCardinality(Rule query){
-		return headCardinalities.get(query.getHeadRelation()).longValue();
+		return (long) headCardinalities.get(KB.map(query.getHeadRelation()));
 	}
 	
 	public double getRelationCardinality(String relation) {
-		return headCardinalities.get(relation);
+		return headCardinalities.get(KB.map(relation));
 	}
 	
 	public double getRelationCardinality(int relation) {
-		return headCardinalities.get(relation.toString());
+		return headCardinalities.get(relation);
 	}
 
 	protected IntSet getSubClasses(int className){
@@ -499,7 +500,7 @@ public class MiningAssistant {
 			candidate.setFunctionalVariablePosition(countVarPos);
 			registerHeadRelation(candidate);			
 
-			if(canAddInstantiatedAtoms() && !relation.equals(KB.EQUALSbs)) {
+			if(canAddInstantiatedAtoms() && (relation != KB.EQUALSbs)) {
 				getInstantiatedAtoms(candidate, null, 0, countVarPos == 0 ? 2 : 0, minSupportThreshold, output);
 			}
 			
@@ -538,7 +539,7 @@ public class MiningAssistant {
 		Collection<Rule> output = new ArrayList<>();
 		Rule query = new Rule();
 		int[] newEdge = query.fullyUnboundTriplePattern();
-		for(int relation: relations){
+		for(int relation: relations.keySet()){
 			if (this.headExcludedRelations != null 
 					&& this.headExcludedRelations.contains(relation)) {
 				continue;
@@ -553,7 +554,7 @@ public class MiningAssistant {
 				candidate.setFunctionalVariablePosition(countVarPos);
 				registerHeadRelation(candidate);
 				if (canAddInstantiatedAtoms() && 
-						!relation.equals(KB.EQUALSbs)){
+						relation != KB.EQUALSbs){
 					getInstantiatedAtoms(candidate, null, 0, countVarPos == 0 ? 2 : 0, minSupportThreshold, output);
 				}
 				
@@ -614,7 +615,7 @@ public class MiningAssistant {
 				
 				int danglingPosition = (joinPosition == 0 ? 2 : 0);
 				boolean boundHead = !KB.isVariable(rule.getTriples().get(0)[danglingPosition]);
-				for(int relation: promisingRelations){
+				for(int relation: promisingRelations.keySet()){
 					if (this.bodyExcludedRelations != null && 
 							this.bodyExcludedRelations.contains(relation))
 						continue;
@@ -722,7 +723,7 @@ public class MiningAssistant {
 				newEdge[joinPosition] = sourceVariable;
 				
 				for(int variable: allVariables){
-					if(!variable.equals(sourceVariable)){
+					if(variable != sourceVariable){
 						newEdge[closeCirclePosition] = variable;
 						
 						rule.getTriples().add(newEdge);
@@ -730,7 +731,7 @@ public class MiningAssistant {
 								kb.frequentBindingsOf(newEdge[1], rule.getFunctionalVariable(), rule.getTriples());
 						rule.getTriples().remove(nPatterns);
 						
-						for(int relation: promisingRelations){
+						for(int relation: promisingRelations.keySet()){
 							if(bodyExcludedRelations != null && bodyExcludedRelations.contains(relation))
 								continue;
 							
@@ -817,7 +818,7 @@ public class MiningAssistant {
 			return;
 		
 		int[] lastAtom = rule.getLastRealTriplePattern();
-		if (!lastAtom[1].equals(Schema.typeRelationBS))
+		if (lastAtom[1] != Schema.typeRelationBS)
 			return;
 		
 		if (KB.isVariable(lastAtom[2]))
@@ -1152,17 +1153,17 @@ public class MiningAssistant {
 		int[] pattern2 = easyQuery.get(hardCaseInfo[3]);
 		int[] remained = null;
 		
-		if(!pattern1[0].equals(projVariable) && !pattern1[2].equals(projVariable)){
+		if ((pattern1[0] != projVariable)&&(pattern1[2] != projVariable)) {
 			easyQuery.remove(hardCaseInfo[2]);
 			remained = pattern2;
-		}else if(!pattern2[0].equals(projVariable) && !pattern2[2].equals(projVariable)){
+		} else if ((pattern2[0] != projVariable) && (pattern2[2] != projVariable)) {
 			easyQuery.remove(hardCaseInfo[3]);
 			remained = pattern1;
 		}
 		
 		//Add the existential triple only if it is not redundant
 		if(remained != null){
-			if(!remained[1].equals(rule.getHead()[1]) || hardCaseInfo[1] != rule.getFunctionalVariablePosition()){
+			if (remained[1] != rule.getHead()[1] || hardCaseInfo[1] != rule.getFunctionalVariablePosition()) {
 				int[] existentialTriple = rule.getHead().clone();
 				existentialTriple[freeVarPosition] = KB.map("?z");
 				easyQuery.add(existentialTriple);
@@ -1212,7 +1213,7 @@ public class MiningAssistant {
 		int[] danglingEdge = queryWithDanglingEdge.getTriples().get(danglingAtomPosition);
 		Int2IntMap constants = kb.frequentBindingsOf(danglingEdge[danglingPositionInEdge], 
 				queryWithDanglingEdge.getFunctionalVariable(), queryWithDanglingEdge.getTriples());
-		for (int constant: constants){
+		for (int constant: constants.keySet()){
 			int cardinality = constants.get(constant);
 			if(cardinality >= minSupportThreshold){
 				int[] lastPatternCopy = queryWithDanglingEdge.getLastTriplePattern().clone();
@@ -1238,7 +1239,7 @@ public class MiningAssistant {
 	 */
 	public double computeCardinality(Rule rule) {
 		int[] head = rule.getHead();
-		int countVariable = null;
+		int countVariable = 0;
 		if (countAlwaysOnSubject) {
 			countVariable = head[0];
 		} else {
@@ -1267,7 +1268,7 @@ public class MiningAssistant {
 		if(KB.numVariables(existentialTriple) == 1){
 			freeVarPos = KB.firstVariablePos(existentialTriple);
 		}else{
-			if(existentialTriple[0].equals(rule.getFunctionalVariable()))
+			if(existentialTriple[0] == rule.getFunctionalVariable())
 				freeVarPos = 2;
 			else
 				freeVarPos = 0;

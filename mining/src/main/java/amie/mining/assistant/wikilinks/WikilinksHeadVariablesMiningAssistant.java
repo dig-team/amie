@@ -1,16 +1,17 @@
 package amie.mining.assistant.wikilinks;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import amie.data.KB;
+import amie.data.tuple.IntArrays;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.Rule;
 
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntList;
 
 public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistant {
@@ -19,7 +20,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 	
 	public WikilinksHeadVariablesMiningAssistant(KB dataSource) {
 		super(dataSource);
-        headExcludedRelations = Arrays.asList(KB.map(WikilinksHeadVariablesMiningAssistant.wikiLinkProperty), 
+        headExcludedRelations = IntArrays.asList(KB.map(WikilinksHeadVariablesMiningAssistant.wikiLinkProperty), 
         		KB.map("rdf:type"));
         bodyExcludedRelations = headExcludedRelations;
 	}
@@ -30,10 +31,10 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 	}
 	
 	@Override
-	public void setHeadExcludedRelations(java.util.IntCollection headExcludedRelations) {};
+	public void setHeadExcludedRelations(IntCollection headExcludedRelations) {};
 	
 	@Override
-	public void setBodyExcludedRelations(java.util.IntCollection excludedRelations) {};
+	public void setBodyExcludedRelations(IntCollection excludedRelations) {};
 	
 	@Override
 	public void getDanglingAtoms(Rule query, double minCardinality, Collection<Rule> output) {		
@@ -43,7 +44,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 			query.getTriples().add(newEdge);
 			List<int[]> emptyList = Collections.emptyList();
 			Int2IntMap relations = kb.countProjectionBindings(query.getHead(), emptyList, newEdge[1]);
-			for(int relation: relations){
+			for(int relation: relations.keySet()){
 				// Language bias test
 				if (query.cardinalityForRelation(relation) >= recursivityLimit) {
 					continue;
@@ -88,7 +89,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 			Int2IntMap subjectTypes = kb.countProjectionBindings(query.getHead(), 
 					query.getAntecedent(), newEdge[2]);
 			if(!subjectTypes.isEmpty()){
-				for(int type: subjectTypes){
+				for(int type: subjectTypes.keySet()){
 					int cardinality = subjectTypes.get(type);
 					if(cardinality >= minSupportThreshold){
 						Rule newCandidate = new Rule(query, cardinality);
@@ -109,7 +110,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 				newEdge[1] = typeString;
 				candidate.getTriples().add(newEdge);
 				Int2IntMap objectTypes = kb.countProjectionBindings(candidate.getHead(), candidate.getAntecedent(), newEdge[2]);
-				for(int type: objectTypes){
+				for(int type: objectTypes.keySet()){
 					int cardinality = objectTypes.get(type);
 					if(cardinality >= minSupportThreshold){
 						Rule newCandidate = new Rule(candidate, cardinality);
@@ -139,11 +140,11 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 		if (length == maxDepth - 1) {
 			IntList openVariables = query.getOpenVariables();
 			for (int openVar : openVariables) {
-				if (KB.isVariable(head[0]) && !openVar.equals(head[0])) {
+				if (KB.isVariable(head[0]) && openVar != head[0]) {
 					return;
 				}
 				
-				if (KB.isVariable(head[2]) && !openVar.equals(head[2])) {
+				if (KB.isVariable(head[2]) && openVar != head[2]) {
 					return;
 				}
 			}

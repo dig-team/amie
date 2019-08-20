@@ -543,7 +543,7 @@ public class SimpleTyping extends Thread {
         System.out.println("Processing done with "+Integer.toString(nThreads)+" threads in "+Long.toString(timeStamp2 - timeStamp1)+"ms.");
         
         for (SimpleClassifierOutput r : outputQ) {
-            output.println(r.classSizeThreshold + "\t" + r.method + "\t" + Double.toString(r.threshold) + "\t" + r.relation.toString() + "\t" + r.resultClass.toString());
+            output.println(r.classSizeThreshold + "\t" + r.method + "\t" + Double.toString(r.threshold) + "\t" + KB.unmap(r.relation) + "\t" + KB.unmap(r.resultClass));
         }
         
         try {

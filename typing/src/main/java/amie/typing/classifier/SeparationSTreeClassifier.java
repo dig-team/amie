@@ -39,7 +39,7 @@ public class SeparationSTreeClassifier extends SeparationTreeClassifier {
     
     public void computeStatistics(List<int[]> query, int variable, int classSizeThreshold) {
         IntSet relevantClasses = index.keySet();
-        int relation = (query.get(0)[0].equals(variable)) ? query.get(0)[1] : KB.map(query.get(0)[1].toString() + "-1");
+        int relation = (query.get(0)[0] == (variable)) ? query.get(0)[1] : KB.map(KB.unmap(query.get(0)[1]) + "-1");
 
         for (int class1 : relevantClasses) {
             int c1size = classSize.get(class1);
@@ -55,7 +55,7 @@ public class SeparationSTreeClassifier extends SeparationTreeClassifier {
 
             List<int[]> clause = TypingHeuristic.typeL(class1, variable);
             clause.addAll(query);
-            IntSet targetClasses = (supportForTarget) ? relevantClasses : classIntersectionSize.get(class1);
+            IntSet targetClasses = (supportForTarget) ? relevantClasses : classIntersectionSize.get(class1).keySet();
 
             for (int class2 : targetClasses) {
                 assert (clause.size() == query.size() + 1);
@@ -66,7 +66,7 @@ public class SeparationSTreeClassifier extends SeparationTreeClassifier {
                     // Ensure the symmetry of the output.
                     continue;
                 }
-                if (!classIntersectionSize.containsKey(class1) || !classIntersectionSize.get(class1).contains(class2)) {
+                if (!classIntersectionSize.containsKey(class1) || !classIntersectionSize.get(class1).containsKey(class2)) {
                     continue;
                 }
 

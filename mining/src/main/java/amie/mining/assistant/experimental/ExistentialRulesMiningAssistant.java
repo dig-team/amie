@@ -15,17 +15,17 @@ public class ExistentialRulesMiningAssistant extends DefaultMiningAssistant {
 
 	public ExistentialRulesMiningAssistant(KB dataSource) {
 		super(dataSource);
-		headCardinalities.put(KB.EXISTSstr, -1.0);
-		headCardinalities.put(KB.EXISTSINVstr, -1.0);
+		headCardinalities.put(KB.EXISTSbs, -1.0);
+		headCardinalities.put(KB.EXISTSINVbs, -1.0);
 		// TODO Auto-generated constructor stub
 	}
 	
 	@Override
 	public long getHeadCardinality(Rule query){
-		if (query.getHeadRelation().equals(KB.EXISTSstr) || query.getHeadRelation().equals(KB.EXISTSINVstr)) {
-			return headCardinalities.get(query.getHead()[0].toString()).longValue();
+		if (query.getHeadRelation() == (KB.EXISTSstr) || query.getHeadRelation() == (KB.EXISTSINVstr)) {
+			return (long) headCardinalities.get(query.getHead()[0]);
 		} else {
-			return headCardinalities.get(query.getHeadRelation()).longValue();
+			return (long) headCardinalities.get(query.getHeadRelationBS());
 		}	
 	}
 	

@@ -6,6 +6,7 @@
 package amie.typing.classifier.simple;
 
 import amie.data.CardinalitySimpleTypingKB;
+import amie.data.KB;
 import amie.data.SetU;
 import amie.data.SimpleTypingKB;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
@@ -46,7 +47,7 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
     
     private int getIntersectionSize(int class1, int class2) {
         if (classIntersectionSize != null) {
-            if (!classIntersectionSize.containsKey(class1) || !classIntersectionSize.get(class1).contains(class2)) {
+            if (!classIntersectionSize.containsKey(class1) || !classIntersectionSize.get(class1).containsKey(class2)) {
                 return 0;
             }
             return classIntersectionSize.get(class1).get(class2);
@@ -64,8 +65,8 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
 
         for (int class1 : relevantClasses) {
             if (db instanceof CardinalitySimpleTypingKB) {
-                String[] s = class1.toString().split("_");
-                if (s.length == 2 && s[0].equals(relation.toString())) {
+                String[] s = KB.unmap(class1).split("_");
+                if (s.length == 2 && s[0].equals(KB.unmap(relation))) {
                     index.get(class1).separationScore = Double.NEGATIVE_INFINITY;
                     continue;
                 }
@@ -79,7 +80,7 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
             }
             double conf = ((double) index.get(class1).support) / index.get(class1).bodySize;
            
-            IntSet targetClasses = (supportForTarget || classIntersectionSize == null) ? relevantClasses : classIntersectionSize.get(class1);
+            IntSet targetClasses = (supportForTarget || classIntersectionSize == null) ? relevantClasses : classIntersectionSize.get(class1).keySet();
             if (targetClasses == null) {
                 continue;
             }
@@ -89,8 +90,8 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
                     continue;
                 }
                 if (db instanceof CardinalitySimpleTypingKB) {
-                    String[] s = class2.toString().split("_");
-                    if (s.length == 2 && s[0].equals(relation.toString())) { 
+                    String[] s = KB.unmap(class2).split("_");
+                    if (s.length == 2 && s[0].equals(KB.unmap(relation))) { 
                         continue; 
                     }
                 }

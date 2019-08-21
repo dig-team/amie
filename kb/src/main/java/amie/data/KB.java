@@ -5,6 +5,7 @@ import static amie.data.U.decreasingKeys;
 import static amie.data.U.increase;
 import amie.data.starpattern.SignedPredicate;
 import amie.data.tuple.IntArrays;
+import amie.data.tuple.IntPair;
 import amie.data.tuple.IntTriple;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
@@ -61,20 +62,174 @@ import javatools.parsers.NumberFormatter;
  */
 public class KB {
     
-    
         protected static ArrayList<ByteString> idToEntity = new ArrayList(Arrays.asList(ByteString.of("null")));
+        protected static ArrayList<ByteString> compositeEntity = new ArrayList();
         
         protected static Object2IntMap<ByteString> entityToId = new Object2IntOpenHashMap<ByteString>();
+        protected static Object2IntMap<ByteString> compositeToId = new Object2IntOpenHashMap<ByteString>();
         
         public static int map(CharSequence cs) {
-            return 0;
-            if (cs.charAt(0) == '?') {
+            if (isVariable(cs)) {
                 return parseVariable(cs);
+            }
+            
+            int r = 0;
+            if ((r = parseCardinality(cs)) != 0) {
+                return r;
+            }
+            
+            ByteString b = _compress(cs);
+            if (compositeToId.containsKey(b)) {
+                return mapComposite(b);
+            }
+            
+            if (entityToId.containsKey(b)) {
+                return entityToId.getInt(b);
+            }
+            
+            r = idToEntity.size();
+            idToEntity.add(b);
+            entityToId.put(b, r);
+            return r;
+        }
+        
+        /** Variable sign (as defined in SPARQL) **/
+	public static final char VariableSign = '?';
+        
+        private static final String VariableRegex = Pattern.quote(Character.toString(VariableSign)) + "(_)?([a-z])([0-9]*)";
+        
+        private static final Pattern VariablePattern = Pattern.compile(VariableRegex);
+        
+        /**
+         * Map a variable of the form [a-z][0-9]* to an integer between 1 and 1023.
+         * @param letter
+         * @param num
+         * @return 
+         */
+        private static int mapVariable(char letter, int num) {
+            int r = letter - 96;
+            if (num < 0) {
+                return r;
+            } else {
+                if (num < 10) {
+                    return (r * 10) + num;
+                } else if (num < 100) {
+                    return Math.min((r * 100) + num, 1023);
+                } else {
+                    return 1023;
+                }
             }
         }
         
+        public static int parseVariable(CharSequence cs) {
+            Matcher m = VariablePattern.matcher(cs);
+            if (m.matches()) {
+                if (m.group(1) == null) {
+                    return -mapVariable(m.group(2).charAt(0), Integer.parseInt(m.group(3)));
+                } else {
+                    return -1023-mapVariable(m.group(2).charAt(0), Integer.parseInt(m.group(3)));
+                }
+            }
+            throw new IllegalArgumentException("Variable " + cs.toString() + " DO NOT MATCH \"\\?(_?)[a-z][0-9]*\"");
+        }
+        
+        private static void unmapVariable(int pos, StringBuilder sb) {
+            int mod = 1;
+            pos /= 10;
+            int r = 0;
+            if (pos <= 26) {
+                sb.append((char) pos);
+            } else {
+                while (pos > 26) {
+                    r += mod*(pos % mod);
+                    pos /= 10;
+                    mod *= 10;
+                }
+                sb.append((char) (pos + 96));
+                sb.append(r);
+            }
+        }
+        
+        public static String unparseVariable(int v) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(VariableSign);
+            if (!isOpenableVariable(v)) {
+                sb.append('_');
+                v += 1023;
+            }
+            unmapVariable(-v, sb);
+            return sb.toString();
+        }
+        
         public static String unmap(int e) {
-            return "";
+            if (isComposite(e)) {
+                return unmapComposite(e);
+            }
+            if (isVariable(e)) {
+                return unparseVariable(e);
+            }
+            if (e < idToEntity.size()) {
+                return idToEntity.get(e).toString();
+            }
+            
+            throw new IllegalArgumentException("Cannot unmap invalid id: " + e + " (/" + idToEntity.size() + ")");
+        }
+        
+        public static boolean isComposite(int id) {
+            return id <= -2048;
+        }
+        
+        public static int mapComposite(CharSequence cs) {
+            ByteString b = _compress(cs);
+            if (entityToId.containsKey(b)) {
+                throw new IllegalStateException(cs.toString() + " is used as usual and composite entity");
+            }
+            if (compositeToId.containsKey(b)) {
+                return compositeToId.getInt(b);
+            } else {
+                compositeEntity.add(b);
+                compositeToId.put(b, -2047-compositeEntity.size());
+                return -2047-compositeEntity.size();
+            }
+        }
+        
+        public static final int COMPOSE_SIZE = 15;
+        
+        public static int compose(int id, int n) {
+            return -(-id + (n << COMPOSE_SIZE));
+        }
+        
+        public static IntPair uncompose(int c) {
+            if (!isComposite(c)) { return null; }
+            return new IntPair(-((-c) % ((1 << COMPOSE_SIZE))), (-c) >> COMPOSE_SIZE);
+        }
+        
+        public static int mapComposite(CharSequence cs, int n) {
+            return compose(mapComposite(cs), n);
+        }
+        
+        private static int parseCardinality(CharSequence cs) {
+            Matcher m = cardinalityRelationsRegexPattern.matcher(cs);
+            if (m.matches()) {
+                return mapComposite(m.group(1), Integer.parseInt(m.group(2)));
+            }
+            return 0;
+        }
+	/**
+	 * Determines whether the relation has 
+	 * @param byteString
+	 * @return
+	 */
+	public static IntPair parseCardinalityRelation(int composite) {
+            IntPair r = uncompose(composite);
+            if (r == null) { return null; }
+            if (!cardinalityRelations.contains(r.first)) { return null; }
+            return r;
+	}
+        
+        public static String unmapComposite(int composite) {
+            IntPair p = uncompose(composite);
+            return compositeEntity.get(-p.first-2048).toString() + Integer.toString(p.second);
         }
 
 	// ---------------------------------------------------------------------------
@@ -175,9 +330,6 @@ public class KB {
 	/** r(y', X) does NOT exists for some y', predicate */
 	public static final int NOTEXISTSINVbs = KB.map(NOTEXISTSINVstr);
 	
-	/** Variable sign (as defined in SPARQL) **/
-	public static final char VariableSign = '?';
-	
 	public static final IntList specialRelations = IntArrays.asList(TRANSITIVETYPEbs, DIFFERENTFROMbs, 
 			EQUALSbs, EXISTSbs, EXISTSINVbs, NOTEXISTSbs, NOTEXISTSINVbs);
 
@@ -194,27 +346,40 @@ public class KB {
 	
 	public static final String hasNumberOfValuesEqualsInv = "hasNumberOfValuesEqualsInv";
 	
-	public static final int hasNumberOfValuesEqualsBS = KB.map(hasNumberOfValuesEquals);
+	public static final int hasNumberOfValuesEqualsBS = KB.mapComposite(hasNumberOfValuesEquals);
 	
-	public static final int hasNumberOfValuesEqualsInvBS = KB.map(hasNumberOfValuesEqualsInv);
+	public static final int hasNumberOfValuesEqualsInvBS = KB.mapComposite(hasNumberOfValuesEqualsInv);
 	
 	public static final String hasNumberOfValuesGreaterThan = "hasNumberOfValuesGreaterThan";
 	
 	public static final String hasNumberOfValuesGreaterThanInv = "hasNumberOfValuesGreaterThanInv";
 	
-	public static final int hasNumberOfValuesGreaterThanBS = KB.map(hasNumberOfValuesGreaterThan);
+	public static final int hasNumberOfValuesGreaterThanBS = KB.mapComposite(hasNumberOfValuesGreaterThan);
 	
-	public static final int hasNumberOfValuesGreaterThanInvBS = KB.map(hasNumberOfValuesGreaterThanInv);
+	public static final int hasNumberOfValuesGreaterThanInvBS = KB.mapComposite(hasNumberOfValuesGreaterThanInv);
 	
 	public static final String hasNumberOfValuesSmallerThan = "hasNumberOfValuesSmallerThan";
 			
 	public static final String hasNumberOfValuesSmallerThanInv = "hasNumberOfValuesSmallerThanInv";		
 	
-	public static final int hasNumberOfValuesSmallerThanBS = KB.map(hasNumberOfValuesSmallerThan);
+	public static final int hasNumberOfValuesSmallerThanBS = KB.mapComposite(hasNumberOfValuesSmallerThan);
 	
-	public static final int hasNumberOfValuesSmallerThanInvBS = KB.map(hasNumberOfValuesSmallerThanInv);		
+	public static final int hasNumberOfValuesSmallerThanInvBS = KB.mapComposite(hasNumberOfValuesSmallerThanInv);		
 	
-	// ---------------------------------------------------------------------------
+        public static final IntList cardinalityRelations = IntArrays.asList(hasNumberOfValuesEqualsBS,
+                hasNumberOfValuesEqualsInvBS, hasNumberOfValuesGreaterThanBS, hasNumberOfValuesGreaterThanInvBS,
+                hasNumberOfValuesSmallerThanBS, hasNumberOfValuesSmallerThanInvBS);
+                
+        private static final String cardinalityRelationsRegex = "(" + 
+			hasNumberOfValuesEquals + "|" + hasNumberOfValuesGreaterThan + "|" + hasNumberOfValuesSmallerThan + "|" +
+			hasNumberOfValuesEqualsInv + "|" + hasNumberOfValuesGreaterThanInv + "|" + hasNumberOfValuesSmallerThanInv + 
+			")([0-9]+)";
+	
+	private static final Pattern cardinalityRelationsRegexPattern = 
+			Pattern.compile(cardinalityRelationsRegex);
+
+
+// ---------------------------------------------------------------------------
 	// Loading
 	// ---------------------------------------------------------------------------
 
@@ -422,7 +587,7 @@ public class KB {
         }
         
         public static boolean isOpenableVariable(int s) {
-            return (s < -1024 && s > -2048);
+            return (s < 0 && s > -1024);
         }
 
 	/**
@@ -1125,9 +1290,8 @@ public class KB {
 			return new IntOpenHashSet(values);
 		}
 		
-		Pair<Integer, Integer> cardinalityRelation = 
-				parseCardinalityRelation(triple[1]);
-		if (cardinalityRelation != null) {
+		if (isComposite(triple[1])) {
+                    IntPair cardinalityRelation = uncompose(triple[1]);
 			if (isVariable(triple[2])) {
 				throw new UnsupportedOperationException("The relation " + triple[1] 
 						+ " does not support variables in the object position");
@@ -1139,9 +1303,9 @@ public class KB {
 						cardinalityRelation.first == hasNumberOfValuesEqualsBS)?
 								get(relation2subject2object, triple[2]) :
 								get(relation2object2subject, triple[2]);			
-				if (cardinalityRelation.second.intValue() > 0) {
+				if (cardinalityRelation.second > 0) {
 					for (int entity : map.keySet()) {
-						if (map.get(entity).size() == cardinalityRelation.second.intValue())
+						if (map.get(entity).size() == cardinalityRelation.second)
 							results.add(entity);
 					}
 				} else {
@@ -1156,16 +1320,16 @@ public class KB {
 			} else if ((cardinalityRelation.first == hasNumberOfValuesGreaterThanBS)
 					||(cardinalityRelation.first == hasNumberOfValuesGreaterThanInvBS)) {
 				Int2ObjectMap<IntSet> map = 
-						cardinalityRelation.first.equals(hasNumberOfValuesGreaterThanBS) ?
+						cardinalityRelation.first == (hasNumberOfValuesGreaterThanBS) ?
 								get(relation2subject2object, triple[2]) :
 								get(relation2object2subject, triple[2]);	
 				
-				if (cardinalityRelation.second.intValue() == 0) {
+				if (cardinalityRelation.second == 0) {
 					return new IntOpenHashSet(map.keySet());
 				}
 					
 				for (int entity : map.keySet()) {
-					if (map.get(entity).size() > cardinalityRelation.second.intValue())
+					if (map.get(entity).size() > cardinalityRelation.second)
 						results.add(entity);
 				}
 			} else {
@@ -1177,10 +1341,10 @@ public class KB {
 								get(relation2object2subject, triple[2]);	
 				for (int entity : set) {
 					if (map.containsKey(entity)) {
-						if (cardinalityRelation.second.intValue() == 1)
+						if (cardinalityRelation.second == 1)
 							continue;
 						
-						if (map.get(entity).size() < cardinalityRelation.second.intValue())
+						if (map.get(entity).size() < cardinalityRelation.second)
 							results.add(entity);	
 					} else {
 						results.add(entity);
@@ -1242,48 +1406,47 @@ public class KB {
 		if (fact[1] == NOTEXISTSINVbs)
 			return (!get(relation2object2subject, fact[0])
 					.containsKey(fact[2]));
-		Pair<Integer, Integer> cardinalityRelation = 
-				parseCardinalityRelation(fact[1]);
-		if (cardinalityRelation != null) {
+		if (isComposite(fact[1])) {
+                    IntPair cardinalityRelation = uncompose(fact[1]);
 			if (cardinalityRelation.first == hasNumberOfValuesEqualsBS) {
 				if (get(subject2relation2object, fact[0]).containsKey(fact[2])) {
 					return get(subject2relation2object, fact[0]).get(fact[2]).size() 
-							== cardinalityRelation.second.intValue();
+							== cardinalityRelation.second;
 				} else {
 					return cardinalityRelation.second == 0;
 				}
 			} else if (cardinalityRelation.first == hasNumberOfValuesEqualsInvBS) {
 				if (get(object2relation2subject, fact[0]).containsKey(fact[2])) {
 					return get(object2relation2subject, fact[0]).get(fact[2]).size() 
-					== cardinalityRelation.second.intValue();
+					== cardinalityRelation.second;
 				} else {
 					return cardinalityRelation.second == 0;
 				}
 			} else if (cardinalityRelation.first == hasNumberOfValuesGreaterThanBS) {
 				if (get(subject2relation2object, fact[0]).containsKey(fact[2])) {
 					return get(subject2relation2object, fact[0]).get(fact[2]).size() 
-							> cardinalityRelation.second.intValue();
+							> cardinalityRelation.second;
 				} else {
 					return false;
 				}								
 			} else if (cardinalityRelation.first == hasNumberOfValuesGreaterThanInvBS) {
 				if (get(object2relation2subject, fact[0]).containsKey(fact[2])) {
 					return get(object2relation2subject, fact[0]).get(fact[2]).size() 
-							> cardinalityRelation.second.intValue();
+							> cardinalityRelation.second;
 				} else { 
 					return false;
 				}
 			} else if (cardinalityRelation.first == hasNumberOfValuesSmallerThanBS) {
 				if (get(subject2relation2object, fact[0]).containsKey(fact[2])) {
 					return get(subject2relation2object, fact[0]).get(fact[2]).size() 
-								< cardinalityRelation.second.intValue();
+								< cardinalityRelation.second;
 				} else {
 					return true;
 				}
 			} else if (cardinalityRelation.first == hasNumberOfValuesSmallerThanInvBS) {
 				if (get(object2relation2subject, fact[0]).containsKey(fact[2])) {
 					return get(object2relation2subject, fact[0]).get(fact[2]).size() 
-							< cardinalityRelation.second.intValue();
+							< cardinalityRelation.second;
 				} else {
 					return true;
 				}
@@ -1291,34 +1454,6 @@ public class KB {
 		}
 		return (get(subject2relation2object, fact[0], fact[1])
 				.contains(fact[2]));
-	}
-
-	private static final String cardinalityRelationsRegex = "(" + 
-			hasNumberOfValuesEquals + "|" + hasNumberOfValuesGreaterThan + "|" + hasNumberOfValuesSmallerThan + "|" +
-			hasNumberOfValuesEqualsInv + "|" + hasNumberOfValuesGreaterThanInv + "|" + hasNumberOfValuesSmallerThanInv + 
-			")([0-9]+)";
-	
-	private static final Pattern cardinalityRelationsRegexPattern = 
-			Pattern.compile(cardinalityRelationsRegex);
-
-	/**
-	 * Determines whether the relation has 
-	 * @param byteString
-	 * @return
-	 */
-	public static Pair<Integer, Integer> parseCardinalityRelation(int relation) {
-		Matcher m = cardinalityRelationsRegexPattern.matcher(relation);
-		if (m.matches()) {
-			Pair<Integer, Integer> pair = new Pair<>(KB.map(m.group(1)), 
-					Integer.parseInt(m.group(2)));
-			if (pair.first.equals(hasNumberOfValuesSmallerThanBS) || 
-					pair.first.equals(hasNumberOfValuesSmallerThanInvBS)) {
-				if (pair.second.intValue() == 0) throw new IllegalArgumentException(relation + " is undefined.");
-			}
-			return pair;
-		} else {
-			return null;
-		}
 	}
 
 	/**
@@ -1585,25 +1720,25 @@ public class KB {
 			else
 				return relationSize.size() - get(object2relation2subject, triple[2]).size();
 		}
-		
-		Pair<Integer, Integer> compositeRelation = parseCardinalityRelation(triple[1]);				
-		if (compositeRelation != null) {			
-			if (compositeRelation.first.equals(hasNumberOfValuesEqualsBS)
-					|| compositeRelation.first.equals(hasNumberOfValuesEqualsInv)) {
+					
+		if (isComposite(triple[1])) {
+                    IntPair compositeRelation = uncompose(triple[1]);
+			if (compositeRelation.first == (hasNumberOfValuesEqualsBS)
+					|| compositeRelation.first == (hasNumberOfValuesEqualsInvBS)) {
 				
 				Int2ObjectMap<IntSet> map = 
-						compositeRelation.first.equals(hasNumberOfValuesEqualsBS) ?
+						compositeRelation.first == (hasNumberOfValuesEqualsBS) ?
 						get(this.relation2subject2object, triple[2]) :
 						get(this.relation2object2subject, triple[2]);				
 				long count = 0;
-				if (compositeRelation.second.intValue() > 0) {
+				if (compositeRelation.second > 0) {
 					for (int s : map.keySet()) {
-						if (map.get(s).size() == compositeRelation.second.intValue())
+						if (map.get(s).size() == compositeRelation.second)
 							++count; 
 					}
 				} else {
 					IntSet set =
-					compositeRelation.first.equals(hasNumberOfValuesEqualsBS) ? 
+					compositeRelation.first == (hasNumberOfValuesEqualsBS) ? 
 							subjectSize.keySet() : objectSize.keySet();
 					for (int s : set) {
 						if (!map.containsKey(s)) {
@@ -1612,20 +1747,20 @@ public class KB {
 					}
 				}
 				return count;
-			} else if (compositeRelation.first.equals(hasNumberOfValuesGreaterThanBS)
-					|| compositeRelation.first.equals(hasNumberOfValuesGreaterThanInvBS)) {
+			} else if (compositeRelation.first == (hasNumberOfValuesGreaterThanBS)
+					|| compositeRelation.first == (hasNumberOfValuesGreaterThanInvBS)) {
 				// If it is 0, just return the size of the map
 				Int2ObjectMap<IntSet> map = 
-						compositeRelation.first.equals(hasNumberOfValuesGreaterThanBS) ?
+						compositeRelation.first == (hasNumberOfValuesGreaterThanBS) ?
 						get(this.relation2subject2object, triple[2]) :
 						get(this.relation2object2subject, triple[2]);
-				if (compositeRelation.second.intValue() == 0) {
+				if (compositeRelation.second == 0) {
 					return map.size();
 				} else {
 					long count = 0;
 					for (int s : map.keySet()) {
 						if (map.containsKey(s)) {
-							if (map.get(s).size() > compositeRelation.second.intValue())
+							if (map.get(s).size() > compositeRelation.second)
 								++count; 
 						}
 					}
@@ -1633,19 +1768,19 @@ public class KB {
 				}
 			} else {
 				Int2ObjectMap<IntSet> map = 
-						compositeRelation.first.equals(hasNumberOfValuesSmallerThanBS) ?
+						compositeRelation.first == (hasNumberOfValuesSmallerThanBS) ?
 						get(this.relation2subject2object, triple[2]) :
 						get(this.relation2object2subject, triple[2]);
 				long count = 0;
 				IntSet set =
-					compositeRelation.first.equals(hasNumberOfValuesSmallerThanBS) ? 
+					compositeRelation.first == (hasNumberOfValuesSmallerThanBS) ? 
 							subjectSize.keySet() : objectSize.keySet();
 				for (int s : set) {					
 					if (map.containsKey(s)) {						
-						if (compositeRelation.second.intValue() == 1)
+						if (compositeRelation.second == 1)
 							continue;
 						
-						if (map.get(s).size() < compositeRelation.second.intValue())
+						if (map.get(s).size() < compositeRelation.second)
 							++count;
 					} else {
 						++count;
@@ -3470,14 +3605,19 @@ public class KB {
 	}
 
 	/** Compresses a string to an internal string */
+        private static ByteString _compress(CharSequence s) {
+            if (s instanceof ByteString) {
+                return (ByteString) s;
+            }
+            String str = s.toString();
+            int pos = str.indexOf("\"^^");
+            if (pos != -1)
+		str = str.substring(0, pos + 1);
+            return ByteString.of(str);
+        }
+        
 	public static int compress(CharSequence s) {
-		if (s instanceof ByteString)
-			return (KB.map(s));
-		String str = s.toString();
-		int pos = str.indexOf("\"^^");
-		if (pos != -1)
-			str = str.substring(0, pos + 1);
-		return (KB.map(ByteString.of(str)));
+            return KB.map(s);
 	}
 
 	/** Makes a list of triples */

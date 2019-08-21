@@ -9,6 +9,7 @@ import java.util.Set;
 import amie.data.KB;
 import amie.data.Schema;
 import amie.data.tuple.IntArrays;
+import amie.data.tuple.IntPair;
 import amie.mining.assistant.MiningAssistant;
 import amie.mining.assistant.MiningOperator;
 import amie.rules.QueryEquivalenceChecker;
@@ -144,8 +145,8 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	@MiningOperator(name="specializing")
 	public void getTypeSpecializedAtoms(Rule rule, double minSupportThreshold, Collection<Rule> output) {
 		int[] lastAtom = rule.getLastRealTriplePattern();
-		Pair<Integer, Integer> compositeRelation = KB.parseCardinalityRelation(lastAtom[1]);
-		if (compositeRelation == null) {
+                IntPair compositeRelation = KB.parseCardinalityRelation(lastAtom[1]);
+		if (compositeRelation != null) {
 			super.getTypeSpecializedAtoms(rule, minSupportThreshold, output);
 		} else {
 			int oldRelation = lastAtom[1];
@@ -162,10 +163,10 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 					
 				if (this.isFunctional(targetRelation)) {
 					newCard = kb.maximalRightCumulativeCardinality(targetRelation, 
-						(long)minSupportThreshold, compositeRelation.second.intValue());
+						(long)minSupportThreshold, compositeRelation.second);
 				} else {
 					newCard = kb.maximalRightCumulativeCardinalityInv(targetRelation, 
-							(long)minSupportThreshold, compositeRelation.second.intValue());					
+							(long)minSupportThreshold, compositeRelation.second);					
 				}
 				if (newCard == -1)
 					return;
@@ -173,16 +174,16 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 				if (head[2] != lastAtom[2])
 					return;
 				if (this.isFunctional(targetRelation)) {
-					newCard = kb.maximalCardinality(targetRelation, compositeRelation.second.intValue());
+					newCard = kb.maximalCardinality(targetRelation, compositeRelation.second);
 				} else {
-					newCard = kb.maximalCardinalityInv(targetRelation, compositeRelation.second.intValue());
+					newCard = kb.maximalCardinalityInv(targetRelation, compositeRelation.second);
 				}
 				
-				if (newCard == compositeRelation.second.intValue())
+				if (newCard == compositeRelation.second)
 					return;
 			}
 								
-			int newRelation = KB.map(compositeRelation.first.toString() + newCard);
+			int newRelation = KB.compose(compositeRelation.first, newCard);
 			lastAtom[1] = newRelation;
 			long cardinality = kb.countDistinct(rule.getFunctionalVariable(), rule.getTriples());
 			lastAtom[1] = oldRelation;
@@ -202,28 +203,23 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 			Collection<Rule> output) {
 		// We'll force a cardinality atom at the end
 		int[] head = rule.getHead();
-		int startCardinality = -1;
-		String inequalityRelation = null;				
+		int startCardinality = -1;		
 		int[] newAtom = head.clone();
 		if (this.isFunctional(targetRelation)) {
 			startCardinality  = 0;
-			inequalityRelation = KB.hasNumberOfValuesGreaterThan + startCardinality;
-			newAtom[1] = KB.map(inequalityRelation);
+			newAtom[1] = KB.mapComposite(KB.hasNumberOfValuesGreaterThan, startCardinality);
 			this.addAtom(rule, newAtom, minSupportThreshold, output);
 
 			startCardinality = kb.maximalCardinality(targetRelation) + 1;
-			inequalityRelation = KB.hasNumberOfValuesSmallerThan + startCardinality;
-			newAtom[1] = KB.map(inequalityRelation);
+			newAtom[1] = KB.mapComposite(KB.hasNumberOfValuesSmallerThan, startCardinality);
 			this.addAtom(rule, newAtom, minSupportThreshold, output);
 		} else {
 			startCardinality = 0;
-			inequalityRelation = KB.hasNumberOfValuesGreaterThanInv + startCardinality;
-			newAtom[1] = KB.map(inequalityRelation);
+			newAtom[1] = KB.mapComposite(KB.hasNumberOfValuesGreaterThanInv, startCardinality);
 			this.addAtom(rule, newAtom, minSupportThreshold, output);
 
 			startCardinality = kb.maximalCardinalityInv(targetRelation) + 1;
-			inequalityRelation = KB.hasNumberOfValuesSmallerThanInv + startCardinality;
-			newAtom[1] = KB.map(inequalityRelation);
+			newAtom[1] = KB.mapComposite(KB.hasNumberOfValuesSmallerThanInv, startCardinality);
 			this.addAtom(rule, newAtom, minSupportThreshold, output);
 		}
 		
@@ -538,31 +534,33 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	}
 
 	private boolean subsumesCardinalityAtom(int[] triplesParent, int[] triplesRule) {
-		Pair<Integer, Integer> relationPairParent = KB.parseCardinalityRelation(triplesParent[1]);
-		Pair<Integer, Integer> relationPairRule = KB.parseCardinalityRelation(triplesRule[1]);
 		
-		IntList gtList = IntArrays.asList(KB.hasNumberOfValuesGreaterThanBS, 
+		if (KB.isComposite(triplesParent[1]) && KB.isComposite(triplesRule[1])) {
+                    
+                    IntPair relationPairParent = KB.uncompose(triplesParent[1]);
+                    IntPair relationPairRule = KB.uncompose(triplesRule[1]);
+                    
+                    IntList gtList = IntArrays.asList(KB.hasNumberOfValuesGreaterThanBS, 
 				KB.hasNumberOfValuesGreaterThanInvBS);
 		
-		IntList stList = IntArrays.asList(KB.hasNumberOfValuesSmallerThanBS, 
+                    IntList stList = IntArrays.asList(KB.hasNumberOfValuesSmallerThanBS, 
 				KB.hasNumberOfValuesSmallerThanInvBS);
-		
-		if (relationPairParent != null && relationPairRule != null) {
-			if (relationPairParent.first.equals(relationPairRule.first)) {
+                
+			if (relationPairParent.first == (relationPairRule.first)) {
 				if (gtList.contains(relationPairParent.first)) {
 					return relationPairParent.second < relationPairRule.second;
 				} else if (stList.contains(relationPairParent.first)) {
 					return relationPairParent.second > relationPairRule.second;
 				}					
 			} else {
-				if (relationPairRule.first.equals(KB.hasNumberOfValuesGreaterThanBS) 
+				if (relationPairRule.first == (KB.hasNumberOfValuesGreaterThanBS) 
 						&& relationPairRule.second == 0) {
 					return relationPairParent.second == 0 && 
-							relationPairParent.equals(KB.hasNumberOfValuesEqualsBS);
-				} else if (relationPairRule.first.equals(KB.hasNumberOfValuesGreaterThanInvBS) 
+							relationPairParent.first == (KB.hasNumberOfValuesEqualsBS);
+				} else if (relationPairRule.first == (KB.hasNumberOfValuesGreaterThanInvBS) 
 						&& relationPairRule.second == 0) {
 					return relationPairParent.second == 0 && 
-							relationPairParent.equals(KB.hasNumberOfValuesEqualsInvBS);
+							relationPairParent.first == (KB.hasNumberOfValuesEqualsInvBS);
 				}
 			}
 		}

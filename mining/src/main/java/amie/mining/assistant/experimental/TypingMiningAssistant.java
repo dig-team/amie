@@ -32,8 +32,8 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 		super.buildRelationsDictionary();
 		
 		// Build all defined classes
-		List<int[]> query = KB.triples(KB.triple("?class", Schema.subClassRelation, "?c"));		
-		IntSet types = new IntOpenHashSet(kb.selectDistinct(KB.map("?class"), query));
+		List<int[]> query = KB.triples(KB.triple("?c9", Schema.subClassRelation, "?c"));		
+		IntSet types = new IntOpenHashSet(kb.selectDistinct(KB.map("?c9"), query));
 		types.add(topTypeBS);
 		for (int type : types) {
 			int[] query_c = KB.triple(KB.map("?x"), Schema.typeRelationBS, type);

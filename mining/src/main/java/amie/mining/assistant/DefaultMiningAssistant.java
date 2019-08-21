@@ -612,7 +612,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 				freeVarPos = 0;
 		}
 
-		existentialTriple[freeVarPos] = KB.map("?xw");
+		existentialTriple[freeVarPos] = KB.map("?x9");
 		if (!antecedent.isEmpty()) {
 			antecedent.add(existentialTriple);
 			try{

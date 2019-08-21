@@ -1183,16 +1183,16 @@ public class MiningAssistant {
 		int[] hardCaseInfo = kb.identifyHardQueryTypeI(rule.getAntecedent());
 		double denominator = 0.0;
 		int[] triple = new int[3];
-		triple[0] = KB.map("?xw");
+		triple[0] = KB.map("?x9");
 		triple[1] = rule.getAntecedent().get(0)[1];
-		triple[2] = KB.map("?yw");
+		triple[2] = KB.map("?y9");
 		
 		if(hardCaseInfo[0] == 2){
 			// Case r(y, z) r(x, z)
-			denominator = kb.countDistinct(KB.map("?xw"), KB.triples(triple));
+			denominator = kb.countDistinct(KB.map("?x9"), KB.triples(triple));
 		}else{
 			// Case r(z, y) r(z, x)
-			denominator = kb.countDistinct(KB.map("?yw"), KB.triples(triple));
+			denominator = kb.countDistinct(KB.map("?y9"), KB.triples(triple));
 		}
 		
 		return rule.getSupport() / denominator;
@@ -1274,7 +1274,7 @@ public class MiningAssistant {
 				freeVarPos = 0;
 		}
 
-		existentialTriple[freeVarPos] = KB.map("?xw");
+		existentialTriple[freeVarPos] = KB.map("?x9");
 		if (!antecedent.isEmpty()) {
 			//Improved confidence: Add an existential version of the head
 			antecedent.add(existentialTriple);

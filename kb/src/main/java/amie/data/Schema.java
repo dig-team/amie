@@ -316,8 +316,8 @@ public class Schema {
 	 * @param kb
 	 */
 	public static IntSet getAllTypes(KB kb) {
-		List<int[]> query = KB.triples(KB.triple("?x", typeRelation, "?type"));		
-		return new IntOpenHashSet(kb.selectDistinct(KB.map("?type"), query));	
+		List<int[]> query = KB.triples(KB.triple("?x", typeRelation, "?t9"));		
+		return new IntOpenHashSet(kb.selectDistinct(KB.map("?t9"), query));	
 	}
 	
 	/**

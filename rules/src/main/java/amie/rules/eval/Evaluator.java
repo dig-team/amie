@@ -40,7 +40,8 @@ public class Evaluator {
 				> training.inverseFunctionality(triple[1]) ? 0 : 2;
 		
 		if (target == null) {
-			System.out.println("Target is null");						
+			System.out.println("Target is null");
+                        System.exit(2);
 		}
 		if(target.count(triple) > 0){
 			//Bingo!

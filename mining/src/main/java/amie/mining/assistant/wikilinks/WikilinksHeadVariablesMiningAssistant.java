@@ -115,7 +115,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 					if(cardinality >= minSupportThreshold){
 						Rule newCandidate = new Rule(candidate, cardinality);
 						newCandidate.setHeadCoverage((double)cardinality 
-								/ (double)headCardinalities.get(newCandidate.getHeadRelation()));
+								/ (double)headCardinalities.get(newCandidate.getHeadRelationBS()));
 						newCandidate.setSupportRatio((double)cardinality / (double)kb.size());
 						newCandidate.addParent(query);
 						newCandidate.getLastTriplePattern()[2] = type;
@@ -159,7 +159,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 			long cardinality = kb.countDistinctPairs(head[0], head[2], queryAtoms);
 			if (cardinality >= minSupportThreshold) {
 				Rule candidate1 = query.addAtom(newEdge, (int)cardinality);
-				candidate1.setHeadCoverage((double)cardinality / (double)headCardinalities.get(candidate1.getHeadRelation()));
+				candidate1.setHeadCoverage((double)cardinality / (double)headCardinalities.get(candidate1.getHeadRelationBS()));
 				candidate1.setSupportRatio((double)cardinality / (double)kb.size());
 				candidate1.addParent(query);			
 				output.add(candidate1);	
@@ -171,7 +171,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 			cardinality = kb.countDistinctPairs(head[0], head[2], queryAtoms);
 			if (cardinality >= minSupportThreshold) {
 				Rule candidate2 = query.addAtom(newEdge, (int)cardinality);
-				candidate2.setHeadCoverage((double)cardinality / (double)headCardinalities.get(candidate2.getHeadRelation()));
+				candidate2.setHeadCoverage((double)cardinality / (double)headCardinalities.get(candidate2.getHeadRelationBS()));
 				candidate2.setSupportRatio((double)cardinality / (double)kb.size());
 				candidate2.addParent(query);			
 				output.add(candidate2);	

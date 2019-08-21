@@ -22,7 +22,7 @@ public class ExistentialRulesMiningAssistant extends DefaultMiningAssistant {
 	
 	@Override
 	public long getHeadCardinality(Rule query){
-		if (query.getHeadRelation() == (KB.EXISTSstr) || query.getHeadRelation() == (KB.EXISTSINVstr)) {
+		if (query.getHeadRelationBS() == (KB.EXISTSbs) || query.getHeadRelationBS() == (KB.EXISTSINVbs)) {
 			return (long) headCardinalities.get(query.getHead()[0]);
 		} else {
 			return (long) headCardinalities.get(query.getHeadRelationBS());

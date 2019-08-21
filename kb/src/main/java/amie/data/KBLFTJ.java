@@ -158,9 +158,10 @@ public class KBLFTJ extends KB {
 		boolean result = false;
 		
 		for(int value : possibleValues) {
-			if(existsBSLFTJ(insty.instantiate(value))) 
+			if(existsBSLFTJ(insty.instantiate(value))) {
 				result = true;
 				break;
+                        }
 		}
 		insty.close();
 		

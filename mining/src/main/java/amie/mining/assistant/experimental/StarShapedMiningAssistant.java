@@ -84,7 +84,7 @@ public class StarShapedMiningAssistant extends MiningAssistant {
 				newEdge[1] = relation;
 				Rule candidate = rule.addAtom(newEdge, cardinality);
 				candidate.setHeadCoverage((double)candidate.getSupport() 
-						/ headCardinalities.get(candidate.getHeadRelation()));
+						/ headCardinalities.get(candidate.getHeadRelationBS()));
 				candidate.setSupportRatio((double)candidate.getSupport() 
 						/ (double)getTotalCount(candidate));
 				candidate.addParent(rule);

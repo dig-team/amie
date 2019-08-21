@@ -3,10 +3,12 @@ package amie.mining.assistant.experimental;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javatools.datatypes.Pair;
 import amie.data.KB;
-import amie.mining.assistant.MiningAssistant;
-import amie.mining.assistant.MiningOperator;
+import amie.data.tuple.IntPair;
+ngAssistant;
+import amie.miningasimport amie.mining.assistant.MiningAssistant;
+amie.data.tuple.IntPair;
+sistant.MiningOperator;
 import amie.rules.ConfidenceMetric;
 import amie.rules.Rule;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
@@ -52,7 +54,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 				
 				Rule candidate = query.instantiateConstant(danglingPosition, constant, cardinality);
 				if(candidate.getRedundantAtoms().isEmpty()){
-					candidate.setHeadCoverage((double)cardinality / headCardinalities.get(candidate.getHeadRelation()));
+					candidate.setHeadCoverage((double)cardinality / headCardinalities.get(candidate.getHeadRelationBS()));
 					candidate.setSupportRatio((double)cardinality / (double)getTotalCount(candidate));
 					candidate.addParent(originalQuery);					
 					output.add(candidate);
@@ -103,15 +105,15 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 			}
 		}
 		
-		Pair<Integer, Integer>[] varSetups = new Pair[2];
-		varSetups[0] = new Pair<Integer, Integer>(0, 2);
-		varSetups[1] = new Pair<Integer, Integer>(2, 0);
+		IntPair[] varSetups = new IntPair[2];
+		varSetups[0] = new IntPair(0, 2);
+		varSetups[1] = new IntPair(2, 0);
 		int[] newEdge = query.fullyUnboundTriplePattern();
 		int relationVariable = newEdge[1];
 		
-		for(Pair<Integer, Integer> varSetup: varSetups){			
-			int joinPosition = varSetup.first.intValue();
-			int closeCirclePosition = varSetup.second.intValue();
+		for(IntPair varSetup: varSetups){			
+			int joinPosition = varSetup.first;
+			int closeCirclePosition = varSetup.second;
 			int joinVariable = newEdge[joinPosition];
 			int closeCircleVariable = newEdge[closeCirclePosition];
 						
@@ -138,7 +140,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 							if(cardinality >= minSupportThreshold){										
 								Rule candidate = query.addAtom(newEdge, cardinality);
 								if(!candidate.isRedundantRecursive()){
-									candidate.setHeadCoverage((double)cardinality / (double)headCardinalities.get(candidate.getHeadRelation()));
+									candidate.setHeadCoverage((double)cardinality / (double)headCardinalities.get(candidate.getHeadRelationBS()));
 									candidate.setSupportRatio((double)cardinality / (double)getTotalCount(candidate));
 									candidate.addParent(query);
 									output.add(candidate);
@@ -253,7 +255,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 								continue;
 						}
 						
-						candidate.setHeadCoverage((double)candidate.getSupport() / headCardinalities.get(candidate.getHeadRelation()));
+						candidate.setHeadCoverage((double)candidate.getSupport() / headCardinalities.get(candidate.getHeadRelationBS()));
 						candidate.setSupportRatio((double)candidate.getSupport() / (double)getTotalCount(candidate));
 						candidate.addParent(query);
 						if (canAddInstantiatedAtoms()) {

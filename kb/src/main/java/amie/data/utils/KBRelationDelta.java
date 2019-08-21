@@ -75,6 +75,7 @@ public class KBRelationDelta {
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
+                                                        System.exit(2);
 						}
 						int domain = 0;
 						int qVariable = 0;

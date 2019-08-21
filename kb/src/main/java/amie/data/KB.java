@@ -4426,7 +4426,7 @@ public class KB {
 		if (idx < -1) idx = -idx - 2;
 		while (val >= limit && 
 				idx >= 0) {
-			val = ((Integer)keysArray[idx]).intValue();
+			val = ((Integer)keysArray[idx]);
 			--idx;
 		} 
 		return val;
@@ -4575,9 +4575,11 @@ public class KB {
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+                        System.exit(2);
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+                        System.exit(2);
 		}
 		for (int relation : relationSize.keySet()) {
 			if (ommittedRelations.contains(relation))

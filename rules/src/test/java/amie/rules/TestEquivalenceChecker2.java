@@ -8,7 +8,6 @@ import java.util.List;
 import javatools.datatypes.Pair;
 import junit.framework.TestCase;
 import amie.data.KB;
-import amie.rules.QueryEquivalenceChecker;
 import amie.rules.Rule;
 
 public class TestEquivalenceChecker2 extends TestCase {

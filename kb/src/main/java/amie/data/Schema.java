@@ -204,7 +204,7 @@ public class Schema {
 	public static boolean isLeafDatatype(KB source, int type){
 		if (taxonomyMaterialized) {
 			IntSet subTypes = subClassMaterialized.get(type);
-			return subTypes == null || subTypes.size() == 0;
+			return subTypes == null || subTypes.isEmpty();
 		}
 		List<int[]> query = KB.triples(KB.triple(KB.map("?x"), subClassRelationBS, type));		
 		return source.countDistinct(KB.map("?x"), query) == 0;

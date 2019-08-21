@@ -146,7 +146,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 	public void getTypeSpecializedAtoms(Rule rule, double minSupportThreshold, Collection<Rule> output) {
 		int[] lastAtom = rule.getLastRealTriplePattern();
                 IntPair compositeRelation = KB.parseCardinalityRelation(lastAtom[1]);
-		if (compositeRelation != null) {
+		if (compositeRelation == null) {
 			super.getTypeSpecializedAtoms(rule, minSupportThreshold, output);
 		} else {
 			int oldRelation = lastAtom[1];
@@ -346,7 +346,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 				newEdge[1] = relation;
 				Rule candidate = rule.addAtom(newEdge, cardinality);
 				candidate.setHeadCoverage((double)candidate.getSupport() 
-						/ headCardinalities.get(candidate.getHeadRelation()));
+						/ headCardinalities.get(candidate.getHeadRelationBS()));
 				candidate.setSupportRatio((double)candidate.getSupport() 
 						/ (double)getTotalCount(candidate));
 				candidate.addParent(rule);

@@ -14,6 +14,7 @@ import java.util.Set;
 
 import amie.data.KB;
 import amie.data.Schema;
+import amie.data.tuple.IntPair;
 import amie.rules.ConfidenceMetric;
 import amie.rules.Metric;
 import amie.rules.Rule;
@@ -25,7 +26,6 @@ import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import javatools.datatypes.MultiMap;
-import javatools.datatypes.Pair;
 
 /**
  * Simpler miner assistant which implements all the logic required 
@@ -707,15 +707,15 @@ public class MiningAssistant {
 			sourceVariables = openVariables; 
 		}
 		
-		Pair<Integer, Integer>[] varSetups = new Pair[2];
-		varSetups[0] = new Pair<Integer, Integer>(0, 2);
-		varSetups[1] = new Pair<Integer, Integer>(2, 0);
+		IntPair[] varSetups = new IntPair[2];
+		varSetups[0] = new IntPair(0, 2);
+		varSetups[1] = new IntPair(2, 0);
 		int[] newEdge = rule.fullyUnboundTriplePattern();
 		int relationVariable = newEdge[1];
 		
-		for(Pair<Integer, Integer> varSetup: varSetups){			
-			int joinPosition = varSetup.first.intValue();
-			int closeCirclePosition = varSetup.second.intValue();
+		for(IntPair varSetup: varSetups){			
+			int joinPosition = varSetup.first;
+			int closeCirclePosition = varSetup.second;
 			int joinVariable = newEdge[joinPosition];
 			int closeCircleVariable = newEdge[closeCirclePosition];
 						

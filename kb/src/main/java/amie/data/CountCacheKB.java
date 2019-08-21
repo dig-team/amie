@@ -50,6 +50,7 @@ public class CountCacheKB extends KB {
     /**
      * returns the number of distinct pairs (var1,var2) for the query
      */
+    @Override
     public long countDistinctPairs(int var1, int var2,
             List<int[]> query) {
 

@@ -13,6 +13,7 @@ import java.util.Map;
 import javatools.datatypes.Pair;
 import amie.data.KB;
 import static amie.data.U.decreasingKeys;
+import amie.data.tuple.IntPair;
 import amie.rules.Rule;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.IntCollection;
@@ -144,15 +145,15 @@ public class DefaultMiningAssistant extends MiningAssistant{
 			}
 		}
 		
-		Pair<Integer, Integer>[] varSetups = new Pair[2];
-		varSetups[0] = new Pair<Integer, Integer>(0, 2);
-		varSetups[1] = new Pair<Integer, Integer>(2, 0);
+		IntPair[] varSetups = new IntPair[2];
+		varSetups[0] = new IntPair(0, 2);
+		varSetups[1] = new IntPair(2, 0);
 		int[] newEdge = rule.fullyUnboundTriplePattern();
 		int relationVariable = newEdge[1];
 		
-		for(Pair<Integer, Integer> varSetup: varSetups){			
-			int joinPosition = varSetup.first.intValue();
-			int closeCirclePosition = varSetup.second.intValue();
+		for(IntPair varSetup: varSetups){			
+			int joinPosition = varSetup.first;
+			int closeCirclePosition = varSetup.second;
 			int joinVariable = newEdge[joinPosition];
 			int closeCircleVariable = newEdge[closeCirclePosition];
 						

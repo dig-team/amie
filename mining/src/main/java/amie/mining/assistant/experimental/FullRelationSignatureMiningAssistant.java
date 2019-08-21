@@ -45,7 +45,5 @@ public class FullRelationSignatureMiningAssistant extends DefaultMiningAssistant
 		}
 	}
 	
-	public void getClosingAtoms(Rule query, double minSupportThreshold, Collection<Rule> output) {
-		return;
-	}
+	public void getClosingAtoms(Rule query, double minSupportThreshold, Collection<Rule> output) {}
 }

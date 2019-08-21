@@ -102,14 +102,14 @@ public class TestEquivalenceChecker2 extends TestCase {
 		cases.add(p12);
 		
 		//Non Reflexive query
-		List<int[]> q131 = KB.triples(KB.triple("?s16","connected","?o16"), KB.triple("?s16","connected","?o308"), KB.triple("?o16","connected","?o318"));
-		List<int[]> q132 = KB.triples(KB.triple("?s16","connected","?o16"), KB.triple("?o16","connected","?o318"), KB.triple("?s16","connected","?o308"));
+		List<int[]> q131 = KB.triples(KB.triple("?a16","connected","?b16"), KB.triple("?a16","connected","?o0"), KB.triple("?b16","connected","?o1"));
+		List<int[]> q132 = KB.triples(KB.triple("?a16","connected","?b16"), KB.triple("?b16","connected","?o1"), KB.triple("?a16","connected","?o0"));
 		Pair<List<int[]>, List<int[]>> p13 = new Pair<>(q131, q132);
 		cases.add(p13);
 		
 		//Problematic case
-		List<int[]> q141 = KB.triples(KB.triple("?s16","<isLocatedIn>","?o16"), KB.triple("?s552","<livesIn>","?s16"), KB.triple("?s552","<isPoliticianOf>","?o16"));
-		List<int[]> q142 = KB.triples(KB.triple("?s16","<isLocatedIn>","?o16"), KB.triple("?s552","<isPoliticianOf>","?o16"), KB.triple("?s552","<livesIn>","?s16"));
+		List<int[]> q141 = KB.triples(KB.triple("?c16","<isLocatedIn>","?d16"), KB.triple("?s","<livesIn>","?c16"), KB.triple("?s","<isPoliticianOf>","?d16"));
+		List<int[]> q142 = KB.triples(KB.triple("?c16","<isLocatedIn>","?d16"), KB.triple("?s","<isPoliticianOf>","?d16"), KB.triple("?s","<livesIn>","?c16"));
 		Pair<List<int[]>, List<int[]>> p14 = new Pair<>(q141, q142);
 		cases.add(p14);
 		
@@ -145,13 +145,13 @@ public class TestEquivalenceChecker2 extends TestCase {
 		cases.add(p22);
 		cases.add(p23);
 
-		List<int[]> q241 = KB.triples(KB.triple("?s29","<isMarriedTo>","?o29"), KB.triple("?s29","<hasChild>","?o121"), KB.triple("?o29","<hasChild>","?o121"));
-		List<int[]> q242 = KB.triples(KB.triple("?s29","<isMarriedTo>","?o29"), KB.triple("?o29","<hasChild>","?o121"), KB.triple("?s29","<hasChild>","?o121"));
+		List<int[]> q241 = KB.triples(KB.triple("?s2","<isMarriedTo>","?o2"), KB.triple("?s2","<hasChild>","?o1"), KB.triple("?o2","<hasChild>","?o1"));
+		List<int[]> q242 = KB.triples(KB.triple("?s2","<isMarriedTo>","?o2"), KB.triple("?o2","<hasChild>","?o1"), KB.triple("?s2","<hasChild>","?o1"));
 		Pair<List<int[]>, List<int[]>> p24 = new Pair<>(q241, q242);
 		cases.add(p24);
 		
-		List<int[]> q251 = KB.triples(KB.triple("?s40","<hasOfficialLanguage>","?o40"), KB.triple("?s4120","<hasOfficialLanguage>","?o29"), KB.triple("?s40","<dealsWith>","?s4120"));
-		List<int[]> q252 = KB.triples(KB.triple("?s40","<hasOfficialLanguage>","?o40"), KB.triple("?s4120","<hasOfficialLanguage>","?o29"), KB.triple("?s40","<dealsWith>","?s4120"));
+		List<int[]> q251 = KB.triples(KB.triple("?s4","<hasOfficialLanguage>","?o4"), KB.triple("?s0","<hasOfficialLanguage>","?o2"), KB.triple("?s4","<dealsWith>","?s0"));
+		List<int[]> q252 = KB.triples(KB.triple("?s4","<hasOfficialLanguage>","?o4"), KB.triple("?s0","<hasOfficialLanguage>","?o2"), KB.triple("?s4","<dealsWith>","?s0"));
 		Pair<List<int[]>, List<int[]>> p25 = new Pair<>(q251, q252);
 		cases.add(p25);
 		
@@ -229,13 +229,13 @@ public class TestEquivalenceChecker2 extends TestCase {
 		List<int[]> q341 = KB.triples(KB.triple("?a", "equals", "?b"),
 				KB.triple("?b", "db:description", "british painter"),
 				KB.triple("?a", "db:description", "british painter"),
-				KB.triple("?b", "db:birthyear", "?ob1"),
-				KB.triple("?a", "db:birthyear", "?ob1"));
+				KB.triple("?b", "db:birthyear", "?o1"),
+				KB.triple("?a", "db:birthyear", "?o1"));
 		List<int[]> q342 = KB.triples(KB.triple("?a", "equals", "?b"),
 				KB.triple("?b", "db:description", "british painter"),
 				KB.triple("?a", "db:description", "british painter"),
-				KB.triple("?b", "db:birthyear", "?ob1"),
-				KB.triple("?a", "db:birthyear", "?ob1"));
+				KB.triple("?b", "db:birthyear", "?o1"),
+				KB.triple("?a", "db:birthyear", "?o1"));
 		Pair<List<int[]>, List<int[]>> p34 = new Pair<>(q341, q342);
 		cases.add(p34);
 		

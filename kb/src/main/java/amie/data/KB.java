@@ -35,6 +35,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -62,118 +64,20 @@ import javatools.parsers.NumberFormatter;
  */
 public class KB {
     
+        protected static Lock mappingLock = new ReentrantLock();
         protected static ArrayList<ByteString> idToEntity = new ArrayList(Arrays.asList(ByteString.of("null")));
         protected static ArrayList<ByteString> compositeEntity = new ArrayList();
         
         protected static Object2IntMap<ByteString> entityToId = new Object2IntOpenHashMap<ByteString>();
         protected static Object2IntMap<ByteString> compositeToId = new Object2IntOpenHashMap<ByteString>();
         
-        public static int map(CharSequence cs) {
-            if (isVariable(cs)) {
-                return parseVariable(cs);
-            }
-            
-            int r = 0;
-            if ((r = parseCardinality(cs)) != 0) {
-                return r;
-            }
-            
-            ByteString b = _compress(cs);
-            if (compositeToId.containsKey(b)) {
-                return mapComposite(b);
-            }
-            
-            if (entityToId.containsKey(b)) {
-                return entityToId.getInt(b);
-            }
-            
-            r = idToEntity.size();
-            idToEntity.add(b);
-            entityToId.put(b, r);
-            return r;
-        }
-        
         /** Variable sign (as defined in SPARQL) **/
 	public static final char VariableSign = '?';
         
-        private static final String VariableRegex = Pattern.quote(Character.toString(VariableSign)) + "(_)?([a-z])([0-9]*)";
+        private static final String VariableRegex = Pattern.quote(Character.toString(VariableSign)) 
+                + "(_)?([a-z])([0-9])?([0-9])?";
         
         private static final Pattern VariablePattern = Pattern.compile(VariableRegex);
-        
-        /**
-         * Map a variable of the form [a-z][0-9]* to an integer between 1 and 1023.
-         * @param letter
-         * @param num
-         * @return 
-         */
-        private static int mapVariable(char letter, int num) {
-            int r = letter - 96;
-            if (num < 0) {
-                return r;
-            } else {
-                if (num < 10) {
-                    return (r * 10) + num;
-                } else if (num < 100) {
-                    return Math.min((r * 100) + num, 1023);
-                } else {
-                    return 1023;
-                }
-            }
-        }
-        
-        public static int parseVariable(CharSequence cs) {
-            Matcher m = VariablePattern.matcher(cs);
-            if (m.matches()) {
-                if (m.group(1) == null) {
-                    return -mapVariable(m.group(2).charAt(0), Integer.parseInt(m.group(3)));
-                } else {
-                    return -1023-mapVariable(m.group(2).charAt(0), Integer.parseInt(m.group(3)));
-                }
-            }
-            throw new IllegalArgumentException("Variable " + cs.toString() + " DO NOT MATCH \"\\?(_?)[a-z][0-9]*\"");
-        }
-        
-        private static void unmapVariable(int pos, StringBuilder sb) {
-            int mod = 1;
-            pos /= 10;
-            int r = 0;
-            if (pos <= 26) {
-                sb.append((char) pos);
-            } else {
-                while (pos > 26) {
-                    r += mod*(pos % mod);
-                    pos /= 10;
-                    mod *= 10;
-                }
-                sb.append((char) (pos + 96));
-                sb.append(r);
-            }
-        }
-        
-        public static String unparseVariable(int v) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(VariableSign);
-            if (!isOpenableVariable(v)) {
-                sb.append('_');
-                v += 1023;
-            }
-            unmapVariable(-v, sb);
-            return sb.toString();
-        }
-        
-        public static String unmap(int e) {
-            if (isComposite(e)) {
-                return unmapComposite(e);
-            }
-            if (isVariable(e)) {
-                return unparseVariable(e);
-            }
-            if (e < idToEntity.size()) {
-                return idToEntity.get(e).toString();
-            }
-            
-            throw new IllegalArgumentException("Cannot unmap invalid id: " + e + " (/" + idToEntity.size() + ")");
-        }
         
         public static boolean isComposite(int id) {
             return id <= -2048;
@@ -181,17 +85,57 @@ public class KB {
         
         public static int mapComposite(CharSequence cs) {
             ByteString b = _compress(cs);
+            int r;
+            mappingLock.lock();
             if (entityToId.containsKey(b)) {
                 throw new IllegalStateException(cs.toString() + " is used as usual and composite entity");
             }
             if (compositeToId.containsKey(b)) {
-                return compositeToId.getInt(b);
+                r = compositeToId.getInt(b);
             } else {
                 compositeEntity.add(b);
                 compositeToId.put(b, -2047-compositeEntity.size());
-                return -2047-compositeEntity.size();
+                r = -2047-compositeEntity.size();
             }
+            mappingLock.unlock();
+            return r;
         }
+        
+        public static final String hasNumberOfValuesEquals = "hasNumberOfValuesEquals";
+	
+	public static final String hasNumberOfValuesEqualsInv = "hasNumberOfValuesEqualsInv";
+	
+	public static final int hasNumberOfValuesEqualsBS = KB.mapComposite(hasNumberOfValuesEquals);
+	
+	public static final int hasNumberOfValuesEqualsInvBS = KB.mapComposite(hasNumberOfValuesEqualsInv);
+	
+	public static final String hasNumberOfValuesGreaterThan = "hasNumberOfValuesGreaterThan";
+	
+	public static final String hasNumberOfValuesGreaterThanInv = "hasNumberOfValuesGreaterThanInv";
+	
+	public static final int hasNumberOfValuesGreaterThanBS = KB.mapComposite(hasNumberOfValuesGreaterThan);
+	
+	public static final int hasNumberOfValuesGreaterThanInvBS = KB.mapComposite(hasNumberOfValuesGreaterThanInv);
+	
+	public static final String hasNumberOfValuesSmallerThan = "hasNumberOfValuesSmallerThan";
+			
+	public static final String hasNumberOfValuesSmallerThanInv = "hasNumberOfValuesSmallerThanInv";		
+	
+	public static final int hasNumberOfValuesSmallerThanBS = KB.mapComposite(hasNumberOfValuesSmallerThan);
+	
+	public static final int hasNumberOfValuesSmallerThanInvBS = KB.mapComposite(hasNumberOfValuesSmallerThanInv);		
+	
+        public static final IntList cardinalityRelations = IntArrays.asList(hasNumberOfValuesEqualsBS,
+                hasNumberOfValuesEqualsInvBS, hasNumberOfValuesGreaterThanBS, hasNumberOfValuesGreaterThanInvBS,
+                hasNumberOfValuesSmallerThanBS, hasNumberOfValuesSmallerThanInvBS);
+                
+        private static final String cardinalityRelationsRegex = "(" + 
+			hasNumberOfValuesEquals + "|" + hasNumberOfValuesGreaterThan + "|" + hasNumberOfValuesSmallerThan + "|" +
+			hasNumberOfValuesEqualsInv + "|" + hasNumberOfValuesGreaterThanInv + "|" + hasNumberOfValuesSmallerThanInv + 
+			")([0-9]+)";
+	
+	private static final Pattern cardinalityRelationsRegexPattern = 
+			Pattern.compile(cardinalityRelationsRegex);
         
         public static final int COMPOSE_SIZE = 15;
         
@@ -230,6 +174,122 @@ public class KB {
         public static String unmapComposite(int composite) {
             IntPair p = uncompose(composite);
             return compositeEntity.get(-p.first-2048).toString() + Integer.toString(p.second);
+        }
+        
+	/** TRUE if the int is a SPARQL variable */
+	public static boolean isVariable(CharSequence s) {
+		return (s.length() > 0 && s.charAt(0) == VariableSign);
+	}
+        
+        public static boolean isVariable(int s) {
+            return (s < 0 && s > -2048);
+        }
+	
+        public static boolean isOpenableVariable(CharSequence s) {
+            return (s.length() > 1 && s.charAt(0) == VariableSign && s.charAt(1) != '_');
+        }
+        
+        public static boolean isOpenableVariable(int s) {
+            return (s < 0 && s > -1024);
+        }
+        
+        /**
+         * Map a variable of the form [a-z][0-9]{1-2} to an integer between 1 and 1023.
+         * @param letter
+         * @param num
+         * @return 
+         */
+        private static int mapVariable(char letter, int num1, int num2) {
+            int r = letter - 96;
+            if (num1 < 0) {
+                return r;
+            } else {
+                if (num2 < 0) {
+                    return ((r-1) * 10) + num1 + 27;
+                } else {
+                    return Math.min(((r-1) * 100) + num1*10 + num2 + 287, 1023);
+                }
+            }
+        }
+        
+        public static int parseVariable(CharSequence cs) {
+            Matcher m = VariablePattern.matcher(cs);
+            if (m.matches()) {
+                if (m.group(1) == null) {
+                    return -mapVariable(m.group(2).charAt(0), (m.group(3) == null) ? -1 : Integer.parseInt(m.group(3)),
+                            (m.group(4) == null) ? -1 : Integer.parseInt(m.group(4)));
+                } else {
+                    return -1023-mapVariable(m.group(2).charAt(0), (m.group(3).isEmpty()) ? -1 : Integer.parseInt(m.group(3)),
+                            (m.group(4) == null) ? -1 : Integer.parseInt(m.group(4)));
+                }
+            }
+            throw new IllegalArgumentException("Variable " + cs.toString() + " DO NOT MATCH \"\\?(_?)[a-z][0-9]{1,2}\"");
+        }
+        
+        private static void unmapVariable(int pos, StringBuilder sb) {
+            int mod = 1;
+            int r = 0;
+            if (pos <= 26) {
+                sb.append((char) (pos + 96));
+            } else if (pos <= 286) { 
+                pos -= 27; // ?a0 <-> -27
+                sb.append((char) (pos / 10 + 97));
+                sb.append(pos % 10);
+            } else {
+                pos -= 287; // ?a00 <-> -287
+                sb.append((char) (pos / 100 + 97));
+                sb.append(pos % 100);
+            }
+        }
+        
+        public static String unparseVariable(int v) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(VariableSign);
+            if (!isOpenableVariable(v)) {
+                sb.append('_');
+                v += 1023;
+            }
+            unmapVariable(-v, sb);
+            return sb.toString();
+        }
+        
+        public static String unmap(int e) {
+            if (isComposite(e)) {
+                return unmapComposite(e);
+            }
+            if (isVariable(e)) {
+                return unparseVariable(e);
+            }
+            if (e < idToEntity.size()) {
+                return idToEntity.get(e).toString();
+            }
+            
+            throw new IllegalArgumentException("Cannot unmap invalid id: " + e + " (/" + idToEntity.size() + ")");
+        }
+        
+        public static int map(CharSequence cs) {
+            if (isVariable(cs)) {
+                return parseVariable(cs);
+            }
+            
+            int r = 0;
+            if ((r = parseCardinality(cs)) != 0) {
+                return r;
+            }
+            
+            ByteString b = _compress(cs);
+            mappingLock.lock();
+            if (compositeToId.containsKey(b)) {
+                r = mapComposite(b);
+            } else if (entityToId.containsKey(b)) {
+                r = entityToId.getInt(b);
+            } else {
+                r = idToEntity.size();
+                idToEntity.add(b);
+                entityToId.put(b, r);
+            }
+            mappingLock.unlock();
+            return r;
         }
 
 	// ---------------------------------------------------------------------------
@@ -342,43 +402,6 @@ public class KB {
 
 	public enum Column { Subject, Relation, Object };
 	
-	public static final String hasNumberOfValuesEquals = "hasNumberOfValuesEquals";
-	
-	public static final String hasNumberOfValuesEqualsInv = "hasNumberOfValuesEqualsInv";
-	
-	public static final int hasNumberOfValuesEqualsBS = KB.mapComposite(hasNumberOfValuesEquals);
-	
-	public static final int hasNumberOfValuesEqualsInvBS = KB.mapComposite(hasNumberOfValuesEqualsInv);
-	
-	public static final String hasNumberOfValuesGreaterThan = "hasNumberOfValuesGreaterThan";
-	
-	public static final String hasNumberOfValuesGreaterThanInv = "hasNumberOfValuesGreaterThanInv";
-	
-	public static final int hasNumberOfValuesGreaterThanBS = KB.mapComposite(hasNumberOfValuesGreaterThan);
-	
-	public static final int hasNumberOfValuesGreaterThanInvBS = KB.mapComposite(hasNumberOfValuesGreaterThanInv);
-	
-	public static final String hasNumberOfValuesSmallerThan = "hasNumberOfValuesSmallerThan";
-			
-	public static final String hasNumberOfValuesSmallerThanInv = "hasNumberOfValuesSmallerThanInv";		
-	
-	public static final int hasNumberOfValuesSmallerThanBS = KB.mapComposite(hasNumberOfValuesSmallerThan);
-	
-	public static final int hasNumberOfValuesSmallerThanInvBS = KB.mapComposite(hasNumberOfValuesSmallerThanInv);		
-	
-        public static final IntList cardinalityRelations = IntArrays.asList(hasNumberOfValuesEqualsBS,
-                hasNumberOfValuesEqualsInvBS, hasNumberOfValuesGreaterThanBS, hasNumberOfValuesGreaterThanInvBS,
-                hasNumberOfValuesSmallerThanBS, hasNumberOfValuesSmallerThanInvBS);
-                
-        private static final String cardinalityRelationsRegex = "(" + 
-			hasNumberOfValuesEquals + "|" + hasNumberOfValuesGreaterThan + "|" + hasNumberOfValuesSmallerThan + "|" +
-			hasNumberOfValuesEqualsInv + "|" + hasNumberOfValuesGreaterThanInv + "|" + hasNumberOfValuesSmallerThanInv + 
-			")([0-9]+)";
-	
-	private static final Pattern cardinalityRelationsRegexPattern = 
-			Pattern.compile(cardinalityRelationsRegex);
-
-
 // ---------------------------------------------------------------------------
 	// Loading
 	// ---------------------------------------------------------------------------
@@ -571,24 +594,6 @@ public class KB {
 		entities.addAll(objectSize.keySet());
 		return entities.size();
 	}
-
-	/** TRUE if the int is a SPARQL variable */
-	public static boolean isVariable(CharSequence s) {
-		return (s.length() > 0 && s.charAt(0) == VariableSign);
-	}
-        
-        public static boolean isVariable(int s) {
-            return (s < 0 && s > -2048);
-        }
-	
-        
-        public static boolean isOpenableVariable(CharSequence s) {
-            return (s.length() > 1 && s.charAt(0) == VariableSign && s.charAt(1) != '_');
-        }
-        
-        public static boolean isOpenableVariable(int s) {
-            return (s < 0 && s > -1024);
-        }
 
 	/**
 	 * It clears the overlap tables and rebuilds them. Recommended when new facts has been added
@@ -2222,7 +2227,7 @@ public class KB {
 					return (resultsTwoVariablesByPos(secondVar, firstVar, triple)
 							.keySet());
 			default:
-				switch (Arrays.asList(query.get(0)).indexOf(variable)) {
+				switch (varpos(variable, query.get(0))) {
 				case 0:
 					return (subjectSize.keySet());
 				case 1:
@@ -2242,7 +2247,7 @@ public class KB {
 		int[] best = query.get(bestPos);
 
 		// If the variable is in the most restrictive triple
-		if (Arrays.asList(best).indexOf(variable) != -1) {
+		if (varpos(variable, best) != -1) {
 			switch (numVariables(best)) {
 			case 1 :
 				try (Instantiator insty = new Instantiator(remove(bestPos,
@@ -2412,7 +2417,7 @@ public class KB {
                                         .keySet(), result));
                     }
                 default:
-                    switch (Arrays.asList(query.get(0)).indexOf(variable)) {
+                    switch (varpos(variable, query.get(0))) {
                         case 0:
                             return (new SetU.addNotInIntIterator(subjectSize.keySet(), result));
                         case 1:
@@ -3509,7 +3514,7 @@ public class KB {
         IntSet bindings, bindings2;
 
         try (Instantiator insty1 = new Instantiator(
-                (optimConnectedComponent) ? connectedComponent(U.deepClone(query), var2, var1) : U.deepClone(query), var1)) {
+                (optimConnectedComponent) ? connectedComponent(U.deepCloneInt(query), var2, var1) : U.deepCloneInt(query), var1)) {
             bindings = new IntOpenHashSet();
             for (IntIterator bindingsIt = selectDistinctIterator(bindings, var1, query); bindingsIt.hasNext(); ) {
                 bindings2 = new IntOpenHashSet();
@@ -3657,11 +3662,17 @@ public class KB {
 	}
 
 	/** Makes a triple */
-	public static int[] triple(int... triple) {
-		return (triple);
+	public static int[] triple(int s, int p, int o) {
+		return new int[]{s, p, o};
 	}
 
 	/** Makes a triple */
+
+	public static int[] triple(CharSequence s, CharSequence p, CharSequence o) {
+		return triple(compress(s), compress(p), compress(o));
+	}
+        
+        /** Makes a triple */
 	public static int[] triple(CharSequence... triple) {
 		int[] result = new int[triple.length];
 		for (int i = 0; i < triple.length; i++)

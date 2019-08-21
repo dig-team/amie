@@ -36,8 +36,14 @@ public class A_KBstaticTest extends TestCase {
         
         public void testMapVariable() {
             int x = KB.map("?x");
+            System.err.println("?x -mapTo-> " + x);
+            System.err.println("?x -unmapTo-> " + KB.unmap(x));
             int l = KB.map("?a86");
-            int nox = KB.map("?_x");
+            System.err.println("?a86 -mapTo-> " + l);
+            System.err.println("?a86 -unmapTo-> " + KB.unmap(l));
+            int nox = KB.map("?_x1");
+            System.err.println("?_x1 -mapTo-> " + nox);
+            System.err.println("?_x1 -unmapTo-> " + KB.unmap(nox));
             assertTrue(x != nox);
             assertTrue(x != l);
             assertTrue(l != nox);
@@ -49,10 +55,10 @@ public class A_KBstaticTest extends TestCase {
             assertFalse(KB.isOpenableVariable(nox));
             assertEquals("?x", KB.unmap(x));
             assertEquals("?a86", KB.unmap(l));
-            assertEquals("?_x", KB.unmap(nox));
+            assertEquals("?_x1", KB.unmap(nox));
             assertTrue(x == KB.map("?x"));
             assertTrue(l == KB.map("?a86"));
-            assertTrue(nox == KB.map("?_x"));
+            assertTrue(nox == KB.map("?_x1"));
         }
         
         public void testMapComposite() {

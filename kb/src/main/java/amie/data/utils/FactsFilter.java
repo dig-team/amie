@@ -74,9 +74,9 @@ public class FactsFilter {
 		triple[1] = KB.compress("?p");
 		triple[2] = KB.compress("?o");		
 		
-		IntSet subjects =  factsSource.selectDistinct(triple[0], KB.triples(KB.triple(triple)));
+		IntSet subjects =  factsSource.selectDistinct(triple[0], KB.triples(triple));
 		if(includeObjects)
-			subjects.addAll(factsSource.selectDistinct(triple[2], KB.triples(KB.triple(triple))));
+			subjects.addAll(factsSource.selectDistinct(triple[2], KB.triples(triple)));
 		
 		for(int subject: subjects){
 			Int2ObjectMap<IntSet> subjectsMap = 

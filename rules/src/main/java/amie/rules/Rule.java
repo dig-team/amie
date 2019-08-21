@@ -222,7 +222,7 @@ public class Rule {
      * @return
      */
     public int[] fullyUnboundTriplePattern() {
-        return new int[] {newVariable(), KB.map("?pp"), newVariable()};
+        return new int[] {newVariable(), KB.map("?p9"), newVariable()};
     }
 
     /** It creates a new unbound atom with fresh variables for the subject and object
@@ -2397,7 +2397,7 @@ public class Rule {
     			KB.triples(KB.triple("?x", "wasBorn", "?h")), 1);
     	
     	Rule rule5 = new Rule(KB.triple("?s1", "livesIn", "?x0"), 
-    			KB.triples(KB.triple("?x0", "wasBorn", "?variable")), 1);
+    			KB.triples(KB.triple("?x0", "wasBorn", "?v9")), 1);
     	System.out.println(rule2.subsumes(rule1));
     	System.out.println(rule3.subsumes(rule1));
     	System.out.println(rule4.subsumes(rule1));

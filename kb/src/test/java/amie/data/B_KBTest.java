@@ -112,7 +112,7 @@ public class KBTest extends TestCase {
             IntSet result = new IntOpenHashSet();
             IntSet resultIterator = new IntOpenHashSet();
             for (IntIterator it = kb.selectDistinctIterator(result, KB.map("?x"), query); it.hasNext(); ) {
-                int e = it.next();
+                int e = it.nextInt();
                 assertFalse(resultIterator.contains(e));
                 resultIterator.add(e);
             }

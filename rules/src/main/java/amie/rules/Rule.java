@@ -1391,27 +1391,27 @@ public class Rule {
         StringBuilder strBuilder = new StringBuilder();
         for (int[] pattern : sortBody()) {
             if (pattern[1] == KB.DIFFERENTFROMbs) {
-            	strBuilder.append(pattern[0]);
+            	strBuilder.append(KB.unmap(pattern[0]));
                 strBuilder.append("!=");
-                strBuilder.append(pattern[2]);
+                strBuilder.append(KB.unmap(pattern[2]));
                 strBuilder.append(" ");
                 continue;
             }
-            strBuilder.append(pattern[0]);
+            strBuilder.append(KB.unmap(pattern[0]));
             strBuilder.append("  ");
-            strBuilder.append(pattern[1]);
+            strBuilder.append(KB.unmap(pattern[1]));
             strBuilder.append("  ");
-            strBuilder.append(pattern[2]);
+            strBuilder.append(KB.unmap(pattern[2]));
             strBuilder.append("  ");
         }
 
         strBuilder.append(" => ");
         int[] head = triples.get(0);
-        strBuilder.append(head[0]);
+        strBuilder.append(KB.unmap(head[0]));
         strBuilder.append("  ");
-        strBuilder.append(head[1]);
+        strBuilder.append(KB.unmap(head[1]));
         strBuilder.append("  ");
-        strBuilder.append(head[2]);
+        strBuilder.append(KB.unmap(head[2]));
 
         return strBuilder.toString();
     }
@@ -1419,21 +1419,21 @@ public class Rule {
     public String getRuleRawString() {
         StringBuilder strBuilder = new StringBuilder();
         for (int[] pattern : getBody()) {
-            strBuilder.append(pattern[0]);
+            strBuilder.append(KB.unmap(pattern[0]));
             strBuilder.append("  ");
-            strBuilder.append(pattern[1]);
+            strBuilder.append(KB.unmap(pattern[1]));
             strBuilder.append("  ");
-            strBuilder.append(pattern[2]);
+            strBuilder.append(KB.unmap(pattern[2]));
             strBuilder.append("  ");
         }
 
         strBuilder.append(" => ");
         int[] head = triples.get(0);
-        strBuilder.append(head[0]);
+        strBuilder.append(KB.unmap(head[0]));
         strBuilder.append("  ");
-        strBuilder.append(head[1]);
+        strBuilder.append(KB.unmap(head[1]));
         strBuilder.append("  ");
-        strBuilder.append(head[2]);
+        strBuilder.append(KB.unmap(head[2]));
 
         return strBuilder.toString();
     }
@@ -1464,27 +1464,27 @@ public class Rule {
         StringBuilder strBuilder = new StringBuilder();
         for (int[] pattern : sortBody()) {
             if (pattern[1] == KB.DIFFERENTFROMbs) {
-                strBuilder.append(pattern[0]);
+                strBuilder.append(KB.unmap(pattern[0]));
                 strBuilder.append("!=");
-                strBuilder.append(pattern[2]);
+                strBuilder.append(KB.unmap(pattern[2]));
                 strBuilder.append(" ");
                 continue;
             }
-            strBuilder.append(pattern[1]);
+            strBuilder.append(KB.unmap(pattern[1]));
             strBuilder.append("(");
-            strBuilder.append(pattern[0]);
+            strBuilder.append(KB.unmap(pattern[0]));
             strBuilder.append(",");
-            strBuilder.append(pattern[2]);
+            strBuilder.append(KB.unmap(pattern[2]));
             strBuilder.append(") ");
         }
 
         strBuilder.append(" => ");
         int[] head = triples.get(0);
-        strBuilder.append(head[1]);
+        strBuilder.append(KB.unmap(head[1]));
         strBuilder.append("(");
-        strBuilder.append(head[0]);
+        strBuilder.append(KB.unmap(head[0]));
         strBuilder.append(",");
-        strBuilder.append(head[2]);
+        strBuilder.append(KB.unmap(head[2]));
         strBuilder.append(")");
 
         return strBuilder.toString();

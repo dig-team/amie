@@ -584,7 +584,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 			rule.setSupportRatio((double) rule.getSupport() / this.kb.size());
 			Double relationSize = new Double(this.getHeadCardinality(rule));
 			if (relationSize != null) {
-				rule.setHeadCoverage(rule.getSupport() / relationSize.doubleValue());
+				rule.setHeadCoverage(rule.getSupport() / relationSize);
 			}
 		}
 		return rule.getSupport();

@@ -249,8 +249,8 @@ public class AMIE {
         }
 
         if (realTime) {        
-            consumerThread.interrupt();
-            while (!consumerThread.isInterrupted());            	
+            consumerObj.terminate();
+            consumerThread.join();
         }
 
         return result;
@@ -292,6 +292,7 @@ public class AMIE {
                         	System.out.println(assistant.formatRule(consumeList.get(i)));
                         }
                         lastConsumedIndex = consumeList.size() - 1;
+                        if (done) { consumeLock.unlock(); return; }
                     }
                 } catch (InterruptedException e) {
                 	consumeLock.unlock();
@@ -299,6 +300,18 @@ public class AMIE {
                 	break;
                 } 
             }
+        }
+        
+        private boolean done = false;
+        
+        /**
+         * Use to nicely terminate reader thread.
+        */
+        public void terminate() {
+            consumeLock.lock();
+            done = true;
+            conditionVariable.signalAll();
+            consumeLock.unlock();
         }
     }
 

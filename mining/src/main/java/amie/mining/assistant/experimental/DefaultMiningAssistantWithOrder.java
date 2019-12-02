@@ -84,7 +84,7 @@ public class DefaultMiningAssistantWithOrder extends DefaultMiningAssistant {
 
         existentialTriple[freeVarPos] = ByteString.of("?xw");
         if (!antecedent.isEmpty()) {
-            
+
             try {
                 if (noOfHeadVars == 1) {
                     antecedent.add(existentialTriple);
@@ -102,35 +102,35 @@ public class DefaultMiningAssistantWithOrder extends DefaultMiningAssistant {
 
         return rule.getPcaConfidence();
     }
-    
-    	@Override
-	public double computeStandardConfidence(Rule candidate) {
-		if (candidate.isEmpty()) {
-			return candidate.getStdConfidence();
-		}
-		// TODO Auto-generated method stub
-		List<ByteString[]> antecedent = new ArrayList<ByteString[]>();
-		antecedent.addAll(candidate.getAntecedent());
-		double denominator = 0.0;
-		ByteString[] head = candidate.getHead();
-		
-		if (!antecedent.isEmpty()){
-			//Confidence
-			try{
-				if(KB.numVariables(head) == 2){
-					ByteString var1, var2;
-					var1 = head[KB.firstVariablePos(head)];
-					var2 = head[KB.secondVariablePos(head)];
-					denominator = (double) computeBodySize(var1, var2, candidate);
-				} else {					
-					denominator = (double) this.kb.countDistinct(candidate.getFunctionalVariable(), antecedent);
-				}				
-				candidate.setBodySize((long)denominator);
-			}catch(UnsupportedOperationException e){
-				
-			}
-		}
-		
-		return candidate.getStdConfidence();
-	}
+
+    @Override
+    public double computeStandardConfidence(Rule candidate) {
+        if (candidate.isEmpty()) {
+            return candidate.getStdConfidence();
+        }
+        // TODO Auto-generated method stub
+        List<ByteString[]> antecedent = new ArrayList<ByteString[]>();
+        antecedent.addAll(candidate.getAntecedent());
+        double denominator = 0.0;
+        ByteString[] head = candidate.getHead();
+
+        if (!antecedent.isEmpty()) {
+            //Confidence
+            try {
+                if (KB.numVariables(head) == 2) {
+                    ByteString var1, var2;
+                    var1 = head[KB.firstVariablePos(head)];
+                    var2 = head[KB.secondVariablePos(head)];
+                    denominator = (double) computeBodySize(var1, var2, candidate);
+                } else {
+                    denominator = (double) this.kb.countDistinct(candidate.getFunctionalVariable(), antecedent);
+                }
+                candidate.setBodySize((long) denominator);
+            } catch (UnsupportedOperationException e) {
+
+            }
+        }
+
+        return candidate.getStdConfidence();
+    }
 }

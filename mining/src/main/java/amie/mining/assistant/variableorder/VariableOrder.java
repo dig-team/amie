@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package amie.mining.assistant.experimental;
+package amie.mining.assistant.variableorder;
 
 import amie.rules.Rule;
 import javatools.datatypes.ByteString;

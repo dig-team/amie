@@ -196,6 +196,17 @@ public class KB {
 	public void setDelimiter(String newDelimiter) {
 		delimiter = newDelimiter;
 	}
+        
+        protected boolean optimConnectedComponent = true;
+        protected boolean optimExistentialDetection = true;
+        
+        public void setOptimConnectedComponent(boolean value) {
+            this.optimConnectedComponent = value;
+        }
+        
+        public void setOptimExistentialDetection(boolean value) {
+            this.optimExistentialDetection = value;
+        }
 	
 	public KB() {}
 
@@ -1998,7 +2009,8 @@ public class KB {
 		case 2:
                         int firstVar = firstVariablePos(best);
                         int secondVar = secondVariablePos(best);
-                        if (contains(best[firstVar], others) && contains(best[secondVar], others)) {
+                        if (!optimExistentialDetection // Always execute if the optim is deactivated
+                                || (contains(best[firstVar], others) && contains(best[secondVar], others))) {
                             instantiations = resultsTwoVariables(firstVar, secondVar, best);
                             try (Instantiator insty1 = new Instantiator(others, best[firstVar]);
                                     Instantiator insty2 = new Instantiator(others,
@@ -2995,20 +3007,12 @@ public class KB {
         // Go for the standard plan
         long result = 0;
 
-        //System.err.println("countDistinctPair (" + var1.toString() + "," + var2.toString() + "): " + toString(query));
-        try (Instantiator insty1 = new Instantiator(connectedComponent(query, var2, var1), var1)) {
+        try (Instantiator insty1 = new Instantiator((optimConnectedComponent) ? connectedComponent(query, var2, var1) : query, var1)) {
             Set<ByteString> bindings = selectDistinct(var1, query);
             for (ByteString val1 : bindings) {
-                //System.err.println(var1.toString() + "=" + val1.toString() + ": " + toString(query));
-                //Set<ByteString> values = selectDistinct(var2, insty1.instantiate(val1));
-                //for (ByteString v : values) {
-                //    System.err.println("(" + var1.toString() + "," + var2.toString() + ") = (" + val1.toString() + "," + v.toString() + ")");
-                //}
                 result += countDistinct(var2, insty1.instantiate(val1));
-                //System.err.println("currentResult: " + Long.toString(result));
             }
         }
-        //System.err.println("countDistinctPair (" + var1.toString() + "," + var2.toString() + "): " + toString(query) + "= " + Long.toString(result));
 
         return (result);
     }
@@ -3022,7 +3026,7 @@ public class KB {
         // Go for the standard plan
         long result = 0;
 
-        try (Instantiator insty1 = new Instantiator(query, var1)) {
+        try (Instantiator insty1 = new Instantiator((optimConnectedComponent) ? connectedComponent(query, var2, var1) : query, var1)) {
             Set<ByteString> bindings = selectDistinct(var1, query);
             for (ByteString val1 : bindings) {
                 result += countDistinct(var2, insty1.instantiate(val1));

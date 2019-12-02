@@ -16,10 +16,14 @@ import javatools.datatypes.ByteString;
  *
  * @author jlajus
  */
-public class LazyMiningAssistant extends DefaultMiningAssistant {
+public class LazyMiningAssistant extends DefaultMiningAssistantWithOrder {
 
     public LazyMiningAssistant(KB dataSource) {
         super(dataSource);
+    }
+
+    public LazyMiningAssistant(KB dataSource, VariableOrder order) {
+        super(dataSource, order);
     }
 
     /**
@@ -69,14 +73,14 @@ public class LazyMiningAssistant extends DefaultMiningAssistant {
         long t1 = System.currentTimeMillis();
         long result;
         if (this.minPcaConfidence > 0.0) {
-            result = this.kb.countDistinctPairsUpTo((long) Math.ceil(query.getSupport() / this.minPcaConfidence), var1, var2, antecedent);
+            result = this.kb.countDistinctPairsUpTo((long) Math.ceil(query.getSupport() / this.minPcaConfidence) + 1, var1, var2, antecedent);
         } else {
             result = this.kb.countDistinctPairs(var1, var2, antecedent);
         }
         long t2 = System.currentTimeMillis();
-        query.setConfidenceRunningTime(t2 - t1);
+        query.setPcaConfidenceRunningTime(t2 - t1);
         if ((t2 - t1) > 20000 && this.verbose) {
-            System.out.println("countPairs vars " + var1 + ", " + var2 + " in " + KB.toString(antecedent) + " has taken " + (t2 - t1) + " ms");
+            System.err.println("countPairs vars " + var1 + ", " + var2 + " in " + KB.toString(antecedent) + " has taken " + (t2 - t1) + " ms");
         }
         return result;
     }
@@ -95,62 +99,21 @@ public class LazyMiningAssistant extends DefaultMiningAssistant {
         long t1 = System.currentTimeMillis();
         long result;
         if (this.minStdConfidence > 0.0) {
-            result = this.kb.countDistinctPairsUpTo((long) Math.ceil(query.getSupport() / this.minStdConfidence), var1, var2, query.getAntecedent());
+            result = this.kb.countDistinctPairsUpTo((long) Math.ceil(query.getSupport() / this.minStdConfidence) + 1, var1, var2, query.getAntecedent());
         } else {
             result = this.kb.countDistinctPairs(var1, var2, query.getAntecedent());
         }
         long t2 = System.currentTimeMillis();
-        query.setPcaConfidenceRunningTime(t2 - t1);
+        query.setConfidenceRunningTime(t2 - t1);
         if ((t2 - t1) > 20000 && this.verbose) {
-            System.out.println("countPairs vars " + var1 + ", " + var2 + " in " + KB.toString(query.getAntecedent()) + " has taken " + (t2 - t1) + " ms");
+            System.err.println("countPairs vars " + var1 + ", " + var2 + " in " + KB.toString(query.getAntecedent()) + " has taken " + (t2 - t1) + " ms");
         }
         return result;
     }
 
     @Override
-    public double computePCAConfidence(Rule rule) {
-        if (rule.isEmpty()) {
-            return rule.getPcaConfidence();
-        }
-
-        List<ByteString[]> antecedent = new ArrayList<ByteString[]>();
-        antecedent.addAll(rule.getTriples().subList(1, rule.getTriples().size()));
-        ByteString[] succedent = rule.getTriples().get(0);
-        double pcaDenominator = 0.0;
-        ByteString[] existentialTriple = succedent.clone();
-        int freeVarPos = 0;
-        int noOfHeadVars = KB.numVariables(succedent);
-
-        if (noOfHeadVars == 1) {
-            freeVarPos = KB.firstVariablePos(succedent) == 0 ? 2 : 0;
-        } else if (existentialTriple[0].equals(rule.getFunctionalVariable())) {
-            freeVarPos = 2;
-        } else {
-            freeVarPos = 0;
-        }
-
-        existentialTriple[freeVarPos] = ByteString.of("?xw");
-        if (!antecedent.isEmpty()) {
-            antecedent.add(existentialTriple);
-            try {
-                if (noOfHeadVars == 1) {
-                    pcaDenominator = (double) this.kb.countDistinct(rule.getFunctionalVariable(), antecedent);
-                } else if (this.minPcaConfidence > 0.0) {
-                    pcaDenominator = (double) this.kb.countDistinctPairsUpTo((long) Math.ceil(rule.getSupport() / this.minPcaConfidence), succedent[0], succedent[2], antecedent);
-                } else {
-                    pcaDenominator = (double) this.kb.countDistinctPairs(succedent[0], succedent[2], antecedent);
-                }
-                rule.setPcaBodySize(pcaDenominator);
-            } catch (UnsupportedOperationException e) {
-
-            }
-        }
-        return rule.getPcaConfidence();
+    public String getDescription() {
+        return "Lazy mining assistant that stops counting "
+                + "when the denominator gets too high";
     }
-
-    	@Override
-	public String getDescription() {
-       	return "Lazy mining assistant that stops counting "
-       			+ "when the denominator gets too high";
-	}
 }

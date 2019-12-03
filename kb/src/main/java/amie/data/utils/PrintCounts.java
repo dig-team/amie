@@ -7,12 +7,11 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
 
 import amie.data.Schema;
+import amie.data.SetU;
 import amie.data.SimpleTypingKB;
 
 public class PrintCounts {
@@ -70,7 +69,7 @@ public class PrintCounts {
         }
         for (ByteString t1 : kb.classes.keySet()) {
             for (ByteString t2 : kb.classes.keySet()) {
-                if ((s = (int) SimpleTypingKB.countIntersection(kb.classes.get(t1), kb.classes.get(t2))) >= threshold) {
+                if ((s = (int) SetU.countIntersection(kb.classes.get(t1), kb.classes.get(t2))) >= threshold) {
                     out2.append(t1.toString() + "\t" + t2.toString() + "\t" + s + "\n");
                 }
             }

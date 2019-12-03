@@ -5,8 +5,17 @@
  */
 package amie.data;
 
+import amie.data.KB.Instantiator;
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javatools.datatypes.ByteString;
+import javatools.datatypes.IntHashMap;
 
 /**
  *
@@ -71,6 +80,45 @@ public class SetU {
             if (sit == null) { return false; }
             while(sit.hasNext()) {
                 if (big.contains(next = sit.next())) { return true; }
+            }
+            next = null;
+            return false;
+        }
+
+        @Override
+        public T next() {
+            T r = null;
+            if (next != null || hasNext()) { r = next; next = null; }
+            return r;
+        }
+    }
+    
+    public static class addNotInIterator<T> implements Iterator<T> {
+
+        Set<T> addTo;
+        Iterator<T> toIterate;
+        T next;
+        
+        public addNotInIterator(Set<T> toIterate, Set<T> addTo) {
+            if (addTo == null || toIterate == null) {
+                addTo = null;
+                toIterate = null;
+            } else {
+                this.addTo = addTo;
+                this.toIterate = toIterate.iterator();
+            }
+            next = null;
+        }
+        
+        @Override
+        public boolean hasNext() {
+            if (next != null) { return true; }
+            if (toIterate == null) { return false; }
+            while(toIterate.hasNext()) {
+                if (!addTo.contains(next = toIterate.next())) { 
+                    addTo.add(next);
+                    return true;
+                }
             }
             next = null;
             return false;

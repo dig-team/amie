@@ -20,9 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -160,7 +158,7 @@ public class KB {
 	public static final int SUBJECT2OBJECT = 2;
 
 	public static final int OBJECT2OBJECT = 4;
-	
+
 	public enum Column { Subject, Relation, Object };
 	
 	public static final String hasNumberOfValuesEquals = "hasNumberOfValuesEquals";
@@ -207,7 +205,7 @@ public class KB {
         public void setOptimExistentialDetection(boolean value) {
             this.optimExistentialDetection = value;
         }
-	
+
 	public KB() {}
 
 	/** Methods to add single facts to the KB **/
@@ -1639,7 +1637,7 @@ public class KB {
 		}
 		return (bestPos);
 	}
-
+        
 	/**
 	 * Returns true if the atom includes any of the special non-materialized relations.
 	 * This types of relations are normally computed in the KB.
@@ -1859,7 +1857,7 @@ public class KB {
 			return (size() != 0);
 		}
 	}
-
+        
 	// ---------------------------------------------------------------------------
 	// Count Distinct
 	// ---------------------------------------------------------------------------
@@ -2069,7 +2067,146 @@ public class KB {
 		}
 		return (result);
 	}
-	
+        
+    /** returns the instances that fulfill a certain condition */
+    public Iterator<ByteString> selectDistinctIterator(Set<ByteString> result,
+            ByteString variable, List<ByteString[]> query) {
+        // Only one triple
+        if (query.size() == 1) {
+            ByteString[] triple = query.get(0);
+            switch (numVariables(triple)) {
+                case 0:
+                    return (Collections.emptyIterator());
+                case 1:
+                    return (new SetU.addNotInIterator(resultsOneVariable(triple), result));
+                case 2:
+                    int firstVar = firstVariablePos(triple);
+                    int secondVar = secondVariablePos(triple);
+                    if (firstVar == -1 || secondVar == -1) {
+                        System.out.println("[DEBUG] Problem with query "
+                                + KB.toString(query));
+                    }
+                    if (triple[firstVar].equals(variable)) {
+                        return (new SetU.addNotInIterator(
+                                resultsTwoVariables(firstVar, secondVar, triple)
+                                        .keySet(), result));
+                    } else {
+                        return (new SetU.addNotInIterator(
+                                resultsTwoVariables(secondVar, firstVar, triple)
+                                        .keySet(), result));
+                    }
+                default:
+                    switch (Arrays.asList(query.get(0)).indexOf(variable)) {
+                        case 0:
+                            return (new SetU.addNotInIterator(subjectSize, result));
+                        case 1:
+                            return (new SetU.addNotInIterator(relationSize, result));
+                        case 2:
+                            return (new SetU.addNotInIterator(objectSize, result));
+                    }
+            }
+            throw new RuntimeException("Very weird: SELECT " + variable
+                    + " WHERE " + toString(query.get(0)));
+        }
+
+        int bestPos = mostRestrictiveTriple(query);
+        if (bestPos == -1) {
+            return (Collections.emptyIterator());
+        }
+        ByteString[] best = query.get(bestPos);
+
+        // If the variable is in the most restrictive triple
+        if (Arrays.asList(best).indexOf(variable) != -1) {
+            Instantiator insty;
+            Set<ByteString> instantiations;
+            switch (numVariables(best)) {
+                case 1:
+                    insty = new Instantiator(remove(bestPos, query), variable);
+                    instantiations = resultsOneVariable(best);
+                    break;
+                case 2:
+                    int firstVar = firstVariablePos(best);
+                    int secondVar = secondVariablePos(best);
+                    instantiations = best[firstVar].equals(variable) ? resultsTwoVariables(firstVar,
+                            secondVar, best).keySet() : resultsTwoVariables(secondVar,
+                                    firstVar, best).keySet();
+                    int otherVariable = best[firstVar].equals(variable) ? secondVar : firstVar;
+                    List<ByteString[]> otherTriples = remove(bestPos, query);
+                    insty = new Instantiator((contains(best[otherVariable], otherTriples)) ? query : otherTriples, variable);
+                    break;
+                case 3:
+                default:
+                    insty = new Instantiator(remove(bestPos, query), variable);
+                    int varPos = varpos(variable, best);
+                    ByteString var1,
+                     var2,
+                     var3;
+                    switch (varPos) {
+                        case 0:
+                            var1 = best[0];
+                            var2 = best[1];
+                            var3 = best[2];
+                            break;
+                        case 1:
+                            var1 = best[1];
+                            var2 = best[0];
+                            var3 = best[2];
+                            break;
+                        case 2:
+                        default:
+                            var1 = best[2];
+                            var2 = best[0];
+                            var3 = best[1];
+                            break;
+                    }
+
+                    instantiations = resultsThreeVariables(var1, var2, var3, best).keySet();
+                    break;
+            }
+            return (new KBIteratorU.addNotInIfExistsIterator(this, insty, instantiations, result));
+        }
+
+        // If the variable is not in the most restrictive triple...
+        Map<ByteString, IntHashMap<ByteString>> instantiations;
+        List<ByteString[]> others = remove(bestPos, query);
+        switch (numVariables(best)) {
+            case 0:
+                return (selectDistinctIterator(result, variable, others));
+            case 1:
+                ByteString var = best[firstVariablePos(best)];
+                /*if (!contains(var, others)) {
+                            return (selectDistinct(variable, others));
+                        }*/
+                return (new KBIteratorU.recursiveSelectForOneVarIterator(this, new Instantiator(others, var), variable, resultsOneVariable(best), result));
+            case 2:
+                int firstVar = firstVariablePos(best);
+                int secondVar = secondVariablePos(best);
+                if (contains(best[firstVar], others) && contains(best[secondVar], others)) {
+                    return (new KBIteratorU.recursiveSelectForTwoVarIterator(this, 
+                                new Instantiator(others, best[firstVar]), 
+                                new Instantiator(others, best[secondVar]), 
+                                variable, resultsTwoVariables(firstVar, secondVar, best), result));
+                } else {
+                    int nonExistentialVariablePos = (contains(best[firstVar], others)) ? firstVar : secondVar;
+                    int existentialVariablePos = (contains(best[firstVar], others)) ? secondVar : firstVar;
+                    return (new KBIteratorU.recursiveSelectForOneVarIterator(this, 
+                                new Instantiator(others, best[nonExistentialVariablePos]), 
+                                variable, 
+                                resultsTwoVariables(nonExistentialVariablePos, existentialVariablePos, best).keySet(), 
+                                result));
+                }
+            case 3:
+            default:
+                return (new KBIteratorU.recursiveSelectForThreeVarIterator(this, 
+                            new Instantiator(others, best[0]), 
+                            new Instantiator(others, best[1]), 
+                            new Instantiator(others, best[2]), 
+                            variable, 
+                            resultsThreeVariables(best[0], best[1], best[2], best), 
+                            result));
+        }
+    }
+    
 	// ---------------------------------------------------------------------------
 	// Select distinct, two variables
 	// ---------------------------------------------------------------------------
@@ -3046,7 +3183,31 @@ public class KB {
 
         return (result);
     }
+    
+    public long countDistinctPairsUpToWithIterator(long upperBound, ByteString var1, 
+            ByteString var2, List<ByteString[]> query) {
 
+        // Go for the standard plan
+        long result = 0;
+        Set<ByteString> bindings, bindings2;
+
+        try (Instantiator insty1 = new Instantiator(query, var1)) {
+            bindings = new HashSet<>();
+            for (Iterator<ByteString> bindingsIt = selectDistinctIterator(bindings, var1, query); bindingsIt.hasNext(); ) {
+                bindings2 = new HashSet<>();
+                for (Iterator<ByteString> bindingsIt2 = selectDistinctIterator(bindings2, var2, 
+                        insty1.instantiate(bindingsIt.next())); bindingsIt2.hasNext(); ) {
+                    result += 1;
+                    bindingsIt2.next();
+                    if (result > upperBound) {
+                        break;
+                    }
+                }
+            }
+        }
+        return (result);
+    }
+    
 	/** Can instantiate a variable in a query with a value */
 	public static class Instantiator implements Closeable {
 		List<ByteString[]> query;

@@ -1796,6 +1796,7 @@ public class KB {
 		if (bestPos == -1)
 			return (false);
 		ByteString[] best = triples.get(bestPos);
+                List<ByteString[]> otherTriples;
 
 		switch (numVariables(best)) {
 		case 0:
@@ -1808,8 +1809,13 @@ public class KB {
 				System.out.println("[DEBUG] Problem with query "
 						+ KB.toString(triples));
 			}
+                        otherTriples = remove(bestPos, triples);
+                        if (optimExistentialDetection && !contains(best[firstVarIdx], otherTriples)) {
+                            //if (otherTriples.isEmpty()) return (true);
+                            return (existsBS1(otherTriples));
+                        }
 			try (Instantiator insty = new Instantiator(
-					remove(bestPos, triples), best[firstVarIdx])) {
+					otherTriples, best[firstVarIdx])) {
 				for (ByteString inst : resultsOneVariable(best)) {
 					if (existsBS1(insty.instantiate(inst)))
 						return (true);
@@ -1819,9 +1825,10 @@ public class KB {
 		case 2:
 			int firstVar = firstVariablePos(best);
 			int secondVar = secondVariablePos(best);
-			List<ByteString[]> otherTriples = remove(bestPos, triples);
+			otherTriples = remove(bestPos, triples);
                         Map<ByteString, IntHashMap<ByteString>> instantiations;
-                        if (contains(best[firstVar], otherTriples) && contains(best[secondVar], otherTriples)) {
+                        if (!optimExistentialDetection
+                                || (contains(best[firstVar], otherTriples) && contains(best[secondVar], otherTriples))) {
                             instantiations = resultsTwoVariables(firstVar, secondVar, best);
                             try (Instantiator insty1 = new Instantiator(otherTriples,
                                             best[firstVar]);
@@ -1996,9 +2003,10 @@ public class KB {
 			return (selectDistinct(variable, others));
 		case 1:
 			ByteString var = best[firstVariablePos(best)];
-                        /*if (!contains(var, others)) {
+                        if (optimExistentialDetection && !contains(var, others)) {
+                            // Can be used for 4+ atoms rules.
                             return (selectDistinct(variable, others));
-                        }*/
+                        }
 			try (Instantiator insty = new Instantiator(others, var)) {
 				for (ByteString inst : resultsOneVariable(best)) {
 					result.addAll(selectDistinct(variable,

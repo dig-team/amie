@@ -2116,7 +2116,7 @@ public class KB {
         ByteString[] best = query.get(bestPos);
 
         // If the variable is in the most restrictive triple
-        if (Arrays.asList(best).indexOf(variable) != -1) {
+        if (varpos(variable, best) != -1) {
             Instantiator insty;
             Set<ByteString> instantiations;
             switch (numVariables(best)) {
@@ -2174,14 +2174,14 @@ public class KB {
                 return (selectDistinctIterator(result, variable, others));
             case 1:
                 ByteString var = best[firstVariablePos(best)];
-                /*if (!contains(var, others)) {
-                            return (selectDistinct(variable, others));
-                        }*/
+                if (optimExistentialDetection && !contains(var, others)) {
+                    return (selectDistinctIterator(result, variable, others));
+                }
                 return (new KBIteratorU.recursiveSelectForOneVarIterator(this, new Instantiator(others, var), variable, resultsOneVariable(best), result));
             case 2:
                 int firstVar = firstVariablePos(best);
                 int secondVar = secondVariablePos(best);
-                if (contains(best[firstVar], others) && contains(best[secondVar], others)) {
+                if (!optimExistentialDetection || (contains(best[firstVar], others) && contains(best[secondVar], others))) {
                     return (new KBIteratorU.recursiveSelectForTwoVarIterator(this, 
                                 new Instantiator(others, best[firstVar]), 
                                 new Instantiator(others, best[secondVar]), 
@@ -3191,7 +3191,8 @@ public class KB {
         long result = 0;
         Set<ByteString> bindings, bindings2;
 
-        try (Instantiator insty1 = new Instantiator(query, var1)) {
+        try (Instantiator insty1 = new Instantiator(
+                (optimConnectedComponent) ? connectedComponent(U.deepClone(query), var2, var1) : U.deepClone(query), var1)) {
             bindings = new HashSet<>();
             for (Iterator<ByteString> bindingsIt = selectDistinctIterator(bindings, var1, query); bindingsIt.hasNext(); ) {
                 bindings2 = new HashSet<>();

@@ -16,7 +16,15 @@ import javatools.datatypes.IntHashMap;
 import javatools.datatypes.Pair;
 
 /**
+ * Iterators to simulate SELECT DISTINCT operation as a generator.
+ * 
+ * Closure semantic:
  *
+ * Every iterator that is given an Instantiator at construction-time MUST:
+ *  * close it when the iterator has no more element.
+ *  * close it and close every sub-iterator (if applicable) 
+ *    when the close() method is explicitly called.
+ * A closed iterator can no more be iterated upon.
  * @author jlajus
  */
 public class KBIteratorU {
@@ -49,11 +57,13 @@ public class KBIteratorU {
                 }
             }
             next = null;
+            insty.close();
             return false;
         }
 
         @Override
         public void close() {
+            toIterate = null;
             insty.close();
         }
     }
@@ -66,6 +76,7 @@ public class KBIteratorU {
         public recursiveSelectForOneVarIterator(KB kb, KB.Instantiator insty, ByteString variable, Set<ByteString> toIterate, Set<ByteString> addTo) {
             super(kb, insty, toIterate, addTo);
             this.variable = variable;
+            this.subIterator = Collections.emptyIterator();
         }
         
         @Override
@@ -77,17 +88,24 @@ public class KBIteratorU {
                     next = subIterator.next();
                     return true;
                 } else { // if (toIterate.hasNext()) {
-                    if (subIterator instanceof CloseableNoThrow) { 
-                        ((CloseableNoThrow) subIterator).close();
-                    }
                     subIterator = kb.selectDistinctIterator(addTo, variable, insty.instantiate(toIterate.next()));
                 }
             }
             next = null;
+            insty.close();
             return false;
         }
+        
+        @Override
+        public void close() {
+            if (subIterator instanceof CloseableNoThrow) { 
+                ((CloseableNoThrow) subIterator).close();
+            }
+            insty.close();
+            toIterate = null;
+        }
     }
-    
+
     public static class recursiveSelectForTwoVarIterator implements Iterator<ByteString>, CloseableNoThrow {
         
         Iterator<Map.Entry<ByteString, IntHashMap<ByteString>>> it1;
@@ -105,6 +123,7 @@ public class KBIteratorU {
             this.variable = variable;
             this.it1 = (toIterate == null) ? null : toIterate.entrySet().iterator();
             this.it2 = Collections.emptyIterator();
+            this.subIterator = Collections.emptyIterator();
             this.addTo = addTo;
         }
         
@@ -117,9 +136,6 @@ public class KBIteratorU {
                     next = subIterator.next();
                     return true;
                 } else if (it2.hasNext()) {
-                    if (subIterator instanceof CloseableNoThrow) { // Is it necessary ?
-                        ((CloseableNoThrow) subIterator).close();
-                    }
                     subIterator = kb.selectDistinctIterator(addTo, variable, insty2.instantiate(it2.next()));
                 } else {
                     Map.Entry<ByteString, IntHashMap<ByteString>> e1 = it1.next();
@@ -128,6 +144,8 @@ public class KBIteratorU {
                 }
             }
             next = null;
+            insty1.close();
+            insty2.close();
             return false;
         }
 
@@ -140,8 +158,12 @@ public class KBIteratorU {
 
         @Override
         public void close() {
+            if (subIterator instanceof CloseableNoThrow) { 
+                ((CloseableNoThrow) subIterator).close();
+            }
             insty1.close();
             insty2.close();
+            it1 = null;
         }
     }
     
@@ -165,6 +187,7 @@ public class KBIteratorU {
             this.it1 = (toIterate == null) ? null : toIterate.entrySet().iterator();
             this.it2 = Collections.emptyIterator();
             this.it3 = Collections.emptyIterator();
+            this.subIterator = Collections.emptyIterator();
             this.addTo = addTo;
         }
         
@@ -177,9 +200,6 @@ public class KBIteratorU {
                     next = subIterator.next();
                     return true;
                 } else if (it3.hasNext()) {
-                    if (subIterator instanceof CloseableNoThrow) { // Is it necessary ?
-                        ((CloseableNoThrow) subIterator).close();
-                    }
                     subIterator = kb.selectDistinctIterator(addTo, variable, insty3.instantiate(it3.next()));
                 } else if (it2.hasNext()) {
                     Map.Entry<ByteString, IntHashMap<ByteString>> e2 = it2.next();
@@ -192,6 +212,9 @@ public class KBIteratorU {
                 }
             }
             next = null;
+            insty1.close();
+            insty2.close();
+            insty3.close();
             return false;
         }
 
@@ -204,9 +227,13 @@ public class KBIteratorU {
 
         @Override
         public void close() {
+            if (subIterator instanceof CloseableNoThrow) { // Is it necessary ?
+                ((CloseableNoThrow) subIterator).close();
+            }
             insty1.close();
             insty2.close();
             insty3.close();
+            it1 = null;
         }
     }
 }

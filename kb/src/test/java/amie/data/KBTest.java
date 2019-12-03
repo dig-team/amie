@@ -1,11 +1,16 @@
 package amie.data;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 import java.util.List;
 import javatools.datatypes.ByteString;
 import javatools.datatypes.IntHashMap;
+import javatools.datatypes.Pair;
 import junit.framework.TestCase;
 
 public class KBTest extends TestCase {
@@ -87,6 +92,33 @@ public class KBTest extends TestCase {
 		assertTrue(values.containsKey(ByteString.of("<wasBornIn>")));
 		assertTrue(values.get(ByteString.of("<wasBornIn>")).containsKey(ByteString.of("<Paris>")));
 	}
+        
+        public void testSelectIterator() {
+            assertEquals(12, kb.size());
+            kb.add(KB.triple("<Jonathan>", "<livesIn>", "<Villejuif>"));
+            kb.add(KB.triple("<Jonathan>", "<worksAt>", "<Telecom>"));
+            kb.add(KB.triple("<Villejuif>", "<isLocatedIn>", "<France>"));
+            kb.add(KB.triple("<Luis>", "<worksAt>", "<INRIA>"));
+            kb.add(KB.triple("<INRIA>", "<isLocatedIn>", "<Paris>"));
+            List<ByteString[]> query = KB.triples(
+                    KB.triple("?x", "<worksAt>", "?t"),
+                    KB.triple("?t", "<isLocatedIn>", "?c"),
+                    KB.triple("?x", "<livesIn>", "?c"));
+            Set<ByteString> values = kb.selectDistinct(ByteString.of("?x"), query);
+            assertEquals(3, values.size());
+            assertTrue(values.contains(ByteString.of("<Thomas>")));
+            assertTrue(values.contains(ByteString.of("<Antoine>")));
+            assertTrue(values.contains(ByteString.of("<Luis>")));
+            Set<ByteString> result = new HashSet<>();
+            Set<ByteString> resultIterator = new HashSet<>();
+            for (Iterator<ByteString> it = kb.selectDistinctIterator(result, ByteString.of("?x"), query); it.hasNext(); ) {
+                ByteString e = it.next();
+                assertFalse(resultIterator.contains(e));
+                resultIterator.add(e);
+            }
+            assertEquals(result, values);
+            assertEquals(result, resultIterator);
+        }
         
         public void testConnectedComponent() {
             ByteString[] atom1, atom2, atom3;

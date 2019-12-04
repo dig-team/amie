@@ -1244,10 +1244,12 @@ public class AMIE {
 
         if (enableFunctionalityHeuristic) {
             System.out.println("Enabling functionality heuristic with ratio "
-                    + "for pruning of low confident rules [EXPERIMENTAL]");
-            Announce.message("Building overlap tables for confidence approximation.");
-            dataSource.buildOverlapTables();
-            Announce.done("Overlap tables were built.");
+                        + "for pruning of low confident rules");
+            Announce.message("Building overlap tables for confidence approximation...");
+            long time = System.currentTimeMillis();
+            dataSource.buildOverlapTables(nThreads);
+            Announce.done("Overlap tables computed in " + NumberFormatter.formatMS(System.currentTimeMillis() - time)
+                            + " using " + Integer.toString(nThreads) + " threads.");
         }
 
         mineAssistant.setKbSchema(schemaSource);

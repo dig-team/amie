@@ -1140,7 +1140,7 @@ public class AMIE {
         enableConfidenceUpperBounds = cli.hasOption("optimcb");
         if (enableConfidenceUpperBounds) {
             System.out.println("Enabling standard and PCA confidences upper "
-                    + "bounds for pruning [EXPERIMENTAL]");
+                    + "bounds for pruning");
         }
 
         enableFunctionalityHeuristic = cli.hasOption("optimfh");
@@ -1245,7 +1245,7 @@ public class AMIE {
         if (enableFunctionalityHeuristic) {
             System.out.println("Enabling functionality heuristic with ratio "
                         + "for pruning of low confident rules");
-            Announce.message("Building overlap tables for confidence approximation...");
+            Announce.doing("Building overlap tables for confidence approximation...");
             long time = System.currentTimeMillis();
             dataSource.buildOverlapTables(nThreads);
             Announce.done("Overlap tables computed in " + NumberFormatter.formatMS(System.currentTimeMillis() - time)

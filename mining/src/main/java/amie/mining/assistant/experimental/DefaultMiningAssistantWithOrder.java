@@ -117,12 +117,12 @@ public class DefaultMiningAssistantWithOrder extends DefaultMiningAssistant {
         ByteString[] head = candidate.getHead();
 
         if (!antecedent.isEmpty()) {
-            //Confidence
+           //Confidence
             try {
                 if (KB.numVariables(head) == 2) {
                     ByteString var1, var2;
-                    var1 = head[KB.firstVariablePos(head)];
-                    var2 = head[KB.secondVariablePos(head)];
+                    var1 = order.getFirstCountVariable(candidate);
+                    var2 = order.getSecondCountVariable(candidate);
                     denominator = (double) computeBodySize(var1, var2, candidate);
                 } else {
                     denominator = (double) this.kb.countDistinct(candidate.getFunctionalVariable(), antecedent);

@@ -1,0 +1,17 @@
+= What is in here ? =
+
+In this directory you can find some major version of AMIE.
+
+= How to reproduce them ? =
+
+The source code of the corresponding version can be found
+on the dedicated git branch.
+
+For example for a jar file: amie-BRANCHNAME.jar
+You can rebuild the jar file by doing:
+
+$ git checkout BRANCHNAME
+$ mvn clean install
+
+The jar file can then be found in:
+$ mining/target/mining-2.0-jar-with-dependencies.jar

@@ -1,6 +1,5 @@
 package amie.data;
 
-import static amie.data.starpattern.BipatternGraph.numberSize;
 import amie.data.starpattern.SignedPredicate;
 import java.io.Closeable;
 import java.io.File;

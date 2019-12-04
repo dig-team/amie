@@ -1,5 +1,7 @@
 package amie.data;
 
+import static amie.data.starpattern.BipatternGraph.numberSize;
+import amie.data.starpattern.SignedPredicate;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,10 +20,13 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -396,6 +401,11 @@ public class KB {
 		resetOverlapTables(); 
 		buildOverlapTables();
 	}
+        
+        public void rebuildOverlapTables(int nThread) {
+		resetOverlapTables(); 
+		buildOverlapTables(nThread);
+	}
 
 	/**
 	 * It clears all overlap tables.
@@ -456,6 +466,131 @@ public class KB {
 			}
 		}
 	}
+        
+        public void buildOverlapTables(int nThread) {
+            try {
+                OverlapTableComputation.compute(this, nThread);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(KB.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+    protected static class OverlapTableComputation extends Thread {
+        
+        public static LinkedList<Pair<SignedPredicate, SignedPredicate>> initQueue(KB db, int nThread) {
+            LinkedList<Pair<SignedPredicate, SignedPredicate>> queue = new LinkedList<>();
+            SignedPredicate sp1, sp1i, sp2, sp2i;
+            for (ByteString r1 : db.relationSize) {
+                sp1 = new SignedPredicate(r1, true);
+                sp1i = new SignedPredicate(r1, false);
+                db.subject2subjectOverlap.put(r1, new IntHashMap<>());
+                db.subject2objectOverlap.put(r1, new IntHashMap<>());
+                db.object2objectOverlap.put(r1, new IntHashMap<>());
+                
+                for (ByteString r2 : db.relationSize) {
+                
+                    if (r1.compareTo(r2) < 0) { 
+                        continue;
+                    }
+                    
+                    sp2 = new SignedPredicate(r2, true);
+                    sp2i = new SignedPredicate(r2, false);
+                    queue.add(new Pair<>(sp1, sp2));
+                    queue.add(new Pair<>(sp1i, sp2i));
+                    queue.add(new Pair<>(sp1, sp2i));
+                    queue.add(new Pair<>(sp1i, sp2));
+                }
+            }
+            
+            for (int i = 0; i < nThread; i++) {
+                queue.add(new Pair<>(null, null));
+            }
+            return queue;
+        }
+        
+        public static void compute(KB db, int nThread) throws InterruptedException {
+            Thread[] threadList = new Thread[nThread];
+            LinkedList<Pair<SignedPredicate, SignedPredicate>> queue = initQueue(db, nThread);
+            
+            for (int i = 0; i < nThread; i++) {
+                threadList[i] = (new OverlapTableComputation(db, queue));
+            }
+            
+            for (int i = 0; i < nThread; i++) {
+                threadList[i].start();
+            }
+            
+            for (int i = 0; i < nThread; i++) {
+                threadList[i].join();
+            }
+        }
+        
+        public static void set(KB db, SignedPredicate sp1, SignedPredicate sp2, int overlap) {
+            IntHashMap e;
+            if (sp1.subject && sp2.subject) {
+                e = db.subject2subjectOverlap.get(sp1.predicate);
+                synchronized(e) {
+                    e.put(sp2.predicate, overlap);
+                }
+                if (!sp1.predicate.equals(sp2.predicate)) {
+                    e = db.subject2subjectOverlap.get(sp2.predicate);
+                    synchronized(e) {
+                        e.put(sp1.predicate, overlap);
+                    }
+                }
+            } else if (!sp1.subject && !sp2.subject) {
+                e = db.object2objectOverlap.get(sp1.predicate);
+                synchronized(e) {
+                    e.put(sp2.predicate, overlap);
+                }
+                if (!sp1.predicate.equals(sp2.predicate)) {
+                    e = db.object2objectOverlap.get(sp2.predicate);
+                    synchronized(e) {
+                        e.put(sp1.predicate, overlap);
+                    }
+                }
+            } else if (sp1.subject) {
+                e = db.subject2objectOverlap.get(sp1.predicate);
+                synchronized(e) {
+                    e.put(sp2.predicate, overlap);
+                }
+            } else { // if (sp2.subject)
+                e = db.subject2objectOverlap.get(sp2.predicate);
+                synchronized(e) {
+                    e.put(sp1.predicate, overlap);
+                }
+            }
+        }
+        
+        final LinkedList<Pair<SignedPredicate, SignedPredicate>> queue;
+        KB db;
+        
+        public OverlapTableComputation(KB db, LinkedList<Pair<SignedPredicate, SignedPredicate>> queue) {
+            this.queue = queue;
+            this.db = db;
+        }
+        
+        public void run() {
+            Pair<SignedPredicate, SignedPredicate> q;
+            int overlap;
+            IntHashMap e;
+            while(true) {
+                synchronized(queue) {
+                    q = queue.pollFirst();
+                }
+                if (q == null || q.first == null) {
+                    break;
+                }
+                
+                if (q.first.equals(q.second)) {
+                    overlap = db.getMap(q.first).keySet().size();
+                } else {
+                    overlap = (int) SetU.countIntersection(db.getMap(q.first).keySet(), db.getMap(q.second).keySet());
+                }
+                set(db, q.first, q.second, overlap);
+            }
+        }
+    }
 
 	/**
 	 * Calculates the number of elements in the intersection of two sets of ByteStrings.
@@ -2068,7 +2203,13 @@ public class KB {
 		return (result);
 	}
         
-    /** returns the instances that fulfill a certain condition */
+    /** 
+     * returns the instances that fulfill a certain condition 
+     *
+     * @param query: may be modified in place. Return to a consistent state when 
+     * the iterator is empty or by calling the close() method on the iterator.
+     * A closed iterator can no longer be iterated upon.
+     */
     public Iterator<ByteString> selectDistinctIterator(Set<ByteString> result,
             ByteString variable, List<ByteString[]> query) {
         // Only one triple
@@ -4408,6 +4549,22 @@ public class KB {
 		}
 		return result;
 	}
+        
+    public Map<ByteString, IntHashMap<ByteString>> getMap(SignedPredicate sp) {
+        if (sp.subject) {
+            return this.relation2subject2object.get(sp.predicate);
+        } else {
+            return this.relation2object2subject.get(sp.predicate);
+        }
+    }
+    
+    public IntHashMap<ByteString> getCount(SignedPredicate sp) {
+        IntHashMap<ByteString> result = new IntHashMap<>();
+        for (Map.Entry<ByteString, IntHashMap<ByteString>> e : getMap(sp).entrySet()) {
+            result.put(e.getKey(), e.getValue().size());
+        }
+        return result;
+    }
         
         public Set<ByteString> getRelationSet() {
             return new HashSet<>(relationSize);

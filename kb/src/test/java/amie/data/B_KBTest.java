@@ -13,7 +13,7 @@ import java.util.List;
 import javatools.datatypes.Pair;
 import junit.framework.TestCase;
 
-public class KBTest extends TestCase {
+public class B_KBTest extends TestCase {
 	KB kb = new KB();
 	
 	protected void setUp() throws Exception {

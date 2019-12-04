@@ -43,7 +43,7 @@ public class DefaultMiningAssistantWithOrder extends DefaultMiningAssistant {
             rule.setHeadCoverage(0.0);
             rule.setSupportRatio(0.0);
         } else {
-            ByteString[] head = rule.getHead();
+            int[] head = rule.getHead();
             if (KB.numVariables(head) == 2) {
                 rule.setSupport(this.kb.countDistinctPairs(
                         order.getFirstCountVariable(rule),
@@ -66,25 +66,24 @@ public class DefaultMiningAssistantWithOrder extends DefaultMiningAssistant {
             return rule.getPcaConfidence();
         }
 
-        List<ByteString[]> antecedent = new ArrayList<ByteString[]>();
-        antecedent.addAll(rule.getTriples().subList(1, rule.getTriples().size()));
-        ByteString[] succedent = rule.getTriples().get(0);
+        List<int[]> antecedent = rule.getAntecedentClone();
+        int[] succedent = rule.getTriples().get(0);
         double pcaDenominator;
-        ByteString[] existentialTriple = succedent.clone();
+        int[] existentialTriple = succedent.clone();
         int freeVarPos;
         int noOfHeadVars = KB.numVariables(succedent);
 
         if (noOfHeadVars == 1) {
             freeVarPos = KB.firstVariablePos(succedent) == 0 ? 2 : 0;
         } else {
-            if (existentialTriple[0].equals(rule.getFunctionalVariable())) {
+            if (existentialTriple[0] == rule.getFunctionalVariable()) {
                 freeVarPos = 2;
             } else {
                 freeVarPos = 0;
             }
         }
 
-        existentialTriple[freeVarPos] = ByteString.of("?xw");
+        existentialTriple[freeVarPos] = KB.map("?x9");
         if (!antecedent.isEmpty()) {
 
             try {
@@ -111,18 +110,17 @@ public class DefaultMiningAssistantWithOrder extends DefaultMiningAssistant {
             return candidate.getStdConfidence();
         }
         // TODO Auto-generated method stub
-        List<ByteString[]> antecedent = new ArrayList<ByteString[]>();
-        antecedent.addAll(candidate.getAntecedent());
+        List<int[]> antecedent = candidate.getAntecedentClone();
         double denominator = 0.0;
-        ByteString[] head = candidate.getHead();
+        int[] head = candidate.getHead();
 
         if (!antecedent.isEmpty()) {
             //Confidence
             try {
                 if (KB.numVariables(head) == 2) {
-                    ByteString var1, var2;
-                    var1 = head[KB.firstVariablePos(head)];
-                    var2 = head[KB.secondVariablePos(head)];
+                    int var1, var2;
+                    var1 = order.getFirstCountVariable(candidate);
+                    var2 = order.getSecondCountVariable(candidate);
                     denominator = (double) computeBodySize(var1, var2, candidate);
                 } else {
                     denominator = (double) this.kb.countDistinct(candidate.getFunctionalVariable(), antecedent);

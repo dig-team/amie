@@ -5,10 +5,7 @@
  */
 package amie.mining.assistant.variableorder;
 
-import amie.mining.assistant.variableorder.VariableOrder;
-import amie.data.KB;
 import amie.rules.Rule;
-import javatools.datatypes.ByteString;
 
 /**
  *
@@ -19,12 +16,12 @@ public class FunctionalOrder implements VariableOrder {
     public FunctionalOrder() {}
 
     @Override
-    public ByteString getFirstCountVariable(Rule r) {
+    public int getFirstCountVariable(Rule r) {
         return r.getFunctionalVariable();
     }
 
     @Override
-    public ByteString getSecondCountVariable(Rule r) {
+    public int getSecondCountVariable(Rule r) {
         return r.getNonFunctionalVariable();
     }
     

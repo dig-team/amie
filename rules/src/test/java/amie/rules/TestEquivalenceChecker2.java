@@ -394,7 +394,122 @@ public class TestEquivalenceChecker2 extends TestCase {
 	public void test34() {
 		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(33).first, cases.get(33).second));		
 	}
-
+        
+        public void test35() {
+            List<ByteString[]> q1 = KB.triples(
+                                        KB.triple("?a", "g", "?b"),
+                                        KB.triple("?b", "h", "?z"),
+                                        KB.triple("?z", "g", "?a"));
+            List<ByteString[]> q2 = KB.triples(
+                                        KB.triple("?a", "g", "?b"),
+                                        KB.triple("?z", "h", "?a"),
+                                        KB.triple("?b", "g", "?z"));
+            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+        }
+        
+        public void test36() {
+            List<ByteString[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "l", "?a"),
+                                        KB.triple("?b", "g", "?z"));
+            List<ByteString[]> q2 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?b", "l", "?z"),
+                                        KB.triple("?z", "g", "?a"));
+            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+        }
+        
+        public void test37() {
+            List<ByteString[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "l", "?a"));
+            List<ByteString[]> q2 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "l", "?b"));
+            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+        }
+        
+        public void test38() {
+            List<ByteString[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "l", "?a"));
+            List<ByteString[]> q2 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "g", "?b"));
+            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+        }
+        
+        public void test39() {
+            List<ByteString[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "l", "?a"));
+            List<ByteString[]> q2 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "g", "?a"));
+            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+        }
+        
+        public void test40() {
+            List<ByteString[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "l", "?a"));
+            List<ByteString[]> q2 = KB.triples(
+                                        KB.triple("?z", "l", "?a"),
+                                        KB.triple("?a", "h", "?b"));
+            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+        }
+        
+        
+        public void test41() {
+            List<ByteString[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "l", "?a"));
+            List<ByteString[]> q2 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?a", "l", "?z"));
+            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+        }
+        
+        public void test42() {
+            List<ByteString[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "l", "?a"));
+            List<ByteString[]> q2 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?b", "l", "?z"));
+            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+        }
+        
+        public void test43() {
+            List<ByteString[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?a", "h", "?z"));
+            List<ByteString[]> q2 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?b", "h", "?z"));
+            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+        }
+        
+        public void test44() {
+            List<ByteString[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?a", "h", "?z"));
+            List<ByteString[]> q2 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "h", "?a"));
+            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+        }
+        
+        public void test45() {
+            List<ByteString[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?a", "h", "?z"));
+            List<ByteString[]> q2 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "h", "?b"));
+            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+        }
+        
 	protected void tearDown() throws Exception {
 		super.tearDown();
 	}

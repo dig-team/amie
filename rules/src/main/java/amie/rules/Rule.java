@@ -1383,8 +1383,7 @@ public class Rule {
         if (((long)support) != ((long)other.support)) {
             return false;
         }
-
-        return QueryEquivalenceChecker.areEquivalent(triples, other.triples);
+        return QueryEquivalenceChecker2.areEquivalent(getTriples(), other.getTriples());
     }
 
     public String getRuleString() {

@@ -8,7 +8,6 @@ import java.util.List;
 import javatools.datatypes.Pair;
 import junit.framework.TestCase;
 import amie.data.KB;
-import amie.rules.Rule;
 
 public class TestEquivalenceChecker2 extends TestCase {
 	
@@ -241,119 +240,119 @@ public class TestEquivalenceChecker2 extends TestCase {
 	}
 	
 	public void test0(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(0).first, cases.get(0).second));
+		assertTrue(QueryEquivalenceChecker2.areEquivalent(cases.get(0).first, cases.get(0).second));
 	}
 	
 	public void test1(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(1).first, cases.get(1).second));
+		assertTrue(QueryEquivalenceChecker2.areEquivalent(cases.get(1).first, cases.get(1).second));
 	}
 	
 	public void test2(){
-		assertTrue(!QueryEquivalenceChecker.areEquivalent(cases.get(2).first, cases.get(2).second));
+		assertTrue(!QueryEquivalenceChecker2.areEquivalent(cases.get(2).first, cases.get(2).second));
 	}
 	
 	public void test3(){
-		assertTrue(!QueryEquivalenceChecker.areEquivalent(cases.get(3).first, cases.get(3).second));
+		assertTrue(!QueryEquivalenceChecker2.areEquivalent(cases.get(3).first, cases.get(3).second));
 	}
 	
 	public void test4(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(4).first, cases.get(4).second));
+		assertFalse(QueryEquivalenceChecker2.areEquivalent(cases.get(4).first, cases.get(4).second));
 	}
 	
 	public void test5(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(5).first, cases.get(5).second));
+		assertFalse(QueryEquivalenceChecker2.areEquivalent(cases.get(5).first, cases.get(5).second));
 	}
 	
 	public void test6(){
-		assertTrue(!QueryEquivalenceChecker.areEquivalent(cases.get(6).first, cases.get(6).second));
+		assertTrue(!QueryEquivalenceChecker2.areEquivalent(cases.get(6).first, cases.get(6).second));
 	}
 	
 	public void test7(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(7).first, cases.get(7).second));
+		assertTrue(QueryEquivalenceChecker2.areEquivalent(cases.get(7).first, cases.get(7).second));
 	}
 	
 	public void test8(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(8).first, cases.get(8).second));
+		assertTrue(QueryEquivalenceChecker2.areEquivalent(cases.get(8).first, cases.get(8).second));
 	}
 	
 	public void test9(){
-		assertTrue(!QueryEquivalenceChecker.areEquivalent(cases.get(9).first, cases.get(9).second));
+		assertTrue(!QueryEquivalenceChecker2.areEquivalent(cases.get(9).first, cases.get(9).second));
 	}
 	
 	public void test10(){
-		assertTrue(!QueryEquivalenceChecker.areEquivalent(cases.get(10).first, cases.get(10).second));
+		assertTrue(!QueryEquivalenceChecker2.areEquivalent(cases.get(10).first, cases.get(10).second));
 	}
 	
 	public void test11(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(11).first, cases.get(11).second));
+		assertTrue(QueryEquivalenceChecker2.areEquivalent(cases.get(11).first, cases.get(11).second));
 	}
 	
 	public void test12(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(12).first, cases.get(12).second));
+		assertFalse(QueryEquivalenceChecker2.areEquivalent(cases.get(12).first, cases.get(12).second));
 	}
 	
 	public void test13(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(13).first, cases.get(13).second));
+		assertTrue(QueryEquivalenceChecker2.areEquivalent(cases.get(13).first, cases.get(13).second));
 	}
 	
 	public void test14(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(14).first, cases.get(14).second));
+		assertTrue(QueryEquivalenceChecker2.areEquivalent(cases.get(14).first, cases.get(14).second));
 	}
 	
 	public void test15(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(15).first, cases.get(15).second));
+		assertFalse(QueryEquivalenceChecker2.areEquivalent(cases.get(15).first, cases.get(15).second));
 	}
 	
 	public void test16(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(16).first, cases.get(16).second));
+		assertFalse(QueryEquivalenceChecker2.areEquivalent(cases.get(16).first, cases.get(16).second));
 	}
 	
 	public void test17(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(17).first, cases.get(17).second));
+		assertTrue(QueryEquivalenceChecker2.areEquivalent(cases.get(17).first, cases.get(17).second));
 	}
 	
 	public void test18(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(18).first, cases.get(18).second));
+		assertFalse(QueryEquivalenceChecker2.areEquivalent(cases.get(18).first, cases.get(18).second));
 	}
 	
 	public void test19(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(19).first, cases.get(19).second));
+		assertFalse(QueryEquivalenceChecker2.areEquivalent(cases.get(19).first, cases.get(19).second));
 	}
 
 	public void test20(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(20).first, cases.get(20).second));
+		assertTrue(QueryEquivalenceChecker2.areEquivalent(cases.get(20).first, cases.get(20).second));
 	}
 	
 	public void test21(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(21).first, cases.get(21).second));
+		assertTrue(QueryEquivalenceChecker2.areEquivalent(cases.get(21).first, cases.get(21).second));
 	}
 
 	public void test22(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(22).first, cases.get(22).second));
+		assertFalse(QueryEquivalenceChecker2.areEquivalent(cases.get(22).first, cases.get(22).second));
 	}
 	
 	public void test23(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(23).first, cases.get(23).second));
+		assertFalse(QueryEquivalenceChecker2.areEquivalent(cases.get(23).first, cases.get(23).second));
 	}
 
 	public void test24(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(24).first, cases.get(24).second));
+		assertTrue(QueryEquivalenceChecker2.areEquivalent(cases.get(24).first, cases.get(24).second));
 	}
 	
 	public void test25(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(25).first, cases.get(25).second));
+		assertTrue(QueryEquivalenceChecker2.areEquivalent(cases.get(25).first, cases.get(25).second));
 	}
 	
 	public void test26(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(26).first, cases.get(26).second));
+		assertFalse(QueryEquivalenceChecker2.areEquivalent(cases.get(26).first, cases.get(26).second));
 	}
 	
 	public void test27(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(27).first, cases.get(27).second));
+		assertTrue(QueryEquivalenceChecker2.areEquivalent(cases.get(27).first, cases.get(27).second));
 	}
 	
 	public void test28(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(28).first, cases.get(28).second));
+		assertFalse(QueryEquivalenceChecker2.areEquivalent(cases.get(28).first, cases.get(28).second));
 	}
 	
 	public void test29(){
@@ -375,25 +374,140 @@ public class TestEquivalenceChecker2 extends TestCase {
 	}
 	
 	public void test30(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(29).first, cases.get(29).second));
+		assertTrue(QueryEquivalenceChecker2.areEquivalent(cases.get(29).first, cases.get(29).second));
 	}
 	
 	public void test31(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(30).first, cases.get(30).second));
+		assertFalse(QueryEquivalenceChecker2.areEquivalent(cases.get(30).first, cases.get(30).second));
 	}
 	
 	public void test32(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(31).first, cases.get(31).second));
+		assertTrue(QueryEquivalenceChecker2.areEquivalent(cases.get(31).first, cases.get(31).second));
 	}
 	
 	public void test33() {
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(32).first, cases.get(32).second));
+		assertTrue(QueryEquivalenceChecker2.areEquivalent(cases.get(32).first, cases.get(32).second));
 	}
 	
 	public void test34() {
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(33).first, cases.get(33).second));		
+		assertTrue(QueryEquivalenceChecker2.areEquivalent(cases.get(33).first, cases.get(33).second));		
 	}
-
+        
+        public void test35() {
+            List<int[]> q1 = KB.triples(
+                                        KB.triple("?a", "g", "?b"),
+                                        KB.triple("?b", "h", "?z"),
+                                        KB.triple("?z", "g", "?a"));
+            List<int[]> q2 = KB.triples(
+                                        KB.triple("?a", "g", "?b"),
+                                        KB.triple("?z", "h", "?a"),
+                                        KB.triple("?b", "g", "?z"));
+            assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));
+        }
+        
+        public void test36() {
+            List<int[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "l", "?a"),
+                                        KB.triple("?b", "g", "?z"));
+            List<int[]> q2 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?b", "l", "?z"),
+                                        KB.triple("?z", "g", "?a"));
+            assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));
+        }
+        
+        public void test37() {
+            List<int[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "l", "?a"));
+            List<int[]> q2 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "l", "?b"));
+            assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));
+        }
+        
+        public void test38() {
+            List<int[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "l", "?a"));
+            List<int[]> q2 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "g", "?b"));
+            assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));
+        }
+        
+        public void test39() {
+            List<int[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "l", "?a"));
+            List<int[]> q2 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "g", "?a"));
+            assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));
+        }
+        
+        public void test40() {
+            List<int[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "l", "?a"));
+            List<int[]> q2 = KB.triples(
+                                        KB.triple("?z", "l", "?a"),
+                                        KB.triple("?a", "h", "?b"));
+            assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));
+        }
+        
+        
+        public void test41() {
+            List<int[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "l", "?a"));
+            List<int[]> q2 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?a", "l", "?z"));
+            assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));
+        }
+        
+        public void test42() {
+            List<int[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "l", "?a"));
+            List<int[]> q2 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?b", "l", "?z"));
+            assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));
+        }
+        
+        public void test43() {
+            List<int[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?a", "h", "?z"));
+            List<int[]> q2 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?b", "h", "?z"));
+            assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));
+        }
+        
+        public void test44() {
+            List<int[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?a", "h", "?z"));
+            List<int[]> q2 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "h", "?a"));
+            assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));
+        }
+        
+        public void test45() {
+            List<int[]> q1 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?a", "h", "?z"));
+            List<int[]> q2 = KB.triples(
+                                        KB.triple("?a", "h", "?b"),
+                                        KB.triple("?z", "h", "?b"));
+            assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));
+        }
+        
 	protected void tearDown() throws Exception {
 		super.tearDown();
 	}

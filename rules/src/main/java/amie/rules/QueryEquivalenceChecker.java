@@ -112,7 +112,7 @@ public class QueryEquivalenceChecker {
 						break;					
 					}
 				}
-				
+								
 				if(!match)
 					return false;
 			}
@@ -145,8 +145,16 @@ public class QueryEquivalenceChecker {
 				return false;
 			}
 			
-			if(g2.nodes.get(j).visited) //Avoid visiting the node again and again
+			if(g2.nodes.get(j).visited) { 
+				//Avoid visiting the node again and again
+				g2.nodes.get(j).removed = true;			
+				int newMapping[] = new int[2];
+				newMapping[0] = i;
+				newMapping[1] = j;
+
+				mappings.add(newMapping);
 				return true;
+			}
 			
 			//Mark it as visited
 			g2.nodes.get(j).visited = true;
@@ -170,15 +178,15 @@ public class QueryEquivalenceChecker {
 				return false;
 			
 			//Make sure the outgoingEdges match 
-			for(int[] edge1: e1){
-				boolean match = false;
-				for(int[] edge2: e2){
-					if((
-						(edge1[1] == edge2[1] && edge1[2] == edge2[2]) || (edge1[1] == edge2[2] && edge1[2] == edge2[1])
-						) && 
-						equivalent(g1, edge1[0], g2, edge2[0], mappings)){
-						match = true;
-						break;
+			boolean match = false;			
+			for(int[] edge1: ie1){
+				for(int[] edge2: ie2){					
+					boolean joinPatternMatch = (edge1[1] == edge2[1] && edge1[2] == edge2[2]); 
+					if (joinPatternMatch) {
+						if(equivalent(g1, edge1[0], g2, edge2[0], mappings)) {
+							match = true;
+							break;
+						}
 					}
 				}
 				
@@ -187,11 +195,30 @@ public class QueryEquivalenceChecker {
 				}
 			}
 			
+			//Make sure the outgoingEdges match 
+			for(int[] edge1: oe1){
+				for(int[] edge2: oe2){
+					boolean joinPatternMatch = (edge1[1] == edge2[1] && edge1[2] == edge2[2]);
+					if (joinPatternMatch) {
+						if(equivalent(g1, edge1[0], g2, edge2[0], mappings)) {
+							match = true;
+							break;
+						}
+					}
+				}
+
+				if(!match){
+					return false;
+				}
+			}
+
+			
 			//Remove the node and add the mapping
 			g2.nodes.get(j).removed = true;			
 			int newMapping[] = new int[2];
 			newMapping[0] = i;
 			newMapping[1] = j;
+
 			mappings.add(newMapping);
 			
 			return true;	
@@ -306,7 +333,8 @@ public class QueryEquivalenceChecker {
 			}
 		}
 		
-		return new QueryGraph(nodeList, outEdges, inEdges, edgesCount);
+		QueryGraph qg = new QueryGraph(nodeList, outEdges, inEdges, edgesCount);
+		return qg;
 	}
 	
 	/**

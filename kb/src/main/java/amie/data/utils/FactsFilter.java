@@ -5,12 +5,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.Set;
 
 import amie.data.KB;
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
+
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 /**
  * Given two sets of KBs: trim KBs and fact KBs, it outputs all the triples
@@ -70,29 +69,29 @@ public class FactsFilter {
 		BufferedWriter out = new BufferedWriter(fstream);
 		
 		//Now iterate over the trim source and only output triples whose subject appears in the facts source
-		ByteString[] triple = new ByteString[3];
+		int[] triple = new int[3];
 		triple[0] = KB.compress("?s");
 		triple[1] = KB.compress("?p");
 		triple[2] = KB.compress("?o");		
 		
-		Set<ByteString> subjects =  factsSource.selectDistinct(triple[0], KB.triples(KB.triple(triple)));
+		IntSet subjects =  factsSource.selectDistinct(triple[0], KB.triples(triple));
 		if(includeObjects)
-			subjects.addAll(factsSource.selectDistinct(triple[2], KB.triples(KB.triple(triple))));
+			subjects.addAll(factsSource.selectDistinct(triple[2], KB.triples(triple)));
 		
-		for(ByteString subject: subjects){
-			Map<ByteString, IntHashMap<ByteString>> subjectsMap = 
-					trimSource.resultsTwoVariables(ByteString.of("?p"), ByteString.of("?o"),
-							KB.triple(subject, ByteString.of("?p"), ByteString.of("?o")));
+		for(int subject: subjects){
+			Int2ObjectMap<IntSet> subjectsMap = 
+					trimSource.resultsTwoVariables(KB.map("?p"), KB.map("?o"),
+							KB.triple(subject, KB.map("?p"), KB.map("?o")));
 			if(subjectsMap == null) continue;			
-			Set<ByteString> predicates = subjectsMap.keySet(); 
-			for(ByteString predicate: predicates){
-				IntHashMap<ByteString> objects = subjectsMap.get(predicate);
-				for(ByteString object: objects){
-					out.append(subject);
+			IntSet predicates = subjectsMap.keySet(); 
+			for(int predicate: predicates){
+				IntSet objects = subjectsMap.get(predicate);
+				for(int object: objects){
+					out.append(KB.unmap(subject));
 					out.append('\t');
-					out.append(predicate);
+					out.append(KB.unmap(predicate));
 					out.append('\t');
-					out.append(object);
+					out.append(KB.unmap(object));
 					out.append('\n');
 				}
 			}

@@ -1,5 +1,6 @@
 package amie.rosa;
 
+import amie.data.KB;
 import amie.rules.Rule;
 import javatools.datatypes.Pair;
 
@@ -35,12 +36,12 @@ public class ROSAEquivalence {
 	public Pair<String, String> getRelations() {
 		String relation1, relation2;
 		if (rule1.getHeadRelation().startsWith(prefix1) 
-				&& rule1.getBody().get(0)[1].toString().startsWith(prefix2)) {
+				&& KB.unmap(rule1.getBody().get(0)[1]).startsWith(prefix2)) {
 			relation1 = rule1.getHeadRelation();			
-			relation2 = rule1.getBody().get(0)[1].toString();
+			relation2 = KB.unmap(rule1.getBody().get(0)[1]);
 		} else {
-			relation1 = rule1.getBody().get(0)[1].toString();
-			relation2 = rule1.getHeadRelation();			
+			relation1 = KB.unmap(rule1.getBody().get(0)[1]);
+			relation2 = rule1.getHeadRelation();
 		}
 		
 		return new Pair<>(relation1, relation2);

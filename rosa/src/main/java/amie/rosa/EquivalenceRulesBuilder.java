@@ -5,29 +5,29 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
-import javatools.datatypes.Pair;
+
 import amie.data.KB;
+import amie.data.tuple.IntPair;
 import amie.rules.AMIEParser;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 public class EquivalenceRulesBuilder {
 
 	private static void calculateMetrics(KB source, Rule candidate) {
 		// TODO Auto-generated method stub
-		List<ByteString[]> antecedent = new ArrayList<ByteString[]>();
+		List<int[]> antecedent = new ArrayList<int[]>();
 		antecedent.addAll(candidate.getAntecedent());
-		List<ByteString[]> succedent = new ArrayList<ByteString[]>();
+		List<int[]> succedent = new ArrayList<int[]>();
 		succedent.addAll(candidate.getTriples().subList(0, 1));
 		long numerator = 0;
 		long improvedDenominator = 0;
 		long denominator = 0;
-		ByteString[] head = candidate.getHead();
-		ByteString[] existentialTriple = head.clone();
+		int[] head = candidate.getHead();
+		int[] existentialTriple = head.clone();
 		int freeVarPos, countVarPos;
 				
 		countVarPos = source.functionality(head[1]) > source.inverseFunctionality(head[1]) ? 0 : 2;
@@ -35,15 +35,15 @@ public class EquivalenceRulesBuilder {
 		if(KB.numVariables(existentialTriple) == 1){
 			freeVarPos = KB.firstVariablePos(existentialTriple) == 0 ? 2 : 0;
 		}else{
-			freeVarPos = existentialTriple[0].equals(candidate.getFunctionalVariable()) ? 2 : 0;
+			freeVarPos = (existentialTriple[0] == candidate.getFunctionalVariable()) ? 2 : 0;
 		}
 
-		existentialTriple[freeVarPos] = ByteString.of("?x");
+		existentialTriple[freeVarPos] = KB.map("?x");
 				
 		//Confidence
 		try{
 			if(KB.numVariables(head) == 2){
-				ByteString var1, var2;
+				int var1, var2;
 				var1 = head[KB.firstVariablePos(head)];
 				var2 = head[KB.secondVariablePos(head)];
 				
@@ -55,7 +55,7 @@ public class EquivalenceRulesBuilder {
 				improvedDenominator = source.countDistinctPairs(var1, var2, antecedent);
 				candidate.setPcaBodySize((int)improvedDenominator);
 			}else if(KB.numVariables(head) == 1){
-				ByteString var = head[KB.firstVariablePos(head)];				
+				int var = head[KB.firstVariablePos(head)];				
 				numerator = source.countDistinct(var, candidate.getTriples());
 				denominator = source.countDistinct(var, antecedent);
 				antecedent.add(existentialTriple);
@@ -70,7 +70,7 @@ public class EquivalenceRulesBuilder {
 	}
 	
 	public static long calculateIntersection(KB source, Rule rule){
-		ByteString[] head = rule.getHead();
+		int[] head = rule.getHead();
 		if(KB.numVariables(head) == 2)
 			return source.countDistinctPairs(head[0], head[2], rule.getTriples());
 		else
@@ -78,30 +78,30 @@ public class EquivalenceRulesBuilder {
 	}
 	
 	public static long calculateUnion(KB source, Rule rule){
-		ByteString[] head, body;
+		int[] head, body;
 		head = rule.getHead();
 		body = rule.getBody().get(0);
 		if(KB.numVariables(head) == 2){
-			Map<ByteString, IntHashMap<ByteString>> headBindings = source.selectDistinct(head[0], head[2], KB.triples(head));		
-			Map<ByteString, IntHashMap<ByteString>> bodyBindings = source.selectDistinct(head[0], head[2], KB.triples(body));		
-			Set<Pair<ByteString, ByteString> > pairs = new HashSet<Pair<ByteString, ByteString>>();
+			Int2ObjectMap<IntSet> headBindings = source.selectDistinct(head[0], head[2], KB.triples(head));		
+			Int2ObjectMap<IntSet> bodyBindings = source.selectDistinct(head[0], head[2], KB.triples(body));		
+			Set<IntPair > pairs = new HashSet<IntPair>();
 			
-			for(ByteString key1: headBindings.keySet()){
-				for(ByteString key2: headBindings.get(key1)){
-					pairs.add(new Pair<ByteString, ByteString>(key1, key2));
+			for(int key1: headBindings.keySet()){
+				for(int key2: headBindings.get(key1)){
+					pairs.add(new IntPair(key1, key2));
 				}
 			}
 			
-			for(ByteString key1: bodyBindings.keySet()){
-				for(ByteString key2: bodyBindings.get(key1)){
-					pairs.add(new Pair<ByteString, ByteString>(key1, key2));
+			for(int key1: bodyBindings.keySet()){
+				for(int key2: bodyBindings.get(key1)){
+					pairs.add(new IntPair(key1, key2));
 				}
 			}		
 			
 			return pairs.size();
 		}else{
 			//Case for one variable
-			Set<ByteString> headBindings = source.selectDistinct(head[KB.firstVariablePos(head)], KB.triples(head));
+			IntSet headBindings = source.selectDistinct(head[KB.firstVariablePos(head)], KB.triples(head));
 			headBindings.addAll(source.selectDistinct(head[KB.firstVariablePos(head)], KB.triples(body)));			
 			return headBindings.size();
 		}
@@ -118,7 +118,7 @@ public class EquivalenceRulesBuilder {
 		for(int i = 0; i < rules.size(); ++i){
 			if(flags[i]) continue;
 			boolean twoVars = KB.numVariables(rules.get(i).getHead()) == 2;
-			ByteString r1, r2, r1p, r2p, t1, t2, t1p, t2p;
+			int r1, r2, r1p, r2p, t1, t2, t1p, t2p;
 			r1 = rules.get(i).getHead()[1];
 			r2 = rules.get(i).getBody().get(0)[1];
 			t1 = rules.get(i).getHead()[2];
@@ -130,9 +130,9 @@ public class EquivalenceRulesBuilder {
 				t1p = rules.get(j).getHead()[2];
 				t2p = rules.get(j).getBody().get(0)[2];
 				if(twoVars){
-					match = r1.equals(r2p) && r2.equals(r1p);
+					match = (r1 == r2p) && (r2 == r1p);
 				}else{
-					match = r1.equals(r2p) && r2.equals(r1p) && t1.equals(t2p) && t2.equals(t1p);					
+                                        match = (r1 == r2p) && (r2 == r1p) && (t1 == t2p) && (t2 == t1p);
 				}
 				if(match){
 					flags[i] = true;
@@ -168,7 +168,7 @@ public class EquivalenceRulesBuilder {
 		for(int i = 0; i < rules.size(); ++i){
 			if(flags[i]) continue;
 			boolean twoVars = KB.numVariables(rules.get(i).getHead()) == 2;
-			ByteString r1, r2, r1p, r2p, t1, t2, t1p, t2p;
+			int r1, r2, r1p, r2p, t1, t2, t1p, t2p;
 			r1 = rules.get(i).getHead()[1];
 			r2 = rules.get(i).getBody().get(0)[1];
 			t1 = rules.get(i).getHead()[2];
@@ -180,9 +180,9 @@ public class EquivalenceRulesBuilder {
 				t1p = rules.get(j).getHead()[2];
 				t2p = rules.get(j).getBody().get(0)[2];
 				if(twoVars){
-					match = r1.equals(r2p) && r2.equals(r1p);
+					match = (r1 == r2p) && (r2 == r1p);
 				}else{
-					match = r1.equals(r2p) && r2.equals(r1p) && t1.equals(t2p) && t2.equals(t1p);					
+					match = (r1 == r2p) && (r2 == r1p) && (t1 == t2p) && (t2 == t1p);		
 				}
 				if(match){
 					flags[i] = true;

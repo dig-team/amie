@@ -7,9 +7,8 @@ package amie.typing.evaluation;
 
 import amie.data.KB;
 import amie.data.Schema;
-import java.util.Set;
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import javatools.datatypes.Pair;
 
 /**
@@ -18,15 +17,15 @@ import javatools.datatypes.Pair;
  */
 public class ClassSizeEvaluator {
     protected KB taxo;
-    protected IntHashMap<ByteString> classSize;
+    protected Int2IntMap classSize;
     
-    public Pair<Integer, Integer> evaluatePrecisionPair(Set<ByteString> answer, Set<ByteString> goldStandard) {
+    public Pair<Integer, Integer> evaluatePrecisionPair(IntSet answer, IntSet goldStandard) {
         int TP = 0;
         int FP = 0;
-        for (ByteString c : answer) {
+        for (int c : answer) {
             int subTP = 0;
-            for (ByteString gc : goldStandard) {
-                if (gc.equals(c) || Schema.isTransitiveSuperType(taxo, gc, c)) {
+            for (int gc : goldStandard) {
+                if (gc == (c) || Schema.isTransitiveSuperType(taxo, gc, c)) {
                     subTP = classSize.get(c);
                     break;
                 }
@@ -40,7 +39,7 @@ public class ClassSizeEvaluator {
         return new Pair<>(TP, FP);
     }
     
-    public Pair<Integer, Integer> evaluateRecallPair(Set<ByteString> answer, Set<ByteString> goldStandard) {
+    public Pair<Integer, Integer> evaluateRecallPair(IntSet answer, IntSet goldStandard) {
         return evaluatePrecisionPair(goldStandard, answer);
     }
     
@@ -49,11 +48,11 @@ public class ClassSizeEvaluator {
         return (double) TPFP.first / (TPFP.first + TPFP.second);
     }
     
-    public double evaluatePrecision(Set<ByteString> answer, Set<ByteString> goldStandard) {
+    public double evaluatePrecision(IntSet answer, IntSet goldStandard) {
         return pairToPrecision(evaluatePrecisionPair(answer, goldStandard));
     }
     
-    public double evaluateRecall(Set<ByteString> answer, Set<ByteString> goldStandard) {
+    public double evaluateRecall(IntSet answer, IntSet goldStandard) {
         return evaluatePrecision(goldStandard, answer);
     }
 }

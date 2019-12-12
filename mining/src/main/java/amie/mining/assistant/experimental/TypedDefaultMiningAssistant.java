@@ -8,12 +8,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
+
 import amie.data.KB;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.mining.assistant.MiningOperator;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 
 /**
  * This class overrides the default mining assistant and adds to the rule
@@ -55,17 +55,17 @@ public class TypedDefaultMiningAssistant extends DefaultMiningAssistant {
 		
 	public void getSpecializationCandidates(Rule query, double minSupportThreshold, Collection<Rule> output) {
 		List<Rule> tmpCandidates = new ArrayList<Rule>();
-		ByteString[] head = query.getHead();
+		int[] head = query.getHead();
 		
 		//Specialization by type
 		if(KB.isVariable(head[0])){
-			ByteString[] newEdge = query.fullyUnboundTriplePattern();
+			int[] newEdge = query.fullyUnboundTriplePattern();
 			newEdge[0] = head[0];
 			newEdge[1] = typeString;				
 			query.getTriples().add(newEdge);
-			IntHashMap<ByteString> subjectTypes = kb.countProjectionBindings(query.getHead(), query.getAntecedent(), newEdge[2]);
+			Int2IntMap subjectTypes = kb.countProjectionBindings(query.getHead(), query.getAntecedent(), newEdge[2]);
 			if(!subjectTypes.isEmpty()){
-				for(ByteString type: subjectTypes){
+				for(int type: subjectTypes.keySet()){
 					int cardinality = subjectTypes.get(type);
 					if(cardinality >= minSupportThreshold){
 						Rule newCandidate = new Rule(query, cardinality);
@@ -81,13 +81,13 @@ public class TypedDefaultMiningAssistant extends DefaultMiningAssistant {
 		
 		if(KB.isVariable(head[2])){
 			for(Rule candidate: tmpCandidates){
-				ByteString[] newEdge = query.fullyUnboundTriplePattern();
+				int[] newEdge = query.fullyUnboundTriplePattern();
 				newEdge[0] = head[2];
 				newEdge[1] = typeString;
 				candidate.getTriples().add(newEdge);
-				IntHashMap<ByteString> objectTypes = kb.countProjectionBindings(candidate.getHead(), candidate.getAntecedent(), newEdge[2]);
+				Int2IntMap objectTypes = kb.countProjectionBindings(candidate.getHead(), candidate.getAntecedent(), newEdge[2]);
 				if(!objectTypes.isEmpty()){
-					for(ByteString type: objectTypes){
+					for(int type: objectTypes.keySet()){
 						int cardinality = objectTypes.get(type);
 						if(cardinality >= minSupportThreshold){
 							Rule newCandidate = new Rule(candidate, cardinality);

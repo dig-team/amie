@@ -5,11 +5,11 @@
 package amie.data.utils;
 
 import java.io.IOException;
-import java.util.Map;
 
 import amie.data.KB;
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
+
 
 /**
  * @author lgalarra
@@ -26,19 +26,19 @@ public class MaterializeInverseFunctions {
 		amie.data.Schema.loadSchemaConf();
 		System.out.println("Type relation: " + amie.data.Schema.typeRelation);
 		KB db = amie.data.U.loadFiles(args);
-		Map<ByteString, Map<ByteString, IntHashMap<ByteString>>> map = 
-				db.resultsThreeVariables(ByteString.of("?s"), ByteString.of("?p"), ByteString.of("?o"),
+		Int2ObjectMap<Int2ObjectMap<IntSet>> map = 
+				db.resultsThreeVariables(KB.map("?s"), KB.map("?p"), KB.map("?o"),
 						KB.triple("?o", "?p", "?s"));
-		for(ByteString object: map.keySet()){
-			Map<ByteString, IntHashMap<ByteString> > predicates = map.get(object);
-			for(ByteString predicate: predicates.keySet()){
+		for(int object: map.keySet()){
+			Int2ObjectMap<IntSet > predicates = map.get(object);
+			for(int predicate: predicates.keySet()){
 				if(db.functionality(predicate) >= db.inverseFunctionality(predicate)){
-					for(ByteString subject: predicates.get(predicate))
+					for(int subject: predicates.get(predicate))
 						System.out.println(subject + "\t" + predicate + "\t" + object);
 				} else {
-					for(ByteString subject: predicates.get(predicate))
+					for(int subject: predicates.get(predicate))
 						System.out.println(object + "\t" + "<inv-" 
-					+ predicate.subSequence(1, predicate.length()) + "\t" + subject);					
+					+ KB.unmap(predicate).subSequence(1, KB.unmap(predicate).length()) + "\t" + subject);					
 				}
 			}
 		}

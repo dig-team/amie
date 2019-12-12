@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.Set;
 
 import amie.data.KB;
-import javatools.datatypes.ByteString;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+
 import javatools.datatypes.IntHashMap;
 import javatools.filehandlers.TSVFile;
 
@@ -57,8 +58,8 @@ public class RelevanceCalculator {
 					ingoingLinks = 2;
 				}
 				if (kb != null) {
-					nFacts = kb.count(ByteString.of(entity), ByteString.of("?p"), ByteString.of("?o"));
-					nFacts += kb.count(ByteString.of("?s"), ByteString.of("?p"), ByteString.of(entity));
+					nFacts = kb.count(KB.map(entity), KB.map("?p"), KB.map("?o"));
+					nFacts += kb.count(KB.map("?s"), KB.map("?p"), KB.map(entity));
 				}
 				
 				double coefficient = 0.0;
@@ -83,8 +84,8 @@ public class RelevanceCalculator {
 	
 	private static void calculateRelevance(String args[]) throws IOException {
 		KB kb = amie.data.U.loadFiles(args);
-		IntHashMap<ByteString> allEntities = kb.getEntitiesOccurrences();
-		for (ByteString entity : allEntities) {
+		Int2IntMap allEntities = kb.getEntitiesOccurrences();
+		for (int entity : allEntities.keySet()) {
 			System.out.println(entity + "\t<hasRelevance>\t" + allEntities.get(entity));
 		}
 	}

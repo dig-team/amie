@@ -3,7 +3,7 @@ package amie.mining.assistant.experimental;
 import java.util.ArrayList;
 import java.util.List;
 
-import javatools.datatypes.ByteString;
+
 import amie.data.KB;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.Rule;
@@ -32,20 +32,20 @@ public class ExistentialRulesHeadVariablesMiningAssistant extends
 	@Override
 	public void calculateConfidenceMetrics(Rule candidate) {
 		// TODO Auto-generated method stub
-		List<ByteString[]> antecedent = new ArrayList<ByteString[]>();
+		List<int[]> antecedent = new ArrayList<int[]>();
 		antecedent.addAll(candidate.getAntecedent());
-		List<ByteString[]> succedent = new ArrayList<ByteString[]>();
+		List<int[]> succedent = new ArrayList<int[]>();
 		succedent.addAll(candidate.getTriples().subList(0, 1));
 		double pcaDenominator = 0.0;
 		double denominator = 0.0;
-		ByteString[] head = candidate.getHead();
-		ByteString[] existentialTriple = head.clone();
+		int[] head = candidate.getHead();
+		int[] existentialTriple = head.clone();
 		int freeVarPos, countVarPos;
 				
 		if (!antecedent.isEmpty()){
 			try{
 				if(KB.numVariables(head) == 2){
-					ByteString var1, var2;
+					int var1, var2;
 					var1 = head[KB.firstVariablePos(head)];
 					var2 = head[KB.secondVariablePos(head)];
 					denominator = (double) computeBodySize(var1, var2, candidate);
@@ -63,17 +63,17 @@ public class ExistentialRulesHeadVariablesMiningAssistant extends
 				if(KB.numVariables(existentialTriple) == 1){
 					freeVarPos = KB.firstVariablePos(existentialTriple) == 0 ? 2 : 0;
 				}else{
-					freeVarPos = existentialTriple[0].equals(candidate.getFunctionalVariable()) ? 2 : 0;
+					freeVarPos = (existentialTriple[0] == candidate.getFunctionalVariable()) ? 2 : 0;
 				}
-				existentialTriple[freeVarPos] = ByteString.of("?x");
+				existentialTriple[freeVarPos] = KB.map("?x");
 				
 				try{
-					List<ByteString[]> redundantAtoms = Rule.redundantAtoms(existentialTriple, antecedent);
+					List<int[]> redundantAtoms = Rule.redundantAtoms(existentialTriple, antecedent);
 					boolean existentialQueryRedundant = false;
 					
 					//If the counting variable is in the same position of any of the unifiable patterns => redundant
-					for(ByteString[] atom: redundantAtoms){
-						if(existentialTriple[countVarPos].equals(atom[countVarPos]))
+					for(int[] atom: redundantAtoms){
+						if(existentialTriple[countVarPos] == atom[countVarPos])
 							existentialQueryRedundant = true;
 					}
 						
@@ -81,7 +81,7 @@ public class ExistentialRulesHeadVariablesMiningAssistant extends
 						pcaDenominator = denominator;
 					}else{
 						if(KB.numVariables(head) == 2){
-							ByteString var1, var2;
+							int var1, var2;
 							var1 = head[KB.firstVariablePos(head)];
 							var2 = head[KB.secondVariablePos(head)];
 							pcaDenominator = (double) computePcaBodySize(var1, 

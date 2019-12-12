@@ -1,10 +1,11 @@
 package amie.rosa;
 
+import amie.data.KB;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import javatools.datatypes.ByteString;
+
 import amie.rules.AMIEParser;
 import amie.rules.Rule;
 
@@ -30,17 +31,17 @@ public class TrianglePropertyFilter {
 		if(rule.getLength() != 3)
 			return false;
 		
-		List<ByteString[]> body = rule.getBody();
-		ByteString[] head = rule.getHead();
+		List<int[]> body = rule.getBody();
+		int[] head = rule.getHead();
 		
-		if(!body.get(0)[1].equals(body.get(1)[1]))
+		if(body.get(0)[1] != (body.get(1)[1]))
 			return false;
 		
-		if(! (body.get(0)[0].equals(body.get(1)[0]) || body.get(0)[2].equals(body.get(1)[2]) ))
+		if(! (body.get(0)[0] == (body.get(1)[0]) || body.get(0)[2] == (body.get(1)[2]) ))
 			return false;
 		
-		if(!(body.get(0)[1].toString().startsWith("<ns:") && body.get(1)[1].toString().startsWith("<ns:") && !head[1].toString().startsWith("<ns:"))
-			|| 	!(!body.get(0)[1].toString().startsWith("<ns:") && !body.get(1)[1].toString().startsWith("<ns:") && head[1].toString().startsWith("<ns:"))
+		if(!(KB.unmap(body.get(0)[1]).startsWith("<ns:") && KB.unmap(body.get(1)[1]).startsWith("<ns:") && !KB.unmap(head[1]).startsWith("<ns:"))
+			|| 	!(!KB.unmap(body.get(0)[1]).startsWith("<ns:") && !KB.unmap(body.get(1)[1]).startsWith("<ns:") && KB.unmap(head[1]).startsWith("<ns:"))
 		  )
 			return false;
 			

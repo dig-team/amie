@@ -4,30 +4,31 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-import javatools.datatypes.ByteString;
+
 import javatools.datatypes.IntHashMap;
-import javatools.datatypes.Triple;
 import javatools.filehandlers.TSVFile;
 import amie.data.KB;
+import amie.data.tuple.IntTriple;
 import amie.rules.AMIEParser;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 
-class TripleComparator implements Comparator<ByteString[]> {
+class TripleComparator implements Comparator<int[]> {
 
 	@Override
-	public int compare(ByteString[] o1, ByteString[] o2) {
-		if (o1[0].equals(o2[0])) {
-			if (o1[1].equals(o2[1])) {
-				return o1[2].toString().compareTo(o2[2].toString()); 
+	public int compare(int[] o1, int[] o2) {
+		if (o1[0] == o2[0]) {
+			if (o1[1] == o2[1]) {
+				return Integer.compare(o1[2], o2[2]); 
 			} else {
-				return o1[1].toString().compareTo(o2[1].toString());
+				return Integer.compare(o1[1], o2[1]);
 			}
 		} else {
-			return o1[0].toString().compareTo(o2[0].toString());
+			return Integer.compare(o1[0], o2[0]);
 		}
 	}
 }
@@ -59,7 +60,7 @@ public class RuleHitsEvaluator {
 		trainingDataset.load(new File(args[1]));
 		targetDataset.load(new File(args[2]));
 		Predictor predictor = new Predictor(trainingDataset);	
-		IntHashMap<Triple<ByteString, ByteString, ByteString>> predictions = 
+		IntHashMap<IntTriple> predictions = 
 				new IntHashMap<>();
 		// Collect all predictions made by the rules.
 		for(List<String> record: tsvFile) {
@@ -68,7 +69,7 @@ public class RuleHitsEvaluator {
 				continue;
 			}
 			
-			ByteString[] head = q.getHead();
+			int[] head = q.getHead();
 			q.setFunctionalVariablePosition(Rule.findFunctionalVariable(q, trainingDataset));
 			Object bindings = null;
 			try {
@@ -78,10 +79,10 @@ public class RuleHitsEvaluator {
 			}
 			
 			if(KB.numVariables(head) == 1){
-				Set<ByteString> oneVarBindings = (Set<ByteString>)bindings;
-				for(ByteString binding: oneVarBindings){
-					Triple<ByteString, ByteString, ByteString> t = 
-							new Triple<>(ByteString.of("?a"), head[1], ByteString.of("?b"));
+				IntSet oneVarBindings = (IntSet)bindings;
+				for(int binding: oneVarBindings){
+					IntTriple t = 
+							new IntTriple(KB.map("?a"), head[1], KB.map("?b"));
 					if (q.getFunctionalVariablePosition() == 0) {
 						t.first = binding;
 					} else {
@@ -90,12 +91,12 @@ public class RuleHitsEvaluator {
 					predictions.increase(t);
 				}
 			}else{
-				Map<ByteString, IntHashMap<ByteString>> twoVarsBindings = 
-						(Map<ByteString, IntHashMap<ByteString>>)bindings;
-				for(ByteString value1: twoVarsBindings.keySet()){
-					for(ByteString value2: twoVarsBindings.get(value1)){
-						Triple<ByteString, ByteString, ByteString> t = 
-								new Triple<>(ByteString.of("?a"), head[1], ByteString.of("?b"));
+				Int2ObjectMap<Int2IntMap> twoVarsBindings = 
+						(Int2ObjectMap<Int2IntMap>)bindings;
+				for(int value1: twoVarsBindings.keySet()){
+					for(int value2: twoVarsBindings.get(value1).keySet()){
+						IntTriple t = 
+								new IntTriple(KB.map("?a"), head[1], KB.map("?b"));
 						if(q.getFunctionalVariablePosition() == 0){
 							t.first = value1;
 							t.third = value2;
@@ -109,8 +110,8 @@ public class RuleHitsEvaluator {
 			}		
 		}
 		
-		for (Triple<ByteString, ByteString, ByteString> t : predictions) {
-			ByteString[] triple = KB.triple2Array(t);
+		for (IntTriple t : predictions) {
+			int[] triple = KB.triple2Array(t);
 			int eval = Evaluator.evaluate(triple, trainingDataset, targetDataset);
 			if(eval == 0) { 
 				++hitsInTarget;

@@ -1,16 +1,18 @@
 package amie.mining.assistant.wikilinks;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import amie.data.KB;
+import amie.data.tuple.IntArrays;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.Rule;
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
+
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntCollection;
+import it.unimi.dsi.fastutil.ints.IntList;
 
 public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistant {
 	
@@ -18,8 +20,8 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 	
 	public WikilinksHeadVariablesMiningAssistant(KB dataSource) {
 		super(dataSource);
-        headExcludedRelations = Arrays.asList(ByteString.of(WikilinksHeadVariablesMiningAssistant.wikiLinkProperty), 
-        		ByteString.of("rdf:type"));
+        headExcludedRelations = IntArrays.asList(KB.map(WikilinksHeadVariablesMiningAssistant.wikiLinkProperty), 
+        		KB.map("rdf:type"));
         bodyExcludedRelations = headExcludedRelations;
 	}
 	
@@ -29,20 +31,20 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 	}
 	
 	@Override
-	public void setHeadExcludedRelations(java.util.Collection<ByteString> headExcludedRelations) {};
+	public void setHeadExcludedRelations(IntCollection headExcludedRelations) {};
 	
 	@Override
-	public void setBodyExcludedRelations(java.util.Collection<ByteString> excludedRelations) {};
+	public void setBodyExcludedRelations(IntCollection excludedRelations) {};
 	
 	@Override
 	public void getDanglingAtoms(Rule query, double minCardinality, Collection<Rule> output) {		
 		if (query.isEmpty()) {
 			//Initial case
-			ByteString[] newEdge = query.fullyUnboundTriplePattern();
+			int[] newEdge = query.fullyUnboundTriplePattern();
 			query.getTriples().add(newEdge);
-			List<ByteString[]> emptyList = Collections.emptyList();
-			IntHashMap<ByteString> relations = kb.countProjectionBindings(query.getHead(), emptyList, newEdge[1]);
-			for(ByteString relation: relations){
+			List<int[]> emptyList = Collections.emptyList();
+			Int2IntMap relations = kb.countProjectionBindings(query.getHead(), emptyList, newEdge[1]);
+			for(int relation: relations.keySet()){
 				// Language bias test
 				if (query.cardinalityForRelation(relation) >= recursivityLimit) {
 					continue;
@@ -55,7 +57,7 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 				
 				int cardinality = relations.get(relation);
 				if(cardinality >= minCardinality){
-					ByteString[] succedent = newEdge.clone();
+					int[] succedent = newEdge.clone();
 					succedent[1] = relation;
 					int countVarPos = countAlwaysOnSubject? 0 : findCountingVariable(succedent);
 					Rule candidate = new Rule(succedent, cardinality);
@@ -76,18 +78,18 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 			return;
 		
 		List<Rule> tmpCandidates = new ArrayList<Rule>();
-		ByteString[] head = query.getHead();
+		int[] head = query.getHead();
 		
 		//Specialization by type
 		if(KB.isVariable(head[0])){
-			ByteString[] newEdge = query.fullyUnboundTriplePattern();
+			int[] newEdge = query.fullyUnboundTriplePattern();
 			newEdge[0] = head[0];
 			newEdge[1] = typeString;				
 			query.getTriples().add(newEdge);
-			IntHashMap<ByteString> subjectTypes = kb.countProjectionBindings(query.getHead(), 
+			Int2IntMap subjectTypes = kb.countProjectionBindings(query.getHead(), 
 					query.getAntecedent(), newEdge[2]);
 			if(!subjectTypes.isEmpty()){
-				for(ByteString type: subjectTypes){
+				for(int type: subjectTypes.keySet()){
 					int cardinality = subjectTypes.get(type);
 					if(cardinality >= minSupportThreshold){
 						Rule newCandidate = new Rule(query, cardinality);
@@ -103,17 +105,17 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 		
 		if(KB.isVariable(head[2])){
 			for(Rule candidate: tmpCandidates){
-				ByteString[] newEdge = query.fullyUnboundTriplePattern();
+				int[] newEdge = query.fullyUnboundTriplePattern();
 				newEdge[0] = head[2];
 				newEdge[1] = typeString;
 				candidate.getTriples().add(newEdge);
-				IntHashMap<ByteString> objectTypes = kb.countProjectionBindings(candidate.getHead(), candidate.getAntecedent(), newEdge[2]);
-				for(ByteString type: objectTypes){
+				Int2IntMap objectTypes = kb.countProjectionBindings(candidate.getHead(), candidate.getAntecedent(), newEdge[2]);
+				for(int type: objectTypes.keySet()){
 					int cardinality = objectTypes.get(type);
 					if(cardinality >= minSupportThreshold){
 						Rule newCandidate = new Rule(candidate, cardinality);
 						newCandidate.setHeadCoverage((double)cardinality 
-								/ (double)headCardinalities.get(newCandidate.getHeadRelation()));
+								/ (double)headCardinalities.get(newCandidate.getHeadRelationBS()));
 						newCandidate.setSupportRatio((double)cardinality / (double)kb.size());
 						newCandidate.addParent(query);
 						newCandidate.getLastTriplePattern()[2] = type;
@@ -133,43 +135,43 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 	
 	@Override
 	public void getClosingAtoms(Rule query, double minSupportThreshold, Collection<Rule> output) {
-		int length = query.getLengthWithoutTypesAndLinksTo(typeString, ByteString.of(wikiLinkProperty));
-		ByteString[] head = query.getHead();
+		int length = query.getLengthWithoutTypesAndLinksTo(typeString, KB.map(wikiLinkProperty));
+		int[] head = query.getHead();
 		if (length == maxDepth - 1) {
-			List<ByteString> openVariables = query.getOpenVariables();
-			for (ByteString openVar : openVariables) {
-				if (KB.isVariable(head[0]) && !openVar.equals(head[0])) {
+			IntList openVariables = query.getOpenVariables();
+			for (int openVar : openVariables) {
+				if (KB.isVariable(head[0]) && openVar != head[0]) {
 					return;
 				}
 				
-				if (KB.isVariable(head[2]) && !openVar.equals(head[2])) {
+				if (KB.isVariable(head[2]) && openVar != head[2]) {
 					return;
 				}
 			}
 		}
 		
-		if (!query.containsRelation(ByteString.of(wikiLinkProperty))) {
-			ByteString[] newEdge = head.clone();
-			newEdge[1] = ByteString.of(wikiLinkProperty);
-			List<ByteString[]> queryAtoms = new ArrayList<>();
+		if (!query.containsRelation(KB.map(wikiLinkProperty))) {
+			int[] newEdge = head.clone();
+			newEdge[1] = KB.map(wikiLinkProperty);
+			List<int[]> queryAtoms = new ArrayList<>();
 			queryAtoms.addAll(query.getTriples());
 			queryAtoms.add(newEdge);
 			long cardinality = kb.countDistinctPairs(head[0], head[2], queryAtoms);
 			if (cardinality >= minSupportThreshold) {
 				Rule candidate1 = query.addAtom(newEdge, (int)cardinality);
-				candidate1.setHeadCoverage((double)cardinality / (double)headCardinalities.get(candidate1.getHeadRelation()));
+				candidate1.setHeadCoverage((double)cardinality / (double)headCardinalities.get(candidate1.getHeadRelationBS()));
 				candidate1.setSupportRatio((double)cardinality / (double)kb.size());
 				candidate1.addParent(query);			
 				output.add(candidate1);	
 			}
 			
-			ByteString tmp = newEdge[0];
+			int tmp = newEdge[0];
 			newEdge[0] = newEdge[2];
 			newEdge[2] = tmp;
 			cardinality = kb.countDistinctPairs(head[0], head[2], queryAtoms);
 			if (cardinality >= minSupportThreshold) {
 				Rule candidate2 = query.addAtom(newEdge, (int)cardinality);
-				candidate2.setHeadCoverage((double)cardinality / (double)headCardinalities.get(candidate2.getHeadRelation()));
+				candidate2.setHeadCoverage((double)cardinality / (double)headCardinalities.get(candidate2.getHeadRelationBS()));
 				candidate2.setSupportRatio((double)cardinality / (double)kb.size());
 				candidate2.addParent(query);			
 				output.add(candidate2);	
@@ -180,13 +182,13 @@ public class WikilinksHeadVariablesMiningAssistant extends DefaultMiningAssistan
 	}
 
 	protected boolean isNotTooLong(Rule candidate){
-		return candidate.getLengthWithoutTypesAndLinksTo(typeString, ByteString.of(wikiLinkProperty)) < maxDepth;
+		return candidate.getLengthWithoutTypesAndLinksTo(typeString, KB.map(wikiLinkProperty)) < maxDepth;
 	}
 	
 	@Override
 	public boolean shouldBeOutput(Rule candidate) {
 		return candidate.isClosed(true) 
 				&& candidate.containsRelation(typeString)
-				&& candidate.containsRelation(ByteString.of(wikiLinkProperty));
+				&& candidate.containsRelation(KB.map(wikiLinkProperty));
 	}	
 }

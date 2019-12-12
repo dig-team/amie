@@ -8,13 +8,12 @@ package amie.typing.classifier;
 import amie.data.KB;
 import amie.data.SetU;
 import amie.typing.heuristics.TypingHeuristic;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.File;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
 
 /**
  *
@@ -22,7 +21,7 @@ import javatools.datatypes.IntHashMap;
  */
 public class SeparationSTreeClassifier extends SeparationTreeClassifier {
 
-    public SeparationSTreeClassifier(KB source, IntHashMap<ByteString> cS, Map<ByteString, IntHashMap<ByteString>> cIS) {
+    public SeparationSTreeClassifier(KB source, Int2IntMap cS, Int2ObjectMap<Int2IntMap> cIS) {
         super(source, cS, cIS);
     }
 
@@ -30,7 +29,7 @@ public class SeparationSTreeClassifier extends SeparationTreeClassifier {
         super(source, typeCountFile, typeIntersectionCountFile);
     }
 
-    public SeparationSTreeClassifier(KB source, IntHashMap<ByteString> cS, Map<ByteString, IntHashMap<ByteString>> cIS, boolean supportForTarget) {
+    public SeparationSTreeClassifier(KB source, Int2IntMap cS, Int2ObjectMap<Int2IntMap> cIS, boolean supportForTarget) {
         super(source, cS, cIS, supportForTarget);
     }
 
@@ -38,27 +37,27 @@ public class SeparationSTreeClassifier extends SeparationTreeClassifier {
         super(source, typeCountFile, typeIntersectionCountFile, supportForTarget);
     }
     
-    public void computeStatistics(List<ByteString[]> query, ByteString variable, int classSizeThreshold) {
-        Set<ByteString> relevantClasses = index.keySet();
-        ByteString relation = (query.get(0)[0].equals(variable)) ? query.get(0)[1] : ByteString.of(query.get(0)[1].toString() + "-1");
+    public void computeStatistics(List<int[]> query, int variable, int classSizeThreshold) {
+        IntSet relevantClasses = index.keySet();
+        int relation = (query.get(0)[0] == (variable)) ? query.get(0)[1] : KB.map(KB.unmap(query.get(0)[1]) + "-1");
 
-        for (ByteString class1 : relevantClasses) {
+        for (int class1 : relevantClasses) {
             int c1size = classSize.get(class1);
-            Set<ByteString> c1phi = null;
+            IntSet c1phi = null;
             
             if (localdb != null) {
-                c1phi = new HashSet<>(localdb.relations.get(relation));
+                c1phi = new IntOpenHashSet(localdb.relations.get(relation));
                 c1phi.retainAll(localdb.classes.get(class1));
                 if (c1phi.size() == c1size) {
                     continue;
                 }
             }
 
-            List<ByteString[]> clause = TypingHeuristic.typeL(class1, variable);
+            List<int[]> clause = TypingHeuristic.typeL(class1, variable);
             clause.addAll(query);
-            Set<ByteString> targetClasses = (supportForTarget) ? relevantClasses : classIntersectionSize.get(class1);
+            IntSet targetClasses = (supportForTarget) ? relevantClasses : classIntersectionSize.get(class1).keySet();
 
-            for (ByteString class2 : targetClasses) {
+            for (int class2 : targetClasses) {
                 assert (clause.size() == query.size() + 1);
                 if (class1 == class2) {
                     continue;
@@ -67,7 +66,7 @@ public class SeparationSTreeClassifier extends SeparationTreeClassifier {
                     // Ensure the symmetry of the output.
                     continue;
                 }
-                if (!classIntersectionSize.containsKey(class1) || !classIntersectionSize.get(class1).contains(class2)) {
+                if (!classIntersectionSize.containsKey(class1) || !classIntersectionSize.get(class1).containsKey(class2)) {
                     continue;
                 }
 

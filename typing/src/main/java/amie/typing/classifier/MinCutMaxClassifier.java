@@ -2,22 +2,14 @@ package amie.typing.classifier;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
-import javatools.datatypes.ByteString;
+
 import javatools.datatypes.Pair;
 
 import org.apache.commons.cli.CommandLine;
@@ -29,6 +21,11 @@ import org.apache.commons.cli.PosixParser;
 
 import amie.data.KB;
 import amie.typing.classifier.SeparationClassifier.ParsedArguments;
+import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 public class MinCutMaxClassifier extends SeparationClassifier {
 
@@ -62,14 +59,14 @@ public class MinCutMaxClassifier extends SeparationClassifier {
 		return r;
 	}
 	
-	private Pair<ByteString, Double> getMaxEdge(Map<ByteString, LinkedList<Map.Entry<ByteString, Double>>> graph, Set<ByteString> CV) {
+	private Pair<Integer, Double> getMaxEdge(Int2ObjectMap<LinkedList<Map.Entry<Integer, Double>>> graph, IntSet CV) {
 		Double maxD = Double.NEGATIVE_INFINITY;
-		ByteString maxN = null;
-		for(ByteString t : CV) {
-			LinkedList<Map.Entry<ByteString, Double>> tt = graph.get(t);
+		int maxN = 0;
+		for(int t : CV) {
+			LinkedList<Map.Entry<Integer, Double>> tt = graph.get(t);
                         if(tt == null) continue;
 			while(!tt.isEmpty()) {
-				Map.Entry<ByteString, Double> tmaxP = tt.peek();
+				Map.Entry<Integer, Double> tmaxP = tt.peek();
 				if (CV.contains(tmaxP.getKey())) {
 					tt.remove();
 					continue;
@@ -81,28 +78,28 @@ public class MinCutMaxClassifier extends SeparationClassifier {
 				break;
 			}
 		}
-                if (maxN != null) System.err.println(maxN.toString() + " " + Double.toString(maxD));
+                if (maxN != 0) System.err.println(KB.unmap(maxN) + " " + Double.toString(maxD));
 		return new Pair<>(maxN, maxD);
 	}
 	
-	public Set<ByteString> t_MinCutMax(Map<ByteString, Map<ByteString, Double>> statistics, ByteString t) {
-		Map<ByteString, LinkedList<Map.Entry<ByteString, Double>>> smm = new HashMap<>();
-		for (ByteString t1 : statistics.keySet()) {
+	public IntSet t_MinCutMax(Int2ObjectMap<Int2DoubleMap> statistics, int t) {
+		Int2ObjectMap<LinkedList<Map.Entry<Integer, Double>>> smm = new Int2ObjectOpenHashMap<>();
+		for (int t1 : statistics.keySet()) {
 			smm.put(t1, linkSortMap(statistics.get(t1), Collections.reverseOrder()));
 		}
 		// Implement t-MinCutMax algorithm
-		Set<ByteString> V = new HashSet<>(statistics.keySet());
-		Set<ByteString> CV = new LinkedHashSet<>();
+		IntSet V = new IntOpenHashSet(statistics.keySet());
+		IntSet CV = new IntOpenHashSet();
 		V.remove(t);
 		CV.add(t);
-		Set<ByteString> S = null;
+		IntSet S = null;
 		Double currentMin = Double.POSITIVE_INFINITY;
 		while(!V.isEmpty()) {
-			Pair<ByteString, Double> cMax = getMaxEdge(smm, CV);
+			Pair<Integer, Double> cMax = getMaxEdge(smm, CV);
                         if (cMax.first == null) break;
 			if (cMax.second < currentMin) {
 				currentMin = cMax.second;
-				S = new HashSet<>(V);
+				S = new IntOpenHashSet(V);
 			}
 			CV.add(cMax.first);
 			V.remove(cMax.first);
@@ -110,9 +107,9 @@ public class MinCutMaxClassifier extends SeparationClassifier {
                 return S;
         }
                 
-        public void classify(Map<ByteString, Map<ByteString, Double>> statistics) {         
-            for(ByteString s : t_MinCutMax(statistics, ByteString.of("owl:Thing"))) {
-                System.out.println(s.toString());
+        public void classify(Int2ObjectMap<Int2DoubleMap> statistics) {         
+            for(int s : t_MinCutMax(statistics, KB.map("owl:Thing"))) {
+                System.out.println(KB.unmap(s));
             }
 	}
 	

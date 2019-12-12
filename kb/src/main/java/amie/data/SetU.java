@@ -5,17 +5,10 @@
  */
 package amie.data;
 
-import amie.data.KB.Instantiator;
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.Collections;
+import it.unimi.dsi.fastutil.ints.IntIterator;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
 
 /**
  *
@@ -93,6 +86,47 @@ public class SetU {
         }
     }
     
+    public static class intersectionIntIterator implements IntIterator {
+
+        final IntSet big;
+        IntIterator sit;
+        int next;
+        
+        public intersectionIntIterator(final IntSet s1, final IntSet s2) {
+            if (s1 == null || s2 == null) {
+                big = null;
+                sit = null;
+            } else {
+                if (s1.size() <= s2.size()) {
+                    sit = s1.iterator();
+                    big = s2;
+                } else {
+                    sit = s2.iterator();
+                    big = s1;
+                }
+            }
+            next = 0;
+        }
+        
+        @Override
+        public boolean hasNext() {
+            if (next != 0) { return true; }
+            if (sit == null) { return false; }
+            while(sit.hasNext()) {
+                if (big.contains(next = sit.next())) { return true; }
+            }
+            next = 0;
+            return false;
+        }
+
+        @Override
+        public int nextInt() {
+            int r = 0;
+            if (next != 0 || hasNext()) { r = next; next = 0; }
+            return r;
+        }
+    }
+    
     public static class addNotInIterator<T> implements Iterator<T> {
 
         Set<T> addTo;
@@ -128,6 +162,45 @@ public class SetU {
         public T next() {
             T r = null;
             if (next != null || hasNext()) { r = next; next = null; }
+            return r;
+        }
+    }
+    
+    public static class addNotInIntIterator implements IntIterator {
+
+        IntSet addTo;
+        IntIterator toIterate;
+        int next;
+        
+        public addNotInIntIterator(IntSet toIterate, IntSet addTo) {
+            if (addTo == null || toIterate == null) {
+                addTo = null;
+                toIterate = null;
+            } else {
+                this.addTo = addTo;
+                this.toIterate = toIterate.iterator();
+            }
+            next = 0;
+        }
+        
+        @Override
+        public boolean hasNext() {
+            if (next != 0) { return true; }
+            if (toIterate == null) { return false; }
+            while(toIterate.hasNext()) {
+                if (!addTo.contains(next = toIterate.nextInt())) { 
+                    addTo.add(next);
+                    return true;
+                }
+            }
+            next = 0;
+            return false;
+        }
+
+        @Override
+        public int nextInt() {
+            int r = 0;
+            if (next != 0 || hasNext()) { r = next; next = 0; }
             return r;
         }
     }

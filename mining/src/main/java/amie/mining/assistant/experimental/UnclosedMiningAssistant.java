@@ -5,12 +5,11 @@ import java.util.Collection;
 import java.util.List;
 
 import amie.data.KB;
-import amie.data.U;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.ConfidenceMetric;
 import amie.rules.Rule;
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
+
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 
 public class UnclosedMiningAssistant extends DefaultMiningAssistant {
 
@@ -37,12 +36,12 @@ public class UnclosedMiningAssistant extends DefaultMiningAssistant {
 	}
 	
 	@Override
-	protected Collection<Rule> buildInitialQueries(IntHashMap<ByteString> relations, double minSupportThreshold) {
+	protected Collection<Rule> buildInitialQueries(Int2IntMap relations, double minSupportThreshold) {
 		List<Rule> output = new ArrayList<>();
 		Rule query = new Rule();
-		ByteString[] newEdge = query.fullyUnboundTriplePattern();
-		ByteString relation = KB.TRANSITIVETYPEbs;
-		ByteString[] succedent = newEdge.clone();
+		int[] newEdge = query.fullyUnboundTriplePattern();
+		int relation = KB.TRANSITIVETYPEbs;
+		int[] succedent = newEdge.clone();
 		succedent[1] = relation;
 		Rule candidate = new Rule(succedent, kb.size());
 		candidate.setFunctionalVariablePosition(0);

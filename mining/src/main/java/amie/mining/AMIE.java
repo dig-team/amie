@@ -42,8 +42,10 @@ import amie.mining.assistant.variableorder.InverseOrder;
 import amie.mining.assistant.variableorder.VariableOrder;
 import amie.rules.Metric;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntCollection;
 import javatools.administrative.Announce;
-import javatools.datatypes.ByteString;
+
 import javatools.datatypes.MultiMap;
 import javatools.parsers.NumberFormatter;
 
@@ -118,8 +120,8 @@ public class AMIE {
     /**
      * List of target head relations.
      */
-    protected Collection<ByteString> seeds;
-
+    protected IntCollection seeds;
+    
     /**
      * Column headers
      */
@@ -165,12 +167,12 @@ public class AMIE {
         this.realTime = realTime;
     }
 
-    public Collection<ByteString> getSeeds() {
-        return seeds;
+    public IntCollection getSeeds() {
+    	return seeds;
     }
-
-    public void setSeeds(Collection<ByteString> seeds) {
-        this.seeds = seeds;
+    
+    public void setSeeds(IntCollection seeds) {
+    	this.seeds = seeds;
     }
 
     public double getMinSignificanceThreshold() {
@@ -618,10 +620,10 @@ public class AMIE {
         Metric metric = Metric.HeadCoverage; // Metric used to prune the search space.
         VariableOrder variableOrder = new FunctionalOrder();
         MiningAssistant mineAssistant = null;
-        Collection<ByteString> bodyExcludedRelations = null;
-        Collection<ByteString> headExcludedRelations = null;
-        Collection<ByteString> headTargetRelations = null;
-        Collection<ByteString> bodyTargetRelations = null;
+        IntCollection bodyExcludedRelations = null;
+        IntCollection headExcludedRelations = null;
+        IntCollection headTargetRelations = null;
+        IntCollection bodyTargetRelations = null;
         KB targetSource = null;
         KB schemaSource = null;
         int nThreads = nProcessors; // By default use as many threads as processors.
@@ -955,38 +957,38 @@ public class AMIE {
         }
 
         if (cli.hasOption("bexr")) {
-            bodyExcludedRelations = new ArrayList<>();
+            bodyExcludedRelations = new IntArrayList();
             String excludedValuesStr = cli.getOptionValue("bexr");
             String[] excludedValueArr = excludedValuesStr.split(",");
             for (String excludedValue : excludedValueArr) {
-                bodyExcludedRelations.add(ByteString.of(excludedValue.trim()));
+                bodyExcludedRelations.add(KB.map(excludedValue.trim()));
             }
         }
 
         if (cli.hasOption("btr")) {
-            bodyTargetRelations = new ArrayList<>();
+            bodyTargetRelations = new IntArrayList();
             String targetBodyValuesStr = cli.getOptionValue("btr");
             String[] bodyTargetRelationsArr = targetBodyValuesStr.split(",");
             for (String targetString : bodyTargetRelationsArr) {
-                bodyTargetRelations.add(ByteString.of(targetString.trim()));
+                bodyTargetRelations.add(KB.map(targetString.trim()));
             }
         }
 
         if (cli.hasOption("htr")) {
-            headTargetRelations = new ArrayList<>();
+            headTargetRelations = new IntArrayList();
             String targetValuesStr = cli.getOptionValue("htr");
             String[] targetValueArr = targetValuesStr.split(",");
             for (String targetValue : targetValueArr) {
-                headTargetRelations.add(ByteString.of(targetValue.trim()));
+                headTargetRelations.add(KB.map(targetValue.trim()));
             }
         }
 
         if (cli.hasOption("hexr")) {
-            headExcludedRelations = new ArrayList<>();
+            headExcludedRelations = new IntArrayList();
             String excludedValuesStr = cli.getOptionValue("hexr");
             String[] excludedValueArr = excludedValuesStr.split(",");
             for (String excludedValue : excludedValueArr) {
-                headExcludedRelations.add(ByteString.of(excludedValue.trim()));
+                headExcludedRelations.add(KB.map(excludedValue.trim()));
             }
         }
 

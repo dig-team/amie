@@ -5,16 +5,18 @@
  */
 package amie.data;
 
-import java.util.ArrayList;
+import static amie.data.U.increase;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
+
 
 /**
  *
@@ -22,44 +24,44 @@ import javatools.datatypes.IntHashMap;
  */
 public class CardinalitySimpleTypingKB extends SimpleTypingKB {
     
-    protected final Map<ByteString, IntHashMap<ByteString>> relationsCard = new HashMap<>();
+    protected final Int2ObjectMap<Int2IntMap> relationsCard = new Int2ObjectOpenHashMap<>();
     
     @Override
-    protected boolean add(ByteString subject, ByteString relation, ByteString object) {
-        if (relation.equals(Schema.typeRelationBS)) {
+    protected boolean add(int subject, int relation, int object) {
+        if (relation == Schema.typeRelationBS) {
             //System.err.println(object);
             synchronized (classes) {
-                Set<ByteString> eS = classes.get(object);
+                IntSet eS = classes.get(object);
                 if (eS == null) {
-                    classes.put(object, eS = new LinkedHashSet<>());
+                    classes.put(object, eS = new IntOpenHashSet());
                 }
                 return eS.add(subject);
             }
-        } else if (relation.equals(Schema.subClassRelationBS)) {
+        } else if (relation == Schema.subClassRelationBS) {
             return super.add(subject, relation, object);
         } else {
             //System.err.println(relation);
             synchronized (relations) {
-                Set<ByteString> eS = relations.get(relation);
+                IntSet eS = relations.get(relation);
                 if (eS == null) {
-                    relations.put(relation, eS = new LinkedHashSet<>());
+                    relations.put(relation, eS = new IntOpenHashSet());
                 }
                 eS.add(subject);
-                ByteString relationy = ByteString.of(relation.toString() + "-1");
+                int relationy = KB.map(KB.unmap(relation) + "-1");
                 eS = relations.get(relationy);
                 if (eS == null) {
-                    relations.put(relationy, eS = new LinkedHashSet<>());
+                    relations.put(relationy, eS = new IntOpenHashSet());
                 }
-                IntHashMap<ByteString> eS2 = relationsCard.get(relation);
+                Int2IntMap eS2 = relationsCard.get(relation);
                 if (eS2 == null) {
-                    relationsCard.put(relation, eS2 = new IntHashMap<>());
+                    relationsCard.put(relation, eS2 = new Int2IntOpenHashMap());
                 }
-                eS2.add(subject);
+                increase(eS2, subject);
                 eS2 = relationsCard.get(relationy);
                 if (eS2 == null) {
-                    relationsCard.put(relationy, eS2 = new IntHashMap<>());
+                    relationsCard.put(relationy, eS2 = new Int2IntOpenHashMap());
                 }
-                eS2.add(object);
+                increase(eS2, object);
                 relationSet.add(relation);
                 return eS.add(object);
             }
@@ -67,33 +69,33 @@ public class CardinalitySimpleTypingKB extends SimpleTypingKB {
     }
     
     public void computeCardinalities() {
-        for (Map.Entry<ByteString, IntHashMap<ByteString>> entry : relationsCard.entrySet()) {
-            Map<Integer, Set<ByteString>> t = new HashMap<>(entry.getValue().findMax());
-            for (ByteString e : entry.getValue()) {
-                Integer i = entry.getValue().get(e);
-                Set<ByteString> rs = t.get(i);
+        for (Int2ObjectMap.Entry<Int2IntMap> entry : relationsCard.int2ObjectEntrySet()) {
+            Int2ObjectMap<IntSet> t = new Int2ObjectOpenHashMap<>();
+            for (int e : entry.getValue().keySet()) {
+                int i = entry.getValue().get(e);
+                IntSet rs = t.get(i);
                 if (rs == null) {
-                    t.put(i, rs = new LinkedHashSet<>());
+                    t.put(i, rs = new IntOpenHashSet());
                 }
                 rs.add(e);
             }
-            ArrayList<Integer> sortedKeys = new ArrayList<>(t.keySet());
+            IntList sortedKeys = new IntArrayList(t.keySet());
             Collections.sort(sortedKeys, Comparator.reverseOrder());
             for (int i = 0; i < sortedKeys.size(); i++) {
                 if (i > 0) {
-                    t.get(sortedKeys.get(i)).addAll(t.get(sortedKeys.get(i-1)));
-                    add(ByteString.of(entry.getKey().toString() + 
-                             "_" + Integer.toString(sortedKeys.get(i-1)) + "+"),
+                    t.get(sortedKeys.getInt(i)).addAll(t.get(sortedKeys.getInt(i-1)));
+                    add(KB.map(KB.unmap(entry.getIntKey()) + 
+                             "_" + Integer.toString(sortedKeys.getInt(i-1)) + "+"),
                         Schema.subClassRelationBS,
-                        ByteString.of(entry.getKey().toString() + 
-                            "_" + Integer.toString(sortedKeys.get(i)) + "+"));
+                        KB.map(KB.unmap(entry.getIntKey()) + 
+                            "_" + Integer.toString(sortedKeys.getInt(i)) + "+"));
                 }
-                classes.put(ByteString.of(entry.getKey().toString() + 
-                        "_" + Integer.toString(sortedKeys.get(i)) + "+"), 
-                        t.get(sortedKeys.get(i)));
+                classes.put(KB.map(KB.unmap(entry.getIntKey()) + 
+                        "_" + Integer.toString(sortedKeys.getInt(i)) + "+"), 
+                        t.get(sortedKeys.getInt(i)));
             }
-            add(ByteString.of(entry.getKey().toString() + 
-                        "_" + Integer.toString(sortedKeys.get(sortedKeys.size() - 1)) + "+"),
+            add(KB.map(KB.unmap(entry.getIntKey()) + 
+                        "_" + Integer.toString(sortedKeys.getInt(sortedKeys.size() - 1)) + "+"),
                 Schema.subClassRelationBS,
                 Schema.topBS);
         }

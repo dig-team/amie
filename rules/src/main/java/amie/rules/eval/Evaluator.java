@@ -5,7 +5,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.List;
 
-import javatools.datatypes.ByteString;
+
 import javatools.datatypes.Pair;
 import javatools.filehandlers.TSVFile;
 import amie.data.KB;
@@ -21,7 +21,7 @@ public class Evaluator {
 	 * @param target
 	 * @return
 	 */
-	public static int evaluate(ByteString[] triple, 
+	public static int evaluate(int[] triple, 
 			KB training, KB target) {
 		//If we know something else about the triple, PCA says it is false
 		if (triple == null) {
@@ -29,7 +29,7 @@ public class Evaluator {
 		}
 		// TODO Auto-generated method stub
 		int returnVal = 3;
-		ByteString[] head = Rule.fullyUnboundTriplePattern1();
+		int[] head = Rule.fullyUnboundTriplePattern1();
 		head[1] = triple[1];
 		boolean relationIsFunctional = 
 				training.functionality(triple[1]) >= 0.9 
@@ -40,7 +40,8 @@ public class Evaluator {
 				> training.inverseFunctionality(triple[1]) ? 0 : 2;
 		
 		if (target == null) {
-			System.out.println("Target is null");						
+			System.out.println("Target is null");
+                        System.exit(2);
 		}
 		if(target.count(triple) > 0){
 			//Bingo!
@@ -70,10 +71,10 @@ public class Evaluator {
 	 * 3 otherwise.
 	 */
 	public static int evaluate(Rule rule, 
-			ByteString[] triple, KB training, KB target){
+			int[] triple, KB training, KB target){
 		// TODO Auto-generated method stub
-		ByteString[] head = rule.getHead();
-		ByteString boundVariable = null;
+		int[] head = rule.getHead();
+		int boundVariable = 0;
 		int returnVal = 3;
 		boolean relationIsFunctional = 
 				(rule.getFunctionalVariablePosition() == 0 && training.functionality(rule.getHead()[1]) >= 0.9) ||
@@ -131,20 +132,20 @@ public class Evaluator {
 				continue;
 			}
 			
-			ByteString[] triple = new ByteString[3];
+			int[] triple = new int[3];
 			
 			String ruleStr = record.get(0);
 			if(ruleStr.equals(lastRuleStr)){
 				currentRule = lastRule;
 			}else{
-				Pair<List<ByteString[]>, ByteString[]> rulePair = KB.rule(ruleStr);
+				Pair<List<int[]>, int[]> rulePair = KB.rule(ruleStr);
 				currentRule = new Rule();
 				currentRule.getTriples().add(rulePair.second);
 				currentRule.getTriples().addAll(rulePair.first);
 			}
 			
 			for(int i = 0; i < 3; ++i){
-				triple[i] = ByteString.of(record.get(i + 1));
+				triple[i] = KB.map(record.get(i + 1));
 			}
 			
 			int evalCode = evaluate(currentRule, triple, trainingDataset, targetDataset);

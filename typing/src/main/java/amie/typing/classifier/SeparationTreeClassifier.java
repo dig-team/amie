@@ -10,6 +10,11 @@ import amie.data.Schema;
 import amie.data.SetU;
 import amie.data.SimpleTypingKB;
 import amie.typing.heuristics.TypingHeuristic;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -17,15 +22,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
 
 /**
  *
@@ -33,12 +32,12 @@ import javatools.datatypes.IntHashMap;
  */
 public class SeparationTreeClassifier extends SeparationClassifier {
     
-    public Map<ByteString, SeparationTreeNode> index = new LinkedHashMap<>();
+    public Int2ObjectMap<SeparationTreeNode> index = new Int2ObjectOpenHashMap<>();
     public boolean supportForTarget;
     
     public SimpleTypingKB localdb = null;
 
-    public SeparationTreeClassifier(KB source, IntHashMap<ByteString> cS, Map<ByteString, IntHashMap<ByteString>> cIS) {
+    public SeparationTreeClassifier(KB source, Int2IntMap cS, Int2ObjectMap<Int2IntMap> cIS) {
         super(source, cS, cIS);
         supportForTarget = false;
         if (db instanceof SimpleTypingKB) {
@@ -54,7 +53,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
         }
     }
     
-    public SeparationTreeClassifier(KB source, IntHashMap<ByteString> cS, Map<ByteString, IntHashMap<ByteString>> cIS, boolean supportForTarget) {
+    public SeparationTreeClassifier(KB source, Int2IntMap cS, Int2ObjectMap<Int2IntMap> cIS, boolean supportForTarget) {
         super(source, cS, cIS);
         this.supportForTarget = supportForTarget;
         if (db instanceof SimpleTypingKB) {
@@ -70,7 +69,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
         }
     }
     
-    public void classify(List<ByteString[]> query, ByteString variable, int classSizeThreshold, int supportThreshold, double[] thresholds) throws IOException {
+    public void classify(List<int[]> query, int variable, int classSizeThreshold, int supportThreshold, double[] thresholds) throws IOException {
         if (getStandardConfidenceWithThreshold(TypingHeuristic.typeL(Schema.topBS, variable), query, variable, supportThreshold, true) != 0) {
             SeparationTreeNode root = new SeparationTreeNode(Schema.topBS);
             index.put(Schema.topBS, root);
@@ -88,12 +87,12 @@ public class SeparationTreeClassifier extends SeparationClassifier {
 
     private ArrayList<BufferedWriter> writers = new ArrayList<>();
     
-    private void createFiles(List<ByteString[]> query, ByteString variable, double[] thresholds) throws IOException {
+    private void createFiles(List<int[]> query, int variable, double[] thresholds) throws IOException {
         if (query.size() > 1) throw new UnsupportedOperationException("Not supported yet.");
-        ByteString[] singleton = query.get(0);
-        String fnb = singleton[1].toString().substring(1, singleton[1].toString().length()-1) + ((singleton[2].equals(variable)) ? "-1" : "") + "_";
+        int[] singleton = query.get(0);
+        String fnb = KB.unmap(singleton[1]).substring(1, KB.unmap(singleton[1]).length()-1) + ((singleton[2] == (variable)) ? "-1" : "") + "_";
         // Hack for sexism query
-        if (!KB.isVariable(singleton[2])) { fnb = singleton[2].toString().substring(1, singleton[2].toString().length()-1) + "_"; }
+        if (!KB.isVariable(singleton[2])) { fnb = KB.unmap(singleton[2]).substring(1, KB.unmap(singleton[2]).length()-1) + "_"; }
         for (int i = 0; i < thresholds.length; i++) {
             writers.add(new BufferedWriter(new FileWriter(fnb + Double.toString(Math.exp(-thresholds[i])))));
         }
@@ -101,18 +100,18 @@ public class SeparationTreeClassifier extends SeparationClassifier {
     
     protected class SeparationTreeNode {
     
-        public SeparationTreeNode(ByteString classNameP) {
+        public SeparationTreeNode(int classNameP) {
             className = classNameP;
         }
     
-        public ByteString className;
+        public int className;
         public Double separationScore = 0.0;
         public int thresholdI = -1;
         public int thresholdMask = 0;
         public Collection<SeparationTreeNode> children = new LinkedList<>();
     
-        public void generate(int supportThreshold, int classSizeThreshold, List<ByteString[]> query, ByteString variable) {
-            for (ByteString subClass : Schema.getSubTypes(db, className)) {
+        public void generate(int supportThreshold, int classSizeThreshold, List<int[]> query, int variable) {
+            for (int subClass : Schema.getSubTypes(db, className)) {
                 SeparationTreeNode stc = index.get(subClass);
                 if (stc != null) {
                     children.add(stc);
@@ -146,8 +145,8 @@ public class SeparationTreeClassifier extends SeparationClassifier {
      * Prints class into files
      * Class of node n should be printed in file i if n.thresholdI > -1 and i \in [n.thresholdMask + 1; n.thresholdI]
      */
-    private void export(int i, ByteString className) throws IOException {
-        writers.get(i).write(className.toString() + "\n");
+    private void export(int i, int className) throws IOException {
+        writers.get(i).write(KB.unmap(className) + "\n");
     }
     
     private void close() throws IOException {
@@ -192,7 +191,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
             for (i = 0; i < n.thresholdMask; i++) {
                 str += " ";
             }
-            str += "|" + n.className.toString() + ": " + Double.toString(n.separationScore) + "\n";
+            str += "|" + KB.unmap(n.className) + ": " + Double.toString(n.separationScore) + "\n";
             System.err.println(str);
             for (SeparationTreeNode c : n.children) {
                 c.thresholdMask = n.thresholdMask + 1;
@@ -203,27 +202,27 @@ public class SeparationTreeClassifier extends SeparationClassifier {
         index.get(Schema.topBS).resetMask();
     }
     
-    public void computeStatistics(List<ByteString[]> query, ByteString variable, int classSizeThreshold) {
-        Set<ByteString> relevantClasses = index.keySet();
-        ByteString relation = (query.get(0)[0].equals(variable)) ? query.get(0)[1] : ByteString.of(query.get(0)[1].toString() + "-1");
+    public void computeStatistics(List<int[]> query, int variable, int classSizeThreshold) {
+        IntSet relevantClasses = index.keySet();
+        int relation = (query.get(0)[0] == (variable)) ? query.get(0)[1] : KB.map(KB.unmap(query.get(0)[1]) + "-1");
 
-        for (ByteString class1 : relevantClasses) {
+        for (int class1 : relevantClasses) {
             int c1size = classSize.get(class1);
-            Set<ByteString> c1phi = null;
+            IntSet c1phi = null;
             
             if (localdb != null) {
-                c1phi = new HashSet<>(localdb.relations.get(relation));
+                c1phi = new IntOpenHashSet(localdb.relations.get(relation));
                 c1phi.retainAll(localdb.classes.get(class1));
                 if (c1phi.size() == c1size) {
                     continue;
                 }
             }
 
-            List<ByteString[]> clause = TypingHeuristic.typeL(class1, variable);
+            List<int[]> clause = TypingHeuristic.typeL(class1, variable);
             clause.addAll(query);
-            Set<ByteString> targetClasses = (supportForTarget) ? relevantClasses : classIntersectionSize.get(class1);
+            IntSet targetClasses = (supportForTarget) ? relevantClasses : classIntersectionSize.get(class1).keySet();
 
-            for (ByteString class2 : targetClasses) {
+            for (int class2 : targetClasses) {
                 assert (clause.size() == query.size() + 1);
                 if (class1 == class2) {
                     continue;
@@ -232,7 +231,7 @@ public class SeparationTreeClassifier extends SeparationClassifier {
                     // Ensure the symmetry of the output.
                     continue;
                 }
-                if (!classIntersectionSize.containsKey(class1) || !classIntersectionSize.get(class1).contains(class2)) {
+                if (!classIntersectionSize.containsKey(class1) || !classIntersectionSize.get(class1).containsKey(class2)) {
                     continue;
                 }
 

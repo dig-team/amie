@@ -1,11 +1,10 @@
 package amie.typing.heuristics;
 
 import java.util.List;
-import java.util.Set;
 
-import javatools.datatypes.ByteString;
+
 import amie.data.KB;
-import amie.data.U;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 /**
  * Harmonic mean of the Spread measure
@@ -21,13 +20,13 @@ public class HSpread extends TypingHeuristic {
 	}
 
 	@Override
-	public double evaluate(ByteString type, List<ByteString[]> clause,
-			ByteString variable) {
+	public double evaluate(int type, List<int[]> clause,
+			int variable) {
 		double sc = getStandardConfidence(typeL(type, variable), clause, variable, true);
 		double t,scm = 0;
-		Set<ByteString> subtypes = amie.data.Schema.getSubtypes(db, type);
+		IntSet subtypes = amie.data.Schema.getSubtypes(db, type);
 		clause.add(typeT(type, variable));
-		for (ByteString subType : subtypes) {
+		for (int subType : subtypes) {
 			t = getStandardConfidence(typeL(subType, variable), clause, variable, true);
 			scm += t;
 		}

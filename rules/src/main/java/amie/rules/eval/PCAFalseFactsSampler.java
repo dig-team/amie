@@ -10,12 +10,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
-import javatools.datatypes.Triple;
+
 import amie.data.KB;
+import amie.data.tuple.IntTriple;
 import amie.rules.AMIEParser;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 /**
  * It computes a sample of the facts assumed false by the PCA for a given
@@ -73,9 +75,9 @@ public class PCAFalseFactsSampler {
 
 	private void run(Collection<Rule> rules){
 		for(Rule rule: rules){	
-			Collection<Triple<ByteString, ByteString, ByteString>> ruleAssumedFalse = generateAssumedFalseFacts(rule);			
-			Collection<Triple<ByteString, ByteString, ByteString>> sample =  Predictor.sample(ruleAssumedFalse, sampleSize);
-			for(Triple<ByteString, ByteString, ByteString> fact: sample){
+			Collection<IntTriple> ruleAssumedFalse = generateAssumedFalseFacts(rule);			
+			Collection<IntTriple> sample =  Predictor.sample(ruleAssumedFalse, sampleSize);
+			for(IntTriple fact: sample){
 				System.out.println(rule.getRuleString() + "\t" + fact.first + "\t" + fact.second + "\t" + fact.third);
 			}
 		}
@@ -86,7 +88,7 @@ public class PCAFalseFactsSampler {
 	 * @param rules
 	 */
 	private void runAndGroupByRelation(Collection<Rule> rules) {
-		Map<ByteString, Collection<Rule>> headsToRules = new HashMap<ByteString, Collection<Rule>>();
+		Int2ObjectMap<Collection<Rule>> headsToRules = new Int2ObjectOpenHashMap<Collection<Rule>>();
 		
 		for(Rule rule: rules){
 			Collection<Rule> rulesForRelation = headsToRules.get(rule.getHead()[1]);
@@ -97,49 +99,49 @@ public class PCAFalseFactsSampler {
 			rulesForRelation.add(rule);			
 		}
 		
-		for(ByteString relation: headsToRules.keySet()){
-			Map<Triple<ByteString, ByteString, ByteString>, Rule> factToRule = new HashMap<Triple<ByteString, ByteString, ByteString>, Rule>();
-			Set<Triple<ByteString, ByteString, ByteString>> allAssumedFalse = new LinkedHashSet<Triple<ByteString, ByteString, ByteString>>();	
+		for(int relation: headsToRules.keySet()){
+			Map<IntTriple, Rule> factToRule = new HashMap<IntTriple, Rule>();
+			Set<IntTriple> allAssumedFalse = new LinkedHashSet<IntTriple>();	
 			for(Rule rule: headsToRules.get(relation)){		
-				Collection<Triple<ByteString, ByteString, ByteString>> ruleAssumedFalse = generateAssumedFalseFacts(rule);
-				for(Triple<ByteString, ByteString, ByteString> fact: ruleAssumedFalse){
+				Collection<IntTriple> ruleAssumedFalse = generateAssumedFalseFacts(rule);
+				for(IntTriple fact: ruleAssumedFalse){
 					factToRule.put(fact, rule);
 				}	
 				allAssumedFalse.addAll(ruleAssumedFalse);				
 			}
-			Collection<Triple<ByteString, ByteString, ByteString>> sample =  Predictor.sample(allAssumedFalse, sampleSize);
+			Collection<IntTriple> sample =  Predictor.sample(allAssumedFalse, sampleSize);
 			printSample(sample, factToRule);
 		}
 	}
 
-	private void printSample(Collection<Triple<ByteString, ByteString, ByteString>> sample, Map<Triple<ByteString, ByteString, ByteString>, Rule> factToRule) {
-		for(Triple<ByteString, ByteString, ByteString> fact: sample){
+	private void printSample(Collection<IntTriple> sample, Map<IntTriple, Rule> factToRule) {
+		for(IntTriple fact: sample){
 			System.out.println(factToRule.get(fact).getRuleString() + "\t" + fact.first + "\t" + fact.second + "\t" + fact.third);
 		}
 	}
 
-	private Set<Triple<ByteString, ByteString, ByteString>> generateAssumedFalseFacts(Rule rule) {
-		List<ByteString[]> query = new ArrayList<ByteString[]>();	
-		Set<Triple<ByteString, ByteString, ByteString>> result = new LinkedHashSet<Triple<ByteString, ByteString, ByteString>>();
-		ByteString[] head = rule.getHead();
-		ByteString[] existential = head.clone();
-		ByteString relation = head[1];
+	private Set<IntTriple> generateAssumedFalseFacts(Rule rule) {
+		List<int[]> query = new ArrayList<int[]>();	
+		Set<IntTriple> result = new LinkedHashSet<IntTriple>();
+		int[] head = rule.getHead();
+		int[] existential = head.clone();
+		int relation = head[1];
 				
 		if(rule.getFunctionalVariablePosition() == 0)
-			existential[2] = ByteString.of("?x");
+			existential[2] = KB.map("?x");
 		else
-			existential[0] = ByteString.of("?x");
+			existential[0] = KB.map("?x");
 		
 		query.add(existential);
-		for(ByteString[] triple: rule.getAntecedent())
+		for(int[] triple: rule.getAntecedent())
 			query.add(triple.clone());
 		
 		if(KB.numVariables(rule.getHead()) == 2){
-			Map<ByteString, IntHashMap<ByteString>> bindingsTwoVars = db.difference(head[0], head[2], query, rule.getTriples());
-			for(ByteString subject: bindingsTwoVars.keySet()){
-				for(ByteString object: bindingsTwoVars.get(subject)){
-					result.add(new Triple<ByteString, ByteString, ByteString>(subject, relation, object));
-					//ByteString[] test = new ByteString[]{subject, relation, object};
+			Int2ObjectMap<IntSet> bindingsTwoVars = db.difference(head[0], head[2], query, rule.getTriples());
+			for(int subject: bindingsTwoVars.keySet()){
+				for(int object: bindingsTwoVars.get(subject)){
+					result.add(new IntTriple(subject, relation, object));
+					//int[] test = new int[]{subject, relation, object};
 					//assert(!db.contains(test));
 					
 				}

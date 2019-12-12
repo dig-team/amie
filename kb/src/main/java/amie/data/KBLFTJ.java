@@ -16,15 +16,13 @@ import static amie.data.KB.isVariable;
 import static amie.data.KB.numVariables;
 import static amie.data.KB.toString;
 import static amie.data.KB.varpos;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javatools.datatypes.ByteString;
 
 /**
  *
@@ -32,10 +30,10 @@ import javatools.datatypes.ByteString;
  */
 public class KBLFTJ extends KB {
     
-	private Set<ByteString> getAllVariables(List<ByteString[]> query) {
-		Set<ByteString> result = new HashSet<>();
-		for(ByteString[] atom : query) {
-			for(ByteString entity : atom) {
+	private IntSet getAllVariables(List<int[]> query) {
+		IntSet result = new IntOpenHashSet();
+		for(int[] atom : query) {
+			for(int entity : atom) {
 				if(isVariable(entity))
 					result.add(entity);
 			}
@@ -43,20 +41,20 @@ public class KBLFTJ extends KB {
 		return result;
 	}
 	
-	public static int varposInv(ByteString variable, ByteString[] triple) {
+	public static int varposInv(int variable, int[] triple) {
 		for(int i = 0; i < triple.length; i++) {
-			if(isVariable(triple[i]) && !triple[i].equals(variable))
+			if(isVariable(triple[i]) && triple[i]!=(variable))
 				return i;
 		}
 		return -1;
 	}
 	
-	private Set<ByteString> getPossibleValues(ByteString variable, ByteString[] triple) {
+	private IntSet getPossibleValues(int variable, int[] triple) {
 		switch(numVariables(triple)) {
 		case 1:
 			return resultsOneVariable(triple);
 		case 2:
-			if (triple[1].equals(TRANSITIVETYPEbs)) {
+			if (triple[1] == TRANSITIVETYPEbs) {
 				switch(varpos(variable, triple)) {
 				case 0:
 					return get(relation2subject2object, Schema.typeRelationBS).keySet();
@@ -69,9 +67,9 @@ public class KBLFTJ extends KB {
 					 */
 				}
 			}
-			if (triple[1].equals(DIFFERENTFROMbs) || triple[1].equals(EQUALSbs))
+			if (triple[1]==(DIFFERENTFROMbs) || triple[1]==(EQUALSbs))
 				return subject2object2relation.keySet();
-			if (triple[1].equals(EXISTSbs) || triple[1].equals(EXISTSINVbs) || triple[1].equals(NOTEXISTSbs) || triple[1].equals(NOTEXISTSINVbs)) {
+			if (triple[1]==(EXISTSbs) || triple[1]==(EXISTSINVbs) || triple[1]==(NOTEXISTSbs) || triple[1]==(NOTEXISTSINVbs)) {
 				switch(varpos(variable, triple)) {
 				case 0: return subject2object2relation.keySet();
 				case 2: return relation2subject2object.keySet();
@@ -121,14 +119,14 @@ public class KBLFTJ extends KB {
 	
 	/** returns the instances that fulfill a certain condition */
 	
-	public boolean existsBSLFTJ(List<ByteString[]> query) {
+	public boolean existsBSLFTJ(List<int[]> query) {
 		
-		Iterator<ByteString[]> it = query.iterator();
-		List<ByteString[]> newQuery = new ArrayList<>(query.size());
+		Iterator<int[]> it = query.iterator();
+		List<int[]> newQuery = new ArrayList<>(query.size());
 		
 		// copy query and get rid of all ground atom
 		while(it.hasNext()) {
-			ByteString[] atom = it.next();
+			int[] atom = it.next();
 			if(numVariables(atom) == 0) {
 				if(!contains(atom)) {
 					return false;
@@ -140,16 +138,16 @@ public class KBLFTJ extends KB {
 		if(newQuery.isEmpty())
 			return true;
 		
-		Set<ByteString> variables = getAllVariables(newQuery);
-		ByteString variable = variables.iterator().next();
+		IntSet variables = getAllVariables(newQuery);
+		int variable = variables.iterator().next();
 		
-		Set<ByteString> possibleValues = new LinkedHashSet<>();
+		IntSet possibleValues = new IntOpenHashSet();
 		boolean first = true;
-		for(ByteString[] atom : newQuery) {
+		for(int[] atom : newQuery) {
 			if(varpos(variable, atom) == -1)
 				continue;
 			if(first) {
-				possibleValues = new LinkedHashSet<>(getPossibleValues(variable, atom));
+				possibleValues = new IntOpenHashSet(getPossibleValues(variable, atom));
 				first = false;
 			} else {
 				possibleValues.retainAll(getPossibleValues(variable, atom));
@@ -159,26 +157,27 @@ public class KBLFTJ extends KB {
 		Instantiator insty = new Instantiator(newQuery, variable);
 		boolean result = false;
 		
-		for(ByteString value : possibleValues) {
-			if(existsBSLFTJ(insty.instantiate(value))) 
+		for(int value : possibleValues) {
+			if(existsBSLFTJ(insty.instantiate(value))) {
 				result = true;
 				break;
+                        }
 		}
 		insty.close();
 		
 		return result;
 	}
 	
-	public Set<ByteString> selectDistinctLFTJ(ByteString variable,
-			List<ByteString[]> query) {
+	public IntSet selectDistinctLFTJ(int variable,
+			List<int[]> query) {
 		
-		Iterator<ByteString[]> it = query.iterator();
-		Set<ByteString> result = new HashSet<>();
-		List<ByteString[]> newQuery = new ArrayList<>(query.size());
+		Iterator<int[]> it = query.iterator();
+		IntSet result = new IntOpenHashSet();
+		List<int[]> newQuery = new ArrayList<>(query.size());
 		
 		// copy query and get rid of all ground atom
 		while(it.hasNext()) {
-			ByteString[] atom = it.next();
+			int[] atom = it.next();
 			if(numVariables(atom) == 0) {
 				if(!contains(atom)) {
 					return result;
@@ -188,27 +187,27 @@ public class KBLFTJ extends KB {
 			}
 		}
 		// generate the list of all possible values
-		Set<ByteString> possibleValues = new LinkedHashSet<>();
+		IntSet possibleValues = new IntOpenHashSet();
 		boolean first = true;
-		for(ByteString[] atom : newQuery) {
+		for(int[] atom : newQuery) {
 			if(varpos(variable, atom) == -1)
 				continue;
 			if(first) {
-				possibleValues = new LinkedHashSet<>(getPossibleValues(variable, atom));
+				possibleValues = new IntOpenHashSet(getPossibleValues(variable, atom));
 				first = false;
 			} else {
 				possibleValues.retainAll(getPossibleValues(variable, atom));
 			}
 		}
 		// if there is no other variables return the possible values
-		Set<ByteString> variables = getAllVariables(newQuery);
+		IntSet variables = getAllVariables(newQuery);
 		variables.remove(variable);
 		if (variables.isEmpty())
 			return possibleValues;
 		
 		// otherwise instantiate and filter the possible values
 		Instantiator insty = new Instantiator(newQuery, variable);
-		for(ByteString value : possibleValues) {
+		for(int value : possibleValues) {
 			if(existsBSLFTJ(insty.instantiate(value))) 
 				result.add(value);
 		}
@@ -217,15 +216,15 @@ public class KBLFTJ extends KB {
 		return result;
 	}
 	
-	public Map<ByteString, Set<ByteString>> selectDistinctLFTJ(ByteString var1, ByteString var2,
-			List<ByteString[]> query) {
+	public Int2ObjectMap<IntSet> selectDistinctLFTJ(int var1, int var2,
+			List<int[]> query) {
 		
-		Iterator<ByteString[]> it = query.iterator();
-		Map<ByteString, Set<ByteString>> result = new HashMap<>();
-		List<ByteString[]> newQuery = new ArrayList<>(query.size());
+		Iterator<int[]> it = query.iterator();
+		Int2ObjectMap<IntSet> result = new Int2ObjectOpenHashMap<>();
+		List<int[]> newQuery = new ArrayList<>(query.size());
 		
 		while(it.hasNext()) {
-			ByteString[] atom = it.next();
+			int[] atom = it.next();
 			if(numVariables(atom) == 0) {
 				if(!contains(atom)) {
 					return result;
@@ -234,13 +233,13 @@ public class KBLFTJ extends KB {
 				newQuery.add(atom);
 			}
 		}
-		Set<ByteString> possibleValues = new LinkedHashSet<>();
+		IntSet possibleValues = new IntOpenHashSet();
 		boolean first = true;
-		for(ByteString[] atom : newQuery) {
+		for(int[] atom : newQuery) {
 			if(varpos(var1, atom) == -1)
 				continue;
 			if(first) {
-				possibleValues = new LinkedHashSet<>(getPossibleValues(var1, atom));
+				possibleValues = new IntOpenHashSet(getPossibleValues(var1, atom));
 				first = false;
 			} else {
 				possibleValues.retainAll(getPossibleValues(var1, atom));
@@ -248,8 +247,8 @@ public class KBLFTJ extends KB {
 		}
 		
 		Instantiator insty = new Instantiator(newQuery, var1);
-		for(ByteString value : possibleValues) {
-			Set<ByteString> innerResult = selectDistinct(var2, insty.instantiate(value));
+		for(int value : possibleValues) {
+			IntSet innerResult = selectDistinct(var2, insty.instantiate(value));
 			if(!innerResult.isEmpty()) 
 				result.put(value, innerResult);
 		}
@@ -267,15 +266,15 @@ public class KBLFTJ extends KB {
 	 * @return
 	 */
 	@SuppressWarnings({ "unused" })
-	private long countDistinctLFTJ(ByteString var1, ByteString var2,
-			List<ByteString[]> query) {
+	private long countDistinctLFTJ(int var1, int var2,
+			List<int[]> query) {
 		
-		Iterator<ByteString[]> it = query.iterator();
+		Iterator<int[]> it = query.iterator();
 		long result = 0;
-		List<ByteString[]> newQuery = new ArrayList<>(query.size());
+		List<int[]> newQuery = new ArrayList<>(query.size());
 		
 		while(it.hasNext()) {
-			ByteString[] atom = it.next();
+			int[] atom = it.next();
 			if(numVariables(atom) == 0) {
 				if(!contains(atom)) {
 					return result;
@@ -284,13 +283,13 @@ public class KBLFTJ extends KB {
 				newQuery.add(atom);
 			}
 		}
-		Set<ByteString> possibleValues = new LinkedHashSet<>();
+		IntSet possibleValues = new IntOpenHashSet();
 		boolean first = true;
-		for(ByteString[] atom : newQuery) {
+		for(int[] atom : newQuery) {
 			if(varpos(var1, atom) == -1)
 				continue;
 			if(first) {
-				possibleValues = new LinkedHashSet<>(getPossibleValues(var1, atom));
+				possibleValues = new IntOpenHashSet(getPossibleValues(var1, atom));
 				first = false;
 			} else {
 				possibleValues.retainAll(getPossibleValues(var1, atom));
@@ -298,7 +297,7 @@ public class KBLFTJ extends KB {
 		}
 		
 		Instantiator insty = new Instantiator(newQuery, var1);
-		for(ByteString value : possibleValues) {
+		for(int value : possibleValues) {
 			result += selectDistinctLFTJ(var2, insty.instantiate(value)).size();
 		}
 		insty.close();
@@ -306,15 +305,15 @@ public class KBLFTJ extends KB {
 		return result;
 	}
 	
-	public Map<ByteString, Map<ByteString, Set<ByteString>>> selectDistinctLFTJ(ByteString var1, ByteString var2, ByteString var3,
-			List<ByteString[]> query) {
+	public Int2ObjectMap<Int2ObjectMap<IntSet>> selectDistinctLFTJ(int var1, int var2, int var3,
+			List<int[]> query) {
 		
-		Iterator<ByteString[]> it = query.iterator();
-		Map<ByteString, Map<ByteString, Set<ByteString>>> result = new HashMap<>();
-		List<ByteString[]> newQuery = new ArrayList<>(query.size());
+		Iterator<int[]> it = query.iterator();
+		Int2ObjectMap<Int2ObjectMap<IntSet>> result = new Int2ObjectOpenHashMap<>();
+		List<int[]> newQuery = new ArrayList<>(query.size());
 		
 		while(it.hasNext()) {
-			ByteString[] atom = it.next();
+			int[] atom = it.next();
 			if(numVariables(atom) == 0) {
 				if(!contains(atom)) {
 					return result;
@@ -323,13 +322,13 @@ public class KBLFTJ extends KB {
 				newQuery.add(atom);
 			}
 		}
-		Set<ByteString> possibleValues = new HashSet<>();
+		IntSet possibleValues = new IntOpenHashSet();
 		boolean first = true;
-		for(ByteString[] atom : newQuery) {
+		for(int[] atom : newQuery) {
 			if(varpos(var1, atom) == -1)
 				continue;
 			if(first) {
-				possibleValues = new LinkedHashSet<>(getPossibleValues(var1, atom));
+				possibleValues = new IntOpenHashSet(getPossibleValues(var1, atom));
 				first = false;
 			} else {
 				possibleValues.retainAll(getPossibleValues(var1, atom));
@@ -337,8 +336,8 @@ public class KBLFTJ extends KB {
 		}
 		
 		Instantiator insty = new Instantiator(newQuery, var1);
-		for(ByteString value : possibleValues) {
-			Map<ByteString, Set<ByteString>> innerResult = selectDistinctLFTJ(var2, var3, insty.instantiate(value));
+		for(int value : possibleValues) {
+			Int2ObjectMap<IntSet> innerResult = selectDistinctLFTJ(var2, var3, insty.instantiate(value));
 			if(!innerResult.isEmpty())
 				result.put(value, innerResult);
 		}

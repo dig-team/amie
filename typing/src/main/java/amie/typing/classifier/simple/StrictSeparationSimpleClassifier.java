@@ -6,11 +6,11 @@
 package amie.typing.classifier.simple;
 
 import amie.data.SimpleTypingKB;
-import java.util.Map;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.util.Queue;
 import java.util.concurrent.locks.Lock;
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
+
 import javatools.datatypes.Pair;
 
 /**
@@ -29,12 +29,12 @@ public class StrictSeparationSimpleClassifier extends SeparationSimpleClassifier
         name = "strictCR";
     }
 
-    public StrictSeparationSimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Map<ByteString, IntHashMap<ByteString>> classIntersectionSize) {
+    public StrictSeparationSimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Int2ObjectMap<Int2IntMap> classIntersectionSize) {
         super(db, thresholds, output, outputLock, classIntersectionSize);
         name = "strictCR";
     }
 
-    public StrictSeparationSimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Map<ByteString, IntHashMap<ByteString>> classIntersectionSize, boolean supportForTarget) {
+    public StrictSeparationSimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Int2ObjectMap<Int2IntMap> classIntersectionSize, boolean supportForTarget) {
         super(db, thresholds, output, outputLock, classIntersectionSize, supportForTarget);
         name = "strictCR";
     }

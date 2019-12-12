@@ -2,9 +2,8 @@ package amie.typing.heuristics;
 
 import java.util.List;
 
-import javatools.datatypes.ByteString;
+
 import amie.data.KB;
-import amie.data.U;
 
 public class Spread extends TypingHeuristic {
 
@@ -15,15 +14,18 @@ public class Spread extends TypingHeuristic {
 	}
 
 	@Override
-	public double evaluate(ByteString type, List<ByteString[]> clause,
-			ByteString variable) {
+	public double evaluate(int type, List<int[]> clause,
+			int variable) {
 		// TODO Auto-generated method stub
 		double sc = getStandardConfidence(typeL(type, variable), clause, variable, true);
 		double t,scm = 0;
 		clause.add(typeT(type, variable));
-		for (ByteString subType : amie.data.Schema.getSubtypes(db, type)) {
+		for (int subType : amie.data.Schema.getSubtypes(db, type)) {
 			t = getStandardConfidence(typeL(subType, variable), clause, variable, true);
-			System.err.println("S\t"+clause.get(0)[1].toString()+(variable.toString().equals("?y") ? "-1" : "")+"\t"+type.toString()+"\t"+subType.toString()+"\t"+Double.toString((t == 0) ? sc : sc / t));
+                        System.err.println("S\t"+KB.unmap(clause.get(0)[1])
+                                + ((variable == KB.map("?y")) ? "-1" : "")
+                                +"\t"+KB.unmap(type)
+                                +"\t"+KB.unmap(subType)+"\t"+Double.toString((t == 0) ? sc : sc / t));
 			if (t > scm)
 				scm = t;
 		}

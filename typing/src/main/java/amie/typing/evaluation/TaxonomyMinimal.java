@@ -7,13 +7,13 @@ package amie.typing.evaluation;
 
 import amie.data.KB;
 import amie.data.Schema;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import javatools.datatypes.ByteString;
+
 import javatools.filehandlers.FileLines;
 
 /**
@@ -32,16 +32,16 @@ public class TaxonomyMinimal {
         KB taxo = new KB();
         taxo.setDelimiter(" ");
         Schema.subClassRelation = "<P279>";
-                Schema.subClassRelationBS = ByteString.of(Schema.subClassRelation);
+                Schema.subClassRelationBS = KB.map(Schema.subClassRelation);
         taxo.load(new File(args[0]));
         
         for (int i = 1; i < args.length; i++) {
-            Set<ByteString> results = new LinkedHashSet<>();
+            IntSet results = new IntOpenHashSet();
             boolean clean = false;
 
             File resultFile = new File(args[i]);
             for (String line : new FileLines(resultFile, "UTF-8", null)) {
-                ByteString t = ByteString.of(line.trim());
+                int t = KB.map(line.trim());
                 if (results.contains(t)) {
                     clean = false;
                     System.err.println("ERROR:"+args[i]+": Duplicates found");
@@ -49,15 +49,15 @@ public class TaxonomyMinimal {
                 results.add(t);
             }
 
-            Set<ByteString> cleanedResults = new LinkedHashSet<>(results);
-            for (ByteString c1 : results) {
-                for (ByteString c2 : results) {
+            IntSet cleanedResults = new IntOpenHashSet(results);
+            for (int c1 : results) {
+                for (int c2 : results) {
                     if (c1 == c2) {
                         continue;
                     }
                     if (Schema.isTransitiveSuperType(taxo, c2, c1)) {
                         clean = false;
-                        System.err.println("ERROR:"+args[i]+": "+ c1.toString() + " in " + c2.toString());
+                        System.err.println("ERROR:"+args[i]+": "+ KB.unmap(c1) + " in " + KB.unmap(c2));
                         cleanedResults.remove(c1);
                         break;
                     }
@@ -65,8 +65,8 @@ public class TaxonomyMinimal {
             }
             if (!clean) {
                 BufferedWriter w = new BufferedWriter(new FileWriter(args[i]+"_cleaned"));
-                for (ByteString c : cleanedResults) {
-                    w.write(c.toString()+"\n");
+                for (int c : cleanedResults) {
+                    w.write(KB.unmap(c)+"\n");
                 }
                 w.close();
             }

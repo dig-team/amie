@@ -4,7 +4,7 @@ import java.util.List;
 
 import amie.data.KB;
 
-import javatools.datatypes.ByteString;
+
 
 public class CommonAttributeOfClass extends TypingHeuristic {
 
@@ -14,8 +14,8 @@ public class CommonAttributeOfClass extends TypingHeuristic {
 	}
 
 	@Override
-	public double evaluate(ByteString type, List<ByteString[]> clause,
-			ByteString variable) {
+	public double evaluate(int type, List<int[]> clause,
+			int variable) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

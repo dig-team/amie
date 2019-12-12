@@ -8,20 +8,21 @@ package amie.typing.evaluation;
 import amie.data.KB;
 import amie.data.Schema;
 import static amie.typing.classifier.SeparationClassifier.getOptions;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javatools.datatypes.ByteString;
+
 import javatools.datatypes.Pair;
 import javatools.filehandlers.FileLines;
 import org.apache.commons.cli.CommandLine;
@@ -40,42 +41,42 @@ import org.apache.commons.cli.PosixParser;
 public class ImpliedFactsEvaluator {
 
     private KB db;
-    public Set<ByteString> queried;
+    public IntSet queried;
     public Set<String> querySet;
-    public BlockingQueue<Pair<ByteString, String>> queryQ = new LinkedBlockingQueue<>();
-    public BlockingQueue<Pair<Pair<ByteString, String>, ImpliedFacts>> resultQ = new LinkedBlockingQueue<>();
+    public BlockingQueue<Pair<Integer, String>> queryQ = new LinkedBlockingQueue<>();
+    public BlockingQueue<Pair<Pair<Integer, String>, ImpliedFacts>> resultQ = new LinkedBlockingQueue<>();
 
-    public static final ByteString gsRelation = ByteString.of("<inGoldStandardOf>");
+    public static final int gsRelation = KB.map("<inGoldStandardOf>");
 
-    public static ByteString resultWithThresholdRelation(String method) {
-        return ByteString.of("<inResult_" + method + ">");
+    public static int resultWithThresholdRelation(String method) {
+        return KB.map("<inResult_" + method + ">");
     }
 
-    public static ByteString rwtr(String t) {
+    public static int rwtr(String t) {
         return resultWithThresholdRelation(t);
     }
 
     public ImpliedFactsEvaluator(KB db) {
         this.db = db;
-        queried = new HashSet<>();
+        queried = new IntOpenHashSet();
         querySet = new HashSet<>();
     }
     
-//    public ImpliedFactsEvaluator(KB db, Map<ByteString, Set<ByteString>> goldStandard,
-//            Map<ByteString, Map<String, Set<ByteString>>> results) {
+//    public ImpliedFactsEvaluator(KB db, Int2ObjectMap<IntSet> goldStandard,
+//            Int2ObjectMap<Map<String, IntSet>> results) {
 //        this.db = db;
-//        queried = new HashSet<>(goldStandard.keySet());
-//        for (ByteString q : queried) {
-//            for (ByteString gsResult : goldStandard.get(q)) {
-//                for (ByteString e : Schema.getAllEntitiesForType(db, gsResult)) {
+//        queried = new IntOpenHashSet(goldStandard.keySet());
+//        for (int q : queried) {
+//            for (int gsResult : goldStandard.get(q)) {
+//                for (int e : Schema.getAllEntitiesForType(db, gsResult)) {
 //                    db.add(e, gsRelation, q);
 //                }
 //            }
 //            if (!results.containsKey(q)) { continue; }
 //            for (String t : results.get(q).keySet()) {
 //                queryQ.add(new Pair<>(q, t));
-//                for (ByteString rtClass : results.get(q).get(t)) {
-//                    for (ByteString e : Schema.getAllEntitiesForType(db, rtClass)) {
+//                for (int rtClass : results.get(q).get(t)) {
+//                    for (int e : Schema.getAllEntitiesForType(db, rtClass)) {
 //                        db.add(e, rwtr(t), q);
 //                    }
 //                }
@@ -83,28 +84,28 @@ public class ImpliedFactsEvaluator {
 //        }
 //    }
     
-    public void addGS(ByteString relation, Set<ByteString> classes) {
-        for (ByteString rtClass : classes) {
+    public void addGS(int relation, IntSet classes) {
+        for (int rtClass : classes) {
             addGS(relation, rtClass);
         }
     }
         
-    public void addGS(ByteString relation, ByteString rtClass) {
+    public void addGS(int relation, int rtClass) {
         queried.add(relation);
-        for (ByteString e : Schema.getAllEntitiesForType(db, rtClass)) {
+        for (int e : Schema.getAllEntitiesForType(db, rtClass)) {
                 db.add(e, gsRelation, relation);
         }
     }
     
-    public void addResult(ByteString relation, String method, Set<ByteString> classes) {
-        for (ByteString rtClass : classes) {
+    public void addResult(int relation, String method, IntSet classes) {
+        for (int rtClass : classes) {
             addResult(relation, method, classes);
         }
     }
         
-    public void addResult(ByteString relation, String method, ByteString rtClass) {
+    public void addResult(int relation, String method, int rtClass) {
         querySet.add(method);
-        for (ByteString e : Schema.getAllEntitiesForType(db, rtClass)) {
+        for (int e : Schema.getAllEntitiesForType(db, rtClass)) {
                 db.add(e, rwtr(method), relation);
         }
     }
@@ -122,23 +123,23 @@ public class ImpliedFactsEvaluator {
             NFTP=nftp; NFPS=nfps; NFGS=nfgs; }
     }
     
-    public ImpliedFacts computeImpliedFacts(ByteString query, String method) {
+    public ImpliedFacts computeImpliedFacts(int query, String method) {
         throw new UnsupportedOperationException("No longer...");
 //        if (!queried.contains(query)) {
 //            //return new ImpliedFacts(0, 0, 0, 0);
 //        }
-//        final ByteString x = ByteString.of("?x");
-//        List<ByteString[]> gsSizeQ = KB.triples(KB.triple(x, gsRelation, query));
-//        List<ByteString[]> rtSizeQ = KB.triples(KB.triple(x, rwtr(method), query));
+//        final int x = KB.map("?x");
+//        List<int[]> gsSizeQ = KB.triples(KB.triple(x, gsRelation, query));
+//        List<int[]> rtSizeQ = KB.triples(KB.triple(x, rwtr(method), query));
 //        long gsSize = db.countDistinct(x, gsSizeQ);
 //        long rtSize = db.countDistinct(x, rtSizeQ);
 //        gsSizeQ.addAll(rtSizeQ);
 //        long tp = db.countDistinct(x, gsSizeQ);
 //        String[] q = query.toString().split("-1");
 //        if (q.length == 1) {
-//            gsSizeQ.add(KB.triple(x, ByteString.of(query), ByteString.of("?y")));
+//            gsSizeQ.add(KB.triple(x, KB.map(query), KB.map("?y")));
 //        } else {
-//            gsSizeQ.add(KB.triple(ByteString.of("?y"), ByteString.of(q[0]), x));
+//            gsSizeQ.add(KB.triple(KB.map("?y"), KB.map(q[0]), x));
 //        }
 //        long oldFacts = db.countDistinct(x, gsSizeQ);
 //        //return new ImpliedFacts(tp, rtSize - tp, gsSize - tp, tp - oldFacts);
@@ -147,11 +148,11 @@ public class ImpliedFactsEvaluator {
     public class ImpliedFactsMTEvaluator extends Thread {
         @Override
         public void run() {
-            Pair<ByteString, String> qP;
+            Pair<Integer, String> qP;
             while(true) {
                 try {
                     qP = queryQ.take();
-                    if (qP.first.equals(ByteString.of("STOP"))) break;
+                    if (qP.first.equals(KB.map("STOP"))) break;
                     resultQ.put(new Pair<>(qP, computeImpliedFacts(qP.first, qP.second)));
                 } catch (InterruptedException ex) {
                     Logger.getLogger(ImpliedFactsEvaluator.class.getName()).log(Level.SEVERE, null, ex);
@@ -166,7 +167,7 @@ public class ImpliedFactsEvaluator {
         
         List<Thread> threadList = new ArrayList<>(nThreads);
         for (int i = 0; i < nThreads; i++) {
-            queryQ.add(new Pair<>(ByteString.of("STOP"), ""));
+            queryQ.add(new Pair<>(KB.map("STOP"), ""));
             threadList.add(new ImpliedFactsMTEvaluator());
         }
         
@@ -179,25 +180,25 @@ public class ImpliedFactsEvaluator {
         }
     }
     
-    public static Pair<ByteString, String> extractQueryArgs(String path) {
+    public static Pair<Integer, String> extractQueryArgs(String path) {
         String[] t = path.split("/");
         String filename = t[t.length - 1];
         filename = filename.replace("_cleaned", "");
         String[] fns = filename.split("_");
         if (fns.length == 2 && t.length > 1) {
-            return new Pair<>(ByteString.of("<" + (fns[0].contains("-1")? (fns[0].replace("-1", "") + ">-1") : (fns[0] + ">"))), t[t.length - 2] + "_" + fns[1]);
+            return new Pair<>(KB.map("<" + (fns[0].contains("-1")? (fns[0].replace("-1", "") + ">-1") : (fns[0] + ">"))), t[t.length - 2] + "_" + fns[1]);
         } else if (fns.length == 3) {
-            return new Pair<>(ByteString.of("<" + (fns[1].contains("-1")? (fns[1].replace("-1", "") + ">-1") : (fns[1] + ">"))), fns[0] + "_" + fns[2]);
+            return new Pair<>(KB.map("<" + (fns[1].contains("-1")? (fns[1].replace("-1", "") + ">-1") : (fns[1] + ">"))), fns[0] + "_" + fns[2]);
         } else {
             System.err.println("ERROR parsing \"" + path + "\"");
             return null;
         }
     }
     
-    public static Set<ByteString> readClassFile(String path) throws IOException {
-        Set<ByteString> res = new LinkedHashSet<>();
+    public static IntSet readClassFile(String path) throws IOException {
+        IntSet res = new IntOpenHashSet();
         for (String line : new FileLines(new File(path), "UTF-8", null)) {
-            res.add(ByteString.of(line.trim()));
+            res.add(KB.map(line.trim()));
         }
         return res;
     }
@@ -206,11 +207,11 @@ public class ImpliedFactsEvaluator {
         for (String line : new FileLines(new File(path), "UTF-8", null)) {
             String[] s = line.split("\t");
             if (s.length == 2) {
-                addGS(ByteString.of(s[0]), ByteString.of(s[1]));
+                addGS(KB.map(s[0]), KB.map(s[1]));
             } else if (s.length == 4) {
-                addResult(ByteString.of(s[2]), s[0]+"_"+s[1], ByteString.of(s[3]));
+                addResult(KB.map(s[2]), s[0]+"_"+s[1], KB.map(s[3]));
             } else if (s.length == 5) {
-                addResult(ByteString.of(s[3]), s[1]+"_"+s[2]+"_"+s[0], ByteString.of(s[4]));
+                addResult(KB.map(s[3]), s[1]+"_"+s[2]+"_"+s[0], KB.map(s[4]));
             } else {
                 throw new IllegalArgumentException("Not well formatted file");
             }
@@ -218,7 +219,7 @@ public class ImpliedFactsEvaluator {
     }
     
     public static void main(String[] args) throws IOException, InterruptedException {
-        Map<ByteString, Set<ByteString>> relation2classGS = new HashMap<>();
+        Int2ObjectMap<IntSet> relation2classGS = new Int2ObjectOpenHashMap<>();
         
 
         CommandLine cli = null;
@@ -304,7 +305,7 @@ public class ImpliedFactsEvaluator {
             try {
                 eval.readFile(gsFiles[i]);
             } catch (IllegalArgumentException e) {
-                eval.addGS(ByteString.of("<" + gsFiles[i].split("_")[1] + ((gsFiles[i].split("_")[2].equals("y")) ? "-1" : "") + ">"), readClassFile(gsFiles[i]));
+                eval.addGS(KB.map("<" + gsFiles[i].split("_")[1] + ((gsFiles[i].split("_")[2].equals("y")) ? "-1" : "") + ">"), readClassFile(gsFiles[i]));
             }
         }
         
@@ -313,13 +314,13 @@ public class ImpliedFactsEvaluator {
             try {
                 eval.readFile(rsFiles[i]);
             } catch (IllegalArgumentException e) {
-                Pair<ByteString, String> rm = extractQueryArgs(rsFiles[i]);
+                Pair<Integer, String> rm = extractQueryArgs(rsFiles[i]);
                 eval.addResult(rm.first, rm.second, readClassFile(rsFiles[i]));
             }
         }
         
         for (String method : eval.querySet) {
-            for (ByteString relation : eval.queried) {
+            for (int relation : eval.queried) {
                 eval.queryQ.add(new Pair<>(relation, method));
             }
         }
@@ -328,14 +329,14 @@ public class ImpliedFactsEvaluator {
         eval.computeImpliedFactsMT(nThreads);
         
         System.out.println("Method\tClassifier\tParameter\tRelation\tTrue Positives\tPredicted Size\tGS Size\tNFTP\tNFPS\tNFGS\tP\tR\tF1\tNFP\tNFR\tNFF1");
-        Pair<Pair<ByteString, String>, ImpliedFacts> result;
+        Pair<Pair<Integer, String>, ImpliedFacts> result;
         while((result = eval.resultQ.poll()) != null) {
             ImpliedFacts s = result.second;
             String rString = String.join("\t", 
                     result.first.second,
                     result.first.second.split("_")[0],
                     result.first.second.split("_")[1],
-                    result.first.first,
+                    KB.unmap(result.first.first),
                     Long.toString(s.TP),
                     Long.toString(s.PS),
                     Long.toString(s.GS),

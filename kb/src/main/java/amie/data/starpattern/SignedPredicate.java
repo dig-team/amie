@@ -5,7 +5,11 @@
  */
 package amie.data.starpattern;
 
-import javatools.datatypes.ByteString;
+import amie.data.KB;
+
+import amie.data.KB;
+
+
 
 /**
  *
@@ -13,10 +17,10 @@ import javatools.datatypes.ByteString;
  */
 public class SignedPredicate implements Comparable<SignedPredicate> {
 
-    public ByteString predicate;
+    public int predicate;
     public boolean subject;
 
-    public SignedPredicate(ByteString p, boolean s) {
+    public SignedPredicate(int p, boolean s) {
         this.predicate = p;
         this.subject = s;
     }
@@ -33,13 +37,13 @@ public class SignedPredicate implements Comparable<SignedPredicate> {
             return false;
         }
         SignedPredicate sp = (SignedPredicate) o; //
-        return (this.predicate.equals(sp.predicate) && this.subject == sp.subject);
+        return (this.predicate == sp.predicate && this.subject == sp.subject);
     }
 
     @Override
     public int compareTo(SignedPredicate o) {
         if (this.subject == o.subject) {
-            return this.predicate.compareTo(o.predicate);
+            return Integer.compare(this.predicate, o.predicate);
         } else if (this.subject) {
             return 1;
         } else {
@@ -50,17 +54,17 @@ public class SignedPredicate implements Comparable<SignedPredicate> {
     @Override
     public int hashCode() {
         if (subject) {
-            return predicate.hashCode();
+            return predicate;
         } else {
-            return predicate.hashCode()^(-1); // XOR 111...1 32 bits.
+            return predicate^(-1); // XOR 111...1 32 bits.
         }
     }
     
     @Override
     public String toString() {
         if (!subject) {
-            return predicate.toString() + "-1";
+            return KB.unmap(predicate) + "-1";
         }
-        return predicate.toString();
+        return KB.unmap(predicate);
     }
 }

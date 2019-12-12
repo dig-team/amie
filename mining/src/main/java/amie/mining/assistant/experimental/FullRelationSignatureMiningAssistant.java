@@ -1,19 +1,19 @@
 package amie.mining.assistant.experimental;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
-import javatools.datatypes.ByteString;
+
 import amie.data.KB;
+import amie.data.tuple.IntArrays;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.IntList;
 
 public class FullRelationSignatureMiningAssistant extends DefaultMiningAssistant {
 
 	public FullRelationSignatureMiningAssistant(KB dataSource) {
 		super(dataSource);
-		bodyExcludedRelations = Arrays.asList(ByteString.of("<rdf:type>"));
+		bodyExcludedRelations = IntArrays.asList(KB.map("<rdf:type>"));
 	}
 	
 	@Override
@@ -23,8 +23,8 @@ public class FullRelationSignatureMiningAssistant extends DefaultMiningAssistant
 	}
 	
 	public void getDanglingAtoms(Rule query, double minCardinality, Collection<Rule> output) {		
-		ByteString[] newEdge = query.fullyUnboundTriplePattern();
-		ByteString rdfType = ByteString.of("rdf:type");
+		int[] newEdge = query.fullyUnboundTriplePattern();
+		int rdfType = KB.map("rdf:type");
 		
 		if(query.isEmpty()){
 			//Initial case
@@ -36,7 +36,7 @@ public class FullRelationSignatureMiningAssistant extends DefaultMiningAssistant
 		} else if (query.getLength() == 1) {
 			getDanglingAtoms(query, newEdge, minCardinality, output);
 		} else if (query.getLength() == 2) {
-			List<ByteString> variables = query.getOpenVariables();
+			IntList variables = query.getOpenVariables();
 			// There must be one
 			newEdge[0] = variables.get(0);
 			newEdge[1] = rdfType;
@@ -45,7 +45,5 @@ public class FullRelationSignatureMiningAssistant extends DefaultMiningAssistant
 		}
 	}
 	
-	public void getClosingAtoms(Rule query, double minSupportThreshold, Collection<Rule> output) {
-		return;
-	}
+	public void getClosingAtoms(Rule query, double minSupportThreshold, Collection<Rule> output) {}
 }

@@ -10,7 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import javatools.datatypes.ByteString;
+
 import javatools.filehandlers.FileLines;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.KosarajuStrongConnectivityInspector;
@@ -26,15 +26,15 @@ public class TaxonomyCleaner {
 
     public static void main(String[] args) throws IOException {
         Class c = DefaultEdge.class;
-        DirectedGraph<ByteString, DefaultEdge> g 
-                = new SimpleDirectedGraph<ByteString, DefaultEdge>(DefaultEdge.class);
+        DirectedGraph<Integer, DefaultEdge> g 
+                = new SimpleDirectedGraph<Integer, DefaultEdge>(DefaultEdge.class);
         for (String line : new FileLines(new File(args[0]), "UTF-8", null)) {
             String[] split = line.split("/t");
             if (split.length == 4) {
-                ByteString s = ByteString.of(split[1]);
-                ByteString o = ByteString.of(split[3]);
-                if (s.equals(o)) {
-                    System.err.println(s.toString());
+                int s = KB.map(split[1]);
+                int o = KB.map(split[3]);
+                if (s == (o)) {
+                    System.err.println(KB.unmap(s));
                 } else {
                     g.addVertex(s);
                     g.addVertex(o);
@@ -42,12 +42,12 @@ public class TaxonomyCleaner {
                 }
             }
         }
-        StrongConnectivityAlgorithm<ByteString, DefaultEdge> gi = new KosarajuStrongConnectivityInspector<>(g);
-        List<Set<ByteString>> scc = gi.stronglyConnectedSets();
-        for (Set<ByteString> scs : scc) {
+        StrongConnectivityAlgorithm<Integer, DefaultEdge> gi = new KosarajuStrongConnectivityInspector<>(g);
+        List<Set<Integer>> scc = gi.stronglyConnectedSets();
+        for (Set<Integer> scs : scc) {
             if (scs.size() > 1) {
-                for (ByteString v : scs) {
-                    System.out.print(v.toString() + " ");
+                for (int v : scs) {
+                    System.out.print(KB.unmap(v) + " ");
                 }
                 System.out.println();
             }

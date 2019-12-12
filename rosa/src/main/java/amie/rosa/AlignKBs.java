@@ -15,7 +15,7 @@ import amie.data.KB;
 import amie.mining.AMIE;
 import amie.rules.Metric;
 import amie.rules.Rule;
-import javatools.datatypes.ByteString;
+
 import javatools.datatypes.Pair;
 import javatools.datatypes.Triple;
 import javatools.filehandlers.TSVFile;
@@ -36,11 +36,11 @@ public class AlignKBs {
 	 * @return
 	 */
 	public static boolean isCrossOntology(Rule rule) {
-		ByteString r1, r2;
+		int r1, r2;
 		r1 = rule.getHead()[1];
 		r2 = rule.getBody().get(0)[1];
-		return (!r1.toString().startsWith(prefixkb2) && r2.toString().startsWith(prefixkb2)) || 
-			(!r2.toString().startsWith(prefixkb2) && r1.toString().startsWith(prefixkb2));
+		return (!KB.unmap(r1).startsWith(prefixkb2) && KB.unmap(r2).startsWith(prefixkb2)) || 
+			(!KB.unmap(r2).startsWith(prefixkb2) && KB.unmap(r1).startsWith(prefixkb2));
 	}
 
 	public static KB loadFiles(String args[], int idx) throws IOException {

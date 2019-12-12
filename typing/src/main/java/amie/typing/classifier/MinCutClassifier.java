@@ -3,18 +3,13 @@ package amie.typing.classifier;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-import javatools.datatypes.ByteString;
+
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
@@ -23,8 +18,12 @@ import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
 import amie.data.KB;
-import amie.data.Schema;
 import amie.typing.classifier.SeparationClassifier.ParsedArguments;
+import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntSets;
 
 public class MinCutClassifier extends SeparationClassifier {
 
@@ -43,32 +42,32 @@ public class MinCutClassifier extends SeparationClassifier {
 		// TODO Auto-generated constructor stub
 	}
 
-	public void classify(Map<ByteString, Map<ByteString, Double>> statistics) {
-		SimpleDirectedWeightedGraph<ByteString, DefaultWeightedEdge>  graph = 
+	public void classify(Int2ObjectMap<Int2DoubleMap> statistics) {
+		SimpleDirectedWeightedGraph<Integer, DefaultWeightedEdge>  graph = 
 	            new SimpleDirectedWeightedGraph<>(DefaultWeightedEdge.class); 
-		for (ByteString t1 : statistics.keySet()) {
+		for (int t1 : statistics.keySet()) {
 			graph.addVertex(t1);
-			for(ByteString t2 : statistics.get(t1).keySet()) {
+			for(int t2 : statistics.get(t1).keySet()) {
 				if (Double.isNaN(statistics.get(t2).get(t1))) { continue; }
 				graph.addVertex(t2);
 				DefaultWeightedEdge e = graph.addEdge(t1, t2);
 				graph.setEdgeWeight(e, statistics.get(t2).get(t1));
 			}
 		}
-		PushRelabelMFImpl<ByteString, DefaultWeightedEdge> mf = new PushRelabelMFImpl<>(graph);
-		Set<ByteString> result = Collections.emptySet();
+		PushRelabelMFImpl<Integer, DefaultWeightedEdge> mf = new PushRelabelMFImpl<>(graph);
+		IntSet result = IntSets.EMPTY_SET;
 		double mcMinVal = Double.POSITIVE_INFINITY, mcVal;
-		for (ByteString t1 : graph.vertexSet()) {
-			for (ByteString t2 : graph.vertexSet()) {
+		for (int t1 : graph.vertexSet()) {
+			for (int t2 : graph.vertexSet()) {
 				if (t1 == t2) continue;
 				if ((mcVal = mf.calculateMinCut(t1, t2)) < mcMinVal) {
 					mcMinVal = mcVal;
-					result = mf.getSourcePartition();
+					result = new IntOpenHashSet(mf.getSourcePartition());
 				}
 			}
 		}
-		for (ByteString r : result) {
-			System.out.println(r.toString());
+		for (int r : result) {
+			System.out.println(KB.unmap(r));
 		}
 	}
 	

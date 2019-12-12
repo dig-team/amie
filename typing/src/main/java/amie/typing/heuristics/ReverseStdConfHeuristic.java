@@ -6,15 +6,15 @@ import amie.data.KB;
 import amie.data.Schema;
 import amie.data.SetU;
 import amie.data.SimpleTypingKB;
-import java.util.HashMap;
-import java.util.Map;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
-import javatools.datatypes.ByteString;
+
 
 public class ReverseStdConfHeuristic extends TypingHeuristic {
 
     public SimpleTypingKB localdb;
-    public static Map<ByteString, Integer> bodySizes = new HashMap<>();
+    public static Int2ObjectMap<Integer> bodySizes = new Int2ObjectOpenHashMap<>();
     
 	public ReverseStdConfHeuristic(KB kb) {
 		super(kb);
@@ -31,10 +31,10 @@ public class ReverseStdConfHeuristic extends TypingHeuristic {
 	}
 
 	@Override
-	public double evaluate(ByteString type, List<ByteString[]> clause,
-			ByteString variable) {
+	public double evaluate(int type, List<int[]> clause,
+			int variable) {
                 // TODO Scale with max value of children
-                ByteString relation = (clause.get(0)[0].equals(variable)) ? clause.get(0)[1] : ByteString.of(clause.get(0)[1].toString() + "-1");
+                int relation = (clause.get(0)[0] == (variable)) ? clause.get(0)[1] : KB.map(KB.unmap(clause.get(0)[1]) + "-1");
                 //System.err.println(relation.toString());
                 //System.err.println(phi.size());
                 Integer bodySize = bodySizes.get(relation);

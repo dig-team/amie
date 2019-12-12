@@ -5,9 +5,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
-import javatools.datatypes.ByteString;
+
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -22,6 +21,7 @@ import amie.data.KB;
 import amie.data.Schema;
 import amie.data.SimpleTypingKB;
 import amie.typing.heuristics.*;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.util.Collections;
@@ -35,24 +35,24 @@ public class Typing {
 
     public static class TypingMT extends Thread {
 
-        private BlockingQueue<Triple<List<ByteString[]>, ByteString, TypingHeuristic>> queryQ;
-        private Set<ByteString> classes;
+        private BlockingQueue<Triple<List<int[]>, Integer, TypingHeuristic>> queryQ;
+        private IntSet classes;
         private double outputThreshold;
 
-        public TypingMT(BlockingQueue<Triple<List<ByteString[]>, ByteString, TypingHeuristic>> queryQ,
-                Set<ByteString> classes, double outputThreshold) {
+        public TypingMT(BlockingQueue<Triple<List<int[]>, Integer, TypingHeuristic>> queryQ,
+                IntSet classes, double outputThreshold) {
             this.queryQ = queryQ;
             this.classes = classes;
             this.outputThreshold = outputThreshold;
         }
 
         public void run() {
-            Triple<List<ByteString[]>, ByteString, TypingHeuristic> q;
+            Triple<List<int[]>, Integer, TypingHeuristic> q;
             BufferedWriter out;
             while (true) {
                 try {
                     q = queryQ.take();
-                    if (q.second.equals(ByteString.of("STOP"))) {
+                    if (q.second.equals(KB.map("STOP"))) {
                         break;
                     }
 
@@ -60,17 +60,17 @@ public class Typing {
                         throw new UnsupportedOperationException("Not supported yet.");
                     }
 
-                    ByteString[] singleton = q.first.get(0);
+                    int[] singleton = q.first.get(0);
                     String fn = q.third.name + "_";
-                    fn += singleton[1].toString().substring(1, singleton[1].toString().length() - 1);
-                    fn += (singleton[2].equals(q.second)) ? "-1" : "";
+                    fn += KB.unmap(singleton[1]).substring(1, KB.unmap(singleton[1]).length() - 1);
+                    fn += (singleton[2] == (q.second)) ? "-1" : "";
 
                     out = new BufferedWriter(new FileWriter(fn));
                     double s;
-                    for (ByteString c : classes) {
+                    for (int c : classes) {
                         s = q.third.evaluate(c, q.first, q.second);
                         if (outputThreshold <= s) {
-                            out.write(c.toString() + "\t" + Double.toString(s) + "\n");
+                            out.write(KB.unmap(c) + "\t" + Double.toString(s) + "\n");
                         }
                     }
                     out.close();
@@ -98,7 +98,7 @@ public class Typing {
         String delimiter = "\t";
 
         //Schema.typeRelation = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
-        //Schema.typeRelationBS = ByteString.of(Schema.typeRelation);
+        //Schema.typeRelationBS = KB.map(Schema.typeRelation);
         HelpFormatter formatter = new HelpFormatter();
 
         // create the command line parser
@@ -239,11 +239,11 @@ public class Typing {
         
         if (cli.hasOption("w")) {
                 Schema.typeRelation = "<P106>";
-                Schema.typeRelationBS = ByteString.of(Schema.typeRelation);
+                Schema.typeRelationBS = KB.map(Schema.typeRelation);
                 Schema.subClassRelation = "<P279>";
-                Schema.subClassRelationBS = ByteString.of(Schema.subClassRelation);
+                Schema.subClassRelationBS = KB.map(Schema.subClassRelation);
                 Schema.top = "<Q35120>";
-                Schema.topBS = ByteString.of(Schema.top);
+                Schema.topBS = KB.map(Schema.top);
                 delimiter = " ";
             }
 
@@ -313,7 +313,7 @@ public class Typing {
                         if (cli.hasOption("t")) {
                             diffDB.load(new File(cli.getOptionValue("t")));
                         }
-                        Set<ByteString> oldEntities = diffDB.selectDistinct(ByteString.of("?x"), TypingHeuristic.typeL(ByteString.of("?y"), ByteString.of("?x")));
+                        IntSet oldEntities = diffDB.selectDistinct(KB.map("?x"), TypingHeuristic.typeL(KB.map("?y"), KB.map("?x")));
                         TypingHeuristic newEntities = new StdConfHeuristic(dataSource.newEntitiesKB(oldEntities));
                         newEntities.name = "newEntities";
                         typingHeuristics.add(newEntities);
@@ -333,58 +333,58 @@ public class Typing {
         dataSource.load(dataFiles);
         long timeStamp2 = System.currentTimeMillis();
 
-        List<ByteString[]> query = new ArrayList<>(1);
-        query.add(KB.triple(ByteString.of("?x"), ByteString.of("?y"), ByteString.of("?z")));
-        Set<ByteString> relations = dataSource.getRelationSet(); //dataSource.selectDistinct(ByteString.of("?y"), query);
+        List<int[]> query = new ArrayList<>(1);
+        query.add(KB.triple(KB.map("?x"), KB.map("?y"), KB.map("?z")));
+        IntSet relations = dataSource.getRelationSet(); //dataSource.selectDistinct(KB.map("?y"), query);
         relations.remove(Schema.typeRelationBS);
         relations.remove(PopularityHeuristic.popularityRelationBS);
         relations.remove(TrueType.trueTypeBS);
 
         query.get(0)[1] = Schema.typeRelationBS;
-        Set<ByteString> classes = dataSource.getClassSet(); //dataSource.selectDistinct(ByteString.of("?z"), query);
-        List<ByteString[]> clause = new LinkedList<>();
+        IntSet classes = dataSource.getClassSet(); //dataSource.selectDistinct(KB.map("?z"), query);
+        List<int[]> clause = new LinkedList<>();
 
         if (typingHeuristics.isEmpty()) {
             System.out.println("Default heuristic: MRC");
             TypingHeuristic spread = new Spread(dataSource);
             TypingHeuristic amplification = new Amplification(dataSource);
             double mrc_score = 0;
-            ByteString mrc = ByteString.of("NONE");
+            int mrc = KB.map("NONE");
             double mrc_score2 = 0;
-            ByteString mrc2 = ByteString.of("NONE");
-            for (ByteString r : relations) {
-                clause.add(KB.triple(ByteString.of("?x"), r, ByteString.of("?y")));
+            int mrc2 = KB.map("NONE");
+            for (int r : relations) {
+                clause.add(KB.triple(KB.map("?x"), r, KB.map("?y")));
                 Double prob = 0.0;
                 List<Double> probs = new LinkedList<>();
-                for (ByteString c : classes) {
-                    if ((prob = spread.evaluate(c, clause, ByteString.of("?x")) * amplification.evaluate(c, clause, ByteString.of("?x"))) > mrc_score) {
+                for (int c : classes) {
+                    if ((prob = spread.evaluate(c, clause, KB.map("?x")) * amplification.evaluate(c, clause, KB.map("?x"))) > mrc_score) {
                         mrc = c;
                         mrc_score = prob;
                     }
-                    if ((prob = spread.evaluate(c, clause, ByteString.of("?y")) * amplification.evaluate(c, clause, ByteString.of("?y"))) > mrc_score2) {
+                    if ((prob = spread.evaluate(c, clause, KB.map("?y")) * amplification.evaluate(c, clause, KB.map("?y"))) > mrc_score2) {
                         mrc2 = c;
                         mrc_score2 = prob;
                     }
                 }
-                System.out.println("MRC(" + r.toString() + ")\t=" + mrc.toString());
-                System.out.println("MRC(" + r.toString() + "-1)\t=" + mrc2.toString());
+                System.out.println("MRC(" + KB.unmap(r) + ")\t=" + KB.unmap(mrc));
+                System.out.println("MRC(" + KB.unmap(r) + "-1)\t=" + KB.unmap(mrc2));
                 mrc_score = mrc_score2 = 0;
-                mrc = ByteString.of("NONE");
-                mrc2 = ByteString.of("NONE");
+                mrc = KB.map("NONE");
+                mrc2 = KB.map("NONE");
                 clause.clear();
             }
         } else {
             BlockingQueue queryQ = new LinkedBlockingQueue();
             for (TypingHeuristic th : typingHeuristics) {
-                for (ByteString r : relations) {
-                    queryQ.add(new Triple<>(KB.triples(KB.triple(ByteString.of("?x"), r, ByteString.of("?y"))),
-                            ByteString.of("?x"), th));
-                    queryQ.add(new Triple<>(KB.triples(KB.triple(ByteString.of("?x"), r, ByteString.of("?y"))),
-                            ByteString.of("?y"), th));
+                for (int r : relations) {
+                    queryQ.add(new Triple<>(KB.triples(KB.triple(KB.map("?x"), r, KB.map("?y"))),
+                            KB.map("?x"), th));
+                    queryQ.add(new Triple<>(KB.triples(KB.triple(KB.map("?x"), r, KB.map("?y"))),
+                            KB.map("?y"), th));
                 }
             }
             for (int i = 0; i < nThreads; i++) {
-                queryQ.add(new Triple<>(Collections.EMPTY_LIST, ByteString.of("STOP"), null));
+                queryQ.add(new Triple<>(Collections.EMPTY_LIST, KB.map("STOP"), null));
             }
 
             // Let's thread !

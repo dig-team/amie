@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javatools.datatypes.ByteString;
+
 import amie.data.KB;
 
 /**
@@ -20,7 +20,7 @@ import amie.data.KB;
 public class QueryEquivalenceChecker {
 	
 	static class Node implements Comparable<Node>{
-		ByteString[] data;
+		int[] data;
 		
 		boolean removed;
 		
@@ -36,7 +36,7 @@ public class QueryEquivalenceChecker {
 			return "Node [data=" + Arrays.toString(data) + "]";
 		}
 
-		Node(ByteString[] data, boolean isHead){
+		Node(int[] data, boolean isHead){
 			this.data = data;
 			this.removed = false;
 			this.visited = false;
@@ -58,7 +58,7 @@ public class QueryEquivalenceChecker {
 			return comparePred;
 		}
 
-		private int compare(ByteString b1, ByteString b2) {
+		private int compare(int b1, int b2) {
 			// TODO Auto-generated method stub
 			if(KB.isVariable(b1)){
 				if(KB.isVariable(b2)){
@@ -70,7 +70,7 @@ public class QueryEquivalenceChecker {
 				if(KB.isVariable(b2)){
 					return 1;
 				}else{
-					return b1.toString().compareTo(b2.toString());
+					return Integer.compare(b1, b2);
 				}				
 			}
 		}
@@ -206,7 +206,7 @@ public class QueryEquivalenceChecker {
 						}
 					}
 				}
-				
+
 				if(!match){
 					return false;
 				}
@@ -259,7 +259,7 @@ public class QueryEquivalenceChecker {
 	 * @param q2
 	 * @return
 	 */
-	public static boolean areEquivalent(List<ByteString[]> q1, List<ByteString[]> q2){
+	public static boolean areEquivalent(List<int[]> q1, List<int[]> q2){
 		if(q1.size() == q2.size() && q1.size() == 1){
 			return Rule.areEquivalent(q1.get(0), q2.get(0));
 		}else{
@@ -272,7 +272,7 @@ public class QueryEquivalenceChecker {
 	 * @param q2
 	 * @return
 	 */
-	private static QueryGraph buildQueryGraph(List<ByteString[]> q2) {
+	private static QueryGraph buildQueryGraph(List<int[]> q2) {
 		SortedSet<Node> nodes = new TreeSet<Node>();
 		List<Node> hardNodes = new ArrayList<Node>();
 		List<Node> nodeList = null;
@@ -282,7 +282,7 @@ public class QueryEquivalenceChecker {
 		
 		Node headNode = new Node(q2.get(0), true);
 		
-		for(ByteString[] triple: q2.subList(1, q2.size())){
+		for(int[] triple: q2.subList(1, q2.size())){
 			Node newNode = new Node(triple, false);
 			if(nodes.contains(newNode))
 				hardNodes.add(newNode);
@@ -304,10 +304,10 @@ public class QueryEquivalenceChecker {
 			for(int j = i + 1; j < nodeList.size(); ++j){
 				for(int i1 = 0; i1 < nodeList.get(i).data.length; ++i1){
 					for(int j1 = 0; j1 < nodeList.get(j).data.length; ++j1){
-						ByteString vari, varj;
+						int vari, varj;
 						vari = nodeList.get(i).data[i1];
 						varj = nodeList.get(j).data[j1];
-						if(KB.isVariable(vari) && vari.equals(varj)){
+						if(KB.isVariable(vari) && vari == (varj)){
 							int[] edge = new int[3];
 							edge[0] = j; // Target pattern
 							edge[1] = i1; //Position in local pattern

@@ -4,20 +4,22 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
-import javatools.datatypes.Triple;
+
 import amie.data.KB;
+import amie.data.tuple.IntTriple;
 import amie.rules.AMIEParser;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import java.util.HashSet;
 
 /**
  * This class defines objects that take rules extracted from a training 
@@ -65,7 +67,7 @@ public class Predictor {
 	}
 		
 	
-	public Set<Triple<ByteString, ByteString, ByteString>> generateBodyTriples(Rule rule, boolean PCAMode) {
+	public Set<IntTriple> generateBodyTriples(Rule rule, boolean PCAMode) {
 		Object bindings = null;
 		if (PCAMode) {
 			bindings = generateBodyPCABindings(rule);
@@ -73,29 +75,29 @@ public class Predictor {
 			bindings = generateBodyBindings(rule);
 		}
 		
-		Set<Triple<ByteString, ByteString, ByteString>> triples = new LinkedHashSet<>();
-		ByteString[] head = rule.getHead();
-		ByteString relation = rule.getHead()[1];
+		Set<IntTriple> triples = new LinkedHashSet<>();
+		int[] head = rule.getHead();
+		int relation = rule.getHead()[1];
 		
 		if (KB.numVariables(rule.getHead()) == 1) {
-			Set<ByteString> constants = (Set<ByteString>) bindings;
+			IntSet constants = (IntSet) bindings;
 			int variablePosition = rule.getFunctionalVariablePosition();
-			for (ByteString constant : constants) {
+			for (int constant : constants) {
 				if (variablePosition == 0) {
-					triples.add(new Triple<>(constant, relation, head[2]));
+					triples.add(new IntTriple(constant, relation, head[2]));
 				} else {
-					triples.add(new Triple<>(head[0], relation, constant));					
+					triples.add(new IntTriple(head[0], relation, constant));					
 				}
 			}
 		} else {
-			Map<ByteString, IntHashMap<ByteString>> pairs = (Map<ByteString, IntHashMap<ByteString>>) bindings; 
+			Int2ObjectMap<Int2IntMap> pairs = (Int2ObjectMap<Int2IntMap>) bindings; 
 			int functionalPosition = rule.getFunctionalVariablePosition();
-			for (ByteString subject : pairs.keySet()) {
-				for (ByteString object : pairs.get(subject)) {
+			for (int subject : pairs.keySet()) {
+				for (int object : pairs.get(subject).keySet()) {
 					if (functionalPosition == 0) {
-						triples.add(new Triple<>(subject, relation, object));
+						triples.add(new IntTriple(subject, relation, object));
 					} else {
-						triples.add(new Triple<>(object, relation, subject));						
+						triples.add(new IntTriple(object, relation, subject));						
 					}
 				}
 			}
@@ -120,7 +122,7 @@ public class Predictor {
 	}
 	
 	private Object generateBindingsForThreeVariables(Rule rule) {
-		ByteString[] head = rule.getHead();
+		int[] head = rule.getHead();
 		return source.selectDistinct(rule.getFunctionalVariable(), 
 				head[1], rule.getNonFunctionalVariable(), rule.getAntecedent());
 	}
@@ -172,12 +174,12 @@ public class Predictor {
 			return predictBindingsForTwoVariables(rule);
 	}
 	
-	private Set<ByteString> predictBindingsForSingleVariable(Rule rule) {
+	private IntSet predictBindingsForSingleVariable(Rule rule) {
 		//First get the bindings for the projection variable in the antecedent
 		return source.difference(rule.getFunctionalVariable(), rule.getAntecedent(), rule.getTriples());
 	}
 	
-	private Map<ByteString, IntHashMap<ByteString>> predictBindingsForTwoVariables(Rule rule) {
+	private Int2ObjectMap<IntSet> predictBindingsForTwoVariables(Rule rule) {
 		return source.difference(rule.getFunctionalVariable(), 
 				rule.getNonFunctionalVariable(), rule.getAntecedent(), rule.getTriples());
 	}
@@ -189,12 +191,12 @@ public class Predictor {
 	 * @param rules
 	 */
 	public void runMode1(Collection<Rule> rules) {
-		Map<ByteString, Map<ByteString, Set<ByteString>>> allPredictions = 
-				new HashMap<ByteString, Map<ByteString, Set<ByteString>>>();
+		Int2ObjectMap<Int2ObjectMap<IntSet>> allPredictions = 
+				new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 		
 		for(Rule rule: rules){
 			Object predictions = generatePredictions(rule);
-			Collection<Triple<ByteString, ByteString, ByteString>> newPredictions = 
+			Collection<IntTriple> newPredictions = 
 					samplePredictions(predictions, rule, allPredictions);
 			printPredictions(rule, newPredictions);
 		}
@@ -209,44 +211,44 @@ public class Predictor {
 	public void runMode2(Collection<Rule> rules){
 		for(Rule rule: rules){
 			Object predictions = generatePredictions(rule);
-			Collection<Triple<ByteString, ByteString, ByteString>> newPredictions = 
+			Collection<IntTriple> newPredictions = 
 					samplePredictions(predictions, rule);
 			printPredictions(rule, newPredictions);
 		}		
 	}
 
-	private Collection<Triple<ByteString, ByteString, ByteString>> samplePredictions(Object predictions, Rule rule) {
+	private Collection<IntTriple> samplePredictions(Object predictions, Rule rule) {
 		// TODO Auto-generated method stub
 		int nVars = KB.numVariables(rule.getHead());
 		if(nVars == 2){
-			return samplePredictionsTwoVariables((Map<ByteString, IntHashMap<ByteString>>)predictions, rule);
+			return samplePredictionsTwoVariables((Int2ObjectMap<Int2IntMap>)predictions, rule);
 		}else if(nVars == 1){
-			return samplePredictionsOneVariable((Set<ByteString>)predictions, rule);			
+			return samplePredictionsOneVariable((IntSet)predictions, rule);			
 		}
 		
 		return null;
 	}
 
-	private Collection<Triple<ByteString, ByteString, ByteString>> samplePredictionsOneVariable(Set<ByteString> predictions, Rule rule) {
+	private Collection<IntTriple> samplePredictionsOneVariable(IntSet predictions, Rule rule) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	private Collection<Triple<ByteString, ByteString, ByteString>> 
-	samplePredictionsTwoVariables(Map<ByteString, IntHashMap<ByteString>> predictions, Rule rule) {
-		Set<ByteString> keySet = predictions.keySet();
-		ByteString relation = rule.getHead()[1];
+	private Collection<IntTriple> 
+	samplePredictionsTwoVariables(Int2ObjectMap<Int2IntMap> predictions, Rule rule) {
+		IntSet keySet = predictions.keySet();
+		int relation = rule.getHead()[1];
 		//Depending on the counting variable the order is different
 		int countingVarPos = rule.getFunctionalVariablePosition();
-		Set<Triple<ByteString, ByteString, ByteString>> samplingCandidates = 
-				new LinkedHashSet<Triple<ByteString, ByteString, ByteString>>();
+		Set<IntTriple> samplingCandidates = 
+				new HashSet<IntTriple>();
 		
-		for(ByteString value1: keySet){
-			for(ByteString value2: predictions.get(value1)){
-				Triple<ByteString, ByteString, ByteString> triple = 
-						new Triple<ByteString, ByteString, ByteString>(null, null, null);
+		for(int value1: keySet){
+			for(int value2: predictions.get(value1).keySet()){
+				IntTriple triple = 
+						new IntTriple(0, 0, 0);
 				
-				if(value1.equals(value2)) continue;
+				if(value1 == value2) continue;
 				
 				if(countingVarPos == 0){
 					triple.first = value1;
@@ -265,8 +267,8 @@ public class Predictor {
 	}
 	
 
-	private void printPredictions(Rule rule, Collection<Triple<ByteString, ByteString, ByteString>> newPredictions) {
-		for(Triple<ByteString, ByteString, ByteString> triple: newPredictions){
+	private void printPredictions(Rule rule, Collection<IntTriple> newPredictions) {
+		for(IntTriple triple: newPredictions){
 			System.out.println(rule.getRuleString() + "\t" + triple.first + "\t" + triple.second + "\t" + triple.third);
 		}
 	}
@@ -276,43 +278,43 @@ public class Predictor {
 	 * @param predictions
 	 * @param rule
 	 */
-	private Collection<Triple<ByteString, ByteString, ByteString>> samplePredictions(
-			Object predictions, Rule rule, Map<ByteString, Map<ByteString, Set<ByteString>>> allPredictions) {
+	private Collection<IntTriple> samplePredictions(
+			Object predictions, Rule rule, Int2ObjectMap<Int2ObjectMap<IntSet>> allPredictions) {
 		// TODO Auto-generated method stub
 		int nVars = KB.numVariables(rule.getHead());
 		if(nVars == 2){
-			return samplePredictionsTwoVariables((Map<ByteString, IntHashMap<ByteString>>)predictions, rule, allPredictions);
+			return samplePredictionsTwoVariables((Int2ObjectMap<Int2IntMap>)predictions, rule, allPredictions);
 		}else if(nVars == 1){
-			return samplePredictionsOneVariable((Set<ByteString>)predictions, rule, allPredictions);			
+			return samplePredictionsOneVariable((IntSet)predictions, rule, allPredictions);			
 		}
 		
 		return null;
 	}
 
-	private Collection<Triple<ByteString, ByteString, ByteString>> samplePredictionsOneVariable(Set<ByteString> predictions,
+	private Collection<IntTriple> samplePredictionsOneVariable(IntSet predictions,
 			Rule rule,
-			Map<ByteString, Map<ByteString, Set<ByteString>>> allPredictions) {
+			Int2ObjectMap<Int2ObjectMap<IntSet>> allPredictions) {
 		// TODO Auto-generated method stub
 		return null;
 		
 	}
 
-	private Collection<Triple<ByteString, ByteString, ByteString>> samplePredictionsTwoVariables(
-			Map<ByteString, IntHashMap<ByteString>> predictions, 
-			Rule rule, Map<ByteString, Map<ByteString, Set<ByteString>>> allPredictions){
-		Set<ByteString> keySet = predictions.keySet();
-		ByteString relation = rule.getHead()[1];
+	private Collection<IntTriple> samplePredictionsTwoVariables(
+			Int2ObjectMap<Int2IntMap> predictions, 
+			Rule rule, Int2ObjectMap<Int2ObjectMap<IntSet>> allPredictions){
+		IntSet keySet = predictions.keySet();
+		int relation = rule.getHead()[1];
 		//Depending on the counting variable the order is different
 		int countingVarPos = rule.getFunctionalVariablePosition();
-		Set<Triple<ByteString, ByteString, ByteString>> samplingCandidates = 
-				new LinkedHashSet<Triple<ByteString, ByteString, ByteString>>();
+		Set<IntTriple> samplingCandidates = 
+				new LinkedHashSet<IntTriple>();
 		
-		for(ByteString value1: keySet){
-			for(ByteString value2: predictions.get(value1)){
-				Triple<ByteString, ByteString, ByteString> triple = 
-						new Triple<ByteString, ByteString, ByteString>(null, null, null);
+		for(int value1: keySet){
+			for(int value2: predictions.get(value1).keySet()){
+				IntTriple triple = 
+						new IntTriple(0, 0, 0);
 				
-				if(value1.equals(value2)) continue;
+				if(value1 == value2) continue;
 				
 				if(countingVarPos == 0){
 					triple.first = value1;
@@ -341,32 +343,32 @@ public class Predictor {
 	 * @param allPredictions
 	 * @param triple
 	 */
-	private void addPrediction(Map<ByteString, Map<ByteString, Set<ByteString>>> allPredictions, 
-			Triple<ByteString, ByteString, ByteString> triple) {
+	private void addPrediction(Int2ObjectMap<Int2ObjectMap<IntSet>> allPredictions, 
+			IntTriple triple) {
 		if(allPredictions.containsKey(triple.second)){
-			Map<ByteString, Set<ByteString>> subjects = allPredictions.get(triple.second);
+			Int2ObjectMap<IntSet> subjects = allPredictions.get(triple.second);
 			if(subjects.containsKey(triple.first)){
 				subjects.get(triple.first).add(triple.third);
 			}else{
-				Set<ByteString> objects = new HashSet<ByteString>();
+				IntSet objects = new IntOpenHashSet();
 				objects.add(triple.third);
 				subjects.put(triple.first, objects);
 			}
 		}else{
-			Set<ByteString> objects = new HashSet<ByteString>();
+			IntSet objects = new IntOpenHashSet();
 			objects.add(triple.third);
-			Map<ByteString, Set<ByteString>> subjects = new HashMap<ByteString, Set<ByteString>>();
+			Int2ObjectMap<IntSet> subjects = new Int2ObjectOpenHashMap<IntSet>();
 			subjects.put(triple.first, objects);
 			allPredictions.put(triple.second, subjects);
 		}
 	}
 
-	private boolean containsPrediction(Map<ByteString, Map<ByteString, Set<ByteString>>> allPredictions, 
-			Triple<ByteString, ByteString, ByteString> triple) {
+	private boolean containsPrediction(Int2ObjectMap<Int2ObjectMap<IntSet>> allPredictions, 
+			IntTriple triple) {
 		// TODO Auto-generated method stub
-		Map<ByteString, Set<ByteString>> subjects2objects = allPredictions.get(triple.second);
+		Int2ObjectMap<IntSet> subjects2objects = allPredictions.get(triple.second);
 		if(subjects2objects != null){
-			Set<ByteString> objects = subjects2objects.get(triple.first);
+			IntSet objects = subjects2objects.get(triple.first);
 			if(objects != null){
 				return objects.contains(triple.third);
 			}
@@ -382,10 +384,10 @@ public class Predictor {
 	 * @param samplingCandidates
 	 * @return
 	 */
-	public static Collection<Triple<ByteString, ByteString, ByteString>> sample(Collection<Triple<ByteString, ByteString, ByteString>> samplingCandidates,
+	public static Collection<IntTriple> sample(Collection<IntTriple> samplingCandidates,
 			int sampleSize){
 		//Now sample them
-		List<Triple<ByteString, ByteString, ByteString>> result = new ArrayList<>(sampleSize);		
+		List<IntTriple> result = new ArrayList<>(sampleSize);		
 		if(samplingCandidates.size() <= sampleSize){
 			return samplingCandidates;
 		}else{
@@ -393,14 +395,14 @@ public class Predictor {
 			int i;
 			Random r = new Random();
 			for(i = 0; i < sampleSize; ++i){				
-				result.add((Triple<ByteString, ByteString, ByteString>)candidates[i]);
+				result.add((IntTriple)candidates[i]);
 			}
 			
 			while(i < candidates.length){
 			    int rand = r.nextInt(i);
 			    if(rand < sampleSize){
 			    	//Pick a random number in the reserviour
-			    	result.set(r.nextInt(sampleSize), (Triple<ByteString, ByteString, ByteString>)candidates[i]);
+			    	result.set(r.nextInt(sampleSize), (IntTriple)candidates[i]);
 			    }
 			    ++i;
 			}

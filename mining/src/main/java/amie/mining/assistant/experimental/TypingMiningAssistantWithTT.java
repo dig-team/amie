@@ -6,22 +6,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
-import javatools.datatypes.MultiMap;
 import amie.data.KB;
-import amie.data.TransitiveTypesKB;
-import amie.data.U;
 import amie.mining.assistant.*;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntCollection;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 	
 	public static String topType = "owl:Thing";
 	
-	public static ByteString topTypeBS = ByteString.of(topType);
+	public static int topTypeBS = KB.map(topType);
 
 	public TypingMiningAssistantWithTT(KB dataSource) {
 		super(dataSource);
@@ -32,8 +29,8 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 	
 	public Rule getInitialRule() {
 		Rule query = new Rule();
-		ByteString[] newEdge = query.fullyUnboundTriplePattern();
-		ByteString[] succedent = newEdge.clone();
+		int[] newEdge = query.fullyUnboundTriplePattern();
+		int[] succedent = newEdge.clone();
 		succedent[1] = KB.TRANSITIVETYPEbs;
 		succedent[2] = topTypeBS;
 		Rule candidate = new Rule(succedent, (double)kb.countOneVariable(succedent));
@@ -49,7 +46,7 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 	}
 	
 	@Override
-	public Collection<Rule> getInitialAtomsFromSeeds(Collection<ByteString> relations, 
+	public Collection<Rule> getInitialAtomsFromSeeds(IntCollection relations, 
 			double minSupportThreshold) {
 		return Arrays.asList(getInitialRule());
 	}
@@ -70,17 +67,17 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 	}
 	
 	public void getSubTypingRules(Rule rule, double minSupportThreshold, Collection<Rule> output) {
-		if (!rule.getHeadRelationBS().equals(KB.TRANSITIVETYPEbs)) {
+		if (rule.getHeadRelationBS() != KB.TRANSITIVETYPEbs) {
 			return;
 		}
 		if (rule.getBody().isEmpty()) {
 			return;
 		}
-		ByteString[] head = rule.getHead();
-		List<ByteString[]> body = rule.getBody();
-		Set<ByteString> subTypes = amie.data.Schema.getSubTypes(kb, head[2]);
+		int[] head = rule.getHead();
+		List<int[]> body = rule.getBody();
+		IntSet subTypes = amie.data.Schema.getSubTypes(kb, head[2]);
 		int parentTypePos = Rule.firstIndexOfRelation(body, KB.TRANSITIVETYPEbs);
-		for (ByteString subType : subTypes) {
+		for (int subType : subTypes) {
 			Rule succedent = new Rule(rule, rule.getSupport());
 			if (parentTypePos == -1) {
 				succedent = succedent.addAtom(KB.triple(head[0], KB.TRANSITIVETYPEbs, head[2]), 0);
@@ -99,10 +96,10 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 	}
 	
 	public void getDomainRangeRules(Rule rule, double minSupportThreshold, Collection<Rule> output) {
-		if (!rule.getHeadRelationBS().equals(KB.TRANSITIVETYPEbs)) {
+		if (rule.getHeadRelationBS() != KB.TRANSITIVETYPEbs) {
 			return;
 		}
-		List<ByteString> openVariables = rule.getOpenVariables();
+		IntList openVariables = rule.getOpenVariables();
 		if (openVariables.isEmpty()) {
 			return;
 		}
@@ -110,14 +107,14 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 			return;
 		}
 		int cardinality;
-		for (ByteString openVariable : openVariables) {
-			ByteString[] newEdge = rule.fullyUnboundTriplePattern();
+		for (int openVariable : openVariables) {
+			int[] newEdge = rule.fullyUnboundTriplePattern();
 			newEdge[0] = openVariable;
 			newEdge[1] = KB.TRANSITIVETYPEbs;
 			
 			Rule pattern = rule.addAtom(newEdge, 0);
-			IntHashMap<ByteString> promisingTypes = kb.frequentBindingsOf(newEdge[2], pattern.getFunctionalVariable(), pattern.getTriples());
-			for (ByteString promisingType : promisingTypes) {
+			Int2IntMap promisingTypes = kb.frequentBindingsOf(newEdge[2], pattern.getFunctionalVariable(), pattern.getTriples());
+			for (int promisingType : promisingTypes.keySet()) {
 				cardinality = promisingTypes.get(promisingType);
 				if (cardinality >= minSupportThreshold) {
 					newEdge[2] = promisingType;
@@ -209,11 +206,11 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 		for (Rule rule : output) {
 			System.out.println(rule.getRuleString() + "\t" + String.valueOf(rule.getStdConfidence()));
 		}*/
-		newRule = new Rule(KB.triple(ByteString.of("?x"), KB.TRANSITIVETYPEbs, ByteString.of("<wordnet_abstraction_100002137>")),
-							KB.triples(KB.triple(ByteString.of("?x"), ByteString.of("<isMarriedTo>"), ByteString.of("?y")),
-									   KB.triple(ByteString.of("?x"), KB.TRANSITIVETYPEbs, topTypeBS)), 0);
+		newRule = new Rule(KB.triple(KB.map("?x"), KB.TRANSITIVETYPEbs, KB.map("<wordnet_abstraction_100002137>")),
+							KB.triples(KB.triple(KB.map("?x"), KB.map("<isMarriedTo>"), KB.map("?y")),
+									   KB.triple(KB.map("?x"), KB.TRANSITIVETYPEbs, topTypeBS)), 0);
 		System.out.println("New rule: " + newRule.getRuleString());
-		long support = kb.countDistinct(ByteString.of("?x"), newRule.getTriples());
+		long support = kb.countDistinct(KB.map("?x"), newRule.getTriples());
 		System.out.println("Support: " + String.valueOf(support));
 		System.out.println("MRT calls: " + String.valueOf(KB.STAT_NUMBER_OF_CALL_TO_MRT.get()));
 		/*

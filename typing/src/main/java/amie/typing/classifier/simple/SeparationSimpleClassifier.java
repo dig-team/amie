@@ -6,15 +6,16 @@
 package amie.typing.classifier.simple;
 
 import amie.data.CardinalitySimpleTypingKB;
+import amie.data.KB;
 import amie.data.SetU;
 import amie.data.SimpleTypingKB;
-import java.util.HashSet;
-import java.util.Map;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.locks.Lock;
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
+
 import javatools.datatypes.Pair;
 
 /**
@@ -31,11 +32,11 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
         super(db, thresholds, output, outputLock, supportForTarget);
     }
 
-    public SeparationSimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Map<ByteString, IntHashMap<ByteString>> classIntersectionSize) {
+    public SeparationSimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Int2ObjectMap<Int2IntMap> classIntersectionSize) {
         super(db, thresholds, output, outputLock, classIntersectionSize);
     }
 
-    public SeparationSimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Map<ByteString, IntHashMap<ByteString>> classIntersectionSize, boolean supportForTarget) {
+    public SeparationSimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Int2ObjectMap<Int2IntMap> classIntersectionSize, boolean supportForTarget) {
         super(db, thresholds, output, outputLock, classIntersectionSize, supportForTarget);
     }
     
@@ -44,9 +45,9 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
         return treeScore >= -Math.abs(Math.log(threshold));
     }
     
-    private int getIntersectionSize(ByteString class1, ByteString class2) {
+    private int getIntersectionSize(int class1, int class2) {
         if (classIntersectionSize != null) {
-            if (!classIntersectionSize.containsKey(class1) || !classIntersectionSize.get(class1).contains(class2)) {
+            if (!classIntersectionSize.containsKey(class1) || !classIntersectionSize.get(class1).containsKey(class2)) {
                 return 0;
             }
             return classIntersectionSize.get(class1).get(class2);
@@ -54,24 +55,24 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
         return (int) SetU.countIntersection(db.classes.get(class1), db.classes.get(class2));
     }
     
-    private int cs(ByteString class1) { return db.classes.get(class1).size(); }
+    private int cs(int class1) { return db.classes.get(class1).size(); }
     
     protected abstract Pair<Double, Double> classesScore(int c1, int c1c2, int c1phi, int c1c2phi);
     
     @Override
-    public void computeStatistics(ByteString relation, int classSizeThreshold) {
-        Set<ByteString> relevantClasses = index.keySet();
+    public void computeStatistics(int relation, int classSizeThreshold) {
+        IntSet relevantClasses = index.keySet();
 
-        for (ByteString class1 : relevantClasses) {
+        for (int class1 : relevantClasses) {
             if (db instanceof CardinalitySimpleTypingKB) {
-                String[] s = class1.toString().split("_");
-                if (s.length == 2 && s[0].equals(relation.toString())) {
+                String[] s = KB.unmap(class1).split("_");
+                if (s.length == 2 && s[0].equals(KB.unmap(relation))) {
                     index.get(class1).separationScore = Double.NEGATIVE_INFINITY;
                     continue;
                 }
             }  
             int c1size = cs(class1);
-            Set<ByteString> c1phi = new HashSet<>(db.relations.get(relation));
+            IntSet c1phi = new IntOpenHashSet(db.relations.get(relation));
             c1phi.retainAll(db.classes.get(class1));
             if (c1phi.size() == c1size) {
                 index.get(class1).thresholdI = -1;
@@ -79,18 +80,18 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
             }
             double conf = ((double) index.get(class1).support) / index.get(class1).bodySize;
            
-            Set<ByteString> targetClasses = (supportForTarget || classIntersectionSize == null) ? relevantClasses : classIntersectionSize.get(class1);
+            IntSet targetClasses = (supportForTarget || classIntersectionSize == null) ? relevantClasses : classIntersectionSize.get(class1).keySet();
             if (targetClasses == null) {
                 continue;
             }
 
-            for (ByteString class2 : targetClasses) {
+            for (int class2 : targetClasses) {
                 if (class1 == class2) {
                     continue;
                 }
                 if (db instanceof CardinalitySimpleTypingKB) {
-                    String[] s = class2.toString().split("_");
-                    if (s.length == 2 && s[0].equals(relation.toString())) { 
+                    String[] s = KB.unmap(class2).split("_");
+                    if (s.length == 2 && s[0].equals(KB.unmap(relation))) { 
                         continue; 
                     }
                 }

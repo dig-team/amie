@@ -7,11 +7,8 @@ package amie.mining.assistant.experimental;
 
 import amie.mining.assistant.variableorder.VariableOrder;
 import amie.data.KB;
-import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.Rule;
-import java.util.ArrayList;
 import java.util.List;
-import javatools.datatypes.ByteString;
 
 /**
  *
@@ -28,6 +25,35 @@ public class LazyIteratorMiningAssistant extends LazyMiningAssistant {
     }
 
     /**
+     * It computes the standard and the PCA confidence of a given rule. It
+     * assumes the rule's cardinality (absolute support) is known.
+     *
+     * @param candidate
+     */
+    public void calculateConfidenceMetrics(Rule candidate) {
+        if (this.minPcaConfidence == 0) {
+            if (this.ommitStdConfidence) {
+                candidate.setBodySize((long) candidate.getSupport() * 2);
+                computePCAConfidence(candidate);
+            } else {
+                computeStandardConfidence(candidate);
+                if (candidate.getStdConfidence() >= this.minStdConfidence) {
+                    computePCAConfidence(candidate);
+                }
+            }
+        } else {
+            computePCAConfidence(candidate);
+            if (candidate.getPcaConfidence() >= this.minPcaConfidence) {
+                if (this.ommitStdConfidence) {
+                    candidate.setBodySize((long) candidate.getSupport() * 2);
+                } else {
+                    computeStandardConfidence(candidate);
+                }
+            }
+        }
+    }
+
+    /**
      * Returns the denominator of the PCA confidence expression for the
      * antecedent of a rule.
      *
@@ -40,7 +66,7 @@ public class LazyIteratorMiningAssistant extends LazyMiningAssistant {
      * @return
      */
     @Override
-    protected double computePcaBodySize(ByteString var1, ByteString var2, Rule query, List<ByteString[]> antecedent, ByteString[] existentialTriple, int nonExistentialPosition) {
+    protected double computePcaBodySize(int var1, int var2, Rule query, List<int[]> antecedent, int[] existentialTriple, int nonExistentialPosition) {
         antecedent.add(existentialTriple);
         long t1 = System.currentTimeMillis();
         long result;
@@ -67,7 +93,7 @@ public class LazyIteratorMiningAssistant extends LazyMiningAssistant {
      * @return
      */
     @Override
-    protected long computeBodySize(ByteString var1, ByteString var2, Rule query) {
+    protected long computeBodySize(int var1, int var2, Rule query) {
         long t1 = System.currentTimeMillis();
         long result;
         if (this.minStdConfidence > 0.0) {
@@ -86,6 +112,6 @@ public class LazyIteratorMiningAssistant extends LazyMiningAssistant {
     @Override
     public String getDescription() {
         return "Lazy mining assistant that stops counting "
-                + "when the denominator gets too high";
+                + "when the denominator gets too high (iterator version)";
     }
 }

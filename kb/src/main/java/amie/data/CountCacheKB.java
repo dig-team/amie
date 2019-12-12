@@ -6,16 +6,19 @@
 package amie.data;
 
 import static amie.data.KB.isVariable;
+import amie.data.tuple.IntArrays;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import javatools.datatypes.ByteString;
+
 
 /**
  *
@@ -27,9 +30,9 @@ public class CountCacheKB extends KB {
      * returns the number of instances that fulfill a certain condition
      */
     @Override
-    public long countDistinct(ByteString variable, List<ByteString[]> query) {
+    public long countDistinct(int variable, List<int[]> query) {
         if (countCacheEnabled) {
-            queryCache qC = new queryCache(query, Arrays.asList(variable));
+            queryCache qC = new queryCache(query, IntArrays.asList(variable));
             Long count = countCache.get(qC);
             if (count != null) {
                 countCacheMatch.incrementAndGet();
@@ -47,12 +50,13 @@ public class CountCacheKB extends KB {
     /**
      * returns the number of distinct pairs (var1,var2) for the query
      */
-    public long countDistinctPairs(ByteString var1, ByteString var2,
-            List<ByteString[]> query) {
+    @Override
+    public long countDistinctPairs(int var1, int var2,
+            List<int[]> query) {
 
         queryCache qC = null;
         if (countCacheEnabled) {
-            qC = new queryCache(query, Arrays.asList(var1, var2));
+            qC = new queryCache(query, IntArrays.asList(var1, var2));
             Long count = countCache.get(qC);
             if (count != null) {
                 countCacheMatch.incrementAndGet();
@@ -64,8 +68,8 @@ public class CountCacheKB extends KB {
         long result = 0;
 
         try (Instantiator insty1 = new Instantiator(query, var1)) {
-            Set<ByteString> bindings = selectDistinct(var1, query);
-            for (ByteString val1 : bindings) {
+            IntSet bindings = selectDistinct(var1, query);
+            for (int val1 : bindings) {
                 result += countDistinct(var2, insty1.instantiate(val1));
             }
         }
@@ -76,12 +80,12 @@ public class CountCacheKB extends KB {
         return (result);
     }
 
-public long countPairs(ByteString var1, ByteString var2,
-			List<ByteString[]> query, int[] queryInfo) {
+public long countPairs(int var1, int var2,
+			List<int[]> query, int[] queryInfo) {
 		
 		queryCache qC = null;
 		if (countCacheEnabled) {
-			qC = new queryCache(query, Arrays.asList(var1, var2));
+			qC = new queryCache(query, IntArrays.asList(var1, var2));
 			Long count = countCache.get(qC);
 			if(count != null) {
 				countCacheMatch.incrementAndGet();
@@ -91,9 +95,9 @@ public long countPairs(ByteString var1, ByteString var2,
 
 		long result = 0;
 		// Approximate count
-		ByteString joinVariable = query.get(queryInfo[2])[queryInfo[0]];
-		ByteString targetVariable = query.get(queryInfo[3])[queryInfo[1]];
-		ByteString targetRelation = query.get(queryInfo[2])[1];
+		int joinVariable = query.get(queryInfo[2])[queryInfo[0]];
+		int targetVariable = query.get(queryInfo[3])[queryInfo[1]];
+		int targetRelation = query.get(queryInfo[2])[1];
 
 		// Heuristic
 		if (relationSize.get(targetRelation) < 50000)
@@ -102,7 +106,7 @@ public long countPairs(ByteString var1, ByteString var2,
 		long duplicatesEstimate, duplicatesCard;
 		double duplicatesFactor;
 
-		List<ByteString[]> subquery = new ArrayList<ByteString[]>(query);
+		List<int[]> subquery = new ArrayList<int[]>(query);
 		subquery.remove(queryInfo[2]); // Remove one of the hard queries
 		duplicatesCard = countDistinct(targetVariable, subquery);
 
@@ -114,7 +118,7 @@ public long countPairs(ByteString var1, ByteString var2,
 		duplicatesEstimate = (int) Math.ceil(duplicatesCard * duplicatesFactor);
 
 		try (Instantiator insty1 = new Instantiator(subquery, joinVariable)) {
-			for (ByteString value : selectDistinct(joinVariable, subquery)) {
+			for (int value : selectDistinct(joinVariable, subquery)) {
 				result += (long) Math
 						.ceil(Math.pow(
 								countDistinct(targetVariable,
@@ -146,7 +150,7 @@ public long countPairs(ByteString var1, ByteString var2,
 		private int[][] repr;
 		public int ncol;
 		public int nline;
-		public Set<ByteString> headers, constants;
+		public IntSet headers, constants;
 		public Set<Integer> xorLines, xorCols;
 		public long hashLines, hashCols;
 		
@@ -156,26 +160,26 @@ public long countPairs(ByteString var1, ByteString var2,
 		
 		public static AtomicLong queryCount = new AtomicLong();
 		
-		public queryCache(List<ByteString[]> query, List<ByteString> countVariables) {
+		public queryCache(List<int[]> query, IntList countVariables) {
 			
 			queryRep = stringRepresentation(query, countVariables);
 			queryCount.incrementAndGet();
 			ncol = query.size() + 2;
-			LinkedHashSet<ByteString> args = new LinkedHashSet<ByteString>();
-			for (ByteString[] atom : query) {
+			IntSet args = new IntOpenHashSet();
+			for (int[] atom : query) {
 				args.add(atom[0]);
 				args.add(atom[2]);
 			}
 			nline = args.size();
-			headers = new HashSet<ByteString>(query.size());
-			constants = new HashSet<ByteString>();
+			headers = new IntOpenHashSet(query.size());
+			constants = new IntOpenHashSet();
 			repr = new int[nline][ncol];
-			for (ByteString[] atom : query) {
+			for (int[] atom : query) {
 				headers.add(atom[1]);
 			}
 			int j = 2;
 			int i = 0;
-			for (ByteString arg : args) {
+			for (int arg : args) {
 				if(isVariable(arg)) {
 					repr[i][0] = VARIABLEHASH;
 					if(countVariables.contains(arg)) {
@@ -183,12 +187,12 @@ public long countPairs(ByteString var1, ByteString var2,
 					}
 				}
 				else {
-					repr[i][0] = arg.hashCode();
+					repr[i][0] = arg;
 					constants.add(arg);
 				}
 				j = 2;
-				for (ByteString[] atom : query) {
-					repr[i][j] = ((atom[0].equals(arg)) ? ((atom[2].equals(arg)) ? 1 : 2) : ((atom[2].equals(arg)) ? 3 : 5) * (atom[1].hashCode()+1));
+				for (int[] atom : query) {
+					repr[i][j] = ((atom[0]==(arg)) ? ((atom[2]==(arg)) ? 1 : 2) : ((atom[2]==(arg)) ? 3 : 5) * (atom[1]+1));
 					j++;
 				}
 				i++;
@@ -224,10 +228,10 @@ public long countPairs(ByteString var1, ByteString var2,
 		
 		public static AtomicLong collisionCount = new AtomicLong();
 		
-		public String stringRepresentation(List<ByteString[]> _query, List<ByteString> _cV) {
+		public String stringRepresentation(List<int[]> _query, IntList _cV) {
 			String r = "";
-			for (ByteString[] atom : _query) {
-				r += atom[0].toString() + " " + atom[1].toString() + " " + atom[2].toString() + "; ";
+			for (int[] atom : _query) {
+				r += KB.unmap(atom[0]) + " " + KB.unmap(atom[1]) + " " + KB.unmap(atom[2]) + "; ";
 			}
 			r += _cV.toString();
 			return r;

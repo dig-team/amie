@@ -5,6 +5,7 @@
  */
 package amie.typing.evaluation;
 
+import amie.data.KB;
 import amie.data.Schema;
 import amie.data.SetU;
 import amie.data.SimpleTypingKB;
@@ -12,16 +13,18 @@ import amie.data.WikidataSimpleTypingKB;
 import static amie.typing.classifier.SeparationClassifier.getOptions;
 import static amie.typing.evaluation.ImpliedFactsEvaluator.extractQueryArgs;
 import static amie.typing.evaluation.ImpliedFactsEvaluator.readClassFile;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import javatools.datatypes.ByteString;
+
 import javatools.datatypes.Pair;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -39,60 +42,60 @@ import org.apache.commons.cli.PosixParser;
 public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
     
     private SimpleTypingKB db;
-    public Map<ByteString, Set<ByteString>> gs;
-    public Map<ByteString, Set<ByteString>> gsClasses;
-    public Map<ByteString, Map<String, Set<ByteString>>> query2classes;
+    public Int2ObjectMap<IntSet> gs;
+    public Int2ObjectMap<IntSet> gsClasses;
+    public Int2ObjectMap<Map<String, IntSet>> query2classes;
     
     public SimpleImpliedFactsEvaluator(SimpleTypingKB db) {
         super(db);
         this.db = db;
-        this.gs = new HashMap<>();
-        this.query2classes = new HashMap<>();
+        this.gs = new Int2ObjectOpenHashMap<>();
+        this.query2classes = new Int2ObjectOpenHashMap<>();
     }
     
     @Override
-    public void addGS(ByteString relation, Set<ByteString> classes) {
+    public void addGS(int relation, IntSet classes) {
         //System.err.println(relation);
         queried.add(relation);
-        Set<ByteString> gsr = gs.get(relation);
+        IntSet gsr = gs.get(relation);
         if (gsr == null) {
-            gs.put(relation, gsr = new HashSet<>());
+            gs.put(relation, gsr = new IntOpenHashSet());
         }
-        for (ByteString rtClass : classes) {
+        for (int rtClass : classes) {
             System.err.println(rtClass);
             gsr.addAll(db.classes.get(rtClass));
         }
     }
     
     @Override
-    public void addGS(ByteString relation, ByteString gsClass) {
+    public void addGS(int relation, int gsClass) {
         //System.err.println(relation);
         queried.add(relation);
-        Set<ByteString> gsr = gs.get(relation);
+        IntSet gsr = gs.get(relation);
         if (gsr == null) {
-            gs.put(relation, gsr = new HashSet<>());
+            gs.put(relation, gsr = new IntOpenHashSet());
         }
         gsr.addAll(db.classes.get(gsClass));
     }
     
     @Override
-    public void addResult(ByteString relation, String method, ByteString rtClass) {
+    public void addResult(int relation, String method, int rtClass) {
         querySet.add(method);
-        Map<String, Set<ByteString>> method2classes = query2classes.get(relation);
+        Map<String, IntSet> method2classes = query2classes.get(relation);
         if (method2classes == null) {
             query2classes.put(relation, method2classes = new HashMap<>());
         }
-        Set<ByteString> classes = method2classes.get(method);
+        IntSet classes = method2classes.get(method);
         if (classes == null) {
-            method2classes.put(method, classes = new HashSet<>());
+            method2classes.put(method, classes = new IntOpenHashSet());
         }
         classes.add(rtClass);
     }
     
     @Override
-    public void addResult(ByteString relation, String method, Set<ByteString> classes) {
+    public void addResult(int relation, String method, IntSet classes) {
         querySet.add(method);
-        Map<String, Set<ByteString>> method2classes = query2classes.get(relation);
+        Map<String, IntSet> method2classes = query2classes.get(relation);
         if (method2classes == null) {
             query2classes.put(relation, method2classes = new HashMap<>());
         }
@@ -100,8 +103,8 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
     }
     
     @Override
-    public ImpliedFacts computeImpliedFacts(ByteString query, String method) {
-        System.err.println("Computing " + query.toString() + ":" + method);
+    public ImpliedFacts computeImpliedFacts(int query, String method) {
+        System.err.println("Computing " + KB.unmap(query) + ":" + method);
         if (!queried.contains(query)) {
             return new ImpliedFacts(0, 0, 0, 0, 0, 0);
         }
@@ -110,12 +113,12 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
         if (!query2classes.containsKey(query) || !query2classes.get(query).containsKey(method)) {
             return new ImpliedFacts(0, 0, gsSize, 0, 0, gsSize - oldGSFacts);
         }
-        Set<ByteString> rtSet = new HashSet<>((int) gsSize);
-        for (ByteString c : query2classes.get(query).get(method)) {
+        IntSet rtSet = new IntOpenHashSet((int) gsSize);
+        for (int c : query2classes.get(query).get(method)) {
             rtSet.addAll(db.classes.get(c));
         }
         long rtSize = rtSet.size();
-        Set<ByteString> tpSet = new HashSet<>((rtSize < gsSize) ? rtSet : gs.get(query));
+        IntSet tpSet = new IntOpenHashSet((rtSize < gsSize) ? rtSet : gs.get(query));
         tpSet.retainAll((rtSize >= gsSize) ? rtSet : gs.get(query));
         long tp = tpSet.size();
         long oldTPFacts = SetU.countIntersection(tpSet, db.relations.get(query));
@@ -188,11 +191,11 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
             if (cli.getOptionValue("d").equals("w")) {
                 System.err.println("Wikidata setup");
                 Schema.typeRelation = "<P106>";
-                Schema.typeRelationBS = ByteString.of(Schema.typeRelation);
+                Schema.typeRelationBS = KB.map(Schema.typeRelation);
                 Schema.subClassRelation = "<P279>";
-                Schema.subClassRelationBS = ByteString.of(Schema.subClassRelation);
+                Schema.subClassRelationBS = KB.map(Schema.subClassRelation);
                 Schema.top = "<Q35120>";
-                Schema.topBS = ByteString.of(Schema.top);
+                Schema.topBS = KB.map(Schema.top);
                 delimiter = " ";
             }
         }
@@ -238,7 +241,7 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
             try {
                 eval.readFile(gsFiles[i]);
             } catch (IllegalArgumentException e) {
-                eval.addGS(ByteString.of("<" + gsFiles[i].split("_")[1] + ">" + ((gsFiles[i].split("_")[2].equals("y")) ? "-1" : "")), readClassFile(gsFiles[i]));
+                eval.addGS(KB.map("<" + gsFiles[i].split("_")[1] + ">" + ((gsFiles[i].split("_")[2].equals("y")) ? "-1" : "")), readClassFile(gsFiles[i]));
             }
         }
         
@@ -247,13 +250,13 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
             try {
                 eval.readFile(rsFiles[i]);
             } catch (IllegalArgumentException e) {
-                Pair<ByteString, String> rm = extractQueryArgs(rsFiles[i]);
+                Pair<Integer, String> rm = extractQueryArgs(rsFiles[i]);
                 eval.addResult(rm.first, rm.second, readClassFile(rsFiles[i]));
             }
         }
         
         for (String method : eval.querySet) {
-            for (ByteString relation : eval.queried) {
+            for (int relation : eval.queried) {
                 eval.queryQ.add(new Pair<>(relation, method));
             }
         }
@@ -263,7 +266,7 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
         eval.computeImpliedFactsMT(nThreads);
         
         output.println("T\tMethod\tClassifier\tParameter\tRelation\tTrue Positives\tPredicted Size\tGS Size\tNFTP\tNFPS\tNFGS\tP\tR\tF1\tNFP\tNFR\tNFF1");
-        Pair<Pair<ByteString, String>, ImpliedFacts> result;
+        Pair<Pair<Integer, String>, ImpliedFacts> result;
         while((result = eval.resultQ.poll()) != null) {
             ImpliedFacts s = result.second;
             String rString = String.join("\t", 
@@ -271,7 +274,7 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
                     result.first.second,
                     result.first.second.split("_")[0],
                     result.first.second.split("_")[1],
-                    result.first.first,
+                    KB.unmap(result.first.first),
                     Long.toString(s.TP),
                     Long.toString(s.PS),
                     Long.toString(s.GS),

@@ -5,18 +5,16 @@
  */
 package amie.data;
 
-import javatools.datatypes.ByteString;
-
 /**
  *
  * @author jlajus
  */
 public class SexismSimpleTypingKB extends SimpleTypingKB {
     @Override
-    protected boolean add(ByteString subject, ByteString relation, ByteString object) {
-        if (relation.equals(Schema.typeRelationBS) || relation.equals(Schema.subClassRelationBS)) {
+    protected boolean add(int subject, int relation, int object) {
+        if (relation==(Schema.typeRelationBS) || relation==(Schema.subClassRelationBS)) {
             return super.add(subject, relation, object);
-        } else if (relation.equals(ByteString.of("<hasGender>"))) {
+        } else if (relation==(KB.map("<hasGender>"))) {
             return super.add(subject, object, relation);
         } else {
             return false;

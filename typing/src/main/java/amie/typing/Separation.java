@@ -15,19 +15,19 @@ import amie.typing.classifier.SeparationPTreeClassifier;
 import amie.typing.classifier.SeparationSTreeClassifier;
 import amie.typing.classifier.SeparationTreeClassifier;
 import amie.typing.classifier.SeparationVTreeClassifier;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
+
 import javatools.datatypes.Pair;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -45,18 +45,18 @@ import org.apache.commons.cli.PosixParser;
 public class Separation extends Thread {
     
     KB source; 
-    IntHashMap<ByteString> cS;
-    Map<ByteString, IntHashMap<ByteString>> cIS;
-    BlockingQueue<Pair<List<ByteString[]>, ByteString>> queryQ; 
+    Int2IntMap cS;
+    Int2ObjectMap<Int2IntMap> cIS;
+    BlockingQueue<Pair<List<int[]>, Integer>> queryQ; 
     int classSizeThreshold; 
     int supportThreshold; 
     double[] thresholds;
     boolean supportForTarget;
     String classifier;
     
-    public Separation(KB source, IntHashMap<ByteString> cS, Map<ByteString, 
-            IntHashMap<ByteString>> cIS, BlockingQueue<Pair<List<ByteString[]>, 
-            ByteString>> queryQ, int classSizeThreshold, int supportThreshold, 
+    public Separation(KB source, Int2IntMap cS, Int2ObjectMap<
+            Int2IntMap> cIS, BlockingQueue<Pair<List<int[]>, 
+            Integer>> queryQ, int classSizeThreshold, int supportThreshold, 
             double[] thresholds, boolean supportForTarget, String classifier) {
         this.source = source;
         this.cS = cS;
@@ -73,12 +73,12 @@ public class Separation extends Thread {
     
         @Override
     public void run() {
-        Pair<List<ByteString[]>, ByteString> q;
+        Pair<List<int[]>, Integer> q;
         while(true) {
             try {
                 q = queryQ.take();
-                if (q.second.equals(ByteString.of("STOP"))) { System.out.println("Thread terminating"); break; }
-                System.out.println("Beginning "+q.first.get(0)[1].toString() + " (" + q.second + ") ...");
+                if (q.second.equals(KB.map("STOP"))) { System.out.println("Thread terminating"); break; }
+                System.out.println("Beginning "+ KB.unmap(q.first.get(0)[1]) + " (" + q.second + ") ...");
                 SeparationTreeClassifier st;
                 switch(classifier) {
                     case "P":
@@ -96,7 +96,7 @@ public class Separation extends Thread {
                     default: st = new SeparationTreeClassifier(source, cS, cIS, supportForTarget);
                 }
                 st.classify(q.first, q.second, classSizeThreshold, supportThreshold, thresholds);
-                System.out.println("Finished: "+q.first.get(0)[1].toString() + " (" + q.second + ")");
+                System.out.println("Finished: "+ KB.unmap(q.first.get(0)[1]) + " (" + q.second + ")");
             } catch (InterruptedException ex) {
                 Logger.getLogger(Separation.class.getName()).log(Level.SEVERE, null, ex);
                 break;
@@ -202,7 +202,7 @@ public class Separation extends Thread {
         
         // Load the KB
         KB dataSource;
-        if (pa.query != null && pa.query.get(0)[1].equals(ByteString.of("sexism"))) {
+        if (pa.query != null && pa.query.get(0)[1] == (KB.map("sexism"))) {
             dataSource = new SexismSimpleTypingKB();
         } else {
             dataSource = new SimpleTypingKB();
@@ -211,8 +211,8 @@ public class Separation extends Thread {
         dataSource.load(dataFiles);
         
         // Load the counts
-        IntHashMap<ByteString> cS;
-        Map<ByteString, IntHashMap<ByteString>> cIS;
+        Int2IntMap cS;
+        Int2ObjectMap<Int2IntMap> cIS;
         
         if (pa.countFile == null) {
             cS = Schema.getTypesCount(dataSource);
@@ -226,26 +226,26 @@ public class Separation extends Thread {
         BlockingQueue queryQ = new LinkedBlockingQueue();
         
         if (pa.query == null) {
-            Set<ByteString> relations = dataSource.getRelationSet();
+            IntSet relations = dataSource.getRelationSet();
             relations.remove(Schema.typeRelationBS);
             relations.remove(Schema.subClassRelationBS);
 
-            ByteString[] q;
-            for (ByteString r : relations) {
-                q = KB.triple(ByteString.of("?x"), r, ByteString.of("?y"));
-                queryQ.add(new Pair<>(KB.triples(q), ByteString.of("?x")));
-                queryQ.add(new Pair<>(KB.triples(q), ByteString.of("?y")));
+            int[] q;
+            for (int r : relations) {
+                q = KB.triple(KB.map("?x"), r, KB.map("?y"));
+                queryQ.add(new Pair<>(KB.triples(q), KB.map("?x")));
+                queryQ.add(new Pair<>(KB.triples(q), KB.map("?y")));
             }
-        } else if (pa.query.get(0)[1].equals(ByteString.of("sexism"))) {
+        } else if (pa.query.get(0)[1] == (KB.map("sexism"))) {
             nThreads = Math.min(nProcessors, 2);
             // Note: KB instanceof SexismSimpleTypingKB
-            queryQ.add(new Pair<>(KB.triples(KB.triple("?x", "<male>", "?y")), ByteString.of("?x")));
-            queryQ.add(new Pair<>(KB.triples(KB.triple("?x", "<female>", "?y")), ByteString.of("?x")));
+            queryQ.add(new Pair<>(KB.triples(KB.triple("?x", "<male>", "?y")), KB.map("?x")));
+            queryQ.add(new Pair<>(KB.triples(KB.triple("?x", "<female>", "?y")), KB.map("?x")));
         } else {
             queryQ.add(new Pair<>(pa.query, pa.variable));
         }
         for (int i = 0; i < nThreads; i++) {
-            queryQ.add(new Pair<>(Collections.EMPTY_LIST, ByteString.of("STOP")));
+            queryQ.add(new Pair<>(Collections.EMPTY_LIST, KB.map("STOP")));
         }
         
         // Let's thread !

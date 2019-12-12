@@ -5,12 +5,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
+
 import amie.data.KB;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.mining.assistant.MiningOperator;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntCollection;
 
 public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 
@@ -24,7 +25,7 @@ public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 	}
 	
 	@Override
-	public Collection<Rule> getInitialAtomsFromSeeds(Collection<ByteString> relations, double minCardinality) {
+	public Collection<Rule> getInitialAtomsFromSeeds(IntCollection relations, double minCardinality) {
 		Collection<Rule> output = new ArrayList<>();
 		Rule query = new Rule();
 		//The query must be empty
@@ -32,17 +33,17 @@ public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 			throw new IllegalArgumentException("Expected an empty query");
 		}
 		
-		ByteString[] newEdge = query.fullyUnboundTriplePattern();		
+		int[] newEdge = query.fullyUnboundTriplePattern();		
 		query.getTriples().add(newEdge);
 		
-		for(ByteString relation: relations) {
+		for(int relation: relations) {
 			newEdge[1] = relation;
 			
 			int countVarPos = countAlwaysOnSubject ? 0 : findCountingVariable(newEdge);
-			List<ByteString[]> emptyList = Collections.emptyList();
+			List<int[]> emptyList = Collections.emptyList();
 			long cardinality = kb.countProjection(query.getHead(), emptyList);
 			
-			ByteString[] succedent = newEdge.clone();
+			int[] succedent = newEdge.clone();
 			Rule candidate = new Rule(succedent, cardinality);
 			candidate.setFunctionalVariablePosition(countVarPos);
 			registerHeadRelation(candidate);
@@ -59,20 +60,20 @@ public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 	public Collection<Rule> getInitialAtoms(double minSupportThreshold) {
 		Collection<Rule> output = new ArrayList<>();
 		Rule query = new Rule();
-		ByteString[] newEdge = query.fullyUnboundTriplePattern();
+		int[] newEdge = query.fullyUnboundTriplePattern();
 		
 		if(query.isEmpty()) {
 			//Initial case
 			query.getTriples().add(newEdge);
-			List<ByteString[]> emptyList = Collections.emptyList();
-			IntHashMap<ByteString> relations = kb.countProjectionBindings(query.getHead(), emptyList, newEdge[1]);
-			for(ByteString relation : relations){
+			List<int[]> emptyList = Collections.emptyList();
+			Int2IntMap relations = kb.countProjectionBindings(query.getHead(), emptyList, newEdge[1]);
+			for(int relation : relations.keySet()){
 				if(headExcludedRelations != null && headExcludedRelations.contains(relation))
 					continue;
 				
 				int cardinality = relations.get(relation);
 				if (cardinality >= minSupportThreshold) {
-					ByteString[] succedent = newEdge.clone();
+					int[] succedent = newEdge.clone();
 					succedent[1] = relation;
 					int countVarPos = countAlwaysOnSubject ? 0 : findCountingVariable(succedent);
 					Rule candidate = new Rule(succedent, cardinality);
@@ -90,20 +91,20 @@ public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 	@Override
 	@MiningOperator(name="dangling")
 	public void getDanglingAtoms(Rule query, double minCardinality, Collection<Rule> output) {
-		ByteString[] newEdge = query.fullyUnboundTriplePattern();
+		int[] newEdge = query.fullyUnboundTriplePattern();
 		
 		if(query.isEmpty()) {
 			//Initial case
 			query.getTriples().add(newEdge);
-			List<ByteString[]> emptyList = Collections.emptyList();
-			IntHashMap<ByteString> relations = kb.countProjectionBindings(query.getHead(), emptyList, newEdge[1]);
-			for(ByteString relation : relations){
+			List<int[]> emptyList = Collections.emptyList();
+			Int2IntMap relations = kb.countProjectionBindings(query.getHead(), emptyList, newEdge[1]);
+			for(int relation : relations.keySet()){
 				if(headExcludedRelations != null && headExcludedRelations.contains(relation))
 					continue;
 				
 				int cardinality = relations.get(relation);
 				if (cardinality >= minCardinality) {
-					ByteString[] succedent = newEdge.clone();
+					int[] succedent = newEdge.clone();
 					succedent[1] = relation;
 					int countVarPos = countAlwaysOnSubject ? 0 : findCountingVariable(succedent);
 					Rule candidate = new Rule(succedent, cardinality);
@@ -137,9 +138,9 @@ public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 	 */
 	public void calculateConfidenceMetrics(Rule candidate) {	
 		if (candidate.getLength() == 2) {
-			List<ByteString[]> antecedent = new ArrayList<ByteString[]>();
+			List<int[]> antecedent = new ArrayList<int[]>();
 			antecedent.addAll(candidate.getTriples().subList(1, candidate.getTriples().size()));
-			List<ByteString[]> succedent = new ArrayList<ByteString[]>();
+			List<int[]> succedent = new ArrayList<int[]>();
 			succedent.addAll(candidate.getTriples().subList(0, 1));
 			double denominator = 0.0;
 			denominator = (double) kb.countDistinct(candidate.getFunctionalVariable(), antecedent);

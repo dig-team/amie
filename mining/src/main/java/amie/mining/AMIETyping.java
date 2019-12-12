@@ -13,7 +13,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javatools.datatypes.ByteString;
+
 import javatools.datatypes.MultiMap;
 import amie.data.KB;
 import amie.mining.AMIE.RDFMinerJob;

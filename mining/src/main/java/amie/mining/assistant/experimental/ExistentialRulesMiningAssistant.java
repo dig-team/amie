@@ -4,27 +4,28 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javatools.datatypes.ByteString;
+
 
 import amie.data.KB;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.IntList;
 
 public class ExistentialRulesMiningAssistant extends DefaultMiningAssistant {
 
 	public ExistentialRulesMiningAssistant(KB dataSource) {
 		super(dataSource);
-		headCardinalities.put(KB.EXISTSstr, -1.0);
-		headCardinalities.put(KB.EXISTSINVstr, -1.0);
+		headCardinalities.put(KB.EXISTSbs, -1.0);
+		headCardinalities.put(KB.EXISTSINVbs, -1.0);
 		// TODO Auto-generated constructor stub
 	}
 	
 	@Override
 	public long getHeadCardinality(Rule query){
-		if (query.getHeadRelation().equals(KB.EXISTSstr) || query.getHeadRelation().equals(KB.EXISTSINVstr)) {
-			return headCardinalities.get(query.getHead()[0].toString()).longValue();
+		if (query.getHeadRelationBS() == (KB.EXISTSbs) || query.getHeadRelationBS() == (KB.EXISTSINVbs)) {
+			return (long) headCardinalities.get(query.getHead()[0]);
 		} else {
-			return headCardinalities.get(query.getHeadRelation()).longValue();
+			return (long) headCardinalities.get(query.getHeadRelationBS());
 		}	
 	}
 	
@@ -44,11 +45,11 @@ public class ExistentialRulesMiningAssistant extends DefaultMiningAssistant {
 	 */
 	public void getClosingAtoms(Rule rule, double minSupportThreshold, Collection<Rule> output){
 		super.getClosingAtoms(rule, minSupportThreshold, output);
-		List<ByteString> openVariables = rule.getOpenVariables();
-		List<ByteString[]> candidate = new ArrayList<>();
+		IntList openVariables = rule.getOpenVariables();
+		List<int[]> candidate = new ArrayList<>();
 		if (openVariables.size() > 0) {
-			for (ByteString[] triple : rule.getTriplesCopy()) {
-				for (ByteString openVariable : openVariables) {
+			for (int[] triple : rule.getTriplesCopy()) {
+				for (int openVariable : openVariables) {
 					if (triple[0] == openVariable && openVariables.contains(triple[2])) {
 						return;
 					}
@@ -63,7 +64,7 @@ public class ExistentialRulesMiningAssistant extends DefaultMiningAssistant {
 				}
 				candidate.add(triple);
 			}
-			ByteString[] head = candidate.get(0);
+			int[] head = candidate.get(0);
 			long cardinality = -1;
 			if (KB.numVariables(head) == 2) {
 				cardinality = kb.countDistinctPairs(head[0], head[2], candidate);

@@ -3,7 +3,7 @@ package amie.typing.heuristics;
 import java.util.List;
 
 import amie.data.KB;
-import javatools.datatypes.ByteString;
+
 
 public class StdConfHeuristic extends TypingHeuristic {
 	
@@ -20,8 +20,8 @@ public class StdConfHeuristic extends TypingHeuristic {
 	}
 
 	@Override
-	public double evaluate(ByteString type, List<ByteString[]> clause,
-			ByteString variable) {
+	public double evaluate(int type, List<int[]> clause,
+			int variable) {
 		return getStandardConfidence(type, clause, variable);
 		// TODO Auto-generated method stub
 	}

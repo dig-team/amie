@@ -4,16 +4,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import javatools.datatypes.ByteString;
+
 import javatools.datatypes.Pair;
 import junit.framework.TestCase;
 import amie.data.KB;
-import amie.rules.QueryEquivalenceChecker2;
-import amie.rules.Rule;
 
 public class TestEquivalenceChecker2 extends TestCase {
 	
-	List<Pair<List<ByteString[]>, List<ByteString[]>>> cases;
+	List<Pair<List<int[]>, List<int[]>>> cases;
 	
 	public TestEquivalenceChecker2(String name) {
 		super(name);
@@ -24,119 +22,119 @@ public class TestEquivalenceChecker2 extends TestCase {
 		cases = new ArrayList<>();
 		
 		//The same query, 1 triple pattern
-		List<ByteString[]> q01 = KB.triples(KB.triple("bob","loves","?x2"));
-		List<ByteString[]> q02 = KB.triples(KB.triple("bob","loves","?x2"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p0 = new Pair<>(q01, q02);
+		List<int[]> q01 = KB.triples(KB.triple("bob","loves","?x2"));
+		List<int[]> q02 = KB.triples(KB.triple("bob","loves","?x2"));
+		Pair<List<int[]>, List<int[]>> p0 = new Pair<>(q01, q02);
 		cases.add(p0);
 		
 		//The same query, 2 triple patterns
-		List<ByteString[]> q11 = KB.triples(KB.triple("bob","loves","?x2"), KB.triple("?x2","livesIn","?x3"));
-		List<ByteString[]> q12 = KB.triples(KB.triple("bob","loves","?x2"), KB.triple("?x2","livesIn","?x3"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p1 = new Pair<>(q11, q12);
+		List<int[]> q11 = KB.triples(KB.triple("bob","loves","?x2"), KB.triple("?x2","livesIn","?x3"));
+		List<int[]> q12 = KB.triples(KB.triple("bob","loves","?x2"), KB.triple("?x2","livesIn","?x3"));
+		Pair<List<int[]>, List<int[]>> p1 = new Pair<>(q11, q12);
 		cases.add(p1);
 		
 		//Two different queries, one triple pattern
-		List<ByteString[]> q21 = KB.triples(KB.triple("bob","loves","?x2"));
-		List<ByteString[]> q22 = KB.triples(KB.triple("?z","loves","?x"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p2 = new Pair<>(q21, q22);
+		List<int[]> q21 = KB.triples(KB.triple("bob","loves","?x2"));
+		List<int[]> q22 = KB.triples(KB.triple("?z","loves","?x"));
+		Pair<List<int[]>, List<int[]>> p2 = new Pair<>(q21, q22);
 		cases.add(p2);
 		
 		//Two different queries, 2 triple patterns
-		List<ByteString[]> q31 = KB.triples(KB.triple("bob","loves","?x2"), KB.triple("?x2","livesIn","?x3"));
-		List<ByteString[]> q32 = KB.triples(KB.triple("bob","loves","?x2"), KB.triple("?x2","isCitizenOf","?x3"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p3 = new Pair<>(q31, q32);
+		List<int[]> q31 = KB.triples(KB.triple("bob","loves","?x2"), KB.triple("?x2","livesIn","?x3"));
+		List<int[]> q32 = KB.triples(KB.triple("bob","loves","?x2"), KB.triple("?x2","isCitizenOf","?x3"));
+		Pair<List<int[]>, List<int[]>> p3 = new Pair<>(q31, q32);
 		cases.add(p3);
 
 		//The same path query with items shuffled, 2 triple patterns
-		List<ByteString[]> q41 = KB.triples(KB.triple("bob","loves","?x2"), KB.triple("?x2","livesIn","?x3"));
-		List<ByteString[]> q42 = KB.triples(KB.triple("?y2","livesIn","?y1"), KB.triple("bob","loves","?y2"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p4 = new Pair<>(q41, q42);
+		List<int[]> q41 = KB.triples(KB.triple("bob","loves","?x2"), KB.triple("?x2","livesIn","?x3"));
+		List<int[]> q42 = KB.triples(KB.triple("?y2","livesIn","?y1"), KB.triple("bob","loves","?y2"));
+		Pair<List<int[]>, List<int[]>> p4 = new Pair<>(q41, q42);
 		cases.add(p4);
 		
 		//The same star query with items shuffled, 3 triple patterns
-		List<ByteString[]> q51 = KB.triples(KB.triple("?s","loves","?x"), KB.triple("?s","knows","?y"), KB.triple("?y","livesIn","?x"));
-		List<ByteString[]> q52 = KB.triples(KB.triple("?s","knows","?y"), KB.triple("?s","loves","?x"), KB.triple("?y","livesIn","?x"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p5 = new Pair<>(q51, q52);
+		List<int[]> q51 = KB.triples(KB.triple("?s","loves","?x"), KB.triple("?s","knows","?y"), KB.triple("?y","livesIn","?x"));
+		List<int[]> q52 = KB.triples(KB.triple("?s","knows","?y"), KB.triple("?s","loves","?x"), KB.triple("?y","livesIn","?x"));
+		Pair<List<int[]>, List<int[]>> p5 = new Pair<>(q51, q52);
 		cases.add(p5);
 		
 		//Two different star queries, 3 triple patterns
-		List<ByteString[]> q61 = KB.triples(KB.triple("?s","loves","?y"), KB.triple("?s","knows","?y"), KB.triple("?s","livesIn","?m"));
-		List<ByteString[]> q62 = KB.triples( KB.triple("?k","livesIn","?m"), KB.triple("?k","loves","?o"), KB.triple("?k","knows","?y"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p6 = new Pair<>(q61, q62);
+		List<int[]> q61 = KB.triples(KB.triple("?s","loves","?y"), KB.triple("?s","knows","?y"), KB.triple("?s","livesIn","?m"));
+		List<int[]> q62 = KB.triples( KB.triple("?k","livesIn","?m"), KB.triple("?k","loves","?o"), KB.triple("?k","knows","?y"));
+		Pair<List<int[]>, List<int[]>> p6 = new Pair<>(q61, q62);
 		cases.add(p6);
 		
 		//The same cycle query, 3 triple patterns
-		List<ByteString[]> q71 = KB.triples(KB.triple("?s","isConnected","?o"), KB.triple("?x","isConnected","?s"), KB.triple("?o","isConnected","?x"));
-		List<ByteString[]> q72 = KB.triples(KB.triple("?m","isConnected","?s"), KB.triple("?r","isConnected","?m"), KB.triple("?s","isConnected","?r"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p7 = new Pair<>(q71, q72);
+		List<int[]> q71 = KB.triples(KB.triple("?s","isConnected","?o"), KB.triple("?x","isConnected","?s"), KB.triple("?o","isConnected","?x"));
+		List<int[]> q72 = KB.triples(KB.triple("?m","isConnected","?s"), KB.triple("?r","isConnected","?m"), KB.triple("?s","isConnected","?r"));
+		Pair<List<int[]>, List<int[]>> p7 = new Pair<>(q71, q72);
 		cases.add(p7);
 
 		//Different cycle queries, 3 triple patterns
-		List<ByteString[]> q81 = KB.triples(KB.triple("?s","isConnected","?o"), KB.triple("?x","isConnected","?s"), KB.triple("?o","isConnected","?x"));
-		List<ByteString[]> q82 = KB.triples(KB.triple("?m","isConnected","?s"), KB.triple("?r","isConnected","?m"), KB.triple("?s","isConnected","?r"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p8 = new Pair<>(q81, q82);
+		List<int[]> q81 = KB.triples(KB.triple("?s","isConnected","?o"), KB.triple("?x","isConnected","?s"), KB.triple("?o","isConnected","?x"));
+		List<int[]> q82 = KB.triples(KB.triple("?m","isConnected","?s"), KB.triple("?r","isConnected","?m"), KB.triple("?s","isConnected","?r"));
+		Pair<List<int[]>, List<int[]>> p8 = new Pair<>(q81, q82);
 		cases.add(p8);
 		
 		//Close star items shuffled, 3 triple patterns
-		List<ByteString[]> q91 = KB.triples(KB.triple("?s","created","?o"), KB.triple("?s","directed","?o"), KB.triple("?s","produced","?o"));
-		List<ByteString[]> q92 = KB.triples(KB.triple("?x","produced","?y"), KB.triple("?x","created","?y"), KB.triple("?x","directed","?y"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p9 = new Pair<>(q91, q92);
+		List<int[]> q91 = KB.triples(KB.triple("?s","created","?o"), KB.triple("?s","directed","?o"), KB.triple("?s","produced","?o"));
+		List<int[]> q92 = KB.triples(KB.triple("?x","produced","?y"), KB.triple("?x","created","?y"), KB.triple("?x","directed","?y"));
+		Pair<List<int[]>, List<int[]>> p9 = new Pair<>(q91, q92);
 		cases.add(p9);
 		
 		//Different queries, close star items shuffled, 3 triple patterns
-		List<ByteString[]> q101 = KB.triples(KB.triple("?s","created","?o"), KB.triple("?s","directed","?o"), KB.triple("?s","produced","?o"));
-		List<ByteString[]> q102 = KB.triples(KB.triple("?x","produced","?z"), KB.triple("?x","created","?y"), KB.triple("?x","directed","?y"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p10 = new Pair<>(q101, q102);
+		List<int[]> q101 = KB.triples(KB.triple("?s","created","?o"), KB.triple("?s","directed","?o"), KB.triple("?s","produced","?o"));
+		List<int[]> q102 = KB.triples(KB.triple("?x","produced","?z"), KB.triple("?x","created","?y"), KB.triple("?x","directed","?y"));
+		Pair<List<int[]>, List<int[]>> p10 = new Pair<>(q101, q102);
 		cases.add(p10);
 		
 		//Reflexive query
-		List<ByteString[]> q111 = KB.triples(KB.triple("?s","married","?u"), KB.triple("?u","married","?s"));
-		List<ByteString[]> q112 = KB.triples(KB.triple("?x","married","?z"), KB.triple("?z","married","?x"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p11 = new Pair<>(q111, q112);
+		List<int[]> q111 = KB.triples(KB.triple("?s","married","?u"), KB.triple("?u","married","?s"));
+		List<int[]> q112 = KB.triples(KB.triple("?x","married","?z"), KB.triple("?z","married","?x"));
+		Pair<List<int[]>, List<int[]>> p11 = new Pair<>(q111, q112);
 		cases.add(p11);
 		
 		//Non Reflexive query
-		List<ByteString[]> q121 = KB.triples(KB.triple("?s","married","?u"), KB.triple("?u","married","?s"));
-		List<ByteString[]> q122 = KB.triples(KB.triple("?x","married","?z"), KB.triple("?z","married","?y"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p12 = new Pair<>(q121, q122);
+		List<int[]> q121 = KB.triples(KB.triple("?s","married","?u"), KB.triple("?u","married","?s"));
+		List<int[]> q122 = KB.triples(KB.triple("?x","married","?z"), KB.triple("?z","married","?y"));
+		Pair<List<int[]>, List<int[]>> p12 = new Pair<>(q121, q122);
 		cases.add(p12);
 		
 		//Non Reflexive query
-		List<ByteString[]> q131 = KB.triples(KB.triple("?s16","connected","?o16"), KB.triple("?s16","connected","?o308"), KB.triple("?o16","connected","?o318"));
-		List<ByteString[]> q132 = KB.triples(KB.triple("?s16","connected","?o16"), KB.triple("?o16","connected","?o318"), KB.triple("?s16","connected","?o308"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p13 = new Pair<>(q131, q132);
+		List<int[]> q131 = KB.triples(KB.triple("?a16","connected","?b16"), KB.triple("?a16","connected","?o0"), KB.triple("?b16","connected","?o1"));
+		List<int[]> q132 = KB.triples(KB.triple("?a16","connected","?b16"), KB.triple("?b16","connected","?o1"), KB.triple("?a16","connected","?o0"));
+		Pair<List<int[]>, List<int[]>> p13 = new Pair<>(q131, q132);
 		cases.add(p13);
 		
 		//Problematic case
-		List<ByteString[]> q141 = KB.triples(KB.triple("?s16","<isLocatedIn>","?o16"), KB.triple("?s552","<livesIn>","?s16"), KB.triple("?s552","<isPoliticianOf>","?o16"));
-		List<ByteString[]> q142 = KB.triples(KB.triple("?s16","<isLocatedIn>","?o16"), KB.triple("?s552","<isPoliticianOf>","?o16"), KB.triple("?s552","<livesIn>","?s16"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p14 = new Pair<>(q141, q142);
+		List<int[]> q141 = KB.triples(KB.triple("?c16","<isLocatedIn>","?d16"), KB.triple("?s","<livesIn>","?c16"), KB.triple("?s","<isPoliticianOf>","?d16"));
+		List<int[]> q142 = KB.triples(KB.triple("?c16","<isLocatedIn>","?d16"), KB.triple("?s","<isPoliticianOf>","?d16"), KB.triple("?s","<livesIn>","?c16"));
+		Pair<List<int[]>, List<int[]>> p14 = new Pair<>(q141, q142);
 		cases.add(p14);
 		
 		//Rules with slight changes in topology
-		List<ByteString[]> q151 = KB.triples(KB.triple("?c","<hasChild>","?b"), KB.triple("?a","<hasChild>","?b"), KB.triple("?c","<isMarriedTo>","?a"));
-		List<ByteString[]> q152 = KB.triples(KB.triple("?c","<hasChild>","?a"), KB.triple("?b","<hasChild>","?a"), KB.triple("?b","<isMarriedTo>","?c"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p15 = new Pair<>(q151, q152);
+		List<int[]> q151 = KB.triples(KB.triple("?c","<hasChild>","?b"), KB.triple("?a","<hasChild>","?b"), KB.triple("?c","<isMarriedTo>","?a"));
+		List<int[]> q152 = KB.triples(KB.triple("?c","<hasChild>","?a"), KB.triple("?b","<hasChild>","?a"), KB.triple("?b","<isMarriedTo>","?c"));
+		Pair<List<int[]>, List<int[]>> p15 = new Pair<>(q151, q152);
 		cases.add(p15);
 		
-		List<ByteString[]> q161 = KB.triples(KB.triple("?c","<hasChild>","?b"), KB.triple("?a","<hasChild>","?b"), KB.triple("?c","<isMarriedTo>","?a"));
-		List<ByteString[]> q162 = KB.triples(KB.triple("?c","<hasChild>","?b"), KB.triple("?a","<hasChild>","?b"), KB.triple("?a","<isMarriedTo>","?c"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p16 = new Pair<>(q161, q162);
+		List<int[]> q161 = KB.triples(KB.triple("?c","<hasChild>","?b"), KB.triple("?a","<hasChild>","?b"), KB.triple("?c","<isMarriedTo>","?a"));
+		List<int[]> q162 = KB.triples(KB.triple("?c","<hasChild>","?b"), KB.triple("?a","<hasChild>","?b"), KB.triple("?a","<isMarriedTo>","?c"));
+		Pair<List<int[]>, List<int[]>> p16 = new Pair<>(q161, q162);
 		cases.add(p16);
 
-		Pair<List<ByteString[]>, List<ByteString[]>> p17 = new Pair<>(q152, q162);
+		Pair<List<int[]>, List<int[]>> p17 = new Pair<>(q152, q162);
 		cases.add(p17);
 		
-		List<ByteString[]> q181 = KB.triples(KB.triple("?s4","<hasWebsite>","?o4"), KB.triple("?s4","<isLocatedIn>","?o6"), KB.triple("?o6","<hasWebsite>","?o4"));
-		List<ByteString[]> q182 = KB.triples(KB.triple("?s4","<hasWebsite>","?o4"), KB.triple("?s6","<isLocatedIn>","?s4"), KB.triple("?s6","<hasWebsite>","?o4"));
-		List<ByteString[]> q183 = KB.triples(KB.triple("?s4","<hasWebsite>","?o4"), KB.triple("?s6","<hasWebsite>","?o4"), KB.triple("?s6","<isLocatedIn>","?s4"));
-		List<ByteString[]> q184 = KB.triples(KB.triple("?s4","<hasWebsite>","?o4"), KB.triple("?s6","<hasWebsite>","?o4"), KB.triple("?s4","<isLocatedIn>","?s6"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p18 = new Pair<>(q181, q182);
-		Pair<List<ByteString[]>, List<ByteString[]>> p19 = new Pair<>(q181, q183);
-		Pair<List<ByteString[]>, List<ByteString[]>> p20 = new Pair<>(q181, q184);
-		Pair<List<ByteString[]>, List<ByteString[]>> p21 = new Pair<>(q182, q183);
-		Pair<List<ByteString[]>, List<ByteString[]>> p22 = new Pair<>(q182, q184);		
-		Pair<List<ByteString[]>, List<ByteString[]>> p23 = new Pair<>(q183, q184);
+		List<int[]> q181 = KB.triples(KB.triple("?s4","<hasWebsite>","?o4"), KB.triple("?s4","<isLocatedIn>","?o6"), KB.triple("?o6","<hasWebsite>","?o4"));
+		List<int[]> q182 = KB.triples(KB.triple("?s4","<hasWebsite>","?o4"), KB.triple("?s6","<isLocatedIn>","?s4"), KB.triple("?s6","<hasWebsite>","?o4"));
+		List<int[]> q183 = KB.triples(KB.triple("?s4","<hasWebsite>","?o4"), KB.triple("?s6","<hasWebsite>","?o4"), KB.triple("?s6","<isLocatedIn>","?s4"));
+		List<int[]> q184 = KB.triples(KB.triple("?s4","<hasWebsite>","?o4"), KB.triple("?s6","<hasWebsite>","?o4"), KB.triple("?s4","<isLocatedIn>","?s6"));
+		Pair<List<int[]>, List<int[]>> p18 = new Pair<>(q181, q182);
+		Pair<List<int[]>, List<int[]>> p19 = new Pair<>(q181, q183);
+		Pair<List<int[]>, List<int[]>> p20 = new Pair<>(q181, q184);
+		Pair<List<int[]>, List<int[]>> p21 = new Pair<>(q182, q183);
+		Pair<List<int[]>, List<int[]>> p22 = new Pair<>(q182, q184);		
+		Pair<List<int[]>, List<int[]>> p23 = new Pair<>(q183, q184);
 		
 		cases.add(p18);
 		cases.add(p19);
@@ -145,98 +143,98 @@ public class TestEquivalenceChecker2 extends TestCase {
 		cases.add(p22);
 		cases.add(p23);
 
-		List<ByteString[]> q241 = KB.triples(KB.triple("?s29","<isMarriedTo>","?o29"), KB.triple("?s29","<hasChild>","?o121"), KB.triple("?o29","<hasChild>","?o121"));
-		List<ByteString[]> q242 = KB.triples(KB.triple("?s29","<isMarriedTo>","?o29"), KB.triple("?o29","<hasChild>","?o121"), KB.triple("?s29","<hasChild>","?o121"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p24 = new Pair<>(q241, q242);
+		List<int[]> q241 = KB.triples(KB.triple("?s2","<isMarriedTo>","?o2"), KB.triple("?s2","<hasChild>","?o1"), KB.triple("?o2","<hasChild>","?o1"));
+		List<int[]> q242 = KB.triples(KB.triple("?s2","<isMarriedTo>","?o2"), KB.triple("?o2","<hasChild>","?o1"), KB.triple("?s2","<hasChild>","?o1"));
+		Pair<List<int[]>, List<int[]>> p24 = new Pair<>(q241, q242);
 		cases.add(p24);
 		
-		List<ByteString[]> q251 = KB.triples(KB.triple("?s40","<hasOfficialLanguage>","?o40"), KB.triple("?s4120","<hasOfficialLanguage>","?o29"), KB.triple("?s40","<dealsWith>","?s4120"));
-		List<ByteString[]> q252 = KB.triples(KB.triple("?s40","<hasOfficialLanguage>","?o40"), KB.triple("?s4120","<hasOfficialLanguage>","?o29"), KB.triple("?s40","<dealsWith>","?s4120"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p25 = new Pair<>(q251, q252);
+		List<int[]> q251 = KB.triples(KB.triple("?s4","<hasOfficialLanguage>","?o4"), KB.triple("?s0","<hasOfficialLanguage>","?o2"), KB.triple("?s4","<dealsWith>","?s0"));
+		List<int[]> q252 = KB.triples(KB.triple("?s4","<hasOfficialLanguage>","?o4"), KB.triple("?s0","<hasOfficialLanguage>","?o2"), KB.triple("?s4","<dealsWith>","?s0"));
+		Pair<List<int[]>, List<int[]>> p25 = new Pair<>(q251, q252);
 		cases.add(p25);
 		
-		List<ByteString[]> q261 = KB.triples(KB.triple("?a","<livesIn>","?c"), KB.triple("?a","<livesIn>","?b"), KB.triple("?b","<hasCapital>","?c"));
-		List<ByteString[]> q262 = KB.triples(KB.triple("?a","<livesIn>","?b"), KB.triple("?a","<livesIn>","?c"), KB.triple("?b","<hasCapital>","?c"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p26 = new Pair<>(q261, q262);
+		List<int[]> q261 = KB.triples(KB.triple("?a","<livesIn>","?c"), KB.triple("?a","<livesIn>","?b"), KB.triple("?b","<hasCapital>","?c"));
+		List<int[]> q262 = KB.triples(KB.triple("?a","<livesIn>","?b"), KB.triple("?a","<livesIn>","?c"), KB.triple("?b","<hasCapital>","?c"));
+		Pair<List<int[]>, List<int[]>> p26 = new Pair<>(q261, q262);
 		cases.add(p26);
 		
-		List<ByteString[]> q271 = KB.triples(KB.triple("?f","<dealsWith>","?a"), KB.triple("?b","<dealsWith>","?f"), KB.triple("?a","<dealsWith>","?b"));
-		List<ByteString[]> q272 = KB.triples(KB.triple("?e","<dealsWith>","?a"), KB.triple("?b","<dealsWith>","?e"), KB.triple("?a","<dealsWith>","?b"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p27 = new Pair<>(q271, q272);
+		List<int[]> q271 = KB.triples(KB.triple("?f","<dealsWith>","?a"), KB.triple("?b","<dealsWith>","?f"), KB.triple("?a","<dealsWith>","?b"));
+		List<int[]> q272 = KB.triples(KB.triple("?e","<dealsWith>","?a"), KB.triple("?b","<dealsWith>","?e"), KB.triple("?a","<dealsWith>","?b"));
+		Pair<List<int[]>, List<int[]>> p27 = new Pair<>(q271, q272);
 		cases.add(p27);
 		
-		List<ByteString[]> q281 = KB.triples(KB.triple("<New_Zealand>","<participatedIn>","?b"), KB.triple("<United_Kingdom>","<participatedIn>","?b"));
-		List<ByteString[]> q282 = KB.triples(KB.triple("<United_Kingdom>","<participatedIn>","?b"), KB.triple("<New_Zealand>","<participatedIn>","?b"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p28 = new Pair<>(q281, q282);
+		List<int[]> q281 = KB.triples(KB.triple("<New_Zealand>","<participatedIn>","?b"), KB.triple("<United_Kingdom>","<participatedIn>","?b"));
+		List<int[]> q282 = KB.triples(KB.triple("<United_Kingdom>","<participatedIn>","?b"), KB.triple("<New_Zealand>","<participatedIn>","?b"));
+		Pair<List<int[]>, List<int[]>> p28 = new Pair<>(q281, q282);
 		cases.add(p28);
 
-		List<ByteString[]> q291 = KB.triples(KB.triple("?a","<holdsPoliticalPosition>","?b"), 
+		List<int[]> q291 = KB.triples(KB.triple("?a","<holdsPoliticalPosition>","?b"), 
 				KB.triple("?k","<livesIn>","?b"), 
 				KB.triple("?f", "<isLocatedIn>", "?j"), 
 				KB.triple("?j", "<hasCapital>", "?n"));
-		List<ByteString[]> q292 = KB.triples(KB.triple("?a","<holdsPoliticalPosition>","?c"), 
+		List<int[]> q292 = KB.triples(KB.triple("?a","<holdsPoliticalPosition>","?c"), 
 				KB.triple("?f", "<isLocatedIn>", "?j"), 
 				KB.triple("?j", "<hasCapital>", "?n"),
 				KB.triple("?z","<livesIn>","?c"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p29 = new Pair<>(q291, q292);
+		Pair<List<int[]>, List<int[]>> p29 = new Pair<>(q291, q292);
 		cases.add(p29);
 		
-		List<ByteString[]> q301 = KB.triples(KB.triple("?a","<holdsPoliticalPosition>","?b"), 
+		List<int[]> q301 = KB.triples(KB.triple("?a","<holdsPoliticalPosition>","?b"), 
 				KB.triple("?f","<livesIn>","?b"), 
 				KB.triple("?f", "<isLocatedIn>", "?j"), 
 				KB.triple("?j", "<hasCapital>", "?n"));
-		List<ByteString[]> q302 = KB.triples(KB.triple("?a","<holdsPoliticalPosition>","?c"), 
+		List<int[]> q302 = KB.triples(KB.triple("?a","<holdsPoliticalPosition>","?c"), 
 				KB.triple("?f", "<isLocatedIn>", "?j"), 
 				KB.triple("?j", "<hasCapital>", "?n"),
 				KB.triple("?z","<livesIn>","?c"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p30 = new Pair<>(q301, q302);
+		Pair<List<int[]>, List<int[]>> p30 = new Pair<>(q301, q302);
 		cases.add(p30);
 		
-		List<ByteString[]> q311 = KB.triples(KB.triple("?a","<hasAcademicAdvisor>","?b"), 
+		List<int[]> q311 = KB.triples(KB.triple("?a","<hasAcademicAdvisor>","?b"), 
 				KB.triple("?x","<influences>","?f"), 
 				KB.triple("?f", "<influences>", "?j"), 
 				KB.triple("?j", "<hasAcademicAdvisor>", "?n"));
-		List<ByteString[]> q312 = KB.triples(KB.triple("?a","<hasAcademicAdvisor>","?b"), 
+		List<int[]> q312 = KB.triples(KB.triple("?a","<hasAcademicAdvisor>","?b"), 
 				KB.triple("?x","<influences>","?f"), 
 				KB.triple("?j", "<hasAcademicAdvisor>", "?n"),
 				KB.triple("?f", "<influences>", "?j"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p31 = new Pair<>(q311, q312);
+		Pair<List<int[]>, List<int[]>> p31 = new Pair<>(q311, q312);
 		cases.add(p31);
 		
-		List<ByteString[]> q321 = KB.triples(KB.triple("?a","<isPoliticianOf>","?b"), 
+		List<int[]> q321 = KB.triples(KB.triple("?a","<isPoliticianOf>","?b"), 
 				KB.triple("?a","<livesIn>","?f"), 
 				KB.triple("?f", "<isLocatedIn>", "?b"));
-		List<ByteString[]> q322 = KB.triples(KB.triple("?a","<isPoliticianOf>","?b"), 
+		List<int[]> q322 = KB.triples(KB.triple("?a","<isPoliticianOf>","?b"), 
 				KB.triple("?e","<isLocatedIn>","?b"), 
 				KB.triple("?a", "<livesIn>", "?e"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p32 = new Pair<>(q321, q322);
+		Pair<List<int[]>, List<int[]>> p32 = new Pair<>(q321, q322);
 		cases.add(p32);
 		
-		List<ByteString[]> q331 = KB.triples(KB.triple("?a","<isLocatedIn>","?b"), 
+		List<int[]> q331 = KB.triples(KB.triple("?a","<isLocatedIn>","?b"), 
 				KB.triple("?i", "<isLocatedIn>","?f"), 
 				KB.triple("?a", "<isLocatedIn>", "?f"),
 				KB.triple("?i", "<isCitizenOf>", "?b"));
-		List<ByteString[]> q332 = KB.triples(KB.triple("?a","<isLocatedIn>","?b"), 
+		List<int[]> q332 = KB.triples(KB.triple("?a","<isLocatedIn>","?b"), 
 				KB.triple("?e", "<isLocatedIn>", "?j"), 
 				KB.triple("?a", "<isLocatedIn>", "?j"),
 				KB.triple("?e", "<isCitizenOf>", "?b"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p33 = new Pair<>(q331, q332);
+		Pair<List<int[]>, List<int[]>> p33 = new Pair<>(q331, q332);
 		cases.add(p33);
 		
 		//?a  db:birthyear  ?ob1  ?b  db:birthyear  ?ob1  ?a  db:description  british painter  ?b  db:description  british painter   => ?a  equals  ?b
 		// ?a  db:birthyear  ?ob1  ?b  db:birthyear  ?ob1  ?a  db:description  british painter  ?b  db:description  british painter   => ?a  equals  ?b
 
-		List<ByteString[]> q341 = KB.triples(KB.triple("?a", "equals", "?b"),
+		List<int[]> q341 = KB.triples(KB.triple("?a", "equals", "?b"),
 				KB.triple("?b", "db:description", "british painter"),
 				KB.triple("?a", "db:description", "british painter"),
-				KB.triple("?b", "db:birthyear", "?ob1"),
-				KB.triple("?a", "db:birthyear", "?ob1"));
-		List<ByteString[]> q342 = KB.triples(KB.triple("?a", "equals", "?b"),
+				KB.triple("?b", "db:birthyear", "?o1"),
+				KB.triple("?a", "db:birthyear", "?o1"));
+		List<int[]> q342 = KB.triples(KB.triple("?a", "equals", "?b"),
 				KB.triple("?b", "db:description", "british painter"),
 				KB.triple("?a", "db:description", "british painter"),
-				KB.triple("?b", "db:birthyear", "?ob1"),
-				KB.triple("?a", "db:birthyear", "?ob1"));
-		Pair<List<ByteString[]>, List<ByteString[]>> p34 = new Pair<>(q341, q342);
+				KB.triple("?b", "db:birthyear", "?o1"),
+				KB.triple("?a", "db:birthyear", "?o1"));
+		Pair<List<int[]>, List<int[]>> p34 = new Pair<>(q341, q342);
 		cases.add(p34);
 		
 	}
@@ -358,8 +356,8 @@ public class TestEquivalenceChecker2 extends TestCase {
 	}
 	
 	public void test29(){
-		List<ByteString[]> q1 = KB.triples(KB.triple("?a","<hasAcademicAdvisor>","?b"), KB.triple("?f","<hasAcademicAdvisor>","?b"), KB.triple("?a","<hasAcademicAdvisor>","?f"));
-		List<ByteString[]> q2 = KB.triples(KB.triple("?a","<hasAcademicAdvisor>","?b"), KB.triple("?a","<hasAcademicAdvisor>","?e"), KB.triple("?e","<hasAcademicAdvisor>","?b"));
+		List<int[]> q1 = KB.triples(KB.triple("?a","<hasAcademicAdvisor>","?b"), KB.triple("?f","<hasAcademicAdvisor>","?b"), KB.triple("?a","<hasAcademicAdvisor>","?f"));
+		List<int[]> q2 = KB.triples(KB.triple("?a","<hasAcademicAdvisor>","?b"), KB.triple("?a","<hasAcademicAdvisor>","?e"), KB.triple("?e","<hasAcademicAdvisor>","?b"));
 		LinkedHashSet<Rule> pool = new LinkedHashSet<>();
 		Rule fq1 = new Rule();
 		fq1.getTriples().addAll(q1);
@@ -396,11 +394,11 @@ public class TestEquivalenceChecker2 extends TestCase {
 	}
         
         public void test35() {
-            List<ByteString[]> q1 = KB.triples(
+            List<int[]> q1 = KB.triples(
                                         KB.triple("?a", "g", "?b"),
                                         KB.triple("?b", "h", "?z"),
                                         KB.triple("?z", "g", "?a"));
-            List<ByteString[]> q2 = KB.triples(
+            List<int[]> q2 = KB.triples(
                                         KB.triple("?a", "g", "?b"),
                                         KB.triple("?z", "h", "?a"),
                                         KB.triple("?b", "g", "?z"));
@@ -408,11 +406,11 @@ public class TestEquivalenceChecker2 extends TestCase {
         }
         
         public void test36() {
-            List<ByteString[]> q1 = KB.triples(
+            List<int[]> q1 = KB.triples(
                                         KB.triple("?a", "h", "?b"),
                                         KB.triple("?z", "l", "?a"),
                                         KB.triple("?b", "g", "?z"));
-            List<ByteString[]> q2 = KB.triples(
+            List<int[]> q2 = KB.triples(
                                         KB.triple("?a", "h", "?b"),
                                         KB.triple("?b", "l", "?z"),
                                         KB.triple("?z", "g", "?a"));
@@ -420,40 +418,40 @@ public class TestEquivalenceChecker2 extends TestCase {
         }
         
         public void test37() {
-            List<ByteString[]> q1 = KB.triples(
+            List<int[]> q1 = KB.triples(
                                         KB.triple("?a", "h", "?b"),
                                         KB.triple("?z", "l", "?a"));
-            List<ByteString[]> q2 = KB.triples(
+            List<int[]> q2 = KB.triples(
                                         KB.triple("?a", "h", "?b"),
                                         KB.triple("?z", "l", "?b"));
             assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));
         }
         
         public void test38() {
-            List<ByteString[]> q1 = KB.triples(
+            List<int[]> q1 = KB.triples(
                                         KB.triple("?a", "h", "?b"),
                                         KB.triple("?z", "l", "?a"));
-            List<ByteString[]> q2 = KB.triples(
+            List<int[]> q2 = KB.triples(
                                         KB.triple("?a", "h", "?b"),
                                         KB.triple("?z", "g", "?b"));
             assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));
         }
         
         public void test39() {
-            List<ByteString[]> q1 = KB.triples(
+            List<int[]> q1 = KB.triples(
                                         KB.triple("?a", "h", "?b"),
                                         KB.triple("?z", "l", "?a"));
-            List<ByteString[]> q2 = KB.triples(
+            List<int[]> q2 = KB.triples(
                                         KB.triple("?a", "h", "?b"),
                                         KB.triple("?z", "g", "?a"));
             assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));
         }
         
         public void test40() {
-            List<ByteString[]> q1 = KB.triples(
+            List<int[]> q1 = KB.triples(
                                         KB.triple("?a", "h", "?b"),
                                         KB.triple("?z", "l", "?a"));
-            List<ByteString[]> q2 = KB.triples(
+            List<int[]> q2 = KB.triples(
                                         KB.triple("?z", "l", "?a"),
                                         KB.triple("?a", "h", "?b"));
             assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));
@@ -461,50 +459,50 @@ public class TestEquivalenceChecker2 extends TestCase {
         
         
         public void test41() {
-            List<ByteString[]> q1 = KB.triples(
+            List<int[]> q1 = KB.triples(
                                         KB.triple("?a", "h", "?b"),
                                         KB.triple("?z", "l", "?a"));
-            List<ByteString[]> q2 = KB.triples(
+            List<int[]> q2 = KB.triples(
                                         KB.triple("?a", "h", "?b"),
                                         KB.triple("?a", "l", "?z"));
             assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));
         }
         
         public void test42() {
-            List<ByteString[]> q1 = KB.triples(
+            List<int[]> q1 = KB.triples(
                                         KB.triple("?a", "h", "?b"),
                                         KB.triple("?z", "l", "?a"));
-            List<ByteString[]> q2 = KB.triples(
+            List<int[]> q2 = KB.triples(
                                         KB.triple("?a", "h", "?b"),
                                         KB.triple("?b", "l", "?z"));
             assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));
         }
         
         public void test43() {
-            List<ByteString[]> q1 = KB.triples(
+            List<int[]> q1 = KB.triples(
                                         KB.triple("?a", "h", "?b"),
                                         KB.triple("?a", "h", "?z"));
-            List<ByteString[]> q2 = KB.triples(
+            List<int[]> q2 = KB.triples(
                                         KB.triple("?a", "h", "?b"),
                                         KB.triple("?b", "h", "?z"));
             assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));
         }
         
         public void test44() {
-            List<ByteString[]> q1 = KB.triples(
+            List<int[]> q1 = KB.triples(
                                         KB.triple("?a", "h", "?b"),
                                         KB.triple("?a", "h", "?z"));
-            List<ByteString[]> q2 = KB.triples(
+            List<int[]> q2 = KB.triples(
                                         KB.triple("?a", "h", "?b"),
                                         KB.triple("?z", "h", "?a"));
             assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));
         }
         
         public void test45() {
-            List<ByteString[]> q1 = KB.triples(
+            List<int[]> q1 = KB.triples(
                                         KB.triple("?a", "h", "?b"),
                                         KB.triple("?a", "h", "?z"));
-            List<ByteString[]> q2 = KB.triples(
+            List<int[]> q2 = KB.triples(
                                         KB.triple("?a", "h", "?b"),
                                         KB.triple("?z", "h", "?b"));
             assertFalse(QueryEquivalenceChecker2.areEquivalent(q1, q2));

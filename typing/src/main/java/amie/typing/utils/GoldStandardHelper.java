@@ -8,20 +8,21 @@ package amie.typing.utils;
 import amie.data.KB;
 import amie.data.Schema;
 import amie.typing.heuristics.TypingHeuristic;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import javatools.datatypes.ByteString;
+
 import javatools.datatypes.Pair;
 
 /**
@@ -30,8 +31,8 @@ import javatools.datatypes.Pair;
  */
 public class GoldStandardHelper {
     
-    protected double getStandardConfidenceWithThreshold(List<ByteString[]> head, List<ByteString[]> body, ByteString variable, int threshold, boolean unsafe) {
-        List<ByteString[]> bodyC = (unsafe) ? new LinkedList<>(body) : body;
+    protected double getStandardConfidenceWithThreshold(List<int[]> head, List<int[]> body, int variable, int threshold, boolean unsafe) {
+        List<int[]> bodyC = (unsafe) ? new LinkedList<>(body) : body;
         long bodySize = db.countDistinct(variable, bodyC);
         bodyC.addAll(head);
         long support = db.countDistinct(variable, bodyC);
@@ -48,28 +49,28 @@ public class GoldStandardHelper {
         
     private GSnode current;
     public List<GSnode> ids;
-    private Map<ByteString, GSnode> index;
+    private Int2ObjectMap<GSnode> index;
     
     public GoldStandardHelper(KB source) {
         this.marked = new HashSet<>();
-        this.index = new HashMap<>();
+        this.index = new Int2ObjectOpenHashMap<>();
         db = source;
         //handler = this;
     }
     
     public GoldStandardHelper(String query) {
         this.marked = new HashSet<>();
-        this.index = new HashMap<>();
+        this.index = new Int2ObjectOpenHashMap<>();
         this.query = query;
         current = new GSnode(Schema.topBS);
         index.put(Schema.topBS, current);
-        Pair<List<ByteString[]>, ByteString> queryPair = queryStrToQuery(query);
+        Pair<List<int[]>, Integer> queryPair = queryStrToQuery(query);
         current.generate(supportThreshold, queryPair.first, queryPair.second);
     }
     
-    private Pair<List<ByteString[]>, ByteString> queryStrToQuery(String query) {
-        List<ByteString[]> queryL = KB.triples(KB.triple(ByteString.of("?x"), ByteString.of(query.substring(0, query.length()-1)), ByteString.of("?y")));
-        ByteString variable = ByteString.of("?"+query.substring(query.length()-1));
+    private Pair<List<int[]>, Integer> queryStrToQuery(String query) {
+        List<int[]> queryL = KB.triples(KB.triple(KB.map("?x"), KB.map(query.substring(0, query.length()-1)), KB.map("?y")));
+        int variable = KB.map("?"+query.substring(query.length()-1));
         return new Pair<>(queryL, variable);
     }
     
@@ -79,16 +80,16 @@ public class GoldStandardHelper {
     public class GSnode implements Comparable {
         List<GSnode> parents;
         List<GSnode> children;
-        ByteString className;
+        int className;
         
-        public GSnode(ByteString className) { 
+        public GSnode(int className) { 
             this.className = className; 
             this.children = new LinkedList<>();
             this.parents = new LinkedList<>();
         }
         
-        public void generate(int supportThreshold, List<ByteString[]> query, ByteString variable) {
-            for (ByteString subClass : Schema.getSubTypes(db, className)) {
+        public void generate(int supportThreshold, List<int[]> query, int variable) {
+            for (int subClass : Schema.getSubTypes(db, className)) {
                 GSnode stc = index.get(subClass);
                 if (stc != null) {
                     children.add(stc);
@@ -105,7 +106,7 @@ public class GoldStandardHelper {
 
         @Override
         public int compareTo(Object t) {
-            return className.compareTo(((GSnode) t).className);
+            return Integer.compare(className, ((GSnode) t).className);
         }
     }
     
@@ -140,7 +141,7 @@ public class GoldStandardHelper {
         else {
             try {
                 int id = Integer.parseInt(query.substring(0, query.length()-1));
-                query = handler.ids.get(id).className.toString() + query.substring(query.length() - 1);
+                query = KB.unmap(handler.ids.get(id).className) + query.substring(query.length() - 1);
             } catch (Exception e) {}
             System.out.print(" Loading query '"+query+"'... ");
             handler = new GoldStandardHelper(query);
@@ -219,7 +220,7 @@ public class GoldStandardHelper {
     private String _markTag(GSnode n) {
         if (marked.contains(n)) return "\tX";
         for (GSnode m : marked) {
-            if (Schema.isTransitiveSuperType(db, m.className, n.className)) return "\tx\t"+m.className.toString();
+            if (Schema.isTransitiveSuperType(db, m.className, n.className)) return "\tx\t"+KB.unmap(m.className);
         }
         //if (_isMarked(n)) return "\tx";
         return "";
@@ -234,7 +235,7 @@ public class GoldStandardHelper {
     
     public void current() {
         System.out.println();
-        System.out.println(current.className.toString() + _markTag(current));
+        System.out.println(KB.unmap(current.className) + _markTag(current));
     }
     
     public void move(String id) {
@@ -328,8 +329,8 @@ public class GoldStandardHelper {
     
     public void search(String s) {
         ids = new LinkedList<>();
-        for (ByteString c: index.keySet()) {
-            if(c.toString().contains(s)) ids.add(index.get(c));
+        for (int c: index.keySet()) {
+            if(KB.unmap(c).contains(s)) ids.add(index.get(c));
         }
         _printIds();
     }
@@ -339,7 +340,7 @@ public class GoldStandardHelper {
         System.out.println();
         int i = 0;
         for (GSnode n : ids) {
-            System.out.println("["+Integer.toString(i)+"] "+n.className.toString()+_markTag(n));
+            System.out.println("["+Integer.toString(i)+"] "+KB.unmap(n.className)+_markTag(n));
             ++i;
         }
     }
@@ -359,22 +360,22 @@ public class GoldStandardHelper {
             }
         }
         for (GSnode c : cleanedResults) {
-            output.write(c.className.toString()+"\n");
+            output.write(KB.unmap(c.className)+"\n");
         }
         output.close();
         System.out.println(" GS of '"+query+"' written to file");
     }
     
     public void listQueries() {
-        List<ByteString[]> query = new ArrayList<>(1);
-        query.add(KB.triple(ByteString.of("?x"), ByteString.of("?y"), ByteString.of("?z")));
-        Set<ByteString> relations = db.selectDistinct(ByteString.of("?y"), query);
+        List<int[]> query = new ArrayList<>(1);
+        query.add(KB.triple(KB.map("?x"), KB.map("?y"), KB.map("?z")));
+        IntSet relations = db.selectDistinct(KB.map("?y"), query);
         relations.remove(Schema.typeRelationBS);
         relations.remove(Schema.subClassRelationBS);
         
         ids = new LinkedList<>();
         System.out.println(" Append x or y to:");
-        for (ByteString r : relations) {
+        for (int r : relations) {
             //System.out.println(r.toString());
             ids.add(new GSnode(r));
         }

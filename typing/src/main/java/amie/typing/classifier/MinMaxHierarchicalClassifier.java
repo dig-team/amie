@@ -3,11 +3,9 @@ package amie.typing.classifier;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import javatools.datatypes.ByteString;
+
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -18,6 +16,9 @@ import org.apache.commons.cli.PosixParser;
 
 import amie.data.KB;
 import amie.typing.classifier.SeparationClassifier.ParsedArguments;
+import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
+import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
 public class MinMaxHierarchicalClassifier extends MinCutClassifier {
 
@@ -38,18 +39,18 @@ public class MinMaxHierarchicalClassifier extends MinCutClassifier {
 	}
 
 	@Override
-	public void classify(Map<ByteString, Map<ByteString, Double>> statistics) {
+	public void classify(Int2ObjectMap<Int2DoubleMap> statistics) {
 		// TODO Auto-generated method stub
-		Map<ByteString, Double> result = new HashMap<>();
-		for (ByteString t1 : statistics.keySet()) {
-			for (ByteString t2 : statistics.get(t1).keySet()) {
-				if (statistics.get(t2).get(t1).isNaN() || classIntersectionSize.get(t1).get(t2) == classSize.get(t2))
+		Int2DoubleMap result = new Int2DoubleOpenHashMap();
+		for (int t1 : statistics.keySet()) {
+			for (int t2 : statistics.get(t1).keySet()) {
+				if (Double.isNaN(statistics.get(t2).get(t1)) || classIntersectionSize.get(t1).get(t2) == classSize.get(t2))
 					continue;
-				result.put(t1, (result.get(t1) == null || result.get(t1) < statistics.get(t2).get(t1)) ? statistics.get(t2).get(t1) : result.get(t1));
+				result.put(t1, (!result.containsKey(t1) || result.get(t1) < statistics.get(t2).get(t1)) ? statistics.get(t2).get(t1) : result.get(t1));
 			}
 		}
-		for (ByteString t1 : result.keySet()) {
-			System.out.println(t1.toString() + "\t" + Double.toString(result.get(t1)));
+		for (int t1 : result.keySet()) {
+			System.out.println(KB.unmap(t1) + "\t" + Double.toString(result.get(t1)));
 		}
 	}
 

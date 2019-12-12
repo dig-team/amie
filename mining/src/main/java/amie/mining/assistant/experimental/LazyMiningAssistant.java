@@ -7,11 +7,9 @@ package amie.mining.assistant.experimental;
 
 import amie.mining.assistant.variableorder.VariableOrder;
 import amie.data.KB;
-import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.Rule;
-import java.util.ArrayList;
 import java.util.List;
-import javatools.datatypes.ByteString;
+
 
 /**
  *
@@ -69,7 +67,7 @@ public class LazyMiningAssistant extends DefaultMiningAssistantWithOrder {
      * @return
      */
     @Override
-    protected double computePcaBodySize(ByteString var1, ByteString var2, Rule query, List<ByteString[]> antecedent, ByteString[] existentialTriple, int nonExistentialPosition) {
+    protected double computePcaBodySize(int var1, int var2, Rule query, List<int[]> antecedent, int[] existentialTriple, int nonExistentialPosition) {
         antecedent.add(existentialTriple);
         long t1 = System.currentTimeMillis();
         long result;
@@ -96,7 +94,7 @@ public class LazyMiningAssistant extends DefaultMiningAssistantWithOrder {
      * @return
      */
     @Override
-    protected long computeBodySize(ByteString var1, ByteString var2, Rule query) {
+    protected long computeBodySize(int var1, int var2, Rule query) {
         long t1 = System.currentTimeMillis();
         long result;
         if (this.minStdConfidence > 0.0) {

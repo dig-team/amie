@@ -7,8 +7,8 @@ import amie.mining.assistant.MiningAssistant;
 import amie.mining.assistant.MiningOperator;
 import amie.rules.ConfidenceMetric;
 import amie.rules.Rule;
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
+
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 
 public class StarShapedMiningAssistant extends MiningAssistant {
 
@@ -30,7 +30,7 @@ public class StarShapedMiningAssistant extends MiningAssistant {
 	}
 	
 	@Override
-	protected Collection<Rule> buildInitialQueries(IntHashMap<ByteString> relations, 
+	protected Collection<Rule> buildInitialQueries(Int2IntMap relations, 
 			double minSupportThreshold) {
 		return wrapped.buildInitialQueries(relations, minSupportThreshold);
 	}
@@ -56,8 +56,8 @@ public class StarShapedMiningAssistant extends MiningAssistant {
 	@Override
 	@MiningOperator(name="dangling")
 	public void getDanglingAtoms(Rule rule, double minSupportThreshold, Collection<Rule> output) {
-		ByteString[] newEdge = rule.fullyUnboundTriplePattern();
-		ByteString[] head = rule.getHead();
+		int[] newEdge = rule.fullyUnboundTriplePattern();
+		int[] head = rule.getHead();
 		//General case
 		if(!isNotTooLong(rule))
 			return;
@@ -65,11 +65,11 @@ public class StarShapedMiningAssistant extends MiningAssistant {
 		int nPatterns = rule.getTriples().size();		
 		newEdge[0] = head[0];
 		rule.getTriples().add(newEdge);
-		IntHashMap<ByteString> promisingRelations = kb.frequentBindingsOf(newEdge[1], 
+		Int2IntMap promisingRelations = kb.frequentBindingsOf(newEdge[1], 
 				rule.getFunctionalVariable(), rule.getTriples());
 		rule.getTriples().remove(nPatterns);
 		
-		for(ByteString relation: promisingRelations){
+		for(int relation: promisingRelations.keySet()){
 			if (this.bodyExcludedRelations != null && 
 					this.bodyExcludedRelations.contains(relation))
 				continue;
@@ -77,14 +77,14 @@ public class StarShapedMiningAssistant extends MiningAssistant {
 			int cardinality = promisingRelations.get(relation);
 			if(cardinality >= minSupportThreshold) {
 				if(rule.containsRelation(relation) 
-						|| relation.equals(head[2])) {
+						||(relation == head[2])) {
 					continue;
 				}
 				
 				newEdge[1] = relation;
 				Rule candidate = rule.addAtom(newEdge, cardinality);
 				candidate.setHeadCoverage((double)candidate.getSupport() 
-						/ headCardinalities.get(candidate.getHeadRelation()));
+						/ headCardinalities.get(candidate.getHeadRelationBS()));
 				candidate.setSupportRatio((double)candidate.getSupport() 
 						/ (double)getTotalCount(candidate));
 				candidate.addParent(rule);

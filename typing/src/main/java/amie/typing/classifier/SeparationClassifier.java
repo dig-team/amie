@@ -3,12 +3,8 @@ package amie.typing.classifier;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -19,32 +15,37 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
+
 import amie.data.KB;
 import amie.data.Schema;
 import amie.data.SimpleTypingKB;
 import amie.typing.heuristics.TypingHeuristic;
-import java.util.HashSet;
+import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
+import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 public class SeparationClassifier {
 
     protected KB db;
-    public IntHashMap<ByteString> classSize;
-    public Map<ByteString, IntHashMap<ByteString>> classIntersectionSize;
+    public Int2IntMap classSize;
+    public Int2ObjectMap<Int2IntMap> classIntersectionSize;
 
-    protected double getStandardConfidenceWithThreshold(List<ByteString[]> head, List<ByteString[]> body, ByteString variable, int threshold, boolean unsafe) {
+    protected double getStandardConfidenceWithThreshold(List<int[]> head, List<int[]> body, int variable, int threshold, boolean unsafe) {
         long support, bodySize;
         
         if(db instanceof SimpleTypingKB) {
             SimpleTypingKB simpledb = (SimpleTypingKB) db;
-            ByteString relation;
+            int relation;
             if (body.size() == 1) {
-                relation = (body.get(0)[0].equals(variable)) ? body.get(0)[1] : ByteString.of(body.get(0)[1].toString() + "-1");
+                relation = (body.get(0)[0] == (variable)) ? body.get(0)[1] : KB.map(KB.unmap(body.get(0)[1]) + "-1");
                 bodySize = simpledb.countElements(relation);
                 support = simpledb.countElements(relation, head.get(0)[2]);
             } else if (body.size() == 2) {
-                relation = (body.get(1)[0].equals(variable)) ? body.get(1)[1] : ByteString.of(body.get(1)[1].toString() + "-1");
+                relation = (body.get(1)[0] == (variable)) ? body.get(1)[1] : KB.map(KB.unmap(body.get(1)[1]) + "-1");
                 return simpledb.typingStdConf(relation, body.get(0)[2], head.get(0)[2], threshold);
                 //bodySize = simpledb.countElements(relation, body.get(0)[2]);
                 //support = simpledb.countElements(relation, body.get(0)[2], head.get(0)[2]);
@@ -52,7 +53,7 @@ public class SeparationClassifier {
                 throw new UnsupportedOperationException("Simple KB can only deal with simple queries");
             }
         } else {
-            List<ByteString[]> bodyC = (unsafe) ? new LinkedList<>(body) : body;
+            List<int[]> bodyC = (unsafe) ? new LinkedList<>(body) : body;
             bodySize = db.countDistinct(variable, bodyC);
             bodyC.addAll(head);
             support = db.countDistinct(variable, bodyC);
@@ -74,9 +75,9 @@ public class SeparationClassifier {
      * @param supportThreshold
      * @return
      */
-    public Set<ByteString> getRelevantClasses(List<ByteString[]> query, ByteString variable, int supportThreshold) {
-        Set<ByteString> result = new LinkedHashSet<>();
-        for (ByteString c : classSize) {
+    public IntSet getRelevantClasses(List<int[]> query, int variable, int supportThreshold) {
+        IntSet result = new IntOpenHashSet();
+        for (int c : classSize.keySet()) {
             if (getStandardConfidenceWithThreshold(TypingHeuristic.typeL(c, variable), query, variable, supportThreshold, true) != 0) {
                 result.add(c);
             }
@@ -84,22 +85,22 @@ public class SeparationClassifier {
         return result;
     }
 
-    public Map<ByteString, Map<ByteString, Double>> computeStatistics(List<ByteString[]> query, ByteString variable, int classSizeThreshold, int supportThreshold) {
-        Map<ByteString, Map<ByteString, Double>> result = new LinkedHashMap<>();
-        Set<ByteString> relevantClasses = getRelevantClasses(query, variable, supportThreshold);
+    public Int2ObjectMap<Int2DoubleMap> computeStatistics(List<int[]> query, int variable, int classSizeThreshold, int supportThreshold) {
+        Int2ObjectMap<Int2DoubleMap> result = new Int2ObjectOpenHashMap<>();
+        IntSet relevantClasses = getRelevantClasses(query, variable, supportThreshold);
 
-        for (ByteString class1 : relevantClasses) {
+        for (int class1 : relevantClasses) {
             int c1size = classSize.get(class1);
 
             if (c1size < classSizeThreshold) {
                 continue;
             }
 
-            Map<ByteString, Double> r = new LinkedHashMap<>();
-            List<ByteString[]> clause = TypingHeuristic.typeL(class1, variable);
+            Int2DoubleMap r = new Int2DoubleOpenHashMap();
+            List<int[]> clause = TypingHeuristic.typeL(class1, variable);
             clause.addAll(query);
 
-            for (ByteString class2 : relevantClasses) {
+            for (int class2 : relevantClasses) {
 
                 assert (clause.size() == query.size() + 1);
                 if (class1 == class2) {
@@ -109,7 +110,7 @@ public class SeparationClassifier {
                     // Ensure the symmetry of the output.
                     continue;
                 }
-                if (!classIntersectionSize.containsKey(class1) || !classIntersectionSize.get(class1).contains(class2)) {
+                if (!classIntersectionSize.containsKey(class1) || !classIntersectionSize.get(class1).containsKey(class2)) {
                     continue;
                 }
 
@@ -152,12 +153,12 @@ public class SeparationClassifier {
         return result;
     }
 
-    public void classify(Map<ByteString, Map<ByteString, Double>> statistics, double eliminationRatio) {
+    public void classify(Int2ObjectMap<Int2DoubleMap> statistics, double eliminationRatio) {
         // add an unionRatio ?
         double lratio = Math.abs(Math.log(eliminationRatio));
-        Set<ByteString> V = new HashSet<>(statistics.keySet());
-        for (ByteString class1 : statistics.keySet()) {
-            for (ByteString class2 : statistics.get(class1).keySet()) {
+        IntSet V = new IntOpenHashSet(statistics.keySet());
+        for (int class1 : statistics.keySet()) {
+            for (int class2 : statistics.get(class1).keySet()) {
                 double s1 = Math.log(statistics.get(class1).get(class2));
                 if (Double.isNaN(s1)) {
                     continue;
@@ -193,8 +194,8 @@ public class SeparationClassifier {
                  */
             }
         }
-        for (ByteString t : V) {
-            System.out.println(t.toString());
+        for (int t : V) {
+            System.out.println(KB.unmap(t));
         }
     }
 
@@ -228,7 +229,7 @@ public class SeparationClassifier {
         }
     }
 
-    public SeparationClassifier(KB source, IntHashMap<ByteString> cS, Map<ByteString, IntHashMap<ByteString>> cIS) {
+    public SeparationClassifier(KB source, Int2IntMap cS, Int2ObjectMap<Int2IntMap> cIS) {
         db = source;
         classSize = cS;
         classIntersectionSize = cIS;
@@ -299,8 +300,8 @@ public class SeparationClassifier {
         public Integer supportThreshold = 50;
         public String delimiter = "\t";
         public String[] leftOverArgs = null;
-        public List<ByteString[]> query;
-        public ByteString variable;
+        public List<int[]> query;
+        public int variable;
         public File countFile = null;
         public File countIntersectionFile = null;
 
@@ -332,15 +333,15 @@ public class SeparationClassifier {
             // Schema related options
             if (cli.hasOption("tr")) {
                 Schema.typeRelation = cli.getOptionValue("tr");
-                Schema.typeRelationBS = ByteString.of(Schema.typeRelation);
+                Schema.typeRelationBS = KB.map(Schema.typeRelation);
             }
             if (cli.hasOption("scr")) {
                 Schema.subClassRelation = cli.getOptionValue("scr");
-                Schema.subClassRelationBS = ByteString.of(Schema.subClassRelation);
+                Schema.subClassRelationBS = KB.map(Schema.subClassRelation);
             }
             if (cli.hasOption("top")) {
                 Schema.top = cli.getOptionValue("top");
-                Schema.topBS = ByteString.of(Schema.top);
+                Schema.topBS = KB.map(Schema.top);
             }
             
             // Delimiter
@@ -351,11 +352,11 @@ public class SeparationClassifier {
             // Wikidata setup overrides Schema + delimiter
             if (cli.hasOption("w")) {
                 Schema.typeRelation = "<P106>";
-                Schema.typeRelationBS = ByteString.of(Schema.typeRelation);
+                Schema.typeRelationBS = KB.map(Schema.typeRelation);
                 Schema.subClassRelation = "<P279>";
-                Schema.subClassRelationBS = ByteString.of(Schema.subClassRelation);
+                Schema.subClassRelationBS = KB.map(Schema.subClassRelation);
                 Schema.top = "<Q35120>";
-                Schema.topBS = ByteString.of(Schema.top);
+                Schema.topBS = KB.map(Schema.top);
                 delimiter = " ";
             }
             
@@ -386,7 +387,7 @@ public class SeparationClassifier {
 
                 String[] attr = cli.getOptionValue("q").split("-1");
                 query = KB.triples(KB.triple("?x", attr[0], "?y"));
-                variable = (attr.length == 1) ? ByteString.of("?x") : ByteString.of("?y");
+                variable = (attr.length == 1) ? KB.map("?x") : KB.map("?y");
             }
         }
     }

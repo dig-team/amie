@@ -2,11 +2,11 @@ package amie.data.utils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
-import javatools.datatypes.ByteString;
+
 import amie.data.KB;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 /**
  * Summarize 2 KBs and print their common relations. It also accepts
@@ -29,17 +29,17 @@ public class KBsSummarizer {
 			db2 = new KB();
 			db2.load(new File(args[1]));	
 		}		
-		Set<ByteString> relationsInCommon = new LinkedHashSet<ByteString>();
+		IntSet relationsInCommon = new IntOpenHashSet();
 		
-		Set<ByteString> relationsDb1 = db1.selectDistinct(ByteString.of("?p"), 
-				KB.triples(KB.triple(ByteString.of("?s"), 
-						ByteString.of("?p"), ByteString.of("?o"))));
+		IntSet relationsDb1 = db1.selectDistinct(KB.map("?p"), 
+				KB.triples(KB.triple(KB.map("?s"), 
+						KB.map("?p"), KB.map("?o"))));
 		if (db2 != null) {
-			Set<ByteString> relationsDb2 = db2.selectDistinct(ByteString.of("?p"), 
-					KB.triples(KB.triple(ByteString.of("?s"), 
-							ByteString.of("?p"), ByteString.of("?o"))));
+			IntSet relationsDb2 = db2.selectDistinct(KB.map("?p"), 
+					KB.triples(KB.triple(KB.map("?s"), 
+							KB.map("?p"), KB.map("?o"))));
 			
-			for (ByteString relation : relationsDb1) {
+			for (int relation : relationsDb1) {
 				if (relationsDb2.contains(relation)) {
 					relationsInCommon.add(relation);
 				}

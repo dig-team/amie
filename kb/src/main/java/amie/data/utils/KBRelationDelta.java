@@ -5,16 +5,17 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.Set;
 
 import amie.data.KB;
 import amie.data.Schema;
-import javatools.datatypes.ByteString;
+import it.unimi.dsi.fastutil.ints.IntCollection;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
+
 
 public class KBRelationDelta {
 
@@ -46,19 +47,19 @@ public class KBRelationDelta {
 		db1.load(oldFiles);
 		db2.load(newFiles);
 		
-		List<ByteString> r1 = db1.getRelationsList();
-		Queue<ByteString> r2 = new LinkedList<>(db2.getRelationsList());
+		IntList r1 = db1.getRelationsList();
+		Queue<Integer> r2 = new LinkedList<>(db2.getRelationsList());
 		
 		r2.retainAll(r1);
 		
-		final Collection<ByteString> allEntitiesOldKB = db1.getAllEntities();
+		final IntCollection allEntitiesOldKB = db1.getAllEntities();
 		
 		while (!r2.isEmpty()) {
 			List<Thread> threads = new ArrayList<>();
 			for (int i = 0; i < Math.max(1, Runtime.getRuntime().availableProcessors() / 2); ++i) {
-				final ByteString relation = r2.poll();
+				final int relation = r2.poll();
 				System.out.println("Analyzing relation " + relation);
-				if (relation == null)
+				if (relation == 0)
 					break;
 				
 				final KB ddb1 = db1;
@@ -74,38 +75,39 @@ public class KBRelationDelta {
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
+                                                        System.exit(2);
 						}
-						ByteString domain = null;
-						ByteString qVariable = null;
+						int domain = 0;
+						int qVariable = 0;
 						String relationlabel = null;
-						List<ByteString[]> query = KB.triples(KB.triple(ByteString.of("?s"), relation, ByteString.of("?o")));
-						ByteString[] query2 = KB.triple(ByteString.of("?s"), relation, ByteString.of("?o"));
+						List<int[]> query = KB.triples(KB.triple(KB.map("?s"), relation, KB.map("?o")));
+						int[] query2 = KB.triple(KB.map("?s"), relation, KB.map("?o"));
 						boolean isFunctional = ddb2.isFunctional(relation); 
 						if (isFunctional) {
 							domain = Schema.getRelationDomain(ddb2, relation);
 							qVariable = query.get(0)[0];
-							relationlabel = relation.toString();
+							relationlabel = KB.unmap(relation);
 						} else {
 							domain = Schema.getRelationRange(ddb2, relation);
 							qVariable = query.get(0)[2];
-							relationlabel = relation.toString().replace(">", "-inv>");
+							relationlabel = KB.unmap(relation).replace(">", "-inv>");
 						}
 						System.out.println("Getting the values for the domain");
-						Set<ByteString> entities = new LinkedHashSet<>(Schema.getAllEntitiesForType(ddb2, domain));					
+						IntSet entities = new IntOpenHashSet(Schema.getAllEntitiesForType(ddb2, domain));					
 						entities.addAll(ddb2.selectDistinct(qVariable, query));
 						System.out.println("Checking those that appear in the old database");
 						entities.retainAll(allEntitiesOldKB);			
 						System.out.println("Checking for changes");
-						for (ByteString entity : entities) {
+						for (int entity : entities) {
 							if (isFunctional) {
 								query2[0] = entity;
-								query2[2] = ByteString.of("?o");
+								query2[2] = KB.map("?o");
 							} else {
 								query2[2] = entity;
-								query2[0] = ByteString.of("?s");
+								query2[0] = KB.map("?s");
 							}
-							Set<ByteString> s1 = ddb1.resultsOneVariable(query2);
-							Set<ByteString> s2 = ddb2.resultsOneVariable(query2);
+							IntSet s1 = ddb1.resultsOneVariable(query2);
+							IntSet s2 = ddb2.resultsOneVariable(query2);
 							String outcome = null;
 							if (s1.equals(s2)) {
 								outcome = "No change";

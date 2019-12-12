@@ -3,13 +3,15 @@ package amie.rules;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import amie.data.KB;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 
-import javatools.datatypes.ByteString;
+
 import javatools.datatypes.Pair;
 import javatools.filehandlers.FileLines;
 
@@ -27,7 +29,7 @@ public class AMIEParser {
 	 * @return
 	 */
 	public static Rule rule(String s) {	
-		Pair<List<ByteString[]>, ByteString[]> rulePair = KB.rule(s);
+		Pair<List<int[]>, int[]> rulePair = KB.rule(s);
 		if(rulePair == null) return null;
 		Rule resultRule = new Rule(rulePair.second, rulePair.first, 0);
 		return resultRule;
@@ -35,8 +37,8 @@ public class AMIEParser {
   
 	public static void normalizeRule(Rule q){
 		char c = 'a';
-		Map<ByteString, Character> charmap = new HashMap<ByteString, Character>();
-		for(ByteString[] triple: q.getTriples()){
+		Int2ObjectMap<Character> charmap = new Int2ObjectOpenHashMap<Character>();
+		for(int[] triple: q.getTriples()){
 			for(int i = 0;  i < triple.length; ++i){
 				if(KB.isVariable(triple[i])){
 					Character replace = charmap.get(triple[i]);
@@ -45,7 +47,7 @@ public class AMIEParser {
 						charmap.put(triple[i], replace);
 						c = (char) (c + 1);
 					}
-					triple[i] = ByteString.of("?" + replace);				
+					triple[i] = KB.map("?" + replace);				
 				}
 			}
 		}
@@ -54,15 +56,15 @@ public class AMIEParser {
 	public static List<Rule> rules(File f) throws IOException {
 	    List<Rule> result=new ArrayList<>();
 	    for(String line : new FileLines(f)) {
-	    	ArrayList<ByteString[]> triples=KB.triples(line);
+	    	ArrayList<int[]> triples=KB.triples(line);
 	    	if(triples==null || triples.size()<2) continue;      
-	    	ByteString[] last=triples.get(triples.size()-1);
+	    	int[] last=triples.get(triples.size()-1);
 	    	triples.remove(triples.size()-1);
 	    	triples.add(0, last);
 	    	Rule query=new Rule();
 	 
-	    	ArrayList<ByteString> variables = new ArrayList<ByteString>();
-	    	for(ByteString[] triple: triples){
+	    	IntList variables = new IntArrayList();
+	    	for(int[] triple: triples){
 	    		if(!variables.contains(triple[0]))
 	    			variables.add(triple[0]);
 	    		if(!variables.contains(triple[2]))

@@ -1,5 +1,6 @@
 package amie.data.utils;
 
+import amie.data.KB;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -8,7 +9,7 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import javatools.datatypes.ByteString;
+
 
 import amie.data.Schema;
 import amie.data.SetU;
@@ -49,11 +50,11 @@ public class PrintCounts {
         SimpleTypingKB kb = new SimpleTypingKB();
         kb.setDelimiter(" ");
         Schema.typeRelation = "<P106>";
-        Schema.typeRelationBS = ByteString.of(Schema.typeRelation);
+        Schema.typeRelationBS = KB.map(Schema.typeRelation);
         Schema.subClassRelation = "<P279>";
-        Schema.subClassRelationBS = ByteString.of(Schema.subClassRelation);
+        Schema.subClassRelationBS = KB.map(Schema.subClassRelation);
         Schema.top = "<Q35120>";
-        Schema.topBS = ByteString.of(Schema.top);
+        Schema.topBS = KB.map(Schema.top);
         kb.load(dataFiles);
 
         FileOutputStream fstream1 = new FileOutputStream("countsClass.tsv");
@@ -62,15 +63,15 @@ public class PrintCounts {
         BufferedWriter out2 = new BufferedWriter(new OutputStreamWriter(fstream2, "UTF-8"));
         int s = 0;
 
-        for (ByteString t : kb.classes.keySet()) {
+        for (int t : kb.classes.keySet()) {
             if ((s = kb.classes.get(t).size()) >= threshold) {
-                out1.append(t.toString() + "\t" + Integer.toString(s) + "\n");
+                out1.append(KB.unmap(t) + "\t" + Integer.toString(s) + "\n");
             }
         }
-        for (ByteString t1 : kb.classes.keySet()) {
-            for (ByteString t2 : kb.classes.keySet()) {
+        for (int t1 : kb.classes.keySet()) {
+            for (int t2 : kb.classes.keySet()) {
                 if ((s = (int) SetU.countIntersection(kb.classes.get(t1), kb.classes.get(t2))) >= threshold) {
-                    out2.append(t1.toString() + "\t" + t2.toString() + "\t" + s + "\n");
+                    out2.append(KB.unmap(t1) + "\t" + KB.unmap(t2) + "\t" + s + "\n");
                 }
             }
         }

@@ -3,17 +3,19 @@ package amie.rules.eval;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
-import java.util.Set;
-
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
-import javatools.datatypes.Pair;
 
 import amie.data.KB;
+import static amie.data.U.increase;
+import amie.data.tuple.IntPair;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 /**
  * For each relation r of a given KB, it takes a sample of the entities x in the domain of the relation r
@@ -32,55 +34,55 @@ public class EntitiesRelationSampler {
 		KB db = new KB();
 		int maxOccurrencePerRelation = Integer.parseInt(args[0]);		
 		db.load(new File(args[1]));
-		Set<ByteString> allEntities = db.selectDistinct(ByteString.of("?s"), KB.triples(KB.triple(ByteString.of("?s"), ByteString.of("?p"), ByteString.of("?o"))));
-		List<ByteString> allRelations = new ArrayList<ByteString>(db.selectDistinct(ByteString.of("?p"), KB.triples(KB.triple(ByteString.of("?s"), ByteString.of("?p"), ByteString.of("?o")))));
-		List<ByteString> entitiesArray = new ArrayList<ByteString>(allEntities); 
-		Map<ByteString, List<Pair<ByteString, ByteString>>> relationsMap = new HashMap<ByteString, List<Pair<ByteString, ByteString>>>();
-		IntHashMap<ByteString> relationEntityCount = new IntHashMap<ByteString>();
+		IntSet allEntities = db.selectDistinct(KB.map("?s"), KB.triples(KB.triple(KB.map("?s"), KB.map("?p"), KB.map("?o"))));
+		IntList allRelations = new IntArrayList(db.selectDistinct(KB.map("?p"), KB.triples(KB.triple(KB.map("?s"), KB.map("?p"), KB.map("?o")))));
+		IntList entitiesArray = new IntArrayList(allEntities); 
+		Int2ObjectMap<List<IntPair>> relationsMap = new Int2ObjectOpenHashMap<List<IntPair>>();
+		Int2IntMap relationEntityCount = new Int2IntOpenHashMap();
 		
-		for(ByteString relation: allRelations){
+		for(int relation: allRelations){
 			relationEntityCount.put(relation, 0);
-			relationsMap.put(relation, new ArrayList<Pair<ByteString, ByteString>>());
+			relationsMap.put(relation, new ArrayList<IntPair>());
 		}
 		
 		while(!allRelations.isEmpty() && !entitiesArray.isEmpty()){
 			//Pick a random entity
 			Random r = new Random();
 			int position = r.nextInt(entitiesArray.size());
-			ByteString entity = entitiesArray.get(position);
+			int entity = entitiesArray.get(position);
 			swap(entitiesArray, position, entitiesArray.size() - 1);
-			entitiesArray.remove(entitiesArray.size() - 1);
+			entitiesArray.removeInt(entitiesArray.size() - 1);
 			
 			//Now take all the triples about this entity
-			List<ByteString[]> query = KB.triples(KB.triple(entity, ByteString.of("?p"), ByteString.of("?o")));
-			Map<ByteString, IntHashMap<ByteString>> predicateObjects = db.selectDistinct(ByteString.of("?p"), ByteString.of("?o"), query);
+			List<int[]> query = KB.triples(KB.triple(entity, KB.map("?p"), KB.map("?o")));
+			Int2ObjectMap<IntSet> predicateObjects = db.selectDistinct(KB.map("?p"), KB.map("?o"), query);
 			
-			for(ByteString relation: predicateObjects.keySet()){				
+			for(int relation: predicateObjects.keySet()){				
 				if(relationEntityCount.get(relation) >= maxOccurrencePerRelation){
 					continue;
 				}
 				
-				relationEntityCount.increase(relation);
-				List<Pair<ByteString, ByteString>> facts = relationsMap.get(relation);
-				for(ByteString object: predicateObjects.get(relation)){
-					facts.add(new Pair<ByteString, ByteString>(entity, object));
+				increase(relationEntityCount, relation);
+				List<IntPair> facts = relationsMap.get(relation);
+				for(int object: predicateObjects.get(relation)){
+					facts.add(new IntPair(entity, object));
 				}
 				
 				if(relationEntityCount.get(relation) >= maxOccurrencePerRelation)
-					allRelations.remove(relation);
+					allRelations.removeInt(relation);
 			}
 		}
 		
-		for(ByteString relation: relationsMap.keySet()){
-			for(Pair<ByteString, ByteString> entityObject: relationsMap.get(relation))
+		for(int relation: relationsMap.keySet()){
+			for(IntPair entityObject: relationsMap.get(relation))
 				System.out.println(entityObject.first + "\t" + relation + "\t" + entityObject.second);
 		}
 		
 	}
 
-	private static void swap(List<ByteString> entitiesArray, int i, int j) {
-		ByteString tmp = entitiesArray.get(i);
-		entitiesArray.set(i, entitiesArray.get(j));
+	private static void swap(IntList entitiesArray, int i, int j) {
+		int tmp = entitiesArray.getInt(i);
+		entitiesArray.set(i, entitiesArray.getInt(j));
 		entitiesArray.set(j, tmp);
 	}
 

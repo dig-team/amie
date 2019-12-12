@@ -6,13 +6,12 @@
 package amie.mining.assistant.variableorder;
 
 import amie.rules.Rule;
-import javatools.datatypes.ByteString;
 
 /**
  *
  * @author jlajus
  */
 public interface VariableOrder {
-    public ByteString getFirstCountVariable(Rule r);
-    public ByteString getSecondCountVariable(Rule r);
+    public int getFirstCountVariable(Rule r);
+    public int getSecondCountVariable(Rule r);
 }

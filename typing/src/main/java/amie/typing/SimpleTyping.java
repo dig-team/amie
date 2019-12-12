@@ -6,6 +6,7 @@
 package amie.typing;
 
 import amie.data.CardinalitySimpleTypingKB;
+import amie.data.KB;
 import amie.data.Schema;
 import amie.data.SimpleTypingKB;
 import amie.data.WikidataSimpleTypingKB;
@@ -16,26 +17,26 @@ import amie.typing.classifier.simple.RelaxedSeparationSimpleClassifier;
 import amie.typing.classifier.simple.SimpleClassifier;
 import amie.typing.classifier.simple.SimpleClassifier.SimpleClassifierOutput;
 import amie.typing.classifier.simple.StrictSeparationSimpleClassifier;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
+
 import javatools.datatypes.Pair;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -51,11 +52,11 @@ import org.apache.commons.cli.PosixParser;
  * @author jlajus
  */
 public class SimpleTyping extends Thread {
-    private BlockingQueue<Pair<Pair<Integer, ByteString>, SimpleClassifier>> queryQ;
+    private BlockingQueue<Pair<Pair<Integer, Integer>, SimpleClassifier>> queryQ;
     //public Iterable<Integer> classSizeThresholds; 
     public int supportThreshold;
     
-    public SimpleTyping(BlockingQueue<Pair<Pair<Integer, ByteString>, SimpleClassifier>> queryQ,
+    public SimpleTyping(BlockingQueue<Pair<Pair<Integer, Integer>, SimpleClassifier>> queryQ,
             //Iterable<Integer> classSizeThresholds, 
             int supportThreshold) {
         this.queryQ = queryQ;
@@ -65,7 +66,7 @@ public class SimpleTyping extends Thread {
     
     @Override
     public void run() {
-        Pair<Pair<Integer, ByteString>, SimpleClassifier> q;
+        Pair<Pair<Integer, Integer>, SimpleClassifier> q;
         while(true) {
             try {
                 q = queryQ.take();
@@ -97,7 +98,7 @@ public class SimpleTyping extends Thread {
         String delimiter = "\t";
         String[] leftOverArgs;
         String[] queries = null; 
-        Map<ByteString, IntHashMap<ByteString>> countIntersectionMap = null;
+        Int2ObjectMap<Int2IntMap> countIntersectionMap = null;
         int nThreads = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
         PrintStream output = System.out;
         ArrayList<Double> t1 = null, t2 = null, t3 = null;
@@ -242,15 +243,15 @@ public class SimpleTyping extends Thread {
         // Schema related options
         if (cli.hasOption("tr")) {
             Schema.typeRelation = cli.getOptionValue("tr");
-            Schema.typeRelationBS = ByteString.of(Schema.typeRelation);
+            Schema.typeRelationBS = KB.map(Schema.typeRelation);
         }
         if (cli.hasOption("scr")) {
             Schema.subClassRelation = cli.getOptionValue("scr");
-            Schema.subClassRelationBS = ByteString.of(Schema.subClassRelation);
+            Schema.subClassRelationBS = KB.map(Schema.subClassRelation);
         }
         if (cli.hasOption("top")) {
             Schema.top = cli.getOptionValue("top");
-            Schema.topBS = ByteString.of(Schema.top);
+            Schema.topBS = KB.map(Schema.top);
         }
 
         // Delimiter
@@ -261,11 +262,11 @@ public class SimpleTyping extends Thread {
         // Wikidata setup overrides Schema + delimiter
         if (cli.hasOption("w")) {
             Schema.typeRelation = "<P106>";
-            Schema.typeRelationBS = ByteString.of(Schema.typeRelation);
+            Schema.typeRelationBS = KB.map(Schema.typeRelation);
             Schema.subClassRelation = "<P279>";
-            Schema.subClassRelationBS = ByteString.of(Schema.subClassRelation);
+            Schema.subClassRelationBS = KB.map(Schema.subClassRelation);
             Schema.top = "<Q35120>";
-            Schema.topBS = ByteString.of(Schema.top);
+            Schema.topBS = KB.map(Schema.top);
             delimiter = " ";
         }
 
@@ -436,16 +437,16 @@ public class SimpleTyping extends Thread {
         // Populate query queue
         BlockingQueue queryQ = new LinkedBlockingQueue();
         
-        Set<ByteString> relations;
+        IntSet relations;
         if (queries != null && queries.length > 0) {
-            relations = new LinkedHashSet<>();
+            relations = new IntOpenHashSet();
             for (int i = 0; i < queries.length; i++) {
-                relations.add(ByteString.of(queries[i]));
+                relations.add(KB.map(queries[i]));
             }
         } else {
             relations = dataSource.relations.keySet();
         }
-        /*for (ByteString r : relations) {
+        /*for (int r : relations) {
             System.err.println(r.toString());
         }*/
         
@@ -470,7 +471,7 @@ public class SimpleTyping extends Thread {
             }
             switch(cn.first) {
                 case "b2":
-                    for (ByteString r : relations) {
+                    for (int r : relations) {
                         for (Integer classSizeThreshold : classSizeThresholds) {
                             queryQ.add(new Pair<>(
                                 new Pair<>(classSizeThreshold, r), 
@@ -479,7 +480,7 @@ public class SimpleTyping extends Thread {
                     }
                     break;
                 case "b3":
-                    for (ByteString r : relations) {
+                    for (int r : relations) {
                         for (Integer classSizeThreshold : classSizeThresholds) {
                             queryQ.add(new Pair<>(
                                 new Pair<>(classSizeThreshold, r), 
@@ -488,7 +489,7 @@ public class SimpleTyping extends Thread {
                     }
                     break;
                 case "strict":
-                    for (ByteString r : relations) {
+                    for (int r : relations) {
                         for (Integer classSizeThreshold : classSizeThresholds) {
                             queryQ.add(new Pair<>(
                                 new Pair<>(classSizeThreshold, r), 
@@ -497,7 +498,7 @@ public class SimpleTyping extends Thread {
                     }
                     break;
                 case "relaxed":
-                    for (ByteString r : relations) {
+                    for (int r : relations) {
                         for (Integer classSizeThreshold : classSizeThresholds) {
                             queryQ.add(new Pair<>(
                                 new Pair<>(classSizeThreshold, r), 
@@ -506,7 +507,7 @@ public class SimpleTyping extends Thread {
                     }
                     break;
                 case "fisher":
-                    for (ByteString r : relations) {
+                    for (int r : relations) {
                         for (Integer classSizeThreshold : classSizeThresholds) {
                             queryQ.add(new Pair<>(
                                 new Pair<>(classSizeThreshold, r), 
@@ -542,7 +543,7 @@ public class SimpleTyping extends Thread {
         System.out.println("Processing done with "+Integer.toString(nThreads)+" threads in "+Long.toString(timeStamp2 - timeStamp1)+"ms.");
         
         for (SimpleClassifierOutput r : outputQ) {
-            output.println(r.classSizeThreshold + "\t" + r.method + "\t" + Double.toString(r.threshold) + "\t" + r.relation.toString() + "\t" + r.resultClass.toString());
+            output.println(r.classSizeThreshold + "\t" + r.method + "\t" + Double.toString(r.threshold) + "\t" + KB.unmap(r.relation) + "\t" + KB.unmap(r.resultClass));
         }
         
         try {

@@ -1,12 +1,13 @@
 package amie.mining.assistant;
 
-import java.util.Arrays;
-import java.util.List;
 
-import javatools.datatypes.ByteString;
+
 import amie.data.KB;
 import amie.data.Schema;
+import amie.data.tuple.IntArrays;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.IntCollection;
+import it.unimi.dsi.fastutil.ints.IntList;
 
 /**
  * This class overrides the default mining assistant enforcing type constraints on the 
@@ -22,8 +23,8 @@ public class RelationSignatureDefaultMiningAssistant extends DefaultMiningAssist
 	 */
 	public RelationSignatureDefaultMiningAssistant(KB dataSource) {
 		super(dataSource);
-        List<ByteString> excludedRelationsSignatured = Arrays.asList(ByteString.of("rdf:type"),
-                ByteString.of("rdfs:domain"), ByteString.of("rdfs:range"));
+        IntList excludedRelationsSignatured = IntArrays.asList(KB.map("rdf:type"),
+                KB.map("rdfs:domain"), KB.map("rdfs:range"));
         bodyExcludedRelations = excludedRelationsSignatured;
         headExcludedRelations = excludedRelationsSignatured;
 	}
@@ -36,10 +37,10 @@ public class RelationSignatureDefaultMiningAssistant extends DefaultMiningAssist
 	}
 	
 	@Override
-	public void setHeadExcludedRelations(java.util.Collection<ByteString> headExcludedRelations) {};
+	public void setHeadExcludedRelations(IntCollection headExcludedRelations) {};
 	
 	@Override
-	public void setBodyExcludedRelations(java.util.Collection<ByteString> excludedRelations) {};
+	public void setBodyExcludedRelations(IntCollection excludedRelations) {};
 	
 	@Override
 	public boolean testConfidenceThresholds(Rule candidate) {
@@ -50,23 +51,23 @@ public class RelationSignatureDefaultMiningAssistant extends DefaultMiningAssist
 		}
 		
 		//Add the schema information to the rule
-		ByteString domain, range, relation;
+		int domain, range, relation;
 		relation = candidate.getHead()[1];
 		domain = Schema.getRelationDomain(kb, relation);
-		if(domain != null){
-			ByteString[] domainTriple = new ByteString[3];
+		if(domain != 0){
+			int[] domainTriple = new int[3];
 			domainTriple[0] = candidate.getHead()[0];
-			domainTriple[1] = ByteString.of("rdf:type");
+			domainTriple[1] = KB.map("rdf:type");
 			domainTriple[2] = domain;
 			candidate.getTriples().add(domainTriple);
 			queryChanged = true;
 		}
 		
 		range = Schema.getRelationRange(kb, relation);
-		if(range != null){
-			ByteString[] rangeTriple = new ByteString[3];
+		if(range != 0){
+			int[] rangeTriple = new int[3];
 			rangeTriple[0] = candidate.getHead()[2];
-			rangeTriple[1] = ByteString.of("rdf:type");
+			rangeTriple[1] = KB.map("rdf:type");
 			rangeTriple[2] = range;
 			candidate.getTriples().add(rangeTriple);
 			queryChanged = true;

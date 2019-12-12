@@ -8,15 +8,15 @@ package amie.typing.classifier.simple;
 import amie.data.Schema;
 import amie.data.SetU;
 import amie.data.SimpleTypingKB;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.locks.Lock;
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
+
 
 /**
  *
@@ -24,11 +24,11 @@ import javatools.datatypes.IntHashMap;
  */
 public abstract class SimpleClassifier {
     
-    public Map<ByteString, SimpleTreeNode> index = new LinkedHashMap<>();
+    public Int2ObjectMap<SimpleTreeNode> index = new Int2ObjectOpenHashMap<>();
     public boolean supportForTarget;
     
     public SimpleTypingKB db;
-    public Map<ByteString, IntHashMap<ByteString>> classIntersectionSize;
+    public Int2ObjectMap<Int2IntMap> classIntersectionSize;
     public String name = "";
     protected double[] thresholds;
     
@@ -53,12 +53,12 @@ public abstract class SimpleClassifier {
         this.supportForTarget = supportForTarget;
     }
     
-    public SimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Map<ByteString, IntHashMap<ByteString>> classIntersectionSize) {
+    public SimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Int2ObjectMap<Int2IntMap> classIntersectionSize) {
         this(db, thresholds, output, outputLock);
         this.classIntersectionSize = classIntersectionSize;
     }
     
-    public SimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Map<ByteString, IntHashMap<ByteString>> classIntersectionSize,
+    public SimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Int2ObjectMap<Int2IntMap> classIntersectionSize,
             boolean supportForTarget) {
         this(db, thresholds, output, outputLock);
         this.classIntersectionSize = classIntersectionSize;
@@ -68,10 +68,10 @@ public abstract class SimpleClassifier {
     public class SimpleClassifierOutput {
         public String method;
         public double threshold;
-        public ByteString relation;
-        public ByteString resultClass;
+        public int relation;
+        public int resultClass;
         public int classSizeThreshold;
-        public SimpleClassifierOutput(String method, double threshold, ByteString relation, ByteString resultClass, int classSizeThreshold) {
+        public SimpleClassifierOutput(String method, double threshold, int relation, int resultClass, int classSizeThreshold) {
             this.method = method;
             this.threshold = threshold;
             this.relation = relation;
@@ -82,11 +82,11 @@ public abstract class SimpleClassifier {
     
     protected class SimpleTreeNode {
     
-        public SimpleTreeNode(ByteString classNameP) {
+        public SimpleTreeNode(int classNameP) {
             className = classNameP;
         }
         
-        public SimpleTreeNode(int supportThreshold, int classSizeThreshold, ByteString relation) {
+        public SimpleTreeNode(int supportThreshold, int classSizeThreshold, int relation) {
             className = Schema.topBS;
             if ((bodySize = db.classes.get(className).size()) > classSizeThreshold
                    && (support = (int) SetU.countIntersection(db.classes.get(Schema.topBS), db.relations.get(relation))) > supportThreshold) {
@@ -94,7 +94,7 @@ public abstract class SimpleClassifier {
             }
         }
     
-        public ByteString className;
+        public int className;
         public Double separationScore = 0.0;
         public int thresholdI = 0;
         public int thresholdMask = 0;
@@ -104,9 +104,9 @@ public abstract class SimpleClassifier {
         public int bodySize;
         public int support;
     
-        public void generate(int supportThreshold, int classSizeThreshold, ByteString relation) {
+        public void generate(int supportThreshold, int classSizeThreshold, int relation) {
             int bs, s;
-            for (ByteString subClass : Schema.getSubTypes(db, className)) {
+            for (int subClass : Schema.getSubTypes(db, className)) {
                 if (!db.classes.containsKey(subClass)) { continue; }
                 SimpleTreeNode stc = index.get(subClass);
                 if (stc != null) {
@@ -141,7 +141,7 @@ public abstract class SimpleClassifier {
     
     protected abstract boolean meetThreshold(double treeScore, double threshold);
     
-    public void classify(ByteString relation, int classSizeThreshold, 
+    public void classify(int relation, int classSizeThreshold, 
             int supportThreshold) throws IOException {
         index.clear();
         this.supportThreshold = supportThreshold;
@@ -158,7 +158,7 @@ public abstract class SimpleClassifier {
         }
     }
     
-    protected void export(ByteString relation, double threshold, ByteString className, int classSizeThreshold) {
+    protected void export(int relation, double threshold, int className, int classSizeThreshold) {
         this.bufferQueue.add(new SimpleClassifierOutput(name + ((supportForTarget)? "-sft" : ""), threshold, relation, className, classSizeThreshold));
     }
     
@@ -176,7 +176,7 @@ public abstract class SimpleClassifier {
      * Thresholds must be ordered from more laxist to stricter according to meetThreshold method.
      * @param relation
      */
-    public void computeClassification(ByteString relation, int classSizeThreshold) {
+    public void computeClassification(int relation, int classSizeThreshold) {
         Queue<SimpleTreeNode> q = new LinkedList<>();
         q.add(index.get(Schema.topBS));
         int i;
@@ -196,5 +196,5 @@ public abstract class SimpleClassifier {
         }
     }
     
-    public abstract void computeStatistics(ByteString relation, int classSizeThreshold);
+    public abstract void computeStatistics(int relation, int classSizeThreshold);
 }

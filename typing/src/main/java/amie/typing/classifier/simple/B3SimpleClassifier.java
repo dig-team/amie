@@ -7,12 +7,12 @@ package amie.typing.classifier.simple;
 
 import amie.data.Schema;
 import amie.data.SimpleTypingKB;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.locks.Lock;
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
+
 
 /**
  *
@@ -30,12 +30,12 @@ public class B3SimpleClassifier extends SimpleClassifier {
         name = "revConf";
     }
 
-    public B3SimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Map<ByteString, IntHashMap<ByteString>> classIntersectionSize) {
+    public B3SimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Int2ObjectMap<Int2IntMap> classIntersectionSize) {
         super(db, thresholds, output, outputLock, classIntersectionSize);
         name = "revConf";
     }
 
-    public B3SimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Map<ByteString, IntHashMap<ByteString>> classIntersectionSize, boolean supportForTarget) {
+    public B3SimpleClassifier(SimpleTypingKB db, double[] thresholds, Queue<SimpleClassifierOutput> output, Lock outputLock, Int2ObjectMap<Int2IntMap> classIntersectionSize, boolean supportForTarget) {
         super(db, thresholds, output, outputLock, classIntersectionSize, supportForTarget);
         name = "revConf";
     }
@@ -46,7 +46,7 @@ public class B3SimpleClassifier extends SimpleClassifier {
     }
 
     @Override
-    public void computeStatistics(ByteString relation, int classSizeThreshold) {
+    public void computeStatistics(int relation, int classSizeThreshold) {
         int bodySize = index.get(Schema.topBS).support;
         for (SimpleTreeNode n : index.values()) {
             n.separationScore = ((double) n.support) / bodySize;
@@ -58,7 +58,7 @@ public class B3SimpleClassifier extends SimpleClassifier {
     /**
      * Compute the lowest classes in the taxonomy meeting the threshold.
      */
-    public void computeClassification(ByteString relation, int classSizeThreshold) {
+    public void computeClassification(int relation, int classSizeThreshold) {
         for (SimpleTreeNode n : index.values()) {
             int i = 0;
             while(i < thresholds.length && meetThreshold(n.separationScore, thresholds[i])) { i++; }

@@ -2,12 +2,11 @@ package amie.typing.heuristics;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import amie.data.KB;
-import amie.data.U;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
-import javatools.datatypes.ByteString;
+
 
 public class PopularityHeuristic extends TypingHeuristic {
 
@@ -17,18 +16,18 @@ public class PopularityHeuristic extends TypingHeuristic {
 		// TODO Auto-generated constructor stub
 	}
 	
-	public static final ByteString popularityRelationBS = ByteString.of("<isPopular>");
+	public static final int popularityRelationBS = KB.map("<isPopular>");
 	
 	public PopularityHeuristic(KB kb, int popularityThreshold) {
 		super(kb);
-		ByteString variable = ByteString.of("?v1");
-		List<ByteString[]> typeClause = new ArrayList<>(1);
-		typeClause.add(KB.triple(variable, amie.data.Schema.typeRelationBS, ByteString.of("?v2")));
-		Set<ByteString> entities = db.selectDistinct(variable, typeClause);
-		for (ByteString e : entities) {
-			if (db.count(KB.triple(e, ByteString.of("?x"), ByteString.of("?y"))) 
-					+ db.count(KB.triple(ByteString.of("?x"), ByteString.of("?y"), e)) > popularityThreshold)
-				db.add(KB.triple(e, popularityRelationBS, ByteString.of("")));
+		int variable = KB.map("?v1");
+		List<int[]> typeClause = new ArrayList<>(1);
+		typeClause.add(KB.triple(variable, amie.data.Schema.typeRelationBS, KB.map("?v2")));
+		IntSet entities = db.selectDistinct(variable, typeClause);
+		for (int e : entities) {
+			if (db.count(KB.triple(e, KB.map("?x"), KB.map("?y"))) 
+					+ db.count(KB.triple(KB.map("?x"), KB.map("?y"), e)) > popularityThreshold)
+				db.add(KB.triple(e, popularityRelationBS, KB.map("")));
 		}
 		name = "Popularity";
 	}
@@ -39,10 +38,10 @@ public class PopularityHeuristic extends TypingHeuristic {
         }
 
 	@Override
-	public double evaluate(ByteString type, List<ByteString[]> clause,
-			ByteString variable) {
-		List<ByteString[]> body = typeL(type, variable);
-		body.add(KB.triple(variable, popularityRelationBS, ByteString.of("")));
+	public double evaluate(int type, List<int[]> clause,
+			int variable) {
+		List<int[]> body = typeL(type, variable);
+		body.add(KB.triple(variable, popularityRelationBS, KB.map("")));
 		return getStandardConfidence(clause, body, variable);
 	}
 

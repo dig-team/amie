@@ -1,16 +1,17 @@
 package amie.mining.assistant.experimental;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
+
 import amie.data.KB;
 import amie.data.Schema;
+import amie.data.tuple.IntArrays;
 import amie.mining.assistant.MiningAssistant;
 import amie.rules.ConfidenceMetric;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntCollection;
 
 /**
  * This mining assistant drives the AMIE algorithm so that it outputs rules of the forms
@@ -25,7 +26,7 @@ public class ExistentialAndNegatedRulesMiningAssistant extends MiningAssistant {
 		super(dataSource);
 		this.maxDepth = 2;
 		this.allowConstants = false;
-		this.headExcludedRelations = Arrays.asList(ByteString.of(Schema.typeRelationBS));
+		this.headExcludedRelations = IntArrays.asList(Schema.typeRelationBS);
 		this.confidenceMetric = ConfidenceMetric.StandardConfidence;
 	}
 	
@@ -43,25 +44,25 @@ public class ExistentialAndNegatedRulesMiningAssistant extends MiningAssistant {
 	public void setAllowConstants(boolean allowConstants) {};
 	
 	@Override
-	public void setHeadExcludedRelations(java.util.Collection<ByteString> headExcludedRelations) {};
+	public void setHeadExcludedRelations(IntCollection headExcludedRelations) {};
 	
 	@Override
-	protected Collection<Rule> buildInitialQueries(IntHashMap<ByteString> relations, 
+	protected Collection<Rule> buildInitialQueries(Int2IntMap relations, 
 			double minSupportThreshold) {
 		// Now we have to take care of the negative ones
 		// => ~r(x, y). We will use the keywords NOTEXISTSbs and NOTEXISTSINVbs
 		Collection<Rule> output = new ArrayList<>();
 		Rule query = new Rule();
-		ByteString[] newEdge1 = query.fullyUnboundTriplePattern();
-		ByteString[] newEdge2 = query.fullyUnboundTriplePattern();
-		for (ByteString relation : relations) {
+		int[] newEdge1 = query.fullyUnboundTriplePattern();
+		int[] newEdge2 = query.fullyUnboundTriplePattern();
+		for (int relation : relations.keySet()) {
 			if (this.headExcludedRelations != null 
 					&& this.headExcludedRelations.contains(relation)) {
 				continue;
 			}
 						
-			if (relation.equals(KB.EQUALSbs) || 
-					relation.equals(KB.DIFFERENTFROMbs))
+			if (relation == KB.EQUALSbs ||
+					relation == KB.DIFFERENTFROMbs)
 				continue;
 			
 			newEdge1[0] = relation;
@@ -81,7 +82,7 @@ public class ExistentialAndNegatedRulesMiningAssistant extends MiningAssistant {
 			
 			long support = kb.count(newEdge1);
 			if (support >= minSupportThreshold) {
-				ByteString[] succedent = newEdge1.clone();
+				int[] succedent = newEdge1.clone();
 				Rule rule = new Rule(succedent, support);
 				rule.setFunctionalVariablePosition(2);
 				output.add(rule);
@@ -89,7 +90,7 @@ public class ExistentialAndNegatedRulesMiningAssistant extends MiningAssistant {
 			
 			support = kb.count(newEdge2);
 			if (support >= minSupportThreshold) {
-				ByteString[] succedent = newEdge2.clone();
+				int[] succedent = newEdge2.clone();
 				Rule rule = new Rule(succedent, support);
 				rule.setFunctionalVariablePosition(2);
 				output.add(rule);
@@ -117,21 +118,21 @@ public class ExistentialAndNegatedRulesMiningAssistant extends MiningAssistant {
 		if (rule.getLength() == 1) {
 			// We enforce the type relationship with the domain or range of the relation
 			KB source = null;
-			ByteString[] head = rule.getHead();
+			int[] head = rule.getHead();
 			if (this.kbSchema != null) {
 				source = this.kbSchema;
 			} else {
 				source = this.kb;
 			}
-			ByteString typeToEnforce = null;
-			if (head[1].equals(KB.NOTEXISTSbs) || head[1].equals(KB.EXISTSbs)) {
+			int typeToEnforce = 0;
+			if (head[1] == KB.NOTEXISTSbs || head[1] == KB.EXISTSbs) {
 				typeToEnforce = Schema.getRelationDomain(source, head[0]);
-			} else if (head[1].equals(KB.NOTEXISTSINVbs) || head[1].equals(KB.EXISTSINVbs)) {
+			} else if (head[1] == KB.NOTEXISTSINVbs || head[1] == KB.EXISTSINVbs) {
 				typeToEnforce = Schema.getRelationRange(source, head[0]);
 			}
 			
-			if (typeToEnforce != null) {
-				ByteString[] newEdge = rule.fullyUnboundTriplePattern();
+			if (typeToEnforce != 0) {
+				int[] newEdge = rule.fullyUnboundTriplePattern();
 				newEdge[0] = rule.getFunctionalVariable();
 				newEdge[1] = Schema.typeRelationBS;
 				newEdge[2] = typeToEnforce;

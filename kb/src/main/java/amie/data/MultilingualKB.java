@@ -5,8 +5,6 @@
  */
 package amie.data;
 
-import javatools.datatypes.ByteString;
-
 /**
  *
  * @author jlajus
@@ -14,11 +12,11 @@ import javatools.datatypes.ByteString;
 public class MultilingualKB extends KB {
 
     @Override
-    protected boolean add(ByteString subject, ByteString relation, ByteString object) {
-        String[] split = object.toString().split("@");
+    protected boolean add(int subject, int relation, int object) {
+        String[] split = KB.unmap(object).split("@");
         if (split.length == 2) {
-            super.add(object, ByteString.of("<label>"), ByteString.of(split[0]));
-            super.add(object, ByteString.of("<lang>"), ByteString.of(split[1]));
+            super.add(object, KB.map("<label>"), KB.map(split[0]));
+            super.add(object, KB.map("<lang>"), KB.map(split[1]));
         }
         return super.add(subject, relation, object);
     }

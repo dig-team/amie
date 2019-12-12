@@ -5,14 +5,16 @@
  */
 package amie.data;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
+import it.unimi.dsi.fastutil.ints.IntIterator;
+import it.unimi.dsi.fastutil.ints.IntIterators;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.Closeable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
+
 import javatools.datatypes.Pair;
 
 /**
@@ -35,12 +37,12 @@ public class KBIteratorU {
         public void close();
     }
     
-    public static class addNotInIfExistsIterator extends SetU.addNotInIterator<ByteString> implements Iterator<ByteString>, CloseableNoThrow {
+    public static class addNotInIfExistsIterator extends SetU.addNotInIntIterator implements IntIterator, CloseableNoThrow {
         
         KB kb;
         KB.Instantiator insty;
 
-        public addNotInIfExistsIterator(KB kb, KB.Instantiator insty, Set<ByteString> toIterate, Set<ByteString> addTo) {
+        public addNotInIfExistsIterator(KB kb, KB.Instantiator insty, IntSet toIterate, IntSet addTo) {
             super(toIterate, addTo);
             this.kb = kb;
             this.insty = insty;
@@ -48,15 +50,15 @@ public class KBIteratorU {
 
         @Override
         public boolean hasNext() {
-            if (next != null) { return true; }
+            if (next != 0) { return true; }
             if (toIterate == null) { return false; }
             while(toIterate.hasNext()) {
-                if (!addTo.contains(next = toIterate.next()) && kb.existsBS1(insty.instantiate(next))) { 
+                if (!addTo.contains(next = toIterate.nextInt()) && kb.existsBS1(insty.instantiate(next))) { 
                     addTo.add(next);
                     return true;
                 }
             }
-            next = null;
+            next = 0;
             insty.close();
             return false;
         }
@@ -68,30 +70,31 @@ public class KBIteratorU {
         }
     }
     
-    public static class recursiveSelectForOneVarIterator extends addNotInIfExistsIterator implements Iterator<ByteString>, CloseableNoThrow {
         
-        Iterator<ByteString> subIterator;
-        ByteString variable;
+    public static class recursiveSelectForOneVarIterator extends addNotInIfExistsIterator implements IntIterator, CloseableNoThrow {
         
-        public recursiveSelectForOneVarIterator(KB kb, KB.Instantiator insty, ByteString variable, Set<ByteString> toIterate, Set<ByteString> addTo) {
+        IntIterator subIterator;
+        int variable;
+        
+        public recursiveSelectForOneVarIterator(KB kb, KB.Instantiator insty, int variable, IntSet toIterate, IntSet addTo) {
             super(kb, insty, toIterate, addTo);
             this.variable = variable;
-            this.subIterator = Collections.emptyIterator();
+            this.subIterator = IntIterators.EMPTY_ITERATOR;
         }
         
         @Override
         public boolean hasNext() {
-            if (next != null) { return true; }
+            if (next != 0) { return true; }
             if (toIterate == null) { return false; }
             while (subIterator.hasNext() || toIterate.hasNext()) {
                 if (subIterator.hasNext()) {
-                    next = subIterator.next();
+                    next = subIterator.nextInt();
                     return true;
                 } else { // if (toIterate.hasNext()) {
-                    subIterator = kb.selectDistinctIterator(addTo, variable, insty.instantiate(toIterate.next()));
+                    subIterator = kb.selectDistinctIterator(addTo, variable, insty.instantiate(toIterate.nextInt()));
                 }
             }
-            next = null;
+            next = 0;
             insty.close();
             return false;
         }
@@ -106,53 +109,53 @@ public class KBIteratorU {
         }
     }
 
-    public static class recursiveSelectForTwoVarIterator implements Iterator<ByteString>, CloseableNoThrow {
+    public static class recursiveSelectForTwoVarIterator implements IntIterator, CloseableNoThrow {
         
-        Iterator<Map.Entry<ByteString, IntHashMap<ByteString>>> it1;
-        Iterator<ByteString> it2;
+        Iterator<Int2ObjectMap.Entry<IntSet>> it1;
+        IntIterator it2;
         KB kb;
         KB.Instantiator insty1, insty2;
-        Iterator<ByteString> subIterator;
-        ByteString variable, next;
-        Set<ByteString> addTo;
+        IntIterator subIterator;
+        int variable, next;
+        IntSet addTo;
         
-        public recursiveSelectForTwoVarIterator(KB kb, KB.Instantiator insty1, KB.Instantiator insty2, ByteString variable, Map<ByteString, IntHashMap<ByteString>> toIterate, Set<ByteString> addTo) {
+        public recursiveSelectForTwoVarIterator(KB kb, KB.Instantiator insty1, KB.Instantiator insty2, int variable, Int2ObjectMap<IntSet> toIterate, IntSet addTo) {
             this.kb = kb;
             this.insty1 = insty1;
             this.insty2 = insty2;
             this.variable = variable;
-            this.it1 = (toIterate == null) ? null : toIterate.entrySet().iterator();
-            this.it2 = Collections.emptyIterator();
-            this.subIterator = Collections.emptyIterator();
+            this.it1 = (toIterate == null) ? null : toIterate.int2ObjectEntrySet().iterator();
+            this.it2 = IntIterators.EMPTY_ITERATOR;
+            this.subIterator = IntIterators.EMPTY_ITERATOR;
             this.addTo = addTo;
         }
         
         @Override
         public boolean hasNext() {
-            if (next != null) { return true; }
+            if (next != 0) { return true; }
             if (it1 == null) { return false; }
             while (subIterator.hasNext() || it2.hasNext() || it1.hasNext()) {
                 if (subIterator.hasNext()) {
-                    next = subIterator.next();
+                    next = subIterator.nextInt();
                     return true;
                 } else if (it2.hasNext()) {
-                    subIterator = kb.selectDistinctIterator(addTo, variable, insty2.instantiate(it2.next()));
+                    subIterator = kb.selectDistinctIterator(addTo, variable, insty2.instantiate(it2.nextInt()));
                 } else {
-                    Map.Entry<ByteString, IntHashMap<ByteString>> e1 = it1.next();
-                    insty1.instantiate(e1.getKey());
+                    Int2ObjectMap.Entry<IntSet> e1 = it1.next();
+                    insty1.instantiate(e1.getIntKey());
                     it2 = e1.getValue().iterator();
                 }
             }
-            next = null;
+            next = 0;
             insty1.close();
             insty2.close();
             return false;
         }
 
         @Override
-        public ByteString next() {
-            ByteString r = null;
-            if (next != null || hasNext()) { r = next; next = null; }
+        public int nextInt() {
+            int r = 0;
+            if (next != 0 || hasNext()) { r = next; next = 0; }
             return r;
         }
 
@@ -167,51 +170,51 @@ public class KBIteratorU {
         }
     }
     
-    public static class recursiveSelectForThreeVarIterator implements Iterator<ByteString>, CloseableNoThrow {
+    public static class recursiveSelectForThreeVarIterator implements IntIterator, CloseableNoThrow {
         
-        Iterator<Map.Entry<ByteString, Map<ByteString, IntHashMap<ByteString>>>> it1;
-        Iterator<Map.Entry<ByteString, IntHashMap<ByteString>>> it2;
-        Iterator<ByteString> it3;
+        Iterator<Int2ObjectMap.Entry<Int2ObjectMap<IntSet>>> it1;
+        Iterator<Int2ObjectMap.Entry<IntSet>> it2;
+        IntIterator it3;
         KB kb;
         KB.Instantiator insty1, insty2, insty3;
-        Iterator<ByteString> subIterator;
-        ByteString variable, next;
-        Set<ByteString> addTo;
+        IntIterator subIterator;
+        int variable, next;
+        IntSet addTo;
         
-        public recursiveSelectForThreeVarIterator(KB kb, KB.Instantiator insty1, KB.Instantiator insty2, KB.Instantiator insty3, ByteString variable, Map<ByteString, Map<ByteString, IntHashMap<ByteString>>> toIterate, Set<ByteString> addTo) {
+        public recursiveSelectForThreeVarIterator(KB kb, KB.Instantiator insty1, KB.Instantiator insty2, KB.Instantiator insty3, int variable, Int2ObjectMap<Int2ObjectMap<IntSet>> toIterate, IntSet addTo) {
             this.kb = kb;
             this.insty1 = insty1;
             this.insty2 = insty2;
             this.insty3 = insty3;
             this.variable = variable;
-            this.it1 = (toIterate == null) ? null : toIterate.entrySet().iterator();
+            this.it1 = (toIterate == null) ? null : toIterate.int2ObjectEntrySet().iterator();
             this.it2 = Collections.emptyIterator();
-            this.it3 = Collections.emptyIterator();
-            this.subIterator = Collections.emptyIterator();
+            this.it3 = IntIterators.EMPTY_ITERATOR;
+            this.subIterator = IntIterators.EMPTY_ITERATOR;
             this.addTo = addTo;
         }
         
         @Override
         public boolean hasNext() {
-            if (next != null) { return true; }
+            if (next != 0) { return true; }
             if (it1 == null) { return false; }
             while (subIterator.hasNext() || it3.hasNext() || it2.hasNext() || it1.hasNext()) {
                 if (subIterator.hasNext()) {
-                    next = subIterator.next();
+                    next = subIterator.nextInt();
                     return true;
                 } else if (it3.hasNext()) {
-                    subIterator = kb.selectDistinctIterator(addTo, variable, insty3.instantiate(it3.next()));
+                    subIterator = kb.selectDistinctIterator(addTo, variable, insty3.instantiate(it3.nextInt()));
                 } else if (it2.hasNext()) {
-                    Map.Entry<ByteString, IntHashMap<ByteString>> e2 = it2.next();
-                    insty2.instantiate(e2.getKey());
+                    Int2ObjectMap.Entry<IntSet> e2 = it2.next();
+                    insty2.instantiate(e2.getIntKey());
                     it3 = e2.getValue().iterator();
                 } else {
-                    Map.Entry<ByteString, Map<ByteString, IntHashMap<ByteString>>> e1 = it1.next();
-                    insty1.instantiate(e1.getKey());
-                    it2 = e1.getValue().entrySet().iterator();
+                    Int2ObjectMap.Entry<Int2ObjectMap<IntSet>> e1 = it1.next();
+                    insty1.instantiate(e1.getIntKey());
+                    it2 = e1.getValue().int2ObjectEntrySet().iterator();
                 }
             }
-            next = null;
+            next = 0;
             insty1.close();
             insty2.close();
             insty3.close();
@@ -219,9 +222,9 @@ public class KBIteratorU {
         }
 
         @Override
-        public ByteString next() {
-            ByteString r = null;
-            if (next != null || hasNext()) { r = next; next = null; }
+        public int nextInt() {
+            int r = 0;
+            if (next != 0 || hasNext()) { r = next; next = 0; }
             return r;
         }
 

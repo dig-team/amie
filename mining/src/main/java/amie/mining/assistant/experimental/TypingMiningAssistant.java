@@ -5,26 +5,22 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javatools.datatypes.ByteString;
-import javatools.datatypes.IntHashMap;
-import javatools.datatypes.MultiMap;
-import javatools.datatypes.Pair;
 import amie.data.KB;
-import amie.data.TransitiveTypesKB;
 import amie.data.Schema;
 import amie.mining.assistant.*;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntCollection;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 public class TypingMiningAssistant extends DefaultMiningAssistant {
 	
 	public static String topType = "owl:Thing";
 	
-	public static ByteString topTypeBS = ByteString.of(topType);
+	public static int topTypeBS = KB.map(topType);
 
 	public TypingMiningAssistant(KB dataSource) {
 		super(dataSource);
@@ -36,29 +32,29 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 		super.buildRelationsDictionary();
 		
 		// Build all defined classes
-		List<ByteString[]> query = KB.triples(KB.triple("?class", Schema.subClassRelation, "?c"));		
-		Set<ByteString> types = new LinkedHashSet<ByteString>(kb.selectDistinct(ByteString.of("?class"), query));
+		List<int[]> query = KB.triples(KB.triple("?c9", Schema.subClassRelation, "?c"));		
+		IntSet types = new IntOpenHashSet(kb.selectDistinct(KB.map("?c9"), query));
 		types.add(topTypeBS);
-		for (ByteString type : types) {
-			ByteString[] query_c = KB.triple(ByteString.of("?x"), Schema.typeRelationBS, type);
+		for (int type : types) {
+			int[] query_c = KB.triple(KB.map("?x"), Schema.typeRelationBS, type);
 			double relationSize = kb.count(query_c);
-			headCardinalities.put(type.toString(), relationSize);
+			headCardinalities.put(type, relationSize);
 		}
 	}
 	
 	@Override
 	public long getHeadCardinality(Rule query){
-		ByteString[] head = query.getHead();
-		if(head[1].equals(Schema.typeRelationBS)) {
-			return headCardinalities.get(head[2].toString()).longValue();
+		int[] head = query.getHead();
+		if(head[1] == Schema.typeRelationBS) {
+			return (long) headCardinalities.get(head[2]);
 		}
 		return super.getHeadCardinality(query);
 	}
 	
 	public Rule getInitialRule() {
 		Rule query = new Rule();
-		ByteString[] newEdge = query.fullyUnboundTriplePattern();
-		ByteString[] succedent = newEdge.clone();
+		int[] newEdge = query.fullyUnboundTriplePattern();
+		int[] succedent = newEdge.clone();
 		succedent[1] = Schema.typeRelationBS;
 		succedent[2] = topTypeBS;
 		Rule candidate = new Rule(succedent, (double)kb.countOneVariable(succedent));
@@ -74,7 +70,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 	}
 	
 	@Override
-	public Collection<Rule> getInitialAtomsFromSeeds(Collection<ByteString> relations, 
+	public Collection<Rule> getInitialAtomsFromSeeds(IntCollection relations, 
 			double minSupportThreshold) {
 		return Arrays.asList(getInitialRule());
 	}
@@ -104,9 +100,9 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 	 * @param minSupportThreshold Minimum support threshold.
 	 * @param output
 	 */
-	protected void getDanglingAtoms(Rule query, ByteString[] edge, double minSupportThreshold, Collection<Rule> output) {
-		List<ByteString> joinVariables = null;
-		List<ByteString> openVariables = query.getOpenVariables();
+	protected void getDanglingAtoms(Rule query, int[] edge, double minSupportThreshold, Collection<Rule> output) {
+		IntList joinVariables = null;
+		IntList openVariables = query.getOpenVariables();
 		
 		//Then do it for all values
 		if(query.isClosed(true)) {				
@@ -119,12 +115,12 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 		int nPatterns = query.getLength();
 		
 		for(int joinPosition = 0; joinPosition <= 2; joinPosition += 2){			
-			for(ByteString joinVariable: joinVariables){
-				ByteString[] newEdge = edge.clone();
+			for(int joinVariable: joinVariables){
+				int[] newEdge = edge.clone();
 				
 				newEdge[joinPosition] = joinVariable;
 				query.getTriples().add(newEdge);
-				IntHashMap<ByteString> promisingRelations = null;
+				Int2IntMap promisingRelations = null;
 				Rule rewrittenQuery = null;
 				if (this.enableQueryRewriting) {
 					rewrittenQuery = rewriteProjectionQuery(query, nPatterns, joinPosition == 0 ? 0 : 2);	
@@ -148,7 +144,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 				query.getTriples().remove(nPatterns);								
 				// The relations are sorted by support, therefore we can stop once we have reached
 				// the minimum support.
-				for(ByteString relation: promisingRelations){
+				for(int relation: promisingRelations.keySet()){
 					int cardinality = promisingRelations.get(relation);
 					
 					if (cardinality < minSupportThreshold) {
@@ -176,7 +172,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 						continue;
 					
 					Rule candidate = query.addAtom(newEdge, cardinality);
-					List<ByteString[]> recursiveAtoms = candidate.getRedundantAtoms();
+					List<int[]> recursiveAtoms = candidate.getRedundantAtoms();
 					if(!recursiveAtoms.isEmpty()){
 						continue;
 					}
@@ -191,17 +187,17 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 	}
 	
 	public void getSubTypingRules(Rule rule, double minSupportThreshold, Collection<Rule> output) {
-		if (!rule.getHeadRelationBS().equals(Schema.typeRelationBS)) {
+		if (rule.getHeadRelationBS() != Schema.typeRelationBS) {
 			return;
 		}
 		if (rule.getBody().isEmpty()) {
 			return;
 		}
-		ByteString[] head = rule.getHead();
-		List<ByteString[]> body = rule.getBody();
-		Set<ByteString> subTypes = Schema.getSubTypes(kb, head[2]);
+		int[] head = rule.getHead();
+		List<int[]> body = rule.getBody();
+		IntSet subTypes = Schema.getSubTypes(kb, head[2]);
 		int parentTypePos = Rule.firstIndexOfRelation(body, Schema.typeRelationBS);
-		for (ByteString subType : subTypes) {
+		for (int subType : subTypes) {
 			Rule succedent = new Rule(rule, rule.getSupport());
 			if (parentTypePos == -1) {
 				succedent = succedent.addAtom(KB.triple(head[0], Schema.typeRelationBS, head[2]), 0);
@@ -221,14 +217,14 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 	}
 	
 	public void getDomainRangeRules(Rule rule, double minSupportThreshold, Collection<Rule> output) {
-		if (!rule.getHeadRelationBS().equals(Schema.typeRelationBS)) {
+		if (rule.getHeadRelationBS() != Schema.typeRelationBS) {
 			return;
 		}
 		
 		if (rule.getId() < 6)
 			return;
 		
-		List<ByteString> openVariables = rule.getOpenVariables();
+		IntList openVariables = rule.getOpenVariables();
 		if (openVariables.isEmpty()) {
 			return;
 		}
@@ -236,14 +232,14 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 			return;
 		}
 		int cardinality;
-		for (ByteString openVariable : openVariables) {
-			ByteString[] newEdge = rule.fullyUnboundTriplePattern();
+		for (int openVariable : openVariables) {
+			int[] newEdge = rule.fullyUnboundTriplePattern();
 			newEdge[0] = openVariable;
 			newEdge[1] = Schema.typeRelationBS;
 			
 			Rule pattern = rule.addAtom(newEdge, 0);
-			IntHashMap<ByteString> promisingTypes = kb.frequentBindingsOf(newEdge[2], pattern.getFunctionalVariable(), pattern.getTriples());
-			for (ByteString promisingType : promisingTypes) {
+			Int2IntMap promisingTypes = kb.frequentBindingsOf(newEdge[2], pattern.getFunctionalVariable(), pattern.getTriples());
+			for (int promisingType : promisingTypes.keySet()) {
 				cardinality = promisingTypes.get(promisingType);
 				if (cardinality >= minSupportThreshold) {
 					newEdge[2] = promisingType;
@@ -293,9 +289,9 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 		int lastTriplePatternIndex = rule.getLastNotTypeTriplePatternIndex();
 		if (lastTriplePatternIndex == -1)
 			return;
-		ByteString[] lastTriplePattern = rule.getTriples().get(lastTriplePatternIndex);
+		int[] lastTriplePattern = rule.getTriples().get(lastTriplePatternIndex);
 		
-		List<ByteString> openVariables = rule.getOpenVariables();
+		IntList openVariables = rule.getOpenVariables();
 		int danglingPosition = 0;
 		if (openVariables.contains(lastTriplePattern[0])) {
 			danglingPosition = 0;
@@ -378,7 +374,7 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 		assistant.getHeadCardinality(newRule);
 		
 		System.out.println("New rule: " + newRule.getRuleString());
-		long support = kb.countDistinct(ByteString.of("?x"), newRule.getTriples());
+		long support = kb.countDistinct(KB.map("?x"), newRule.getTriples());
 		System.out.println("Support: " + String.valueOf(support));
 		System.out.println("MRT calls: " + String.valueOf(KB.STAT_NUMBER_OF_CALL_TO_MRT.get()));
 		

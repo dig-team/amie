@@ -17,43 +17,14 @@ import javatools.datatypes.ByteString;
  *
  * @author jlajus
  */
-public class LazyMiningAssistant extends DefaultMiningAssistantWithOrder {
+public class LazyIteratorMiningAssistant extends LazyMiningAssistant {
 
-    public LazyMiningAssistant(KB dataSource) {
+    public LazyIteratorMiningAssistant(KB dataSource) {
         super(dataSource);
     }
 
-    public LazyMiningAssistant(KB dataSource, VariableOrder order) {
+    public LazyIteratorMiningAssistant(KB dataSource, VariableOrder order) {
         super(dataSource, order);
-    }
-
-    /**
-     * It computes the standard and the PCA confidence of a given rule. It
-     * assumes the rule's cardinality (absolute support) is known.
-     *
-     * @param candidate
-     */
-    public void calculateConfidenceMetrics(Rule candidate) {
-        if (this.minPcaConfidence == 0) {
-            if (this.ommitStdConfidence) {
-                candidate.setBodySize((long) candidate.getSupport() * 2);
-                computePCAConfidence(candidate);
-            } else {
-                computeStandardConfidence(candidate);
-                if (candidate.getStdConfidence() >= this.minStdConfidence) {
-                    computePCAConfidence(candidate);
-                }
-            }
-        } else {
-            computePCAConfidence(candidate);
-            if (candidate.getPcaConfidence() >= this.minPcaConfidence) {
-                if (this.ommitStdConfidence) {
-                    candidate.setBodySize((long) candidate.getSupport() * 2);
-                } else {
-                    computeStandardConfidence(candidate);
-                }
-            }
-        }
     }
 
     /**
@@ -74,7 +45,7 @@ public class LazyMiningAssistant extends DefaultMiningAssistantWithOrder {
         long t1 = System.currentTimeMillis();
         long result;
         if (this.minPcaConfidence > 0.0) {
-            result = this.kb.countDistinctPairsUpTo((long) Math.ceil(query.getSupport() / this.minPcaConfidence) + 1, var1, var2, antecedent);
+            result = this.kb.countDistinctPairsUpToWithIterator((long) Math.ceil(query.getSupport() / this.minPcaConfidence) + 1, var1, var2, antecedent);
         } else {
             result = this.kb.countDistinctPairs(var1, var2, antecedent);
         }
@@ -100,7 +71,7 @@ public class LazyMiningAssistant extends DefaultMiningAssistantWithOrder {
         long t1 = System.currentTimeMillis();
         long result;
         if (this.minStdConfidence > 0.0) {
-            result = this.kb.countDistinctPairsUpTo((long) Math.ceil(query.getSupport() / this.minStdConfidence) + 1, var1, var2, query.getAntecedent());
+            result = this.kb.countDistinctPairsUpToWithIterator((long) Math.ceil(query.getSupport() / this.minStdConfidence) + 1, var1, var2, query.getAntecedent());
         } else {
             result = this.kb.countDistinctPairs(var1, var2, query.getAntecedent());
         }

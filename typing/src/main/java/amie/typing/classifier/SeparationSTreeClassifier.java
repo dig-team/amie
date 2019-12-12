@@ -6,7 +6,7 @@
 package amie.typing.classifier;
 
 import amie.data.KB;
-import amie.data.SimpleTypingKB;
+import amie.data.SetU;
 import amie.typing.heuristics.TypingHeuristic;
 import java.io.File;
 import java.util.HashSet;
@@ -78,7 +78,7 @@ public class SeparationSTreeClassifier extends SeparationTreeClassifier {
                 } else if (c1size - c1c2size < classSizeThreshold) {
                     continue;
                 } else {
-                    Double s = (localdb == null) ? getStandardConfidenceWithThreshold(TypingHeuristic.typeL(class2, variable), clause, variable, -1, true) : 1.0 * SimpleTypingKB.countIntersection(c1phi, localdb.classes.get(class2)) / c1phi.size();
+                    Double s = (localdb == null) ? getStandardConfidenceWithThreshold(TypingHeuristic.typeL(class2, variable), clause, variable, -1, true) : 1.0 * SetU.countIntersection(c1phi, localdb.classes.get(class2)) / c1phi.size();
                     Double c1c2edge;
                     c1c2edge = Math.log((double) c1c2size / (c1size - c1c2size) * (1.0 - s) / s);
                     if (c1c2edge < 0) {

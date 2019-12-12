@@ -4,6 +4,7 @@ import java.util.List;
 
 import amie.data.KB;
 import amie.data.Schema;
+import amie.data.SetU;
 import amie.data.SimpleTypingKB;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,10 +39,10 @@ public class ReverseStdConfHeuristic extends TypingHeuristic {
                 //System.err.println(phi.size());
                 Integer bodySize = bodySizes.get(relation);
                 if (bodySize == null) {
-                    bodySize = (int) SimpleTypingKB.countIntersection(localdb.relations.get(relation), localdb.classes.get(Schema.topBS));
+                    bodySize = (int) SetU.countIntersection(localdb.relations.get(relation), localdb.classes.get(Schema.topBS));
                     bodySizes.put(relation, bodySize);
                 }
-                int support = (int) SimpleTypingKB.countIntersection(localdb.relations.get(relation), localdb.classes.get(type));
+                int support = (int) SetU.countIntersection(localdb.relations.get(relation), localdb.classes.get(type));
                 //System.err.println(support);
                 if (support < defaultSupportThreshold || bodySize == 0)
 			return 0;

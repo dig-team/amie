@@ -6,6 +6,7 @@
 package amie.typing.evaluation;
 
 import amie.data.Schema;
+import amie.data.SetU;
 import amie.data.SimpleTypingKB;
 import amie.data.WikidataSimpleTypingKB;
 import static amie.typing.classifier.SeparationClassifier.getOptions;
@@ -105,7 +106,7 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
             return new ImpliedFacts(0, 0, 0, 0, 0, 0);
         }
         long gsSize = gs.get(query).size();
-        long oldGSFacts = SimpleTypingKB.countIntersection(gs.get(query), db.relations.get(query));
+        long oldGSFacts = SetU.countIntersection(gs.get(query), db.relations.get(query));
         if (!query2classes.containsKey(query) || !query2classes.get(query).containsKey(method)) {
             return new ImpliedFacts(0, 0, gsSize, 0, 0, gsSize - oldGSFacts);
         }
@@ -117,8 +118,8 @@ public class SimpleImpliedFactsEvaluator extends ImpliedFactsEvaluator {
         Set<ByteString> tpSet = new HashSet<>((rtSize < gsSize) ? rtSet : gs.get(query));
         tpSet.retainAll((rtSize >= gsSize) ? rtSet : gs.get(query));
         long tp = tpSet.size();
-        long oldTPFacts = SimpleTypingKB.countIntersection(tpSet, db.relations.get(query));
-        long oldPSFacts = SimpleTypingKB.countIntersection(rtSet, db.relations.get(query));
+        long oldTPFacts = SetU.countIntersection(tpSet, db.relations.get(query));
+        long oldPSFacts = SetU.countIntersection(rtSet, db.relations.get(query));
         return new ImpliedFacts(tp, rtSize, gsSize, tp - oldTPFacts, rtSize - oldPSFacts, gsSize - oldGSFacts);
     }
     

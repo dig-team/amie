@@ -22,7 +22,6 @@ import javatools.datatypes.ByteString;
 import javatools.datatypes.IntHashMap;
 import javatools.datatypes.MultiMap;
 import javatools.filehandlers.FileLines;
-import javatools.parsers.Char17;
 
 public class Schema {
 	
@@ -573,7 +572,7 @@ public class Schema {
 			IntHashMap<ByteString> result2 = new IntHashMap<>();
 			result.put(type1, result2);
 			for (ByteString type2 : db.classes.keySet()) {
-                            int is = (int) SimpleTypingKB.countIntersection(db.classes.get(type1), db.classes.get(type2));
+                            int is = (int) SetU.countIntersection(db.classes.get(type1), db.classes.get(type2));
                             result2.put(type2, is);
                         }
                 }

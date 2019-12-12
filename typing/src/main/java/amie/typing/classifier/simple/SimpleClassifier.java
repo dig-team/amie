@@ -6,6 +6,7 @@
 package amie.typing.classifier.simple;
 
 import amie.data.Schema;
+import amie.data.SetU;
 import amie.data.SimpleTypingKB;
 import java.io.IOException;
 import java.util.Collection;
@@ -88,7 +89,7 @@ public abstract class SimpleClassifier {
         public SimpleTreeNode(int supportThreshold, int classSizeThreshold, ByteString relation) {
             className = Schema.topBS;
             if ((bodySize = db.classes.get(className).size()) > classSizeThreshold
-                   && (support = (int) SimpleTypingKB.countIntersection(db.classes.get(Schema.topBS), db.relations.get(relation))) > supportThreshold) {
+                   && (support = (int) SetU.countIntersection(db.classes.get(Schema.topBS), db.relations.get(relation))) > supportThreshold) {
                 index.put(Schema.topBS, this);
             }
         }
@@ -111,7 +112,7 @@ public abstract class SimpleClassifier {
                 if (stc != null) {
                     children.add(stc);
                 } else if ((bs = db.classes.get(subClass).size()) > classSizeThreshold
-                        && (s = (int) SimpleTypingKB.countIntersection(db.classes.get(subClass), db.relations.get(relation))) > supportThreshold) {
+                        && (s = (int) SetU.countIntersection(db.classes.get(subClass), db.relations.get(relation))) > supportThreshold) {
                     stc = new SimpleTreeNode(subClass);
                     stc.bodySize = bs;
                     stc.support = s;

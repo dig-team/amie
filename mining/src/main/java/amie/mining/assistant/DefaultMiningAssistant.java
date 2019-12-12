@@ -535,9 +535,9 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		long t1 = System.currentTimeMillis();		
 		long result = this.kb.countDistinctPairs(var1, var2, query.getAntecedent());
 		long t2 = System.currentTimeMillis();	
-		query.setPcaConfidenceRunningTime(t2 - t1);
+		query.setConfidenceRunningTime(t2 - t1);
 		if((t2 - t1) > 20000 && this.verbose) {
-			System.out.println("countPairs vars " + var1 + ", " + var2 + " in " + KB.toString(query.getAntecedent()) + " has taken " + (t2 - t1) + " ms");		
+			System.err.println("countPairs vars " + var1 + ", " + var2 + " in " + KB.toString(query.getAntecedent()) + " has taken " + (t2 - t1) + " ms");
 		}
 		return result;
 	}
@@ -557,11 +557,11 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		long t1 = System.currentTimeMillis();
 		long result = this.kb.countDistinctPairs(var1, var2, antecedent);
 		long t2 = System.currentTimeMillis();
-		query.setConfidenceRunningTime(t2 - t1);
+		query.setPcaConfidenceRunningTime(t2 - t1);
 		if((t2 - t1) > 20000 && this.verbose) {
-			System.out.println("countPairs vars " + var1 + ", " + var2 + " in " + KB.toString(antecedent) + " has taken " + (t2 - t1) + " ms");		
+			System.err.println("countPairs vars " + var1 + ", " + var2 + " in " + KB.toString(antecedent) + " has taken " + (t2 - t1) + " ms");
 		}
-		return result;		
+		return result;
 	}
 
 	@Override
@@ -625,7 +625,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		}
 		
 		return rule.getPcaConfidence();
-	}	
+	}
 	
 	@Override
 	public double computeStandardConfidence(Rule candidate) {

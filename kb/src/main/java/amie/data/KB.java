@@ -1,5 +1,6 @@
 package amie.data;
 
+import amie.data.starpattern.SignedPredicate;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,12 +19,13 @@ import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -160,7 +162,7 @@ public class KB {
 	public static final int SUBJECT2OBJECT = 2;
 
 	public static final int OBJECT2OBJECT = 4;
-	
+
 	public enum Column { Subject, Relation, Object };
 	
 	public static final String hasNumberOfValuesEquals = "hasNumberOfValuesEquals";
@@ -196,7 +198,18 @@ public class KB {
 	public void setDelimiter(String newDelimiter) {
 		delimiter = newDelimiter;
 	}
-	
+        
+        protected boolean optimConnectedComponent = true;
+        protected boolean optimExistentialDetection = true;
+        
+        public void setOptimConnectedComponent(boolean value) {
+            this.optimConnectedComponent = value;
+        }
+        
+        public void setOptimExistentialDetection(boolean value) {
+            this.optimExistentialDetection = value;
+        }
+
 	public KB() {}
 
 	/** Methods to add single facts to the KB **/
@@ -387,6 +400,11 @@ public class KB {
 		resetOverlapTables(); 
 		buildOverlapTables();
 	}
+        
+        public void rebuildOverlapTables(int nThread) {
+		resetOverlapTables(); 
+		buildOverlapTables(nThread);
+	}
 
 	/**
 	 * It clears all overlap tables.
@@ -447,6 +465,131 @@ public class KB {
 			}
 		}
 	}
+        
+        public void buildOverlapTables(int nThread) {
+            try {
+                OverlapTableComputation.compute(this, nThread);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(KB.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+    protected static class OverlapTableComputation extends Thread {
+        
+        public static LinkedList<Pair<SignedPredicate, SignedPredicate>> initQueue(KB db, int nThread) {
+            LinkedList<Pair<SignedPredicate, SignedPredicate>> queue = new LinkedList<>();
+            SignedPredicate sp1, sp1i, sp2, sp2i;
+            for (ByteString r1 : db.relationSize) {
+                sp1 = new SignedPredicate(r1, true);
+                sp1i = new SignedPredicate(r1, false);
+                db.subject2subjectOverlap.put(r1, new IntHashMap<>());
+                db.subject2objectOverlap.put(r1, new IntHashMap<>());
+                db.object2objectOverlap.put(r1, new IntHashMap<>());
+                
+                for (ByteString r2 : db.relationSize) {
+                
+                    if (r1.compareTo(r2) < 0) { 
+                        continue;
+                    }
+                    
+                    sp2 = new SignedPredicate(r2, true);
+                    sp2i = new SignedPredicate(r2, false);
+                    queue.add(new Pair<>(sp1, sp2));
+                    queue.add(new Pair<>(sp1i, sp2i));
+                    queue.add(new Pair<>(sp1, sp2i));
+                    queue.add(new Pair<>(sp1i, sp2));
+                }
+            }
+            
+            for (int i = 0; i < nThread; i++) {
+                queue.add(new Pair<>(null, null));
+            }
+            return queue;
+        }
+        
+        public static void compute(KB db, int nThread) throws InterruptedException {
+            Thread[] threadList = new Thread[nThread];
+            LinkedList<Pair<SignedPredicate, SignedPredicate>> queue = initQueue(db, nThread);
+            
+            for (int i = 0; i < nThread; i++) {
+                threadList[i] = (new OverlapTableComputation(db, queue));
+            }
+            
+            for (int i = 0; i < nThread; i++) {
+                threadList[i].start();
+            }
+            
+            for (int i = 0; i < nThread; i++) {
+                threadList[i].join();
+            }
+        }
+        
+        public static void set(KB db, SignedPredicate sp1, SignedPredicate sp2, int overlap) {
+            IntHashMap e;
+            if (sp1.subject && sp2.subject) {
+                e = db.subject2subjectOverlap.get(sp1.predicate);
+                synchronized(e) {
+                    e.put(sp2.predicate, overlap);
+                }
+                if (!sp1.predicate.equals(sp2.predicate)) {
+                    e = db.subject2subjectOverlap.get(sp2.predicate);
+                    synchronized(e) {
+                        e.put(sp1.predicate, overlap);
+                    }
+                }
+            } else if (!sp1.subject && !sp2.subject) {
+                e = db.object2objectOverlap.get(sp1.predicate);
+                synchronized(e) {
+                    e.put(sp2.predicate, overlap);
+                }
+                if (!sp1.predicate.equals(sp2.predicate)) {
+                    e = db.object2objectOverlap.get(sp2.predicate);
+                    synchronized(e) {
+                        e.put(sp1.predicate, overlap);
+                    }
+                }
+            } else if (sp1.subject) {
+                e = db.subject2objectOverlap.get(sp1.predicate);
+                synchronized(e) {
+                    e.put(sp2.predicate, overlap);
+                }
+            } else { // if (sp2.subject)
+                e = db.subject2objectOverlap.get(sp2.predicate);
+                synchronized(e) {
+                    e.put(sp1.predicate, overlap);
+                }
+            }
+        }
+        
+        final LinkedList<Pair<SignedPredicate, SignedPredicate>> queue;
+        KB db;
+        
+        public OverlapTableComputation(KB db, LinkedList<Pair<SignedPredicate, SignedPredicate>> queue) {
+            this.queue = queue;
+            this.db = db;
+        }
+        
+        public void run() {
+            Pair<SignedPredicate, SignedPredicate> q;
+            int overlap;
+            IntHashMap e;
+            while(true) {
+                synchronized(queue) {
+                    q = queue.pollFirst();
+                }
+                if (q == null || q.first == null) {
+                    break;
+                }
+                
+                if (q.first.equals(q.second)) {
+                    overlap = db.getMap(q.first).keySet().size();
+                } else {
+                    overlap = (int) SetU.countIntersection(db.getMap(q.first).keySet(), db.getMap(q.second).keySet());
+                }
+                set(db, q.first, q.second, overlap);
+            }
+        }
+    }
 
 	/**
 	 * Calculates the number of elements in the intersection of two sets of ByteStrings.
@@ -1628,7 +1771,7 @@ public class KB {
 		}
 		return (bestPos);
 	}
-
+        
 	/**
 	 * Returns true if the atom includes any of the special non-materialized relations.
 	 * This types of relations are normally computed in the KB.
@@ -1785,6 +1928,7 @@ public class KB {
 		if (bestPos == -1)
 			return (false);
 		ByteString[] best = triples.get(bestPos);
+                List<ByteString[]> otherTriples;
 
 		switch (numVariables(best)) {
 		case 0:
@@ -1797,8 +1941,13 @@ public class KB {
 				System.out.println("[DEBUG] Problem with query "
 						+ KB.toString(triples));
 			}
+                        otherTriples = remove(bestPos, triples);
+                        if (optimExistentialDetection && !contains(best[firstVarIdx], otherTriples)) {
+                            //if (otherTriples.isEmpty()) return (true);
+                            return (existsBS1(otherTriples));
+                        }
 			try (Instantiator insty = new Instantiator(
-					remove(bestPos, triples), best[firstVarIdx])) {
+					otherTriples, best[firstVarIdx])) {
 				for (ByteString inst : resultsOneVariable(best)) {
 					if (existsBS1(insty.instantiate(inst)))
 						return (true);
@@ -1808,9 +1957,10 @@ public class KB {
 		case 2:
 			int firstVar = firstVariablePos(best);
 			int secondVar = secondVariablePos(best);
-			List<ByteString[]> otherTriples = remove(bestPos, triples);
+			otherTriples = remove(bestPos, triples);
                         Map<ByteString, IntHashMap<ByteString>> instantiations;
-                        if (contains(best[firstVar], otherTriples) && contains(best[secondVar], otherTriples)) {
+                        if (!optimExistentialDetection
+                                || (contains(best[firstVar], otherTriples) && contains(best[secondVar], otherTriples))) {
                             instantiations = resultsTwoVariables(firstVar, secondVar, best);
                             try (Instantiator insty1 = new Instantiator(otherTriples,
                                             best[firstVar]);
@@ -1841,7 +1991,7 @@ public class KB {
 			return (size() != 0);
 		}
 	}
-
+        
 	// ---------------------------------------------------------------------------
 	// Count Distinct
 	// ---------------------------------------------------------------------------
@@ -1985,9 +2135,10 @@ public class KB {
 			return (selectDistinct(variable, others));
 		case 1:
 			ByteString var = best[firstVariablePos(best)];
-                        /*if (!contains(var, others)) {
+                        if (optimExistentialDetection && !contains(var, others)) {
+                            // Can be used for 4+ atoms rules.
                             return (selectDistinct(variable, others));
-                        }*/
+                        }
 			try (Instantiator insty = new Instantiator(others, var)) {
 				for (ByteString inst : resultsOneVariable(best)) {
 					result.addAll(selectDistinct(variable,
@@ -1998,7 +2149,8 @@ public class KB {
 		case 2:
                         int firstVar = firstVariablePos(best);
                         int secondVar = secondVariablePos(best);
-                        if (contains(best[firstVar], others) && contains(best[secondVar], others)) {
+                        if (!optimExistentialDetection // Always execute if the optim is deactivated
+                                || (contains(best[firstVar], others) && contains(best[secondVar], others))) {
                             instantiations = resultsTwoVariables(firstVar, secondVar, best);
                             try (Instantiator insty1 = new Instantiator(others, best[firstVar]);
                                     Instantiator insty2 = new Instantiator(others,
@@ -2049,7 +2201,152 @@ public class KB {
 		}
 		return (result);
 	}
-	
+        
+    /** 
+     * returns the instances that fulfill a certain condition 
+     *
+     * @param query: may be modified in place. Return to a consistent state when 
+     * the iterator is empty or by calling the close() method on the iterator.
+     * A closed iterator can no longer be iterated upon.
+     */
+    public Iterator<ByteString> selectDistinctIterator(Set<ByteString> result,
+            ByteString variable, List<ByteString[]> query) {
+        // Only one triple
+        if (query.size() == 1) {
+            ByteString[] triple = query.get(0);
+            switch (numVariables(triple)) {
+                case 0:
+                    return (Collections.emptyIterator());
+                case 1:
+                    return (new SetU.addNotInIterator(resultsOneVariable(triple), result));
+                case 2:
+                    int firstVar = firstVariablePos(triple);
+                    int secondVar = secondVariablePos(triple);
+                    if (firstVar == -1 || secondVar == -1) {
+                        System.out.println("[DEBUG] Problem with query "
+                                + KB.toString(query));
+                    }
+                    if (triple[firstVar].equals(variable)) {
+                        return (new SetU.addNotInIterator(
+                                resultsTwoVariables(firstVar, secondVar, triple)
+                                        .keySet(), result));
+                    } else {
+                        return (new SetU.addNotInIterator(
+                                resultsTwoVariables(secondVar, firstVar, triple)
+                                        .keySet(), result));
+                    }
+                default:
+                    switch (Arrays.asList(query.get(0)).indexOf(variable)) {
+                        case 0:
+                            return (new SetU.addNotInIterator(subjectSize, result));
+                        case 1:
+                            return (new SetU.addNotInIterator(relationSize, result));
+                        case 2:
+                            return (new SetU.addNotInIterator(objectSize, result));
+                    }
+            }
+            throw new RuntimeException("Very weird: SELECT " + variable
+                    + " WHERE " + toString(query.get(0)));
+        }
+
+        int bestPos = mostRestrictiveTriple(query);
+        if (bestPos == -1) {
+            return (Collections.emptyIterator());
+        }
+        ByteString[] best = query.get(bestPos);
+
+        // If the variable is in the most restrictive triple
+        if (varpos(variable, best) != -1) {
+            Instantiator insty;
+            Set<ByteString> instantiations;
+            switch (numVariables(best)) {
+                case 1:
+                    insty = new Instantiator(remove(bestPos, query), variable);
+                    instantiations = resultsOneVariable(best);
+                    break;
+                case 2:
+                    int firstVar = firstVariablePos(best);
+                    int secondVar = secondVariablePos(best);
+                    instantiations = best[firstVar].equals(variable) ? resultsTwoVariables(firstVar,
+                            secondVar, best).keySet() : resultsTwoVariables(secondVar,
+                                    firstVar, best).keySet();
+                    int otherVariable = best[firstVar].equals(variable) ? secondVar : firstVar;
+                    List<ByteString[]> otherTriples = remove(bestPos, query);
+                    insty = new Instantiator((contains(best[otherVariable], otherTriples)) ? query : otherTriples, variable);
+                    break;
+                case 3:
+                default:
+                    insty = new Instantiator(remove(bestPos, query), variable);
+                    int varPos = varpos(variable, best);
+                    ByteString var1,
+                     var2,
+                     var3;
+                    switch (varPos) {
+                        case 0:
+                            var1 = best[0];
+                            var2 = best[1];
+                            var3 = best[2];
+                            break;
+                        case 1:
+                            var1 = best[1];
+                            var2 = best[0];
+                            var3 = best[2];
+                            break;
+                        case 2:
+                        default:
+                            var1 = best[2];
+                            var2 = best[0];
+                            var3 = best[1];
+                            break;
+                    }
+
+                    instantiations = resultsThreeVariables(var1, var2, var3, best).keySet();
+                    break;
+            }
+            return (new KBIteratorU.addNotInIfExistsIterator(this, insty, instantiations, result));
+        }
+
+        // If the variable is not in the most restrictive triple...
+        Map<ByteString, IntHashMap<ByteString>> instantiations;
+        List<ByteString[]> others = remove(bestPos, query);
+        switch (numVariables(best)) {
+            case 0:
+                return (selectDistinctIterator(result, variable, others));
+            case 1:
+                ByteString var = best[firstVariablePos(best)];
+                if (optimExistentialDetection && !contains(var, others)) {
+                    return (selectDistinctIterator(result, variable, others));
+                }
+                return (new KBIteratorU.recursiveSelectForOneVarIterator(this, new Instantiator(others, var), variable, resultsOneVariable(best), result));
+            case 2:
+                int firstVar = firstVariablePos(best);
+                int secondVar = secondVariablePos(best);
+                if (!optimExistentialDetection || (contains(best[firstVar], others) && contains(best[secondVar], others))) {
+                    return (new KBIteratorU.recursiveSelectForTwoVarIterator(this, 
+                                new Instantiator(others, best[firstVar]), 
+                                new Instantiator(others, best[secondVar]), 
+                                variable, resultsTwoVariables(firstVar, secondVar, best), result));
+                } else {
+                    int nonExistentialVariablePos = (contains(best[firstVar], others)) ? firstVar : secondVar;
+                    int existentialVariablePos = (contains(best[firstVar], others)) ? secondVar : firstVar;
+                    return (new KBIteratorU.recursiveSelectForOneVarIterator(this, 
+                                new Instantiator(others, best[nonExistentialVariablePos]), 
+                                variable, 
+                                resultsTwoVariables(nonExistentialVariablePos, existentialVariablePos, best).keySet(), 
+                                result));
+                }
+            case 3:
+            default:
+                return (new KBIteratorU.recursiveSelectForThreeVarIterator(this, 
+                            new Instantiator(others, best[0]), 
+                            new Instantiator(others, best[1]), 
+                            new Instantiator(others, best[2]), 
+                            variable, 
+                            resultsThreeVariables(best[0], best[1], best[2], best), 
+                            result));
+        }
+    }
+    
 	// ---------------------------------------------------------------------------
 	// Select distinct, two variables
 	// ---------------------------------------------------------------------------
@@ -2995,20 +3292,12 @@ public class KB {
         // Go for the standard plan
         long result = 0;
 
-        //System.err.println("countDistinctPair (" + var1.toString() + "," + var2.toString() + "): " + toString(query));
-        try (Instantiator insty1 = new Instantiator(connectedComponent(query, var2, var1), var1)) {
+        try (Instantiator insty1 = new Instantiator((optimConnectedComponent) ? connectedComponent(query, var2, var1) : query, var1)) {
             Set<ByteString> bindings = selectDistinct(var1, query);
             for (ByteString val1 : bindings) {
-                //System.err.println(var1.toString() + "=" + val1.toString() + ": " + toString(query));
-                //Set<ByteString> values = selectDistinct(var2, insty1.instantiate(val1));
-                //for (ByteString v : values) {
-                //    System.err.println("(" + var1.toString() + "," + var2.toString() + ") = (" + val1.toString() + "," + v.toString() + ")");
-                //}
                 result += countDistinct(var2, insty1.instantiate(val1));
-                //System.err.println("currentResult: " + Long.toString(result));
             }
         }
-        //System.err.println("countDistinctPair (" + var1.toString() + "," + var2.toString() + "): " + toString(query) + "= " + Long.toString(result));
 
         return (result);
     }
@@ -3022,7 +3311,7 @@ public class KB {
         // Go for the standard plan
         long result = 0;
 
-        try (Instantiator insty1 = new Instantiator(query, var1)) {
+        try (Instantiator insty1 = new Instantiator((optimConnectedComponent) ? connectedComponent(query, var2, var1) : query, var1)) {
             Set<ByteString> bindings = selectDistinct(var1, query);
             for (ByteString val1 : bindings) {
                 result += countDistinct(var2, insty1.instantiate(val1));
@@ -3034,7 +3323,32 @@ public class KB {
 
         return (result);
     }
+    
+    public long countDistinctPairsUpToWithIterator(long upperBound, ByteString var1, 
+            ByteString var2, List<ByteString[]> query) {
 
+        // Go for the standard plan
+        long result = 0;
+        Set<ByteString> bindings, bindings2;
+
+        try (Instantiator insty1 = new Instantiator(
+                (optimConnectedComponent) ? connectedComponent(U.deepClone(query), var2, var1) : U.deepClone(query), var1)) {
+            bindings = new HashSet<>();
+            for (Iterator<ByteString> bindingsIt = selectDistinctIterator(bindings, var1, query); bindingsIt.hasNext(); ) {
+                bindings2 = new HashSet<>();
+                for (Iterator<ByteString> bindingsIt2 = selectDistinctIterator(bindings2, var2, 
+                        insty1.instantiate(bindingsIt.next())); bindingsIt2.hasNext(); ) {
+                    result += 1;
+                    bindingsIt2.next();
+                    if (result > upperBound) {
+                        break;
+                    }
+                }
+            }
+        }
+        return (result);
+    }
+    
 	/** Can instantiate a variable in a query with a value */
 	public static class Instantiator implements Closeable {
 		List<ByteString[]> query;
@@ -4234,6 +4548,22 @@ public class KB {
 		}
 		return result;
 	}
+        
+    public Map<ByteString, IntHashMap<ByteString>> getMap(SignedPredicate sp) {
+        if (sp.subject) {
+            return this.relation2subject2object.get(sp.predicate);
+        } else {
+            return this.relation2object2subject.get(sp.predicate);
+        }
+    }
+    
+    public IntHashMap<ByteString> getCount(SignedPredicate sp) {
+        IntHashMap<ByteString> result = new IntHashMap<>();
+        for (Map.Entry<ByteString, IntHashMap<ByteString>> e : getMap(sp).entrySet()) {
+            result.put(e.getKey(), e.getValue().size());
+        }
+        return result;
+    }
         
         public Set<ByteString> getRelationSet() {
             return new HashSet<>(relationSize);

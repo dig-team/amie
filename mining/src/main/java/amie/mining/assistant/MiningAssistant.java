@@ -894,6 +894,7 @@ public class MiningAssistant {
 		int[] hardQueryInfo = null;
 		hardQueryInfo = kb.identifyHardQueryTypeI(candidate.getAntecedent());
 		if(hardQueryInfo != null){
+                    if (this.minPcaConfidence > 0) {
 			double pcaConfUpperBound = getPcaConfidenceUpperBound(candidate);			
 			if(pcaConfUpperBound < this.minPcaConfidence){
 				if (this.verbose) {
@@ -902,7 +903,10 @@ public class MiningAssistant {
 				}
 				return false;
 			}
+                        candidate.setPcaConfidenceUpperBound(pcaConfUpperBound);
+                    }
 			
+                    if (this.minStdConfidence > 0) {
 			double stdConfUpperBound = getStdConfidenceUpperBound(candidate);			
 			
 			if(stdConfUpperBound < this.minStdConfidence){
@@ -912,9 +916,8 @@ public class MiningAssistant {
 				}
 				return false;
 			}
-
-			candidate.setConfidenceUpperBound(stdConfUpperBound);
-			candidate.setPcaConfidenceUpperBound(pcaConfUpperBound);
+                        candidate.setConfidenceUpperBound(stdConfUpperBound);
+                    }
 		}
 		
 		return true;

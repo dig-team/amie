@@ -6,7 +6,7 @@
 package amie.typing.classifier;
 
 import amie.data.KB;
-import amie.data.SimpleTypingKB;
+import amie.data.SetU;
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
@@ -73,7 +73,7 @@ public class SeparationVTreeClassifier extends SeparationPTreeClassifier {
                     continue;
                 } else {
                     HypergeometricDistribution hgd = new HypergeometricDistribution(c1size, c1phi.size(), c1c2size);
-                    int c1c2phi = (int) SimpleTypingKB.countIntersection(c1phi, localdb.classes.get(class2));
+                    int c1c2phi = (int) SetU.countIntersection(c1phi, localdb.classes.get(class2));
                     double c1c2phiExpected = hgd.getNumericalMean();
                     
                     double sp = hgd.getNumericalVariance() / Math.pow(c1c2phi - c1c2phiExpected, 2.);

@@ -5,15 +5,12 @@
  */
 package amie.data;
 
-import static amie.data.KB.compress;
-import java.util.Arrays;
+import static amie.data.SetU.countIntersection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javatools.datatypes.ByteString;
 
 /**
@@ -89,16 +86,6 @@ public class SimpleTypingKB extends KB {
         }
         throw new UnsupportedOperationException();
         //return classIntersection.get(c1).get(c2).getResource();
-    }
-    
-    public static long countIntersection(Set<ByteString> s1, Set<ByteString> s2) {
-        if (s1 == null || s2 == null) { return 0; }
-        if (s1.size() > s2.size()) { return countIntersection(s2, s1); }
-        long result = 0;
-        for (ByteString e1 : s1) {
-            if (s2.contains(e1)) result++;
-        }
-        return result;
     }
     
     public long countElements(ByteString relation) {

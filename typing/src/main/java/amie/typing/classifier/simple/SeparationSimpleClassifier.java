@@ -6,6 +6,7 @@
 package amie.typing.classifier.simple;
 
 import amie.data.CardinalitySimpleTypingKB;
+import amie.data.SetU;
 import amie.data.SimpleTypingKB;
 import java.util.HashSet;
 import java.util.Map;
@@ -50,7 +51,7 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
             }
             return classIntersectionSize.get(class1).get(class2);
         }
-        return (int) SimpleTypingKB.countIntersection(db.classes.get(class1), db.classes.get(class2));
+        return (int) SetU.countIntersection(db.classes.get(class1), db.classes.get(class2));
     }
     
     private int cs(ByteString class1) { return db.classes.get(class1).size(); }
@@ -111,7 +112,7 @@ public abstract class SeparationSimpleClassifier extends SimpleClassifier {
                     }
                 }
                 if (true) {
-                    int c1c2phisize = (int) SimpleTypingKB.countIntersection(c1phi, db.classes.get(class2));
+                    int c1c2phisize = (int) SetU.countIntersection(c1phi, db.classes.get(class2));
                     /**
                      * If classSizeThreshold is relative we don't consider 
                      * intersections nor differences such that:

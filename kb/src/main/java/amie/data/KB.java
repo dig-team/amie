@@ -3471,9 +3471,35 @@ public class KB {
     public long countDistinctPairs(int var1, int var2,
             List<int[]> query) {
 
-        // Go for the standard plan
         long result = 0;
 
+        int bestPos = mostRestrictiveTriple(query);
+        if (bestPos == -1) {
+            return 0;
+        }
+        int[] best = query.get(bestPos);
+        if (contains(var1, best) && contains(var2, best) && numVariables(best) == 2) {
+            if (query.size() == 1) {
+                return countTwoVariables(best);
+            }
+            List<int[]> other = remove(bestPos, query);
+            Int2ObjectMap<IntSet> instantiations = resultsTwoVariables(var1, var2, best);
+            try (Instantiator insty1 = new Instantiator(other, var1)) {
+                try (Instantiator insty2 = new Instantiator(other, var2)) {
+                    for (int val1 : instantiations.keySet()) {
+                        insty1.instantiate(val1);
+                        for (int val2 : instantiations.get(val1)) {
+                            if (existsBS1(insty2.instantiate(val2))) {
+                                result += 1;
+                            }
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        // Go for the standard plan
         try (Instantiator insty1 = new Instantiator((optimConnectedComponent) ? connectedComponent(query, var2, var1) : query, var1)) {
             IntSet bindings = selectDistinct(var1, query);
             for (int val1 : bindings) {
@@ -3490,9 +3516,40 @@ public class KB {
     public long countDistinctPairsUpTo(long upperBound, int var1, int var2,
             List<int[]> query) {
 
-        // Go for the standard plan
         long result = 0;
 
+        int bestPos = mostRestrictiveTriple(query);
+        if (bestPos == -1) {
+            return 0;
+        }
+        int[] best = query.get(bestPos);
+        if (contains(var1, best) && contains(var2, best) && numVariables(best) == 2) {
+            if (query.size() == 1) {
+                return countTwoVariables(best);
+            }
+            List<int[]> other = remove(bestPos, query);
+            Int2ObjectMap<IntSet> instantiations = resultsTwoVariables(var1, var2, best);
+            try (Instantiator insty1 = new Instantiator(other, var1)) {
+                try (Instantiator insty2 = new Instantiator(other, var2)) {
+                    for (int val1 : instantiations.keySet()) {
+                        insty1.instantiate(val1);
+                        for (int val2 : instantiations.get(val1)) {
+                            if (existsBS1(insty2.instantiate(val2))) {
+                                result += 1;
+                                if (result > upperBound) {
+                                    insty1.close();
+                                    insty2.close();
+                                    return result;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        // Go for the standard plan
         try (Instantiator insty1 = new Instantiator((optimConnectedComponent) ? connectedComponent(query, var2, var1) : query, var1)) {
             IntSet bindings = selectDistinct(var1, query);
             for (int val1 : bindings) {

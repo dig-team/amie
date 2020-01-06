@@ -39,7 +39,7 @@ Latest version of AMIE with a set of runtime enhancements:
 
 Lajus, J., Galárraga, L., & Suchanek, F. M (2020). Fast and Exact Rule Mining with AMIE 3. Under revision at the Extended Semantic Web Conference.
 
-'''Data''': 
+**Data**: 
 
 ### Determining Obligatory Attributes in Knowledge Bases
 

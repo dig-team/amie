@@ -16,7 +16,7 @@ AMIE is managed with [Maven](https://maven.apache.org/), therefore to deploy you
 
 1. Clone this repository: $ git clone https://github.com/lajus/amie/
 2. Import and compile the project
- ** IDEs such as Eclipse offer the option to create a project from an existing Maven project. The IDE will call Maven to compile the code.
+ * IDEs such as Eclipse offer the option to create a project from an existing Maven project. The IDE will call Maven to compile the code.
 3. Maven will generate an executable jar named amie3.jar. This executable accepts RDF files in TSV format [like this one](http://resources.mpi-inf.mpg.de/yago-naga/amie/data/yago2_sample/yago2core.10kseedsSample.compressed.notypes.tsv) as input. To run it, just write in your comand line: 
 
 java -jar amie3.jar [TSV file]

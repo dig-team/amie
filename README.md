@@ -1,23 +1,23 @@
 # AMIE 
 
-AMIE is a system to mine Horn rules on RDF knowledge bases. An RDF knowledge base is a collection of facts of the form <subject, relation, object> such as <Elvis, bornIn, Tupelo>. AMIE can find rules accurate rules such as locatedInCity(x, y) ^ locatedInCountry(y, z) => locatedInCountry(x, z) from large knowledge bases. AMIE stands for Association Rule Mining under Incomplete Evidence. 
+AMIE is a system to mine Horn rules on RDF knowledge bases. An RDF knowledge base is a collection of facts of the form <subject, relation, object> such as <Elvis, bornIn, Tupelo>. AMIE can find rules accurate rules such as locatedInCity(x, y) ^ locatedInCountry(y, z) => locatedInCountry(x, z) in large knowledge bases. AMIE stands for Association Rule Mining under Incomplete Evidence. 
 
-Its latest version is AMIE 3. Previous version of AMIE can be downloaded [here](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/amie/)
+Its latest version is AMIE 3. Previous version of AMIE can be found [here](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/amie/)
 
 ## Dependencies
 
 * Java >= 7
 * Apache Commons >= 1.2
-* [Javatools](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/javatools/) and "telecom-utils". Both packages can be found as maven projects here: https://github.com/lajus/amie-utils.
+* [Javatools](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/javatools/) and "telecom-utils". Both packages can be found as Maven projects here: https://github.com/lajus/amie-utils.
 
 ## Deployment
 
-AMIE is managed with [Maven](https://maven.apache.org/), therefore you do not to deploy you need:
+AMIE is managed with [Maven](https://maven.apache.org/), therefore to deploy you need:
 
 1. Clone this repository: $ git clone https://github.com/lajus/amie/
 2. Import and compile the project
- ** IDEs such as Eclipse offer the option to create a project an existing Maven project 
-3. Maven will generate an executable jar named amie3.jar. AMIE accepts RDF files in TSV format [like this one](http://resources.mpi-inf.mpg.de/yago-naga/amie/data/yago2_sample/yago2core.10kseedsSample.compressed.notypes.tsv). To run it, just write in your comand line: 
+ ** IDEs such as Eclipse offer the option to create a project from an existing Maven project. The IDE will call Maven to compile the code.
+3. Maven will generate an executable jar named amie3.jar. This executable accepts RDF files in TSV format [like this one](http://resources.mpi-inf.mpg.de/yago-naga/amie/data/yago2_sample/yago2core.10kseedsSample.compressed.notypes.tsv) as input. To run it, just write in your comand line: 
 
 java -jar amie3.jar [TSV file]
 

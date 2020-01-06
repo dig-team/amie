@@ -2,12 +2,17 @@
 
 AMIE is a system to mine Horn rules on RDF knowledge bases. An RDF knowledge base is a collection of facts of the form <subject, relation, object> such as <Elvis, bornIn, Tupelo>. AMIE can find rules accurate rules such as locatedInCity(x, y) ^ locatedInCountry(y, z) => locatedInCountry(x, z) from large knowledge bases. AMIE stands for Association Rule Mining under Incomplete Evidence. 
 
+Its latest version is AMIE 3. Previous version of AMIE can be downloaded [here](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/amie/)
+
 ## Dependencies
 
-Depends on javatools (https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/javatools/) and "telecom-utils". Both packages can be found as maven projects here: https://github.com/lajus/amie-utils.
+* Java >= 7
+* Apache Commons >= 1.2
+* [Javatools](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/javatools/) and "telecom-utils". Both packages can be found as maven projects here: https://github.com/lajus/amie-utils.
 
 ## Deployment
 
+* AMIE is managed with [Maven](https://maven.apache.org/)
 
 
 ## Known bug

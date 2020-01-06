@@ -12,20 +12,34 @@ Its latest version is AMIE 3. Previous version of AMIE can be downloaded [here](
 
 ## Deployment
 
-* AMIE is managed with [Maven](https://maven.apache.org/)
+AMIE is managed with [Maven](https://maven.apache.org/), therefore to deploy you need:
 
+1. Clone this repository: $ git clone https://github.com/lajus/amie/
+2. Import and compile the project
+ * IDEs such as Eclipse offer the option to create a project an existing Maven project 
+3. Maven will generate an executable jar named amie3.jar. AMIE accepts RDF files in TSV format [like this one](http://resources.mpi-inf.mpg.de/yago-naga/amie/data/yago2_sample/yago2core.10kseedsSample.compressed.notypes.tsv). To run it, just write in your comand line:
+
+java -jar amie+.jar [TSV file]
+
+In case of memory issues, try to increase the virtual machine's memory resources using the arguments -XX:-UseGCOverheadLimit -Xmx [MAX_HEAP_SPACE], e.g:
+
+java -XX:-UseGCOverheadLimit -Xmx2G -jar amie+.jar [TSV file]
+
+MAX_HEAP_SPACE depends on your input size and the system's available memory. The package also contains the utilities to generate and evaluate predictions from the rules mined by AMIE. Without additional arguments AMIE+ thresholds using PCA confidence 0.1 and head coverage 0.01. You can change these default settings. Run java -jar amie+.jar (without an input file) to see a detailed description of the available options.
 
 ## Known bug
 
 AMIE main class (amie.mining.AMIE) will, by default, print the rules during the mining phase. However, on some recent JVM, the Thread handling the printing may run indefinitely. I suggest you for now to use the "-oute" option, that prints all the rules found only at the end of the mining process, but also disable the faulty Thread. 
 
-# Publications 
+## Publications 
 
-## AMIE 3
+### AMIE 3
+
+Latest version of AMIE with a set of runtime enhancements: 
 
 Lajus, J., Galárraga, L., & Suchanek, F. M (2020). Fast and Exact Rule Mining with AMIE 3. Under revision at the Extended Semantic Web Conference.
 
-## Typing
+### Determining Obligatory Attributes in Knowledge Bases
 
 Source files for:
 

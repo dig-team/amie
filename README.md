@@ -27,7 +27,7 @@ java -XX:-UseGCOverheadLimit -Xmx2G -jar amie3.jar [TSV file]
 
 MAX_HEAP_SPACE depends on your input size and the system's available memory. The package also contains the utilities to generate and evaluate predictions from the rules mined by AMIE. Without additional arguments AMIE+ thresholds using PCA confidence 0.1 and head coverage 0.01. You can change these default settings. Run java -jar amie+.jar (without an input file) to see a detailed description of the available options.
 
-## Known bug
+### Known bug
 
 AMIE main class (amie.mining.AMIE) will, by default, print the rules during the mining phase. However, on some recent JVM, the Thread handling the printing may run indefinitely. I suggest you for now to use the "-oute" option, that prints all the rules found only at the end of the mining process, but also disable the faulty Thread. 
 

@@ -48,7 +48,7 @@ Latest version of AMIE with a set of runtime enhancements:
 
 Lajus, J., Galárraga, L., & Suchanek, F. M (2020). Fast and Exact Rule Mining with AMIE 3. Under revision at the Extended Semantic Web Conference.
 
-**Executables used**: Can be found in the milestones directory or in the milestones github onglet. Option names and default options are subject to change compared these milestones. To reproduce experiments, use by default:
+**Executables used**: Can be found in the milestone directory or in the "releases" github onglet. Option names and default options are subject to change compared these milestones. To reproduce experiments, use by default:
 
 ```java -jar amie-milestone-intKB.jar -bias lazy -full -noHeuristics -ostd [TSV file]```
 

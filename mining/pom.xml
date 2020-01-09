@@ -55,6 +55,9 @@
                 <descriptorRefs>
                     <descriptorRef>jar-with-dependencies</descriptorRef>
                 </descriptorRefs>
+                <finalName>amie3</finalName>
+                <appendAssemblyId>false</appendAssemblyId>
+		<outputDirectory>../bin</outputDirectory>
             </configuration>
         </execution>
     </executions>

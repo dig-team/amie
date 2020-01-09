@@ -28,7 +28,7 @@ In case of memory issues, try to increase the virtual machine's memory resources
 
 ```java -XX:-UseGCOverheadLimit -Xmx2G -jar amie3.jar [TSV file]```
 
-MAX_HEAP_SPACE depends on your input size and the system's available memory. The package also contains the utilities to generate and evaluate predictions from the rules mined by AMIE. Without additional arguments AMIE thresholds using PCA confidence 0.1 and head coverage 0.01. You can change these default settings. Run `java -jar amie3.jar -h` (without an input file) to see a detailed description of the available options.
+`MAX_HEAP_SPACE` depends on your input size and the system's available memory. The package also contains the utilities to generate and evaluate predictions from the rules mined by AMIE. Without additional arguments AMIE thresholds using PCA confidence 0.1 and head coverage 0.01. You can change these default settings. Run `java -jar amie3.jar -h` (without an input file) to see a detailed description of the available options.
 
 ## Input files
 
@@ -36,7 +36,7 @@ AMIE is now compatible with input file with the following formats:
  1. `subject DELIM predicate DELIM object [whitespace/tabulation .] NEWLINE`
  2. `factid DELIM subject DELIM predicate DELIM object [whitespace/tabulation .] NEWLINE`
 
-The default delimiter (DELIM) is the tabulation (.tsv files) but can be changed using the "-d" option. Any trailing whitespaces followed by a point are ignored. This allows parsing most NT files using the option: `-d" "`. 
+The default delimiter `DELIM` is the tabulation (.tsv files) but can be changed using the `-d` option. Any trailing whitespaces followed by a point are ignored. This allows parsing most NT files using the option: `-d" "`. 
 
 However make sure the factid, subject, predicate nor the object contains the delimiter used (particularly in litteral facts files). Otherwise the parsing may fail or facts may be wrongfully recognized as the second format.
 

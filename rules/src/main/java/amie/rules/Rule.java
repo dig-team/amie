@@ -2126,8 +2126,7 @@ public class Rule {
             return;
         }
         
-        List<int[]> combinations = telecom.util.collections.Collections.subsetsOfSize(antecedent.size(), 
-        		newAntecedentSize);
+        List<int[]> combinations = U.subsetsOfSize(antecedent.size(), newAntecedentSize);
         int[] head = queryPattern.get(0);
         for (int[] combination : combinations) {
             List<int[]> combinationList = new ArrayList<>();
@@ -2250,13 +2249,11 @@ public class Rule {
         // Build a multimap, variable -> {atoms where the variable occurs}
         for (int[] bodyAtom : body) {
             if (KB.isVariable(bodyAtom[0])) {
-                telecom.util.collections.Collections.addToMap(
-                		variablesToAtom, bodyAtom[0], bodyAtom);
+                U.addToMap(variablesToAtom, bodyAtom[0], bodyAtom);
             }
 
             if (KB.isVariable(bodyAtom[2])) {
-                telecom.util.collections.Collections.addToMap(
-                		variablesToAtom, bodyAtom[2], bodyAtom);
+                U.addToMap(variablesToAtom, bodyAtom[2], bodyAtom);
             }
         }
 
@@ -2365,8 +2362,7 @@ public class Rule {
 			return Rule.areEquivalent(someRule.getHead(), getHead());
 		}
 		
-		List<int[]> combinations = telecom.util.collections.Collections.subsetsOfSize(
-				someRule.getLength() - 1, getLength() - 1);
+		List<int[]> combinations = U.subsetsOfSize(someRule.getLength() - 1, getLength() - 1);
 		List<int[]> targetAntecedent = someRule.getAntecedent();
 		for (int[] cmb : combinations) {
 			List<int[]> subsetOfAtoms = new ArrayList<>();

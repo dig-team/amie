@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import amie.data.KB;
+import amie.data.U;
 import amie.mining.AMIE;
 import amie.rules.Metric;
 import amie.rules.Rule;
@@ -19,7 +20,6 @@ import amie.rules.Rule;
 import javatools.datatypes.Pair;
 import javatools.datatypes.Triple;
 import javatools.filehandlers.TSVFile;
-import telecom.util.collections.MultiMap;
 
 public class AlignKBs {
 	
@@ -146,8 +146,8 @@ public class AlignKBs {
 		});
 		
 		// Additional steps to remove stupid mappings
-		MultiMap<String, Triple<String, ROSAEquivalence, Boolean>> originalMap = new MultiMap<>();
-		MultiMap<String, Triple<String, ROSAEquivalence, Boolean>> invertedMap = new MultiMap<>();
+		Map<String, List<Triple<String, ROSAEquivalence, Boolean>>> originalMap = new HashMap<>();
+		Map<String, List<Triple<String, ROSAEquivalence, Boolean>>> invertedMap = new HashMap<>();
 		
 		System.out.println("Mappings");
 		if (smartMode) {
@@ -155,8 +155,8 @@ public class AlignKBs {
 				rule.prefix1 = prefixkb1;
 				rule.prefix2 = prefixkb2;
 				Pair<String, String> relations = rule.getRelations();
-				invertedMap.put(relations.second, new Triple<String, ROSAEquivalence, Boolean>(relations.first, rule, true));
-				originalMap.put(relations.first, new Triple<String, ROSAEquivalence, Boolean>(relations.second, rule, true));
+                                U.addToMap(invertedMap, relations.second, new Triple<String, ROSAEquivalence, Boolean>(relations.first, rule, true));
+				U.addToMap(originalMap, relations.first, new Triple<String, ROSAEquivalence, Boolean>(relations.second, rule, true));
 			}
 			
 			for (String relation : originalMap.keySet()) {

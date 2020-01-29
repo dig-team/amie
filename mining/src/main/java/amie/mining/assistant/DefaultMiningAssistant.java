@@ -272,7 +272,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		IntList openVariables = query.getOpenVariables();
 		
 		//Then do it for all values
-		if(query.isClosed(false)) {
+		if(query.isClosed(true)) {
 			joinVariables = query.getOpenableVariables();
 		} else {
 			joinVariables = openVariables;

@@ -487,7 +487,7 @@ public class Rule {
      * @return the mustBindVariables
      */
     public IntList getOpenVariables() {
-        Int2IntMap histogram = variablesHistogram(false);
+        Int2IntMap histogram = variablesHistogram(true);
         IntList variables = new IntArrayList();
         for (int var : histogram.keySet()) {
             if (histogram.get(var) < 2 && KB.isOpenableVariable(var)) {

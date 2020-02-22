@@ -1,8 +1,13 @@
 # AMIE 
 
-AMIE is a system to mine Horn rules on RDF knowledge bases. An RDF knowledge base is a collection of facts of the form <subject, relation, object> such as <Elvis, bornIn, Tupelo>. AMIE can find rules accurate rules such as locatedInCity(x, y) ^ locatedInCountry(y, z) => locatedInCountry(x, z) in large knowledge bases. AMIE stands for Association Rule Mining under Incomplete Evidence. 
+AMIE is a system to mine Horn rules on knowledge bases. A knowledge base is a collection of facts, such as e.g. 
+> wasBornIn(Elvis, Tupelo)  
+> isLocatedIn(Tupelo, USA)
 
-Its latest version is AMIE 3. Previous version of AMIE can be found [here](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/amie/). 
+AMIE can find rules in such knowledge bases, such as for example
+> wasBornIn(x, y) & isLocatedIn(y, z) => hasNationality(x, z)
+
+These rules are accompanied by various confidence scores. “AMIE” stands for “Association Rule Mining under Incomplete Evidence”. This repository contains the latest version of AMIE, called AMIE 3. The previous version of AMIE can be found [here](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/amie/). 
 
 ## Dependencies
 
@@ -41,6 +46,20 @@ The default delimiter `DELIM` is the tabulation (.tsv files) but can be changed 
 However make sure the factid, subject, predicate nor the object contains the delimiter used (particularly in litteral facts files). Otherwise the parsing may fail or facts may be wrongfully recognized as the second format.
 
 ## Publications 
+
+> Jonathan Lajus, Luis Galárraga, Fabian M. Suchanek:  
+> [“Fast and Exact Rule Mining with AMIE 3”  ](https://suchanek.name/work/publications/eswc-2020-amie-3.pdf)  
+> Full paper at the Extended Semantic Web Conference (ESWC), 2020  
+> accepted conditionally  
+
+> Jonathan Lajus, Fabian M. Suchanek:  
+> [“Are All People Married? Determining Obligatory Attributes in Knowledge Bases”](https://suchanek.name/work/publications/www-2018.pdf)  
+> Full paper at the Web Conference  (WWW) , 2018  
+
+> Luis Galárraga, Simon Razniewski, Antoine Amarilli, Fabian M. Suchanek:  
+> [“Predicting Completeness in Knowledge Bases” (pdf)](https://suchanek.name/work/publications/wsdm-2017.pdf)  
+> Full paper at the International Conference on Web Search and Data Mining  (WSDM) , 2017  
+
 
 ### AMIE 3
 

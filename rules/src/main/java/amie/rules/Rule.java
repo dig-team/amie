@@ -33,6 +33,8 @@ import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A class that represents Horn rules of the form A =&gt; B where A is a conjunction of binary atoms
@@ -179,6 +181,31 @@ public class Rule {
     private int id;
     
     private boolean finalized = false;
+    
+    /**
+     * A map that stores any other measure of interest on the rule
+     */
+    private Map<String, Double> otherMeasures;
+    
+    public void setMeasure(String name, Double value) {
+        if (otherMeasures == null) {
+            otherMeasures = new HashMap<>();
+        }
+        otherMeasures.put(name, value);
+    }
+    
+    /**
+     * Returns the value of a measure stored, null if no measure has this name.
+     * @param name
+     * @return 
+     */
+    public Double getMeasure(String name) {
+        Double r = otherMeasures.get(name);
+        if (r == null) {
+            return -1.0;
+        }
+        return r;
+    }
     
     public void setFinal() {
     	finalized = true;
@@ -1732,6 +1759,53 @@ public class Rule {
         result.triples.addAll(newTriples);
 
         return result;
+    }
+    
+    private static boolean addToVariableMap(int[] atom, Int2ObjectMap<IntSet> s) {
+        if (!KB.isVariable(atom[0]) || !KB.isVariable(atom[2])) {
+            return false;
+        }
+        IntSet r = s.get(atom[0]);
+        if (r == null) { s.put(atom[0], r = new IntOpenHashSet()); }
+        r.add(atom[2]);
+        r = s.get(atom[2]);
+        if (r == null) { s.put(atom[2], r = new IntOpenHashSet()); }
+        r.add(atom[0]);
+        return true;
+    }
+    
+    private List<int[]> injectiveOf(List<int[]> antecedent) {
+        List<int[]> body = new ArrayList<>(antecedent);
+        int[] head = getHead();
+        Int2ObjectMap<IntSet> connectedVariables = new Int2ObjectOpenHashMap<>();
+        if (head[1] == KB.EQUALSbs) {
+            addToVariableMap(head, connectedVariables);
+        } else {
+            for (int i = 0; i < 3; i+= 2) {
+                if (KB.isVariable(head[i])) {
+                    connectedVariables.put(head[i], new IntOpenHashSet());
+                }
+            }
+        }
+        for (int[] atom : body) {
+            addToVariableMap(atom, connectedVariables);
+        }
+        for (int v : connectedVariables.keySet()) {
+            for(int ov : connectedVariables.keySet()) {
+                if (v > ov && !connectedVariables.get(v).contains(ov)) {
+                    body.add(KB.triple(v, KB.DIFFERENTFROMbs, ov));
+                }
+            }
+        }
+        return body; 
+    }
+    
+    public List<int[]> injectiveBody() {
+        return injectiveOf(getAntecedent());
+    }
+    
+    public List<int[]> injectiveTriples() {
+        return injectiveOf(getTriples());
     }
 
     public boolean variableCanBeDeleted(int triplePos, int varPos) {

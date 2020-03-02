@@ -31,6 +31,7 @@ public class LazyMiningAssistant extends DefaultMiningAssistantWithOrder {
      *
      * @param candidate
      */
+    @Override
     public void calculateConfidenceMetrics(Rule candidate) {
         if (this.minPcaConfidence == 0) {
             if (this.ommitStdConfidence) {

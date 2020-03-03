@@ -144,10 +144,10 @@ public class GRank extends InjectiveMappingsAssistant {
         Int2ObjectMap<IntPair> result = new Int2ObjectOpenHashMap<>();
         int rank = 0;
         int size;
-        int score;
+        long score;
         IntList ordered = decreasingKeys(scores);
         while(rank < ordered.size()) {
-            score = ordered.getInt(rank);
+            score = scores.get(ordered.getInt(rank));
             size = 1;
             while(rank+size < ordered.size() && score == scores.get(ordered.getInt(rank+size))) {
                 size += 1;

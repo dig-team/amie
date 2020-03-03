@@ -9,6 +9,8 @@ import amie.data.tuple.IntPair;
 import amie.data.tuple.IntTriple;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2LongMap;
+import it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -2173,6 +2175,67 @@ public class KB {
 		}
 	}
         
+        /**
+	 * It returns the number of mappings that fulfill a certain 
+	 * list of triple patterns.
+	 * @param triples
+	 * @return
+	 */
+	public long countMappings(List<int[]> triples) {
+		if (triples.isEmpty())
+			return (0);
+		if (triples.size() == 1)
+			return (count(triples.get(0)));
+		int bestPos = mostRestrictiveTriple(triples);
+		if (bestPos == -1)
+			return (0);
+                List<int[]> otherTriples;
+		int[] best = triples.get(bestPos);
+                long result = 0;
+
+		switch (numVariables(best)) {
+		case 0:
+			if (!contains(best))
+				return (0);
+			return (countMappings(remove(bestPos, triples)));
+		case 1:
+			int firstVarIdx = firstVariablePos(best);
+			if (firstVarIdx == -1) {
+				System.out.println("[DEBUG] Problem with query "
+						+ KB.toString(triples));
+			}
+                        otherTriples = remove(bestPos, triples);
+			try (Instantiator insty = new Instantiator(
+					otherTriples, best[firstVarIdx])) {
+				for (int inst : resultsOneVariable(best)) {
+					result += countMappings(insty.instantiate(inst));
+				}
+			}
+			return (result);
+		case 2:
+			int firstVar = firstVariablePos(best);
+			int secondVar = secondVariablePos(best);
+			otherTriples = remove(bestPos, triples);
+                        Int2ObjectMap<IntSet> instantiations;
+                        instantiations = resultsTwoVariablesByPos(firstVar, secondVar, best);
+                        try (Instantiator insty1 = new Instantiator(otherTriples,
+                                        best[firstVar]);
+                                        Instantiator insty2 = new Instantiator(otherTriples,
+                                                        best[secondVar])) {
+                            for (int val1 : instantiations.keySet()) {
+                                insty1.instantiate(val1);
+                                for (int val2 : instantiations.get(val1)) {
+                                    result += countMappings(insty2.instantiate(val2));
+                                }
+                            }
+                        }
+			return (result);
+		case 3:
+		default:
+			return (size());
+		}
+	}
+        
 	// ---------------------------------------------------------------------------
 	// Count Distinct
 	// ---------------------------------------------------------------------------
@@ -2383,6 +2446,175 @@ public class KB {
 		return (result);
 	}
         
+        /** returns the instances that fulfill a certain condition */
+	public Int2LongMap selectDistinctMappings(int variable,
+			List<int[]> query) {
+		// Only one triple
+                Int2LongMap result = new Int2LongOpenHashMap();
+		if (query.size() == 1) {
+			int[] triple = query.get(0);
+			switch (numVariables(triple)) {
+			case 0:
+				return (result);
+			case 1:
+                            increase(result, resultsOneVariable(triple));
+				return (result);
+			case 2:
+				int firstVar = firstVariablePos(triple);
+				int secondVar = secondVariablePos(triple);
+				if (firstVar == -1 || secondVar == -1) {
+					System.out.println("[DEBUG] Problem with query "
+							+ KB.toString(query));
+				}
+				if (triple[firstVar] == variable) {
+                                    increase(result, resultsTwoVariablesByPos(firstVar, secondVar, triple));
+                                } else {
+                                    increase(result, resultsTwoVariablesByPos(secondVar, firstVar, triple));
+                                }
+                                return (result);
+			default:
+				switch (varpos(variable, query.get(0))) {
+				case 0:
+                                        increase(result, subjectSize);
+					return (result);
+				case 1:
+					increase(result, relationSize);
+					return (result);
+				case 2:
+					increase(result, objectSize);
+					return (result);
+				}
+			}
+			throw new RuntimeException("Very weird: SELECT " + variable
+					+ " WHERE " + toString(query.get(0)));
+		}
+
+		int bestPos = mostRestrictiveTriple(query);
+		if (bestPos == -1)
+			return (result);
+		int[] best = query.get(bestPos);
+
+		// If the variable is in the most restrictive triple
+		if (varpos(variable, best) != -1) {
+			switch (numVariables(best)) {
+			case 1 :
+				try (Instantiator insty = new Instantiator(remove(bestPos,
+						query), variable)) {
+					for (int inst : resultsOneVariable(best)) {
+                                            long mn = countMappings(insty.instantiate(inst));
+                                            if (mn > 0) {
+						increase(result, inst, mn);
+                                            }
+					}
+				}
+				break;
+			case 2:
+				int firstVar = firstVariablePos(best);
+				int secondVar = secondVariablePos(best);
+				Int2ObjectMap<IntSet> instantiations =(best[firstVar]
+						 == variable)? resultsTwoVariablesByPos(firstVar,
+						secondVar, best) : resultsTwoVariablesByPos(secondVar,
+						firstVar, best);
+				try (Instantiator insty = new Instantiator(query, variable)) {
+					for (int inst : instantiations.keySet()) {
+                                            long mn = countMappings(insty.instantiate(inst));
+                                            if (mn > 0) {
+                                                increase(result, inst, mn);
+                                            }
+					}
+				}
+				break;
+			case 3:
+			default:
+				try (Instantiator insty = new Instantiator(remove(bestPos, query), variable)) {
+					int varPos = varpos(variable, best);
+					int var1, var2, var3;
+					switch (varPos) {
+					case 0 :
+						var1 = best[0];
+						var2 = best[1];
+						var3 = best[2];
+						break;
+					case 1 :
+						var1 = best[1];
+						var2 = best[0];
+						var3 = best[2];
+						break;
+					case 2 : default :
+						var1 = best[2];
+						var2 = best[0];
+						var3 = best[1];
+						break;							
+					}
+
+					for (int inst : resultsThreeVariables(var1, var2, var3, best).keySet()) {
+                                            long mn = countMappings(insty.instantiate(inst));
+                                            if (mn > 0) {
+                                                increase(result, inst, mn);
+                                            }
+					}
+				}
+				break;
+			}
+			return (result);
+		}
+
+		// If the variable is not in the most restrictive triple...
+                Int2ObjectMap<IntSet> instantiations;
+                List<int[]> others = remove(bestPos, query);
+		switch (numVariables(best)) {
+		case 0:
+			return (selectDistinctMappings(variable, others));
+		case 1:
+			int var = best[firstVariablePos(best)];
+			try (Instantiator insty = new Instantiator(others, var)) {
+                            for (int inst : resultsOneVariable(best)) {
+                                increase(result, selectDistinctMappings(variable, insty.instantiate(inst)));
+                            }
+			}
+			break;
+		case 2:
+                        int firstVar = firstVariablePos(best);
+                        int secondVar = secondVariablePos(best);
+                        instantiations = resultsTwoVariablesByPos(firstVar, secondVar, best);
+                        try (Instantiator insty1 = new Instantiator(others, best[firstVar]);
+                                Instantiator insty2 = new Instantiator(others,
+                                    best[secondVar])) {
+                            for (int val1 : instantiations.keySet()) {
+                                insty1.instantiate(val1);
+                                for (int val2 : instantiations.get(val1)) {
+                                    increase(result, selectDistinctMappings(variable, insty2.instantiate(val2)));
+                                }
+                            }
+                        }
+                        break;
+		case 3:
+		default:
+			firstVar = firstVariablePos(best);
+			secondVar = secondVariablePos(best);
+			Int2ObjectMap<Int2ObjectMap<IntSet>> map = 
+					resultsThreeVariables(best[0], best[1], best[2], best);
+			try (Instantiator insty1 = new Instantiator(others, best[0]);
+					Instantiator insty2 = new Instantiator(others, best[1]);
+						Instantiator insty3 = new Instantiator(others, best[2])) {
+				for (int val1 : map.keySet()) {
+					insty1.instantiate(val1);
+					instantiations = map.get(val1);
+					for (int val2 : instantiations.keySet()) {
+						insty2.instantiate(val2);
+						IntSet instantiations2 = instantiations.get(val2);
+						for (int val3 : instantiations2) {
+							increase(result, selectDistinctMappings(variable, insty3.instantiate(val3)));
+						}
+					}
+				}
+			}
+			break;
+
+		}
+		return (result);
+	}
+        
     /** 
      * returns the instances that fulfill a certain condition 
      *
@@ -2539,6 +2771,55 @@ public class KB {
 	}
 
 	/** Returns all (distinct) pairs of values that make the query true */
+	public Int2ObjectMap<Int2LongMap> selectDistinctMappings(
+			int var1, int var2, List<int[]> query) {
+            Int2ObjectMap<Int2LongMap> result = new Int2ObjectOpenHashMap<>();
+            Int2LongMap subresult;
+	    if (query.isEmpty()) {
+                return Int2ObjectMaps.emptyMap();
+            }
+            int bestPos = mostRestrictiveTriple(query);
+            if (bestPos == -1) {
+                return Int2ObjectMaps.emptyMap();
+            }
+            int[] best = query.get(bestPos);
+            if (contains(var1, best) && contains(var2, best) && numVariables(best) == 2) {
+                List<int[]> other = remove(bestPos, query);
+                Int2ObjectMap<IntSet> instantiations = resultsTwoVariables(var1, var2, best);
+                try (Instantiator insty1 = new Instantiator(other, var1)) {
+                    try (Instantiator insty2 = new Instantiator(other, var2)) {
+                        for (int val1 : instantiations.keySet()) {
+                            insty1.instantiate(val1);
+                            subresult = new Int2LongOpenHashMap();
+                            for (int val2 : instantiations.get(val1)) {
+                                long mn = (other.isEmpty()) ? 1 : countMappings(insty2.instantiate(val2));
+                                if (mn > 0) {
+                                    increase(subresult, val2, mn);
+                                }
+                            }
+                            if (!subresult.isEmpty()) {
+                                result.put(val1, subresult);
+                            }
+                        }
+                    }
+                }
+                return result;
+            }
+
+            // Go for the standard plan
+            try (Instantiator insty1 = new Instantiator(query, var1)) {
+                IntSet bindings = selectDistinct(var1, query);
+                for (int val1 : bindings) {
+                    subresult = selectDistinctMappings(var2, insty1.instantiate(val1));
+                    if (!subresult.isEmpty()) {
+                        result.put(val1, subresult);
+                    }
+                }
+            }
+            return (result);
+	}
+        
+        	/** Returns all (distinct) pairs of values that make the query true */
 	public Int2ObjectMap<IntSet> selectDistinct(
 			int var1, int var2, List<int[]> query) {
 		if (query.isEmpty())

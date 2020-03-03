@@ -2,10 +2,12 @@ package amie.data;
 
 import amie.data.tuple.IntTriple;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2LongMap;
+import it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntCollection;
-import it.unimi.dsi.fastutil.ints.IntComparator;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -92,6 +94,47 @@ public class U {
         
         public static void decrease(Int2IntMap r, int k) {
             decrease(r, k, 1);
+        }
+        
+                // IntHashMap utilities
+    
+        public static IntList decreasingKeys(Int2LongMap r) {
+            IntList result = new IntArrayList(r.keySet());
+            result.unstableSort((int e1, int e2) -> Long.compare(r.get(e2), r.get(e1)));
+            return result;
+        }
+    
+        public static void increase(Int2LongMap r, Int2LongMap p) {
+            for (int k : p.keySet()) {
+                increase(r, k, p.get(k));
+            }
+        }
+        
+        public static void increase(Int2LongMap r, Int2IntMap p) {
+            for (int k : p.keySet()) {
+                increase(r, k, p.get(k));
+            }
+        }
+        
+        public static void increase(Int2LongMap r, Int2ObjectMap<IntSet> p) {
+            for (int k : p.keySet()) {
+                increase(r, k, p.get(k).size());
+            }
+        }
+        
+        public static void increase(Int2LongMap r, IntSet p) {
+            for (int k : p) {
+                increase(r, k);
+            }
+        }
+        
+        public static void increase(Int2LongMap r, int k, long delta) {
+            r.put(k, r.getOrDefault(k, 0) + delta);
+            //r.put(k, r.get(k, 0) + delta);
+        }
+        
+        public static void increase(Int2LongMap r, int k) {
+            increase(r, k, 1);
         }
         
         /**
@@ -638,4 +681,18 @@ public class U {
 		return newList;
 	}
 	
+        public static Int2ObjectMap<Int2LongMap> transpose(Int2ObjectMap<Int2LongMap> matrix) {
+            Int2ObjectMap<Int2LongMap> result = new Int2ObjectOpenHashMap<>();
+            Int2LongMap subresult;
+            for (int k1 : matrix.keySet()) {
+                for (int k2 : matrix.get(k1).keySet()) {
+                    subresult = result.get(k2);
+                    if (subresult == null) {
+                        result.put(k2, subresult = new Int2LongOpenHashMap());
+                    }
+                    subresult.put(k1, matrix.get(k1).get(k2));
+                }
+            }
+            return result;
+        }
 }

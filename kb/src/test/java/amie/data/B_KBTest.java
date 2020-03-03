@@ -1,16 +1,13 @@
 package amie.data;
 
-import amie.data.tuple.IntArrays;
+import it.unimi.dsi.fastutil.ints.Int2LongMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import java.util.Arrays;
 
 import java.util.List;
 
-import javatools.datatypes.Pair;
 import junit.framework.TestCase;
 
 public class B_KBTest extends TestCase {
@@ -118,6 +115,66 @@ public class B_KBTest extends TestCase {
             }
             assertEquals(result, values);
             assertEquals(result, resultIterator);
+        }
+        
+        public void testSelectMappings() {
+            assertEquals(12, kb.size());
+            kb.add(KB.triple("<Jonathan>", "<livesIn>", "<Villejuif>"));
+            kb.add(KB.triple("<Jonathan>", "<worksAt>", "<Telecom>"));
+            kb.add(KB.triple("<Villejuif>", "<isLocatedIn>", "<France>"));
+            kb.add(KB.triple("<Luis>", "<worksAt>", "<INRIA>"));
+            kb.add(KB.triple("<INRIA>", "<isLocatedIn>", "<Paris>"));
+            assertEquals(4, kb.countMappings(KB.triples(KB.triple("?x", "<worksAt>", "<Telecom>"))));
+            assertEquals(6, kb.countMappings(KB.triples(KB.triple("?x", "<worksAt>", "?y"))));
+            assertEquals(5, kb.countMappings(
+                    KB.triples(KB.triple("?x", "<worksAt>", "?y"),
+                            KB.triple("?y", "<isLocatedIn>", "?z"))));
+            assertEquals(4, kb.countMappings(
+                    KB.triples(KB.triple("?x", "<worksAt>", "?y"),
+                            KB.triple("?x", "<wasBornIn>", "?z"))));
+            Int2LongMap r = kb.selectDistinctMappings(KB.map("?x"), KB.triples(KB.triple("?x", "<worksAt>", "<Telecom>")));
+            assertEquals(4, r.size());
+            assertTrue(r.containsKey(KB.map("<Luis>")));
+            assertEquals(1, r.get(KB.map("<Luis>")));
+            r = kb.selectDistinctMappings(KB.map("?y"), KB.triples(KB.triple("?x", "<worksAt>", "?y")));
+            assertEquals(3, r.size());
+            assertEquals(4, r.get(KB.map("<Telecom>")));
+            assertEquals(1, r.get(KB.map("<ESPOL>")));
+            assertEquals(1, r.get(KB.map("<INRIA>")));
+            r = kb.selectDistinctMappings(KB.map("?y"), 
+                    KB.triples(KB.triple("?x", "<worksAt>", "?y"),
+                            KB.triple("?y", "<isLocatedIn>", "?z")));
+            assertEquals(2, r.size());
+            assertEquals(4, r.get(KB.map("<Telecom>")));
+            assertEquals(1, r.get(KB.map("<INRIA>")));
+            r = kb.selectDistinctMappings(KB.map("?z"), 
+                    KB.triples(KB.triple("?x", "<worksAt>", "?y"),
+                            KB.triple("?y", "<isLocatedIn>", "?z")));
+            assertEquals(1, r.size());
+            assertEquals(5, r.get(KB.map("<Paris>")));
+            r = kb.selectDistinctMappings(KB.map("?x"), 
+                    KB.triples(KB.triple("?x", "<worksAt>", "?y"),
+                            KB.triple("?y", "<isLocatedIn>", "?z")));
+            assertEquals(4, r.size());
+            assertEquals(2, r.get(KB.map("<Luis>")));
+            assertEquals(1, r.get(KB.map("<Jonathan>")));
+            Int2ObjectMap<Int2LongMap> r2 = kb.selectDistinctMappings(KB.map("?x"), KB.map("?z"),
+                    KB.triples(KB.triple("?x", "<worksAt>", "?y"),
+                            KB.triple("?y", "<isLocatedIn>", "?z")));
+            assertEquals(4, r2.size());
+            assertEquals(1, r2.get(KB.map("<Luis>")).size());
+            assertEquals(2, r2.get(KB.map("<Luis>")).get(KB.map("<Paris>")));
+            assertEquals(1, r2.get(KB.map("<Jonathan>")).size());
+            assertEquals(1, r2.get(KB.map("<Jonathan>")).get(KB.map("<Paris>")));
+            r2 = kb.selectDistinctMappings(KB.map("?x"), KB.map("?y"),
+                    KB.triples(KB.triple("?x", "<worksAt>", "?y"),
+                            KB.triple("?y", "<isLocatedIn>", "?z")));
+            assertEquals(4, r2.size());
+            assertEquals(2, r2.get(KB.map("<Luis>")).size());
+            assertEquals(1, r2.get(KB.map("<Luis>")).get(KB.map("<Telecom>")));
+            assertEquals(1, r2.get(KB.map("<Luis>")).get(KB.map("<INRIA>")));
+            assertEquals(1, r2.get(KB.map("<Jonathan>")).size());
+            assertEquals(1, r2.get(KB.map("<Jonathan>")).get(KB.map("<Telecom>")));
         }
         
         public void testConnectedComponent() {

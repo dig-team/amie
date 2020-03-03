@@ -26,6 +26,8 @@ import junit.framework.TestCase;
  *  y_5         1       No
  * Expected dPreK: 1/1; 1/2; 2/3; 3/4; 3/5.
  * Expected dAP: (1 + 2/3 + 3/4) / 3 (to be verified)
+ * 
+ * Case 2: Predictions with same rank, distribution 2-2-1 such that:
  * Predictions  Score   Inside KB
  *  y_1         3       Yes
  *  y_2         3       No

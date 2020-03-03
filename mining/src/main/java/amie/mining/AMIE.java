@@ -35,6 +35,7 @@ import amie.mining.assistant.MiningAssistant;
 import amie.mining.assistant.RelationSignatureDefaultMiningAssistant;
 import amie.mining.assistant.experimental.DefaultMiningAssistantWithOrder;
 import amie.mining.assistant.experimental.GPro;
+import amie.mining.assistant.experimental.GRank;
 import amie.mining.assistant.experimental.LazyIteratorMiningAssistant;
 import amie.mining.assistant.experimental.LazyMiningAssistant;
 import amie.mining.assistant.variableorder.AppearanceOrder;
@@ -1328,6 +1329,9 @@ public class AMIE {
         if (assistant instanceof GPro) {
             finalHeaders.removeAll(Arrays.asList("PCA Confidence", "Std. Lower Bound", "PCA Lower Bound", "PCA Conf estimation", "PCA Body size"));
             finalHeaders.addAll(Arrays.asList("GPro tail conf", "GPro head conf"));
+        } else if (assistant instanceof GRank) {
+            finalHeaders.removeAll(Arrays.asList("PCA Confidence", "Std. Lower Bound", "PCA Lower Bound", "PCA Conf estimation", "PCA Body size"));
+            finalHeaders.addAll(Arrays.asList("GRank dMap tail", "GRank dMap head"));
         } else if (!assistant.isVerbose()) {
             finalHeaders.removeAll(Arrays.asList("Std. Lower Bound", "PCA Lower Bound", "PCA Conf estimation"));
         }

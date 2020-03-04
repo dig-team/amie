@@ -2085,6 +2085,68 @@ public class KB {
 				return (i);
 		return (-1);
 	}
+        
+        /**
+         * containStatus report if a variable appears only in atoms of the form
+         * DIFFERENTFROM, in other atoms or do not appear.
+         * 
+         * This is a necessary distinction in order to make the optimization
+         * existential detection works in the case of injective mappings where
+         * we artificially add atoms DIFFERENTFROM to ensure injectivity.
+         */
+        enum ContainStatus { No, Yes, OnlyDiff };
+        private ContainStatus containStatus(int var, List<int[]> triples) {
+            ContainStatus status = ContainStatus.No;
+            for (int[] triple : triples) {
+                    if (contains(var, triple)) {
+                        if (triple[1] == KB.DIFFERENTFROMbs) {
+                            status = ContainStatus.OnlyDiff;
+                        } else {
+                            return ContainStatus.Yes;
+                        }
+                    }
+                }
+                return status;
+        }
+        
+        /**
+         * existsOptimRewrite handle query rewriting when the containStatus is 
+         * onlyDiff.
+         * It is exact and rely on the number of possible instantiations of the 
+         * existential variable. If this number is superior to the number of 
+         * differentFrom constraints then we can safely ignore the existential 
+         * variable.
+         * @param query
+         * @param var
+         * @param inst
+         * @return 
+         */
+        public boolean existsOptimCanRewrite(int var, List<int[]> query, IntSet inst) {
+            int available = inst.size();
+            int otherPos;
+            for (int[] atom : query) {
+                if (!contains(var, atom)) continue;
+                if (atom[1] != KB.DIFFERENTFROMbs) continue;
+                otherPos = 2 - varpos(var, atom);
+                if (KB.isVariable(atom[otherPos])) {
+                    available--;
+                } else if (inst.contains(atom[otherPos])) {
+                    available--;
+                }
+            }
+            return (available > 0);
+        }
+        
+        public List<int[]> removeVariable(int var, List<int[]> query) {
+            // rewritte query
+            List<int[]> newQuery = new ArrayList<>();
+            for (int[] atom : query) {
+                if (!contains(var, atom)) {
+                    newQuery.add(atom.clone());
+                }
+            }
+            return newQuery;
+        }
 
 	/**
 	 * It returns TRUE if there exists one instantiation that satisfies
@@ -2104,7 +2166,7 @@ public class KB {
 	 */
 	public boolean existsBS1(List<int[]> triples) {
 		if (triples.isEmpty())
-			return (false);
+			return (true);
 		if (triples.size() == 1)
 			return (count(triples.get(0)) != 0);
 		int bestPos = mostRestrictiveTriple(triples);
@@ -2125,9 +2187,15 @@ public class KB {
 						+ KB.toString(triples));
 			}
                         otherTriples = remove(bestPos, triples);
-                        if (optimExistentialDetection && !contains(best[firstVarIdx], otherTriples)) {
-                            //if (otherTriples.isEmpty()) return (true);
-                            return (existsBS1(otherTriples));
+                        if (optimExistentialDetection) {
+                            switch(containStatus(best[firstVarIdx], otherTriples)) {
+                                case No: return (existsBS1(otherTriples));
+                                case OnlyDiff:
+                                    if (existsOptimCanRewrite(best[firstVarIdx], otherTriples, resultsOneVariable(best))) {
+                                        return existsBS1(removeVariable(best[firstVarIdx], otherTriples));
+                                    }
+                                default: break;
+                            }
                         }
 			try (Instantiator insty = new Instantiator(
 					otherTriples, best[firstVarIdx])) {
@@ -2142,8 +2210,10 @@ public class KB {
 			int secondVar = secondVariablePos(best);
 			otherTriples = remove(bestPos, triples);
                         Int2ObjectMap<IntSet> instantiations;
+                        ContainStatus ct1, ct2 = ContainStatus.Yes;
                         if (!optimExistentialDetection
-                                || (contains(best[firstVar], otherTriples) && contains(best[secondVar], otherTriples))) {
+                                || ((ct1 = containStatus(best[firstVar], otherTriples)) == ContainStatus.Yes
+                                && (ct2 = containStatus(best[secondVar], otherTriples)) == ContainStatus.Yes)) {
                             instantiations = resultsTwoVariablesByPos(firstVar, secondVar, best);
                             try (Instantiator insty1 = new Instantiator(otherTriples,
                                             best[firstVar]);
@@ -2158,17 +2228,59 @@ public class KB {
 				}
                             }
                         } else {
-                            int nonExistentialVariablePos = (contains(best[firstVar], otherTriples)) ? firstVar : secondVar;
-                            int existentialVariablePos = (contains(best[firstVar], otherTriples)) ? secondVar : firstVar;
+                            int nonExistentialVariablePos, existentialVariablePos;
+                            ContainStatus ct;
+                            switch(ct1) {
+                                case Yes: 
+                                    nonExistentialVariablePos = firstVar;
+                                    existentialVariablePos = secondVar;
+                                    ct = ct2;
+                                    break;
+                                default:
+                                    ct = ct1;
+                                    nonExistentialVariablePos = secondVar;
+                                    existentialVariablePos = firstVar;
+                                    break;
+                            }
                             instantiations = resultsTwoVariablesByPos(nonExistentialVariablePos, existentialVariablePos, best);
-                            try (Instantiator insty1 = new Instantiator(otherTriples, best[nonExistentialVariablePos])) {
-                                for (int val1 : instantiations.keySet()) {
-                                    if (existsBS1(insty1.instantiate(val1)))
-					return (true);
-                                }
+                            switch(ct) {
+                                case Yes: throw new IllegalStateException("Should not happen");
+                                case No:
+                                    try (Instantiator insty1 = new Instantiator(otherTriples, best[nonExistentialVariablePos])) {
+                                        for (int val1 : instantiations.keySet()) {
+                                            if (existsBS1(insty1.instantiate(val1)))
+                                                return (true);
+                                        }
+                                    }
+                                    return (false);
+                                case OnlyDiff:
+                                    IntSet inst2;
+                                    try (Instantiator insty1rew = new Instantiator(
+                                            removeVariable(best[existentialVariablePos], otherTriples), best[nonExistentialVariablePos])) {
+                                        try (Instantiator insty1 = new Instantiator(otherTriples, best[nonExistentialVariablePos])) {
+                                            try (Instantiator insty2 = new Instantiator(otherTriples, best[existentialVariablePos])) {
+                                                for (int val1 : instantiations.keySet()) {
+                                                    inst2 = instantiations.get(val1);
+                                                    if (existsOptimCanRewrite(best[existentialVariablePos], otherTriples, inst2)) {
+                                                        if (existsBS1(insty1rew.instantiate(val1))) {
+                                                            return (true);
+                                                        }
+                                                    } else {
+                                                        insty1.instantiate(val1);
+                                                        for (int val2 : inst2) {
+                                                            if (existsBS1(insty2.instantiate(val2))) {
+                                                                return (true);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    return (false);
                             }
                         }
-			return (false);
+			
 		case 3:
 		default:
 			return (size() != 0);
@@ -2328,15 +2440,34 @@ public class KB {
 						 == variable)? resultsTwoVariablesByPos(firstVar,
 						secondVar, best) : resultsTwoVariablesByPos(secondVar,
 						firstVar, best);
-                                int otherVariable =(best[firstVar] == variable)? secondVar : firstVar;
+                                int otherVariable = (best[firstVar] == variable)? secondVar : firstVar;
                                 List<int[]> otherTriples = remove(bestPos, query);
-				try (Instantiator insty = new Instantiator(
-                                        (contains(best[otherVariable], otherTriples)) ? query : otherTriples, variable)) {
-					for (int val : instantiations.keySet()) {
-						if (existsBS1(insty.instantiate(val)))
-							result.add(val);
-					}
-				}
+                                ContainStatus ct = containStatus(best[otherVariable], otherTriples);
+                                if (optimExistentialDetection 
+                                        && ct == ContainStatus.OnlyDiff) {
+                                    Instantiator inst;
+                                    try (Instantiator insty = new Instantiator(query, variable)) {
+                                        try (Instantiator instyrew = new Instantiator(removeVariable(best[otherVariable], query), variable)) {
+                                            for (int val : instantiations.keySet()) {
+                                                if (this.existsOptimCanRewrite(best[otherVariable], query, instantiations.get(val))) {
+                                                    inst = instyrew;
+                                                } else {
+                                                    inst = insty;
+                                                }
+                                                if (existsBS1(inst.instantiate(val)))
+                                            		result.add(val);
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    try (Instantiator insty = new Instantiator(
+                                            (ct != ContainStatus.No) ? query : otherTriples, variable)) {
+                                            for (int val : instantiations.keySet()) {
+                                            	if (existsBS1(insty.instantiate(val)))
+                                            		result.add(val);
+                                            }
+                                    }
+                                }
 				break;
 			case 3:
 			default:
@@ -2379,9 +2510,15 @@ public class KB {
 			return (selectDistinct(variable, others));
 		case 1:
 			int var = best[firstVariablePos(best)];
-                        if (optimExistentialDetection && !contains(var, others)) {
+                        if (optimExistentialDetection) {
+                            switch (containStatus(variable, others)) {
+                                case No: return (selectDistinct(variable, others));
+                                case OnlyDiff:
+                                    if (existsOptimCanRewrite(variable, others, resultsOneVariable(best))) {
+                                        return (selectDistinct(variable, removeVariable(variable, others)));
+                                    }
+                            }
                             // Can be used for 4+ atoms rules.
-                            return (selectDistinct(variable, others));
                         }
 			try (Instantiator insty = new Instantiator(others, var)) {
 				for (int inst : resultsOneVariable(best)) {
@@ -2393,8 +2530,10 @@ public class KB {
 		case 2:
                         int firstVar = firstVariablePos(best);
                         int secondVar = secondVariablePos(best);
-                        if (!optimExistentialDetection // Always execute if the optim is deactivated
-                                || (contains(best[firstVar], others) && contains(best[secondVar], others))) {
+                        ContainStatus ct1, ct2 = ContainStatus.Yes;
+                        if (!optimExistentialDetection
+                                || ((ct1 = containStatus(best[firstVar], others)) == ContainStatus.Yes
+                                && (ct2 = containStatus(best[secondVar], others)) == ContainStatus.Yes)) {
                             instantiations = resultsTwoVariablesByPos(firstVar, secondVar, best);
                             try (Instantiator insty1 = new Instantiator(others, best[firstVar]);
                                     Instantiator insty2 = new Instantiator(others,
@@ -2408,17 +2547,55 @@ public class KB {
                                 }
                             }
 			} else {
-                            int nonExistentialVariablePos = (contains(best[firstVar], others)) ? firstVar : secondVar;
-                            int existentialVariablePos = (contains(best[firstVar], others)) ? secondVar : firstVar;
+                            int nonExistentialVariablePos, existentialVariablePos;
+                            ContainStatus ct;
+                            switch(ct1) {
+                                case Yes: 
+                                    nonExistentialVariablePos = firstVar;
+                                    existentialVariablePos = secondVar;
+                                    ct = ct2;
+                                    break;
+                                default:
+                                    ct = ct1;
+                                    nonExistentialVariablePos = secondVar;
+                                    existentialVariablePos = firstVar;
+                                    break;
+                            }
                             instantiations = resultsTwoVariablesByPos(nonExistentialVariablePos, existentialVariablePos, best);
-                            try (Instantiator insty1 = new Instantiator(others, best[nonExistentialVariablePos])) {
-                                for (int val1 : instantiations.keySet()) {
-                                    result.addAll(selectDistinct(variable,
-					insty1.instantiate(val1)));
-                                }
+                            switch(ct) {
+                                case Yes: throw new IllegalStateException("Should not happen");
+                                case No:
+                                    try (Instantiator insty1 = new Instantiator(others, best[nonExistentialVariablePos])) {
+                                        for (int val1 : instantiations.keySet()) {
+                                            result.addAll(selectDistinct(variable,
+                                                insty1.instantiate(val1)));
+                                        }
+                                    }
+                                    break;
+                                case OnlyDiff:
+                                    IntSet inst2;
+                                    try (Instantiator insty1rew = new Instantiator(
+                                            removeVariable(best[existentialVariablePos], others), best[nonExistentialVariablePos])) {
+                                        try (Instantiator insty1 = new Instantiator(others, best[nonExistentialVariablePos])) {
+                                            try (Instantiator insty2 = new Instantiator(others, best[existentialVariablePos])) {
+                                                for (int val1 : instantiations.keySet()) {
+                                                    inst2 = instantiations.get(val1);
+                                                    if (existsOptimCanRewrite(best[existentialVariablePos], others, inst2)) {
+                                                        result.addAll(selectDistinct(variable, insty1rew.instantiate(val1)));
+                                                    } else {
+                                                        insty1.instantiate(val1);
+                                                        for (int val2 : inst2) {
+                                                            result.addAll(selectDistinct(variable, insty2.instantiate(val2)));
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    break;
                             }
                         }
-			break;
+                        break;
 		case 3:
 		default:
 			firstVar = firstVariablePos(best);

@@ -6,6 +6,7 @@
 package amie.mining.assistant.experimental;
 
 import amie.data.KB;
+import amie.data.KB.Instantiator;
 import amie.data.SetU;
 import amie.data.U;
 import static amie.data.U.decreasingKeys;
@@ -212,25 +213,30 @@ public class GRank extends InjectiveMappingsAssistant {
         return (result / aSet.size());
     }
     
-    public IntSet computeQSetForX(int[] head, int xpos, Int2ObjectMap<Int2LongMap> scores) {
-        int[] hquery = Arrays.copyOf(head, 3);
-        List<int[]> query = new ArrayList<>(1);
-        query.add(hquery);
-        return (new IntOpenHashSet(new SetU.intersectionIntIterator(
-            scores.keySet(),
-            kb.selectDistinct(hquery[xpos], query))));
+    public IntSet computeQSetForX(int[] head, List<int[]> injectiveBody, int xpos) {
+        int[] existentialAtom = head.clone();
+        List<int[]> query = U.deepCloneInt(injectiveBody);
+        existentialAtom[2-xpos] = KB.map("?x9");
+        query.add(existentialAtom);
+        return kb.selectDistinct(head[xpos], query);
     }
     
-    public double computeDMapForX(int[] head, int xpos, Int2ObjectMap<Int2LongMap> scores) {
-        IntSet qSet = this.computeQSetForX(head, xpos, scores);
+    public double computeDMapForX(Rule r, int xpos) {
+        int[] head = r.getHead();
+        List<int[]> query = r.injectiveBody();
+        IntSet qSet = computeQSetForX(head, query, xpos);
         if (qSet.isEmpty()) { return 0; }
         Int2ObjectMap<IntPair> dRank;
         IntSet aSet;
         double result = 0;
-        for (int x : qSet) {
-            dRank = this.computeDRankOfX(scores.get(x));
-            aSet = this.computeASetForX(head, xpos, x, dRank);
-            result += this.computeDAveragePrecisionForX(aSet, dRank);
+        Int2LongMap scores;
+        try (Instantiator insty = new Instantiator(query, head[xpos])) {
+            for (int x : qSet) {
+                scores = kb.selectDistinctMappings(head[2-xpos], insty.instantiate(x));
+                dRank = this.computeDRankOfX(scores);
+                aSet = this.computeASetForX(head, xpos, x, dRank);
+                result += this.computeDAveragePrecisionForX(aSet, dRank);
+            }
         }
         return (result / qSet.size());
     }
@@ -240,23 +246,16 @@ public class GRank extends InjectiveMappingsAssistant {
         if (!KB.isVariable(head[0]) || !KB.isVariable(head[2])) {
             throw new UnsupportedOperationException("Constants in the head atoms are not (yet ?) supported by GRank");
         }
-        long t1 = System.currentTimeMillis();
-        Int2ObjectMap<Int2LongMap> scores = kb.selectDistinctMappings(head[0], head[2], r.injectiveBody());
-        long t2 = System.currentTimeMillis();
-        if ((t2 - t1) > 20000 && this.verbose) {
-            System.err.println("GRank computing scores of " + KB.toString(r.getTriples()) + " has taken " + (t2 - t1) + " ms");
-        }
         
-        t1 = System.currentTimeMillis();
-        r.setMeasure("GRank_map_tail", computeDMapForX(head, 0, scores));
-        t2 = System.currentTimeMillis();
+        long t1 = System.currentTimeMillis();
+        r.setMeasure("GRank_map_tail", computeDMapForX(r, 0));
+        long t2 = System.currentTimeMillis();
         if ((t2 - t1) > 20000 && this.verbose) {
             System.err.println("GRank_map_tail of " + KB.toString(r.getTriples()) + " has taken " + (t2 - t1) + " ms");
         }
         
-        scores = U.transpose(scores);
         t1 = System.currentTimeMillis();
-        r.setMeasure("GRank_map_head", computeDMapForX(head, 2, scores));
+        r.setMeasure("GRank_map_head", computeDMapForX(r, 2));
         t2 = System.currentTimeMillis();
         if ((t2 - t1) > 20000 && this.verbose) {
             System.err.println("GRank_map_head of " + KB.toString(r.getTriples()) + " has taken " + (t2 - t1) + " ms");

@@ -86,4 +86,4 @@ The present repository also contains the code for the following paper:
 > [“Are All People Married? Determining Obligatory Attributes in Knowledge Bases”](https://suchanek.name/work/publications/www-2018.pdf)  
 > Full paper at the Web Conference  (WWW) , 2018  
 
-This code resides in: kb/ rosa/ rules/ 
+The code resides in: typing/

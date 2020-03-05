@@ -142,7 +142,7 @@ public class GRank extends InjectiveMappingsAssistant {
      * @return 
      */
     public Int2ObjectMap<IntPair> computeDRankOfX(Int2LongMap scores) {
-        Int2ObjectMap<IntPair> result = new Int2ObjectOpenHashMap<>();
+        Int2ObjectMap<IntPair> result = new Int2ObjectOpenHashMap<>(scores.size());
         int rank = 0;
         int size;
         long score;

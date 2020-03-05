@@ -112,7 +112,8 @@ public class GRank extends InjectiveMappingsAssistant {
 	}
     
     /**
-     * Computes the DRank matrix of GRank.
+     * Given the scores of the predictions for X, returns for any prediction y
+     * the index and the size of the block $N_d$ it belongs to.
      * 
      * For what I understood, given the entities ordered according to their rank
      * and U_d being the matrix of size $d \times d$ filled with ones, then the
@@ -124,21 +125,10 @@ public class GRank extends InjectiveMappingsAssistant {
      * 
      * The size of the matrix is the number of predictions y for a given x for
      * a rule B => r(x, y) (or r(y, x) for the head version), e.g the number of 
-     * mappings of the body for any prediction y.
-     * 
-     * If no variable different than the head variables is present in the Body, 
-     * the score of any prediction is one.
-     */
-    public void computeDRank(Rule r) {
-        throw new UnsupportedOperationException("Kept for the javadoc");
-    }
-    
-    /**
-     * Given the scores of the predictions for X, returns for any prediction y
-     * the index and the size of the block $N_d$ it belongs to.
+     * mappings of the body for a given x.
      * 
      * Warning: indexes starts at 0.
-     * @param scores
+     * @param scores: A map from the predictions y to their score.
      * @return 
      */
     public Int2ObjectMap<IntPair> computeDRankOfX(Int2LongMap scores) {

@@ -82,7 +82,7 @@ public class GPro extends InjectiveMappingsAssistant {
                                             && candidate.getMeasure("GPro_conf_tail") <= ancestors.get(i).getMeasure("GPro_conf_tail")
                                             && candidate.getMeasure("GPro_conf_head") <= ancestors.get(i).getMeasure("GPro_conf_head"))
                                         addIt = false;
-					break;   
+					break;
 				} else {
 					ancestorConfidence = ancestors.get(i).getStdConfidence();
 					ruleConfidence = candidate.getStdConfidence();
@@ -132,8 +132,8 @@ public class GPro extends InjectiveMappingsAssistant {
                     pcaDenominator = (double) this.kb.countDistinct(rule.getFunctionalVariable(), antecedent);
                 } else {
                     pcaDenominator = (double) computePcaBodySize(
-                            order.getFirstCountVariable(rule),
-                            order.getSecondCountVariable(rule), rule, rule.injectiveBody(), existentialTriple, freeVarPos);
+                            succedent[0],
+                            succedent[2], rule, rule.injectiveBody(), existentialTriple, freeVarPos);
                 }
                 rule.setMeasure("GPro_conf_tail_body", pcaDenominator);
                 rule.setMeasure("GPro_conf_tail", (1.0*rule.getSupport()) / pcaDenominator);
@@ -176,8 +176,8 @@ public class GPro extends InjectiveMappingsAssistant {
                     pcaDenominator = (double) this.kb.countDistinct(rule.getFunctionalVariable(), antecedent);
                 } else {
                     pcaDenominator = (double) computePcaBodySize(
-                            order.getFirstCountVariable(rule),
-                            order.getSecondCountVariable(rule), rule, rule.injectiveBody(), existentialTriple, freeVarPos);
+                            succedent[2],
+                            succedent[0], rule, rule.injectiveBody(), existentialTriple, freeVarPos);
                 }
                 rule.setMeasure("GPro_conf_head_body", pcaDenominator);
                 rule.setMeasure("GPro_conf_head", (1.0*rule.getSupport()) / pcaDenominator);

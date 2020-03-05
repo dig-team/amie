@@ -182,6 +182,22 @@ public class GRank extends InjectiveMappingsAssistant {
             kb.selectDistinct(hquery[ypos], query))));
     }
     
+    /**
+     * Computes all the precision at K of the ranked elements and returns them
+     * in a array of double.
+     * 
+     * An element y of the aSet has a contribution to the precision at K of 
+     *  (d being the number of entity with the same rank than y): 
+     * * 0 if first-rank(y) &lt; K
+     * * (K - first-rank(y)) / d if first-rank(y) &lt;= K &lt; first-rank(y) + d
+     * * 1 otherwise
+     * 
+     * The normalization by the factor K is done at the end.
+     * 
+     * @param aSet
+     * @param dRank
+     * @return 
+     */
     public double[] computeDPrecisionAtKForX(IntSet aSet, Int2ObjectMap<IntPair> dRank) {
         double[] result = new double[dRank.size()];
         for (int y : aSet) {
@@ -199,6 +215,19 @@ public class GRank extends InjectiveMappingsAssistant {
         return result;
     }
     
+    /**
+     * Computes the Average Precision given ranked elements.
+     * 
+     * The rank score at rank K of y of the aSet is always:
+     *  (d being the number of entity with the same rank than y): 
+     * * 0 if first-rank(y) &lt; K
+     * * 1 / d if first-rank(y) &lt;= K &lt; first-rank(y) + d
+     * * 0 otherwise
+     * 
+     * @param aSet
+     * @param dRank
+     * @return 
+     */
     public double computeDAveragePrecisionForX(IntSet aSet, Int2ObjectMap<IntPair> dRank) {
         double result = 0;
         if (aSet.isEmpty()) return 0;
@@ -209,7 +238,6 @@ public class GRank extends InjectiveMappingsAssistant {
                 result += kPrecision[i] / rs.second;
             }
         }
-        // Not sure this is the good ratio to apply.
         return (result / aSet.size());
     }
     

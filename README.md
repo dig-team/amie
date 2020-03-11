@@ -76,6 +76,10 @@ Lajus, J., Galárraga, L., & Suchanek, F. M (2020). Fast and Exact Rule Mining w
 
 ```java -jar amie-milestone-intKB.jar -bias lazy -full -noHeuristics -ostd [TSV file]```
 
+Experimental implementation of the GPro and GRank measures can be found in the "gpro" branch. After recompiling the sources ot this branch, use:
+
+```java -jar amie3.jar -bias amie.mining.assistant.experimental.[GPro|GRank] [TSVFile]```
+
 **Data**: 
 
 ### Determining Obligatory Attributes in Knowledge Bases

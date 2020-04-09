@@ -15,6 +15,7 @@ import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import java.util.Set;
 
 public class TypingMiningAssistant extends DefaultMiningAssistant {
 	
@@ -263,11 +264,11 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 		
 		if(candidate.getStdConfidence() >= minStdConfidence){
 			//Now check the confidence with respect to its ancestors
-			List<Rule> ancestors = candidate.getAncestors();			
-			for(int i = 0; i < ancestors.size(); ++i){
-				double ancestorConfidence = ancestors.get(i).getStdConfidence();
+			Set<Rule> ancestors = candidate.getAncestors();
+			for(Rule ancestor : ancestors){
+				double ancestorConfidence = ancestor.getStdConfidence();
 				// Skyline technique on PCA confidence					
-				if ((ancestors.get(i).getLength() > 1) && 
+				if ((ancestor.getLength() > 1) &&
 					  (ancestorConfidence > candidate.getStdConfidence())) {
 					return false;
 				}

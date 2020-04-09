@@ -33,6 +33,7 @@ import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import java.util.HashSet;
 
 /**
  * A class that represents Horn rules of the form A =&gt; B where A is a conjunction of binary atoms
@@ -90,7 +91,7 @@ public class Rule {
      * List of parents: queries that are equivalent to the current query but
      * contain a body atom less.
      */
-    private List<Rule> ancestors;
+    private Set<Rule> ancestors;
 
     /**
      * The position of the counting variable in the head atom
@@ -260,7 +261,7 @@ public class Rule {
         this.stdConfidenceUpperBound = 0.0;
         this.pcaConfidenceUpperBound = 0.0;
         this.pcaConfidenceEstimation = 0.0;
-        this.ancestors = new ArrayList<>();
+        this.ancestors = new HashSet<>();
         this.generation = -1;
     }
 
@@ -285,7 +286,7 @@ public class Rule {
         this.stdConfidenceUpperBound = 0.0;
         this.pcaConfidenceUpperBound = 0.0;
         this.pcaConfidenceEstimation = 0.0;
-        this.ancestors = new ArrayList<>();
+        this.ancestors = new HashSet<>();
         this.generation = -1;        
     }
     
@@ -311,7 +312,7 @@ public class Rule {
         this.stdConfidenceUpperBound = 0.0;
         this.pcaConfidenceUpperBound = 0.0;
         this.pcaConfidenceEstimation = 0.0;
-        this.ancestors = new ArrayList<>();
+        this.ancestors = new HashSet<>();
         this.generation = -1;        
     }
 
@@ -331,7 +332,7 @@ public class Rule {
         this.stdConfidenceUpperBound = 0.0;
         this.pcaConfidenceUpperBound = 0.0;
         this.pcaConfidenceEstimation = 0.0;
-        this.ancestors = new ArrayList<>();
+        this.ancestors = new HashSet<>();
         this.generation = -1;
     }
     
@@ -408,8 +409,7 @@ public class Rule {
     }
     
     public List<int[]> getTriplesCopy() {
-    	List<int[]> copyOfTriples = new ArrayList<>(triples);
-    	return copyOfTriples;
+    	return U.deepCloneInt(getTriples());
     }
 
     /**
@@ -1228,8 +1228,7 @@ public class Rule {
      * @param parent
      */
     public void addParent(Rule parent) {
-    	if (!this.ancestors.contains(parent))
-    		this.ancestors.add(parent);
+        this.ancestors.add(parent);
     }
     
     public boolean containsParent(Rule parent) {
@@ -1383,7 +1382,7 @@ public class Rule {
         if (((long)support) != ((long)other.support)) {
             return false;
         }
-        return QueryEquivalenceChecker2.areEquivalent(getTriples(), other.getTriples());
+        return QueryEquivalenceChecker3.areEquivalent(getTriples(), other.getTriples());
     }
 
     public String getRuleString() {
@@ -1655,7 +1654,7 @@ public class Rule {
         triples.removeAll(toRemove);
     }
 
-    public List<Rule> getAncestors() {
+    public Set<Rule> getAncestors() {
         return ancestors;
     }
 
@@ -2370,7 +2369,7 @@ public class Rule {
 			for (int idx : cmb) {
 				subsetOfAtoms.add(targetAntecedent.get(idx));
 			}
-			if (QueryEquivalenceChecker.areEquivalent(subsetOfAtoms, triples))
+			if (QueryEquivalenceChecker3.areEquivalent(subsetOfAtoms, triples))
 				return true;
 		}
 		

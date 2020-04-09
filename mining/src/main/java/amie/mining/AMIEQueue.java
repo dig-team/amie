@@ -24,7 +24,7 @@ public final class AMIEQueue {
 	
 	private final Condition empty = lock.newCondition(); 
 	
-	private LinkedHashSet<Rule> current;
+	private Iterator<Rule> current;
 	
 	private LinkedHashSet<Rule> next;
 	
@@ -38,14 +38,10 @@ public final class AMIEQueue {
 		this.generation = 1;
 		this.maxThreads = maxThreads; 
 		this.waitingThreads = 0;
-		this.current = new LinkedHashSet<>();
-		for (Rule seed : seeds) {
-			seed.setGeneration(generation);
-			this.current.add(seed);
-		}
-		this.generation++;
 		this.next = new LinkedHashSet<>();
-               this.done = false;
+		this.queueAll(seeds);
+		this.nextGeneration();
+                this.done = false;
 	}
 	
 	/**
@@ -113,7 +109,7 @@ public final class AMIEQueue {
         public Rule dequeue() throws InterruptedException {
             lock.lock();
             Rule item = null;
-            while (current.isEmpty() && !done) {
+            while (!current.hasNext() && !done) {
                 ++waitingThreads;
                 if (waitingThreads < maxThreads) {
                     empty.await();
@@ -141,21 +137,18 @@ public final class AMIEQueue {
 	 * @return
 	 */
 	private Rule poll() {
-    	Iterator<Rule> iterator = current.iterator();
-        Rule nextItem = iterator.next();
-        iterator.remove();
-        return nextItem;		
+            return current.next();
 	}
 
 
 	private void nextGeneration() {
 		generation++;
-		current = next;
+		current = next.iterator();
 		next = new LinkedHashSet<>();
 	}
 	
 	public boolean isEmpty() {
-		return current.isEmpty() && next.isEmpty();
+		return !current.hasNext() && next.isEmpty();
 	}
 	
 	public int getGeneration() {

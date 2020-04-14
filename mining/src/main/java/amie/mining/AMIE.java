@@ -626,8 +626,11 @@ public class AMIE {
         MiningAssistant mineAssistant = null;
         IntCollection bodyExcludedRelations = null;
         IntCollection headExcludedRelations = null;
+        IntCollection instantiationExcludedRelations = null;
         IntCollection headTargetRelations = null;
         IntCollection bodyTargetRelations = null;
+        IntCollection instantiationTargetRelations = null;
+
         KB targetSource = null;
         KB schemaSource = null;
         int nThreads = nProcessors; // By default use as many threads as processors.
@@ -682,6 +685,13 @@ public class AMIE {
                         + "(incompatible with head-target-relations). Example: <livesIn>,<bornIn>")
                 .create("hexr");
 
+        Option instantiationExcludedOpt = OptionBuilder.withArgName("instantiation-excluded-relations")
+                .hasArg()
+                .withDescription("Do not instantiate these relations. "
+                        + "Should be used with -fconst or -const "
+                        + "(incompatible with instantiation-target-relations). Example: <livesIn>,<bornIn>")
+                .create("iexr");
+
         Option headTargetRelationsOpt = OptionBuilder.withArgName("head-target-relations")
                 .hasArg()
                 .withDescription("Mine only rules with these relations in the head. "
@@ -696,6 +706,15 @@ public class AMIE {
                         + "names separated by commas (incompatible with body-excluded-relations). "
                         + "Example: <livesIn>,<bornIn>")
                 .create("btr");
+
+        Option instantiationTargetOpt = OptionBuilder.withArgName("instantiation-target-relations")
+                .hasArg()
+                .withDescription("Allow only these relations to be instantiated. "
+                        + "Should be used with -fconst or -const. "
+                        + "Provide a list of relation names separated by commas "
+                        + "(incompatible with instantiation-excluded-relations). "
+                        + "Example: <livesIn>,<bornIn>")
+                .create("itr");
 
         Option maxDepthOpt = OptionBuilder.withArgName("max-depth")
                 .hasArg()
@@ -840,10 +859,12 @@ public class AMIE {
         options.addOption(realTimeOpt);
         options.addOption(bodyExcludedOpt);
         options.addOption(headExcludedOpt);
+        options.addOption(instantiationExcludedOpt);
         options.addOption(maxDepthOpt);
         options.addOption(pcaConfThresholdOpt);
         options.addOption(headTargetRelationsOpt);
         options.addOption(bodyTargetRelationsOpt);
+        options.addOption(instantiationTargetOpt);
         options.addOption(allowConstantsOpt);
         options.addOption(enforceConstantsOpt);
         options.addOption(countOnSubjectOpt);
@@ -896,6 +917,24 @@ public class AMIE {
 
         if (cli.hasOption("btr") && cli.hasOption("bexr")) {
             System.err.println("The options body-target-relations and body-excluded-relations cannot appear at the same time");
+            formatter.printHelp("AMIE+", options);
+            System.exit(1);
+        }
+
+        if (cli.hasOption("itr") && cli.hasOption("iexr")) {
+            System.err.println("The options instantiation-target-relations and instantiation-excluded-relations cannot appear at the same time");
+            formatter.printHelp("AMIE+", options);
+            System.exit(1);
+        }
+
+        if (cli.hasOption("itr") && !(cli.hasOption("const") || cli.hasOption("fconst"))) {
+            System.err.println("The option instantiation-target-relations should be used  with -const or -fconst");
+            formatter.printHelp("AMIE+", options);
+            System.exit(1);
+        }
+
+        if (cli.hasOption("iexr") && !(cli.hasOption("const") || cli.hasOption("fconst"))) {
+            System.err.println("The option instantiation-excluded-relations should be used  with -const or -fconst");
             formatter.printHelp("AMIE+", options);
             System.exit(1);
         }
@@ -993,6 +1032,24 @@ public class AMIE {
             String[] excludedValueArr = excludedValuesStr.split(",");
             for (String excludedValue : excludedValueArr) {
                 headExcludedRelations.add(KB.map(excludedValue.trim()));
+            }
+        }
+
+        if (cli.hasOption("itr")) {
+            instantiationTargetRelations = new IntArrayList();
+            String targetValuesStr = cli.getOptionValue("itr");
+            String[] targetValueArr = targetValuesStr.split(",");
+            for (String targetValue : targetValueArr) {
+                instantiationTargetRelations.add(KB.map(targetValue.trim()));
+            }
+        }
+
+        if (cli.hasOption("iexr")) {
+            instantiationExcludedRelations = new IntArrayList();
+            String excludedValuesStr = cli.getOptionValue("iexr");
+            String[] excludedValueArr = excludedValuesStr.split(",");
+            for (String excludedValue : excludedValueArr) {
+                instantiationExcludedRelations.add(KB.map(excludedValue.trim()));
             }
         }
 
@@ -1263,7 +1320,9 @@ public class AMIE {
         mineAssistant.setEnforceConstants(enforceConstants);
         mineAssistant.setBodyExcludedRelations(bodyExcludedRelations);
         mineAssistant.setHeadExcludedRelations(headExcludedRelations);
+        mineAssistant.setInstantiationExcludedRelations(instantiationExcludedRelations);
         mineAssistant.setTargetBodyRelations(bodyTargetRelations);
+        mineAssistant.setInstantiationTargetRelations(instantiationTargetRelations);
         mineAssistant.setCountAlwaysOnSubject(countAlwaysOnSubject);
         mineAssistant.setRecursivityLimit(recursivityLimit);
         mineAssistant.setAvoidUnboundTypeAtoms(avoidUnboundTypeAtoms);

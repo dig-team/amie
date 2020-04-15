@@ -27,10 +27,13 @@ public class Evaluator {
 		if (triple == null) {
 			System.out.println("Triple is null");			
 		}
-		// TODO Auto-generated method stub
+
 		int returnVal = 3;
-		int[] head = Rule.fullyUnboundTriplePattern1();
+		int[] head = new int[3];
+		head[0] = KB.map("?s");
 		head[1] = triple[1];
+		head[2] = KB.map("?o");
+
 		boolean relationIsFunctional = 
 				training.functionality(triple[1]) >= 0.9 
 				|| training.inverseFunctionality(triple[1]) >= 0.84;

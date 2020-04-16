@@ -269,7 +269,7 @@ public class Predictor {
 
 	private void printPredictions(Rule rule, Collection<IntTriple> newPredictions) {
 		for(IntTriple triple: newPredictions){
-			System.out.println(rule.getRuleString() + "\t" + triple.first + "\t" + triple.second + "\t" + triple.third);
+			System.out.println(rule.getRuleString() + "\t" + KB.unmap(triple.first) + "\t" + KB.unmap(triple.second) + "\t" + KB.unmap(triple.third));
 		}
 	}
 

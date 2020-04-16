@@ -128,8 +128,10 @@ public class Evaluator {
 		FileWriter automaticEvalOut = new FileWriter(new File(args[4]));
 		PrintWriter manualEvalPw = new PrintWriter(manualEvalOut);
 		PrintWriter automaticEvalPw = new PrintWriter(automaticEvalOut);
-		int lineNumber = 1;
+		int lineNumber = 0;
 		for(List<String> record: tsvFile){
+			lineNumber += 1;
+
 			if(record.size() < 4){
 				System.err.println("Warning: record at line " + lineNumber + " has wrong format, ignoring it");
 				continue;
@@ -154,7 +156,7 @@ public class Evaluator {
 			int evalCode = evaluate(currentRule, triple, trainingDataset, targetDataset);
 			if(evalCode == 3){
 				//Output it in the manual evaluation file
-				manualEvalPw.println(currentRule.getRuleString() + "\t" + triple[0] + "\t" + triple[1] + "\t" + triple[2] + "\tManualEvaluation");
+				manualEvalPw.println(currentRule.getRuleString() + "\t" + KB.unmap(triple[0]) + "\t" + KB.unmap(triple[1]) + "\t" + KB.unmap(triple[2]) + "\tManualEvaluation");
 			}else{
 				EvalResult evalResult = EvalResult.Unknown;
 				EvalSource evalSource = EvalSource.Undefined;
@@ -172,7 +174,7 @@ public class Evaluator {
 					evalSource = EvalSource.TargetSource;
 					break;
 				}
-				automaticEvalPw.println(currentRule.getRuleString() + "\t" + triple[0] + "\t" + triple[1] + "\t" + triple[2] + "\t" + evalSource + "\t" + evalResult);	
+				automaticEvalPw.println(currentRule.getRuleString() + "\t" + KB.unmap(triple[0]) + "\t" + KB.unmap(triple[1]) + "\t" + KB.unmap(triple[2]) + "\t" + evalSource + "\t" + evalResult);
 			}
 			
 			lastRule = currentRule;

@@ -82,7 +82,7 @@ public class RuleHitsEvaluator {
 				IntSet oneVarBindings = (IntSet)bindings;
 				for(int binding: oneVarBindings){
 					IntTriple t = 
-							new IntTriple(KB.map("?a"), head[1], KB.map("?b"));
+							new IntTriple(head[0], head[1], head[2]);
 					if (q.getFunctionalVariablePosition() == 0) {
 						t.first = binding;
 					} else {

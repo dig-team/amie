@@ -82,7 +82,7 @@ public class RuleHitsEvaluator {
 				IntSet oneVarBindings = (IntSet)bindings;
 				for(int binding: oneVarBindings){
 					IntTriple t = 
-							new IntTriple(KB.map("?a"), head[1], KB.map("?b"));
+							new IntTriple(head[0], head[1], head[2]);
 					if (q.getFunctionalVariablePosition() == 0) {
 						t.first = binding;
 					} else {
@@ -91,10 +91,10 @@ public class RuleHitsEvaluator {
 					predictions.increase(t);
 				}
 			}else{
-				Int2ObjectMap<Int2IntMap> twoVarsBindings = 
-						(Int2ObjectMap<Int2IntMap>)bindings;
+				Int2ObjectMap<IntSet> twoVarsBindings =
+						(Int2ObjectMap<IntSet>)bindings;
 				for(int value1: twoVarsBindings.keySet()){
-					for(int value2: twoVarsBindings.get(value1).keySet()){
+					for(int value2: twoVarsBindings.get(value1)){
 						IntTriple t = 
 								new IntTriple(KB.map("?a"), head[1], KB.map("?b"));
 						if(q.getFunctionalVariablePosition() == 0){

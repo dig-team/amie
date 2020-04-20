@@ -221,7 +221,7 @@ public class Predictor {
 		// TODO Auto-generated method stub
 		int nVars = KB.numVariables(rule.getHead());
 		if(nVars == 2){
-			return samplePredictionsTwoVariables((Int2ObjectMap<Int2IntMap>)predictions, rule);
+			return samplePredictionsTwoVariables((Int2ObjectMap<IntSet>)predictions, rule);
 		}else if(nVars == 1){
 			return samplePredictionsOneVariable((IntSet)predictions, rule);			
 		}
@@ -235,7 +235,7 @@ public class Predictor {
 	}
 
 	private Collection<IntTriple> 
-	samplePredictionsTwoVariables(Int2ObjectMap<Int2IntMap> predictions, Rule rule) {
+	samplePredictionsTwoVariables(Int2ObjectMap<IntSet> predictions, Rule rule) {
 		IntSet keySet = predictions.keySet();
 		int relation = rule.getHead()[1];
 		//Depending on the counting variable the order is different
@@ -244,7 +244,7 @@ public class Predictor {
 				new HashSet<IntTriple>();
 		
 		for(int value1: keySet){
-			for(int value2: predictions.get(value1).keySet()){
+			for(int value2: predictions.get(value1)){
 				IntTriple triple = 
 						new IntTriple(0, 0, 0);
 				
@@ -269,7 +269,7 @@ public class Predictor {
 
 	private void printPredictions(Rule rule, Collection<IntTriple> newPredictions) {
 		for(IntTriple triple: newPredictions){
-			System.out.println(rule.getRuleString() + "\t" + triple.first + "\t" + triple.second + "\t" + triple.third);
+			System.out.println(rule.getRuleString() + "\t" + KB.unmap(triple.first) + "\t" + KB.unmap(triple.second) + "\t" + KB.unmap(triple.third));
 		}
 	}
 
@@ -283,7 +283,7 @@ public class Predictor {
 		// TODO Auto-generated method stub
 		int nVars = KB.numVariables(rule.getHead());
 		if(nVars == 2){
-			return samplePredictionsTwoVariables((Int2ObjectMap<Int2IntMap>)predictions, rule, allPredictions);
+			return samplePredictionsTwoVariables((Int2ObjectMap<IntSet>)predictions, rule, allPredictions);
 		}else if(nVars == 1){
 			return samplePredictionsOneVariable((IntSet)predictions, rule, allPredictions);			
 		}
@@ -294,13 +294,33 @@ public class Predictor {
 	private Collection<IntTriple> samplePredictionsOneVariable(IntSet predictions,
 			Rule rule,
 			Int2ObjectMap<Int2ObjectMap<IntSet>> allPredictions) {
-		// TODO Auto-generated method stub
-		return null;
-		
+		int[] head = rule.getHead();
+		//Depending on the counting variable the order is different
+		int countingVarPos = rule.getFunctionalVariablePosition();
+		Set<IntTriple> samplingCandidates =
+				new LinkedHashSet<IntTriple>();
+
+		for(int binding: predictions){
+			IntTriple triple =
+					new IntTriple(head[0], head[1], head[2]);
+			if (countingVarPos == 0) {
+				triple.first = binding;
+			} else {
+				triple.third = binding;
+			}
+
+			if(!containsPrediction(allPredictions, triple)){
+				samplingCandidates.add(triple);
+			}
+
+			addPrediction(allPredictions, triple);
+		}
+
+		return Predictor.sample(samplingCandidates, sampleSize);
 	}
 
 	private Collection<IntTriple> samplePredictionsTwoVariables(
-			Int2ObjectMap<Int2IntMap> predictions, 
+			Int2ObjectMap<IntSet> predictions,
 			Rule rule, Int2ObjectMap<Int2ObjectMap<IntSet>> allPredictions){
 		IntSet keySet = predictions.keySet();
 		int relation = rule.getHead()[1];
@@ -310,7 +330,7 @@ public class Predictor {
 				new LinkedHashSet<IntTriple>();
 		
 		for(int value1: keySet){
-			for(int value2: predictions.get(value1).keySet()){
+			for(int value2: predictions.get(value1)){
 				IntTriple triple = 
 						new IntTriple(0, 0, 0);
 				

@@ -230,8 +230,25 @@ public class Predictor {
 	}
 
 	private Collection<IntTriple> samplePredictionsOneVariable(IntSet predictions, Rule rule) {
-		// TODO Auto-generated method stub
-		return null;
+		int[] head = rule.getHead();
+		//Depending on the counting variable the order is different
+		int countingVarPos = rule.getFunctionalVariablePosition();
+		Set<IntTriple> samplingCandidates =
+				new LinkedHashSet<IntTriple>();
+
+		for(int binding: predictions){
+			IntTriple triple =
+					new IntTriple(head[0], head[1], head[2]);
+			if (countingVarPos == 0) {
+				triple.first = binding;
+			} else {
+				triple.third = binding;
+			}
+
+			samplingCandidates.add(triple);
+		}
+
+		return Predictor.sample(samplingCandidates, sampleSize);
 	}
 
 	private Collection<IntTriple> 

@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javatools.filehandlers.TSVFile;
 
 /**
@@ -21,6 +22,21 @@ import javatools.filehandlers.TSVFile;
  * @author jlajus
  */
 public class TSVRuleDiff {
+
+    public static void diff(Set<Rule> rules1, Set<Rule> rules2) {
+        Set<Rule> rules2copy = new HashSet<>(rules2);
+        for (Rule r : rules1) {
+            if (!rules2copy.contains(r)) {
+                System.err.println("< " + r.getRuleString());
+            } else {
+                rules2copy.remove(r);
+            }
+        }
+
+        for (Rule r : rules2copy) {
+            System.err.println("> " + r.getRuleString());
+        }
+    }
 
     public static void main(String args[]) throws IOException {
         if (args.length < 2) {
@@ -39,10 +55,7 @@ public class TSVRuleDiff {
 
         //Preprocess one of the files
         for (List<String> record1 : tsv1) {
-            if (record1.size() < 4) {
-                continue;
-            }
-            Rule q = AMIEParser.rule(record1.get(0));
+            Rule q = AMIEParser.rule(record1.get(0).trim());
             if (q == null) continue;
             if (rules1.containsKey(q)) {
                 System.err.println("[DUP] in first file:");
@@ -54,32 +67,17 @@ public class TSVRuleDiff {
         }
 
         for (List<String> record2 : tsv2) {
-            if (record2.size() < 4) {
-                continue;
-            }
-            Rule q = AMIEParser.rule(record2.get(0));
+            Rule q = AMIEParser.rule(record2.get(0).trim());
             if (q == null) continue;
             if (rules2.containsKey(q)) {
-                System.err.println("[DUP] in first file:");
+                System.err.println("[DUP] in second file:");
                 System.err.println(q.getRuleString());
                 System.err.println(rules2.get(q).getRuleString());
             } else {
                 rules2.put(q, q);
             }
         }
-        
-        HashSet<Rule> keys = new HashSet<>(rules1.keySet());
-        for (Rule r : keys) {
-            if (rules2.get(r) == null) {
-                System.out.println("< " + r.getRuleString());
-            } else {
-                rules2.remove(r);
-            }
-            rules1.remove(r);
-        }
-        
-        for (Rule r : rules2.keySet()) {
-            System.out.println("> " + r.getRuleString());
-        }
+
+        diff(rules1.keySet(), rules2.keySet());
     }
 }

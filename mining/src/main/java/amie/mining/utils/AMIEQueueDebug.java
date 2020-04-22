@@ -1,5 +1,6 @@
-package amie.mining;
+package amie.mining.utils;
 
+import amie.mining.*;
 import static amie.data.U.increase;
 import java.util.Collection;
 import java.util.Iterator;
@@ -17,29 +18,31 @@ import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
  * This implementation guarantees that rules produced in the nth-round of a breath-first
  * search strategy are always dequeued and refined before any rule corresponding
  * to the (n+1)th-round.
- *
+ * 
  * @author galarrag
  *
  */
-public final class AMIEQueue {
-	private final Lock lock = new ReentrantLock();
+public final class AMIEQueueDebug {
+        private static final boolean DEBUG_DUPLICATES = false;
+    
+	private final Lock lock = new ReentrantLock(); 
         private final Lock qlock = new ReentrantLock();
-
-	private final Condition empty = lock.newCondition();
-
+	
+	private final Condition empty = lock.newCondition(); 
+	
 	private Iterator<Rule> current;
-
+	
 	private LinkedHashSet<Rule> next;
-
+	
 	private int generation;
-
+	
 	private int maxThreads;
-
+	
 	private int waitingThreads = 0;
-
+        
         private Int2IntMap queueCalls = new Int2IntOpenHashMap();
         private Int2IntMap queueAdded = new Int2IntOpenHashMap();
-
+        
         public void printStats() {
             System.err.println("AMIE Queue statistics:");
             int gen = 1;
@@ -48,19 +51,19 @@ public final class AMIEQueue {
                 gen++;
             }
         }
-
-	public AMIEQueue(Collection<Rule> seeds, int maxThreads) {
+	
+	public AMIEQueueDebug(Collection<Rule> seeds, int maxThreads) {
 		this.generation = 1;
                 this.queueCalls.put(this.generation, 0);
                 this.queueAdded.put(this.generation, 0);
-		this.maxThreads = maxThreads;
+		this.maxThreads = maxThreads; 
 		this.waitingThreads = 0;
 		this.next = new LinkedHashSet<>();
 		this.queueAll(seeds);
 		this.nextGeneration();
                 this.done = false;
 	}
-
+	
 	/**
 	 * Adds an item to the queue.
 	 * @param o
@@ -71,10 +74,18 @@ public final class AMIEQueue {
 		o.setGeneration(generation);
 		if (next.add(o)) {
                     increase(queueAdded, this.generation);
+                } else if (DEBUG_DUPLICATES) {
+                    System.err.println("[DUP] Duplicate rules:");
+                    System.err.println("> " + o.getRuleString());
+                    for (Rule rin : next) {
+                        if (rin.equals(o)) {
+                            System.err.println("< " + o.getRuleString());
+                        }
+                    }
                 }
 		qlock.unlock();
 	}
-
+	
 	/**
 	 * Adds a collection of items to the queue.
 	 * @param rules
@@ -86,11 +97,19 @@ public final class AMIEQueue {
                     r.setGeneration(generation);
                     if (next.add(r)) {
                         increase(queueAdded, this.generation);
+                    } else if (DEBUG_DUPLICATES) {
+                        System.err.println("[DUP] Duplicate rules:");
+                        System.err.println("> " + r.getRuleString());
+                        for (Rule rin : next) {
+                            if (rin.equals(r)) {
+                                System.err.println("< " + rin.getRuleString());
+                            }
+                        }
                     }
 		}
 		qlock.unlock();
 	}
-
+	
 	/**
 	 * Retrieves and removes the oldest item that was added to the queue.
 	 * @return An object or null if the queue is empty.
@@ -106,14 +125,14 @@ public final class AMIEQueue {
 	    if (current.isEmpty()) {
     		++waitingThreads;
 	    	if (waitingThreads < maxThreads) {
-	    		empty.await();
+	    		empty.await();    		
 	    		--waitingThreads;
-	    	} else {
+	    	} else {	    	
 	    		nextGeneration();
 	    		--waitingThreads;
-		    	empty.signalAll();
+		    	empty.signalAll();	
 	    	}
-
+	    	
 	    	if (current.isEmpty()) {
 	    		item = null;
 	    	} else {
@@ -126,9 +145,9 @@ public final class AMIEQueue {
 	    return item;
 	}
         */
-
+        
         private boolean done = false;
-
+	
         public Rule dequeue() throws InterruptedException {
             lock.lock();
             Rule item = null;
@@ -171,11 +190,11 @@ public final class AMIEQueue {
 		current = next.iterator();
 		next = new LinkedHashSet<>();
 	}
-
+	
 	public boolean isEmpty() {
 		return !current.hasNext() && next.isEmpty();
 	}
-
+	
 	public int getGeneration() {
 		return generation;
 	}

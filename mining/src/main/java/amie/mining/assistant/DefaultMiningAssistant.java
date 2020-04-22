@@ -337,8 +337,8 @@ public class DefaultMiningAssistant extends MiningAssistant{
 					
 					newEdge[1] = relation;
 					//Before adding the edge, verify whether it leads to the hard case
-					if(containsHardCase(query, newEdge))
-						continue;
+					//if(containsHardCase(query, newEdge))
+					//	continue;
 					
 					Rule candidate = query.addAtom(newEdge, cardinality);
 					List<int[]> recursiveAtoms = candidate.getRedundantAtoms();

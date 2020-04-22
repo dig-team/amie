@@ -1103,9 +1103,9 @@ public class MiningAssistant {
 	public boolean testConfidenceThresholds(Rule candidate) {
 		boolean addIt = true;
 		
-		if(candidate.containsLevel2RedundantSubgraphs()) {
-			return false;
-		}	
+		//if(candidate.containsLevel2RedundantSubgraphs()) {
+		//	return false;
+		//}
 		
 		if(candidate.getStdConfidence() >= minStdConfidence 
 				&& candidate.getPcaConfidence() >= minPcaConfidence){

@@ -1367,6 +1367,10 @@ public class Rule {
             return false;
         }
         Rule other = (Rule) obj;
+        if (getLength() != other.getLength()) {
+            return false;
+        }
+
         if (getHeadKey() == 0) {
             if (other.getHeadKey() != 0) {
                 return false;

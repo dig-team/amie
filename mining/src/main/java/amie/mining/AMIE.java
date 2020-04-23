@@ -1228,7 +1228,6 @@ public class AMIE {
             exploitMaxLengthForRuntime = false;
             enableConfidenceUpperBounds = true;
             enableFunctionalityHeuristic = true;
-            minPCAConf = DEFAULT_PCA_CONFIDENCE;
         }
 
         if (full) {
@@ -1238,7 +1237,6 @@ public class AMIE {
             exploitMaxLengthForRuntime = true;
             enableConfidenceUpperBounds = true;
             enableFunctionalityHeuristic = true;
-            minPCAConf = DEFAULT_PCA_CONFIDENCE;
         }
 
         if (cli.hasOption("noHeuristics")) {

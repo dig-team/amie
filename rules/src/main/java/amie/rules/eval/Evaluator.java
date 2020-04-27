@@ -14,15 +14,18 @@ import amie.rules.Rule;
 public class Evaluator {
 	
 	/**
-	 * Given a triple that was deduced from rules extracted from the training dataset,
-	 * it tests its correctness with respect to the target dataset. 
-	 * @param triple
-	 * @param training
-	 * @param target
-	 * @return
+	 * Given a triple predicted by a rule and the triple's position to be assumed as bounding variable,
+	 * it evaluates the triple's correctness in the training and target datasets
+	 * @param triple Prediction
+	 * @param training The dataset from which the rule was mined
+	 * @param target A newer version of the training dataset (superset)
+	 * @param boundVarPos The variable position to be used when testing the prediction's precision
+	 * @return 0, if the prediction is in the target dataset.
+	 *         1, if it contradicts a functional constraint in the training dataset.
+	 *         2, if it contradicts a functional constraint in the target dataset.
+	 *         3, otherwise.
 	 */
-	public static int evaluate(int[] triple, 
-			KB training, KB target) {
+	public static int evaluate(int[] triple, KB training, KB target, int boundVarPos) {
 		//If we know something else about the triple, PCA says it is false
 		if (triple == null) {
 			System.out.println("Triple is null");			
@@ -38,10 +41,6 @@ public class Evaluator {
 				training.functionality(triple[1]) >= 0.9 
 				|| training.inverseFunctionality(triple[1]) >= 0.84;
 
-		int boundVarPos = 
-				training.functionality(triple[1]) 
-				> training.inverseFunctionality(triple[1]) ? 0 : 2;
-		
 		if (target == null) {
 			System.out.println("Target is null");
                         System.exit(2);
@@ -66,46 +65,19 @@ public class Evaluator {
 	
 	/**
 	 * Given a triple predicted by a rule, it evaluates its correctness in the training and target datasets
-	 * @param rule Rule that generated the prediction
 	 * @param triple Prediction
 	 * @param training The dataset from which the rule was mined
 	 * @param target A newer version of the training dataset (superset)
-	 * @return 0 if the prediction is in the target dataset. 1 if it contradicts a functional constraint in the training dataset. 2 if it contradicts a functional constraint in the target dataset.
-	 * 3 otherwise.
+	 * @return 0, if the prediction is in the target dataset.
+	 *         1, if it contradicts a functional constraint in the training dataset.
+	 *         2, if it contradicts a functional constraint in the target dataset.
+	 *         3, otherwise.
 	 */
-	public static int evaluate(Rule rule, 
-			int[] triple, KB training, KB target){
-		// TODO Auto-generated method stub
-		int[] head = rule.getHead();
-		int boundVariable = 0;
-		int returnVal = 3;
-		boolean relationIsFunctional = 
-				(rule.getFunctionalVariablePosition() == 0 && training.functionality(rule.getHead()[1]) >= 0.9) ||
-				(rule.getFunctionalVariablePosition() == 2 && training.inverseFunctionality(rule.getHead()[1]) >= 0.84);
-
-		int boundVarPos = rule.getFunctionalVariablePosition();
-
-		//If we know something else about the triple, PCA says it is false
-		if(target.count(triple) > 0){
-			//Bingo!
-			returnVal = 0;
-		}else{
-			boundVariable = head[boundVarPos];
-			head[boundVarPos] = triple[boundVarPos];
-			
-			//Here apply PCA on the most functional variable
-			if(training.count(head) > 0 && relationIsFunctional)
-				returnVal = 1;
-			else if(target.count(head) > 0 && relationIsFunctional)
-				returnVal = 2;
-			else
-				returnVal = 3;
-			
-			//Restore the head
-			head[boundVarPos] = boundVariable;
-		}
-		
-		return returnVal;		
+	public static int evaluate(int[] triple, KB training, KB target) {
+		int boundVarPos =
+				training.functionality(triple[1])
+				> training.inverseFunctionality(triple[1]) ? 0 : 2;
+		return evaluate(triple, training, target, boundVarPos);
 	}
 	
 	public static void main(String args[]) throws Exception{
@@ -153,7 +125,7 @@ public class Evaluator {
 				triple[i] = KB.map(record.get(i + 1));
 			}
 			
-			int evalCode = evaluate(currentRule, triple, trainingDataset, targetDataset);
+			int evalCode = evaluate(triple, trainingDataset, targetDataset);
 			if(evalCode == 3){
 				//Output it in the manual evaluation file
 				manualEvalPw.println(currentRule.getRuleString() + "\t" + KB.unmap(triple[0]) + "\t" + KB.unmap(triple[1]) + "\t" + KB.unmap(triple[2]) + "\tManualEvaluation");

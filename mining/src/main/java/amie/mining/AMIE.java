@@ -1341,7 +1341,7 @@ public class AMIE {
      */
     public static void main(String[] args) throws Exception {
         Schema.loadSchemaConf();
-        System.out.println("Assuming " + Schema.typeRelationBS + " as type relation");
+        System.out.println("Assuming " + KB.unmap(Schema.typeRelationBS) + " as type relation");
         long loadingStartTime = System.currentTimeMillis();
         AMIE miner = AMIE.getInstance(args);
         long loadingTime = System.currentTimeMillis() - loadingStartTime;

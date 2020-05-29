@@ -3741,9 +3741,13 @@ public class KB {
 	public static final Pattern triplePattern = Pattern
 			.compile("(\\w+)\\((\\??\\w+)\\s*,\\s*(\\??\\w+)\\)");
 
+	private static final String uriPattern = "<?[-._\\p{L}:/–'\\(\\),]+>?";
+	/** We do not still support typed literals **/
+	private static final String literalPattern = "\\\"?[-._\\p{L}\\s,'–:/]+\\\"?(@\\w+)?";
+	
 	/** Pattern of a triple */
 	public static final Pattern amieTriplePattern = Pattern
-			.compile("(\\??\\w+|<[-_\\w\\p{L}/:–'.\\(\\),]+>)\\s+(<?[-_\\w:\\.]+>?)\\s+(\"?[-_\\w\\s,'.–:]+\"?(@\\w+)?|\\??\\w+|<?[-_\\w\\p{L}/:–'.\\(\\)\\\"\\^,]+>?)");
+			.compile("(\\?\\w+|" + uriPattern + ")\\s+(\\\\??\\\\w+|" + uriPattern + ")\\s+(" + literalPattern + "|\\?\\w+|" + uriPattern + ")");
 
 
 	/** 

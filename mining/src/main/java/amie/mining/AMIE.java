@@ -1111,6 +1111,7 @@ public class AMIE {
                 default:
                     metric = Metric.HeadCoverage;
                     System.err.println("Using " + metric + " as pruning metric with threshold " + minHeadCover);
+                    minMetricValue = minHeadCover;                    
                     break;
             }
         } else {

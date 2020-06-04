@@ -41,7 +41,6 @@
       <artifactId>commons-math3</artifactId>
       <version>3.2</version>
     </dependency>
-<!-- https://mvnrepository.com/artifact/jsc/jsc -->
   </dependencies>
 
   <build>

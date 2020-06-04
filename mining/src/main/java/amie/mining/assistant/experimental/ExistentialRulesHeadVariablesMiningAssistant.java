@@ -7,6 +7,7 @@ import java.util.List;
 import amie.data.KB;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.Rule;
+import java.util.Set;
 
 /**
  * Extension of the default mining assistant that also reports existential rules,
@@ -116,12 +117,12 @@ public class ExistentialRulesHeadVariablesMiningAssistant extends
 		
 		if (candidate.getStdConfidence() >= minStdConfidence && candidate.getPcaConfidence() >= minPcaConfidence) {
 			//Now check the confidence with respect to its ancestors
-			List<Rule> ancestors = candidate.getAncestors();			
-			for (int i = ancestors.size() - 2; i >= 0; --i) {
-				if (ancestors.get(i).isClosed(true) 
-						&& 
-						(candidate.getStdConfidence() <= ancestors.get(i).getStdConfidence() 
-						|| candidate.getPcaConfidence() <= ancestors.get(i).getPcaConfidence())) {
+			Set<Rule> ancestors = candidate.getAncestors();
+			for (Rule ancestor : ancestors) {
+				if ((ancestor.getLength() > 1) && ancestor.isClosed(true)
+						&&
+						(candidate.getStdConfidence() <= ancestor.getStdConfidence()
+						|| candidate.getPcaConfidence() <= ancestor.getPcaConfidence())) {
 					addIt = false;
 					break;
 				}

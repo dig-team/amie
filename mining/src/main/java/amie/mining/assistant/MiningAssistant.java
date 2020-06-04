@@ -1103,26 +1103,26 @@ public class MiningAssistant {
 	public boolean testConfidenceThresholds(Rule candidate) {
 		boolean addIt = true;
 		
-		if(candidate.containsLevel2RedundantSubgraphs()) {
-			return false;
-		}	
+		//if(candidate.containsLevel2RedundantSubgraphs()) {
+		//	return false;
+		//}
 		
 		if(candidate.getStdConfidence() >= minStdConfidence 
 				&& candidate.getPcaConfidence() >= minPcaConfidence){
 			//Now check the confidence with respect to its ancestors
-			List<Rule> ancestors = candidate.getAncestors();			
-			for(int i = 0; i < ancestors.size(); ++i){
+			Set<Rule> ancestors = candidate.getAncestors();
+			for(Rule ancestor : ancestors){
 				double ancestorConfidence = 0.0;
 				double ruleConfidence = 0.0;
 				if (this.confidenceMetric == ConfidenceMetric.PCAConfidence) {
-					ancestorConfidence = ancestors.get(i).getPcaConfidence();
+					ancestorConfidence = ancestor.getPcaConfidence();
 					ruleConfidence = candidate.getPcaConfidence();
 				} else {
-					ancestorConfidence = ancestors.get(i).getStdConfidence();
+					ancestorConfidence = ancestor.getStdConfidence();
 					ruleConfidence = candidate.getStdConfidence();
 				}
 				// Skyline technique on PCA confidence					
-				if (shouldBeOutput(ancestors.get(i)) && 
+				if (shouldBeOutput(ancestor) &&
 						ruleConfidence <= ancestorConfidence){
 					addIt = false;
 					break;

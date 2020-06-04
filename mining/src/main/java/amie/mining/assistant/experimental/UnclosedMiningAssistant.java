@@ -10,6 +10,7 @@ import amie.rules.ConfidenceMetric;
 import amie.rules.Rule;
 
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import java.util.Set;
 
 public class UnclosedMiningAssistant extends DefaultMiningAssistant {
 
@@ -67,11 +68,11 @@ public class UnclosedMiningAssistant extends DefaultMiningAssistant {
 		
 		if(candidate.getStdConfidence() >= minStdConfidence){
 			//Now check the confidence with respect to its ancestors
-			List<Rule> ancestors = candidate.getAncestors();			
-			for(int i = 0; i < ancestors.size(); ++i){
-				double ancestorConfidence = ancestors.get(i).getStdConfidence();
+			Set<Rule> ancestors = candidate.getAncestors();
+			for(Rule ancestor : ancestors){
+				double ancestorConfidence = ancestor.getStdConfidence();
 				// Skyline technique on PCA confidence					
-				if ((ancestors.get(i).getRealLength() > 1) && 
+				if ((ancestor.getRealLength() > 1) &&
 					  (ancestorConfidence >= .95)) {
 					return false;
 				}

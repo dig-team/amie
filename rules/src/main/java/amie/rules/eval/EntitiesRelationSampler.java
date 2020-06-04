@@ -75,7 +75,7 @@ public class EntitiesRelationSampler {
 		
 		for(int relation: relationsMap.keySet()){
 			for(IntPair entityObject: relationsMap.get(relation))
-				System.out.println(entityObject.first + "\t" + relation + "\t" + entityObject.second);
+				System.out.println(KB.unmap(entityObject.first) + "\t" + KB.unmap(relation) + "\t" + KB.unmap(entityObject.second));
 		}
 		
 	}

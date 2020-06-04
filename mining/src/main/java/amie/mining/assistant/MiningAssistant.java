@@ -125,11 +125,21 @@ public class MiningAssistant {
 	 * List of excluded relations for the head of rules;
 	 */
 	protected IntCollection headExcludedRelations;
+
+	/**
+	 * List of excluded relations for the instantiation mining operator;
+	 */
+	protected IntCollection instantiationExcludedRelations;
 	
 	/**
 	 * List of target relations for the body of rules;
 	 */
 	protected IntCollection bodyTargetRelations;
+
+	/**
+	 * List of target relations for the instantiation mining operator;
+	 */
+	protected IntCollection instantiationTargetRelations;
 
 	/**
 	 * Count directly on subject or use functional information
@@ -1211,6 +1221,17 @@ public class MiningAssistant {
 	protected void getInstantiatedAtoms(Rule queryWithDanglingEdge, Rule parentQuery, 
 			int danglingAtomPosition, int danglingPositionInEdge, double minSupportThreshold, Collection<Rule> output) {
 		int[] danglingEdge = queryWithDanglingEdge.getTriples().get(danglingAtomPosition);
+
+		if (this.instantiationExcludedRelations != null
+				&& this.instantiationExcludedRelations.contains(danglingEdge[1])) {
+			return;
+		}
+
+		if (this.instantiationTargetRelations != null
+				&& !this.instantiationTargetRelations.contains(danglingEdge[1])) {
+			return;
+		}
+
 		Int2IntMap constants = kb.frequentBindingsOf(danglingEdge[danglingPositionInEdge], 
 				queryWithDanglingEdge.getFunctionalVariable(), queryWithDanglingEdge.getTriples());
 		for (int constant: constants.keySet()){
@@ -1425,6 +1446,24 @@ public class MiningAssistant {
 	public void setHeadExcludedRelations(
 			IntCollection headExcludedRelations) {
 		this.headExcludedRelations = headExcludedRelations;
+	}
+
+	public IntCollection getInstantiationExcludedRelations() {
+		return instantiationExcludedRelations;
+	}
+
+	public void setInstantiationExcludedRelations(
+			IntCollection instantiationExcludedRelations) {
+		this.instantiationExcludedRelations = instantiationExcludedRelations;
+	}
+
+	public IntCollection getInstantiationTargetRelations() {
+		return instantiationTargetRelations;
+	}
+
+	public void setInstantiationTargetRelations(
+			IntCollection instantiationTargetRelations) {
+		this.instantiationTargetRelations = instantiationTargetRelations;
 	}
 
 	public IntCollection getBodyTargetRelations() {

@@ -420,6 +420,17 @@ public class DefaultMiningAssistant extends MiningAssistant{
 	protected void getInstantiatedAtoms(Rule query, Rule parentQuery, 
 			int bindingTriplePos, int danglingPosition, double minSupportThreshold, Collection<Rule> output) {
 		int[] danglingEdge = query.getTriples().get(bindingTriplePos);
+
+		if (this.instantiationExcludedRelations != null
+				&& this.instantiationExcludedRelations.contains(danglingEdge[1])) {
+			return;
+		}
+
+		if (this.instantiationTargetRelations != null
+				&& !this.instantiationTargetRelations.contains(danglingEdge[1])) {
+			return;
+		}
+
 		Rule rewrittenQuery = null;
 		if (!query.isEmpty() && this.enableQueryRewriting) {
 			rewrittenQuery = rewriteProjectionQuery(query, bindingTriplePos, danglingPosition == 0 ? 2 : 0);

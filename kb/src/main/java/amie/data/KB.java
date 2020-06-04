@@ -943,7 +943,7 @@ public class KB {
 				return ((double) relation2subject2object.get(relation).size() / relationSize
 					.get(relation));
 			} else {
-				throw new IllegalArgumentException("The relation " + relation + " was not found in the KB");
+				throw new IllegalArgumentException("The relation " + KB.unmap(relation) + " was not found in the KB");
 			}
 		}
 	}
@@ -968,7 +968,7 @@ public class KB {
 				return ((double) relation2object2subject.get(relation).size() / relationSize
 						.get(relation));
 			} else {
-				throw new IllegalArgumentException("The relation " + relation + " was not found in the KB");
+				throw new IllegalArgumentException("The relation " + KB.unmap(relation) + " was not found in the KB");
 			}
 		}
 	}
@@ -4579,7 +4579,7 @@ public class KB {
 		Int2ObjectMap<IntSet> imap2 = index.get(s1);
 		IntSet imap3 = imap2.get(s2);
 		if (imap3 == null) {
-			System.out.println("Problem for prediction " + s1 + " " + s2 + " " + s3);
+			System.out.println("Problem for prediction " + KB.unmap(s1) + " " + KB.unmap(s2) + " " + KB.unmap(s3));
 		}
 		imap3.remove(s3);
 		if (imap3.isEmpty()) {
@@ -4605,7 +4605,7 @@ public class KB {
 					+ "\tInverse functionality\tVariance\tInverse Variance"
 					+ "\tNumber of subjects\tNumber of objects");
 			for(int relation: relationSize.keySet()){
-				System.out.println(relation + "\t" + relationSize.get(relation) + 
+				System.out.println(KB.unmap(relation) + "\t" + relationSize.get(relation) +
 						"\t" + functionality(relation) + 
 						"\t" + inverseFunctionality(relation) + 
 						"\t" + variance(relation) +
@@ -4642,7 +4642,7 @@ public class KB {
 			if (ommittedRelations.contains(relation))
 				continue;
 			
-			System.out.println(relation);
+			System.out.println(KB.unmap(relation));
 			IntHashMap<Integer> distribution = new IntHashMap<>();
 			Int2ObjectMap<IntSet> theMap = null;
 			boolean isFunctional = isFunctional(relation);
@@ -4669,9 +4669,9 @@ public class KB {
 						distribution.increase(0);
 						if (Math.random() >= 0.9) {
 							if (isFunctional)
-								writer.write(instance + "\t" + relation + "\t" + "NULL\n");
+								writer.write(KB.unmap(instance) + "\t" + KB.unmap(relation) + "\t" + "NULL\n");
 							else
-								writer.write("NULL" + "\t" + relation + "\t" + instance + "\n");
+								writer.write("NULL" + "\t" + KB.unmap(relation) + "\t" + KB.unmap(instance) + "\n");
 						}
 					}
 				}				
@@ -4723,7 +4723,7 @@ public class KB {
 			Int2ObjectMap<IntSet> map = 
 					relation2object2subject.get(Schema.typeRelationBS);
 			for (int type : map.keySet()) {
-				System.out.println(type + "\t" + map.get(type).size());
+				System.out.println(KB.unmap(type) + "\t" + map.get(type).size());
 			}
 		}
 	}

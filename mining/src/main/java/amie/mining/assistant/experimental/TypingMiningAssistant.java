@@ -132,14 +132,14 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 					promisingRelations = this.kb.countProjectionBindings(query.getHead(), query.getAntecedent(), newEdge[1]);
 					long t2 = System.currentTimeMillis();
 					if((t2 - t1) > 20000 && this.verbose) {
-						System.err.println("countProjectionBindings var=" + newEdge[1] + " "  + query + " has taken " + (t2 - t1) + " ms");
+						System.err.println("countProjectionBindings var=" + KB.unmap(newEdge[1]) + " "  + query + " has taken " + (t2 - t1) + " ms");
 					}
 				}else{
 					long t1 = System.currentTimeMillis();
 					promisingRelations = this.kb.countProjectionBindings(rewrittenQuery.getHead(), rewrittenQuery.getAntecedent(), newEdge[1]);
 					long t2 = System.currentTimeMillis();
 					if((t2 - t1) > 20000 && this.verbose)
-					System.err.println("countProjectionBindings on rewritten query var=" + newEdge[1] + " "  + rewrittenQuery + " has taken " + (t2 - t1) + " ms");						
+					System.err.println("countProjectionBindings on rewritten query var=" + KB.unmap(newEdge[1]) + " "  + rewrittenQuery + " has taken " + (t2 - t1) + " ms");
 				}
 				
 				query.getTriples().remove(nPatterns);								

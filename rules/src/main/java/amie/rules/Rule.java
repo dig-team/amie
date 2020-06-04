@@ -1510,7 +1510,7 @@ public class Rule {
 	        strBuilder.append("\t" + df1.format(getSupport()));
 	        strBuilder.append("\t" + df1.format(getBodySize()));
 	        strBuilder.append("\t" + df1.format(getPcaBodySize()));
-	        strBuilder.append("\t" + getFunctionalVariable());
+	        strBuilder.append("\t" + KB.unmap(getFunctionalVariable()));
 	        strBuilder.append("\t" + stdConfidenceUpperBound);
 	        strBuilder.append("\t" + pcaConfidenceUpperBound);
 	        strBuilder.append("\t" + pcaConfidenceEstimation);
@@ -1528,7 +1528,7 @@ public class Rule {
 	        	strBuilder.append("\t" + df1.format(getBodySize()));
 	        if (!metricsList.contains(Metric.PCABodySize))
 	        	strBuilder.append("\t" + df1.format(getPcaBodySize()));
-	        strBuilder.append("\t" + getFunctionalVariable());
+	        strBuilder.append("\t" + KB.unmap(getFunctionalVariable()));
 	        strBuilder.append("\t" + stdConfidenceUpperBound);
 	        strBuilder.append("\t" + pcaConfidenceUpperBound);
 	        strBuilder.append("\t" + pcaConfidenceEstimation);
@@ -1544,7 +1544,7 @@ public class Rule {
 	        strBuilder.append("\t" + df.format(getSupport()));
 	        strBuilder.append("\t" + getBodySize());
 	        strBuilder.append("\t" + df.format(getPcaBodySize()));
-	        strBuilder.append("\t" + getFunctionalVariable());
+	        strBuilder.append("\t" + KB.unmap(getFunctionalVariable()));
     	} else {
         	List<Metric> metricsList = Arrays.asList(metrics2Ommit);
         	if (!metricsList.contains(Metric.HeadCoverage))
@@ -1559,7 +1559,7 @@ public class Rule {
 	        	strBuilder.append("\t" + getBodySize());
 	        if (!metricsList.contains(Metric.PCABodySize))
 	        	strBuilder.append("\t" + df.format(getPcaBodySize()));
-	        strBuilder.append("\t" + getFunctionalVariable());
+	        strBuilder.append("\t" + KB.unmap(getFunctionalVariable()));
     	}
     }
 
@@ -1586,7 +1586,7 @@ public class Rule {
 
     public static String toDatalog(int[] atom) {
         return KB.unmap(atom[1]).replace("<", "").replace(">", "")
-        		+ "(" + atom[0] + ", " + atom[2] + ")";
+                + "(" + KB.unmap(atom[0]) + ", " + KB.unmap(atom[2]) + ")";
     }
 
     public String getDatalogString() {

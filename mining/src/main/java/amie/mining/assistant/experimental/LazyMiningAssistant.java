@@ -79,7 +79,7 @@ public class LazyMiningAssistant extends DefaultMiningAssistantWithOrder {
         long t2 = System.currentTimeMillis();
         query.setPcaConfidenceRunningTime(t2 - t1);
         if ((t2 - t1) > 20000 && this.verbose) {
-            System.err.println("countPairs vars " + var1 + ", " + var2 + " in " + KB.toString(antecedent) + " has taken " + (t2 - t1) + " ms");
+            System.err.println("countPairs vars " + KB.unmap(var1) + ", " + KB.unmap(var2) + " in " + KB.toString(antecedent) + " has taken " + (t2 - t1) + " ms");
         }
         return result;
     }
@@ -105,7 +105,7 @@ public class LazyMiningAssistant extends DefaultMiningAssistantWithOrder {
         long t2 = System.currentTimeMillis();
         query.setConfidenceRunningTime(t2 - t1);
         if ((t2 - t1) > 20000 && this.verbose) {
-            System.err.println("countPairs vars " + var1 + ", " + var2 + " in " + KB.toString(query.getAntecedent()) + " has taken " + (t2 - t1) + " ms");
+            System.err.println("countPairs vars " + KB.unmap(var1) + ", " + KB.unmap(var2) + " in " + KB.toString(query.getAntecedent()) + " has taken " + (t2 - t1) + " ms");
         }
         return result;
     }

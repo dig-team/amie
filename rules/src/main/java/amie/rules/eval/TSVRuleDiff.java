@@ -55,7 +55,7 @@ public class TSVRuleDiff {
 
         //Preprocess one of the files
         for (List<String> record1 : tsv1) {
-            Rule q = AMIEParser.rule(record1.get(0).trim());
+            Rule q = AMIEParser.rule(record1);
             if (q == null) continue;
             if (rules1.containsKey(q)) {
                 System.err.println("[DUP] in first file:");
@@ -67,7 +67,7 @@ public class TSVRuleDiff {
         }
 
         for (List<String> record2 : tsv2) {
-            Rule q = AMIEParser.rule(record2.get(0).trim());
+            Rule q = AMIEParser.rule(record2);
             if (q == null) continue;
             if (rules2.containsKey(q)) {
                 System.err.println("[DUP] in second file:");

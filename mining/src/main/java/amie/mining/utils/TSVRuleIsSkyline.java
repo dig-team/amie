@@ -49,12 +49,9 @@ public class TSVRuleIsSkyline {
             if (record1.size() < 7) {
                 continue;
             }
-            Rule q = AMIEParser.rule(record1.get(0));
+            Rule q = AMIEParser.rule(record1);
             if (q == null) continue;
-            q.setSupport(Integer.parseInt(record1.get(4)));
-            q.setBodySize(Integer.parseInt(record1.get(5)));
-            q.setPcaBodySize(Integer.parseInt(record1.get(6)));
-            q.setGeneration(q.getLength());
+
             if (rules1.contains(q)) {
                 System.err.println("[DUP] Duplicate rule in file:");
                 System.err.println(q.getRuleString());

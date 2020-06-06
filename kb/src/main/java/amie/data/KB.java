@@ -3761,7 +3761,7 @@ public class KB {
 		if (m.find())
 			return (triple(m.group(2).trim(), m.group(1).trim(), m.group(3).trim()));
 		m = amieTriplePattern.matcher(s);
-		if (!m.find())
+		if (m.find())
 			return (triple(m.group(1).trim(), m.group(2).trim(), m.group(3).trim()));
 		return (null);
 	}

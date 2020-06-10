@@ -84,3 +84,9 @@ The present repository also contains the code for the following paper:
 > Full paper at the Web Conference  (WWW) , 2018  
 
 The code resides in: typing/
+
+## Licensing
+
+AMIE is distributed under the terms of [Creative Commons Attribution-NonComercial license v3.0](https://creativecommons.org/licenses/by-nc/3.0/) by the [YAGO-NAGA team](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/amie/) and the [DIG team](https://dig.telecom-paris.fr/blog/).
+
+AMIE uses Javatools, a library released under the [Creative Commons Attribution-NonComercial license v3.0](https://creativecommons.org/licenses/by-nc/3.0/) by the [YAGO-NAGA team](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/javatools/).

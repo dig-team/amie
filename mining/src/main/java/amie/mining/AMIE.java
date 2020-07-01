@@ -620,7 +620,7 @@ public class AMIE {
          * ******************************
          */
         int nProcessors = Runtime.getRuntime().availableProcessors();
-        String bias = "default"; // Counting support on the two head variables.
+        String bias = "lazy"; // Counting support on the two head variables.
         Metric metric = Metric.HeadCoverage; // Metric used to prune the search space.
         VariableOrder variableOrder = new FunctionalOrder();
         MiningAssistant mineAssistant = null;
@@ -819,6 +819,10 @@ public class AMIE {
                         + "and to optimize the query")
                 .create("noKbExistsDetection");
 
+        Option noSkylineOp = OptionBuilder.withArgName("noSkyline")
+                .withDescription("Disable Skyline pruning of results")
+                .create("noSkyline");
+
         Option variableOrderOp = OptionBuilder.withArgName("variableOrder")
                 .withDescription("Define the order of the variable in counting query among: app, fun (default), ifun")
                 .hasArg()
@@ -883,6 +887,7 @@ public class AMIE {
         options.addOption(noHeuristicsOp);
         options.addOption(noKbRewrite);
         options.addOption(noKbExistsDetection);
+        options.addOption(noSkylineOp);
         options.addOption(variableOrderOp);
         options.addOption(extraFileOp);
         options.addOption(datalogNotationOpt);
@@ -939,6 +944,10 @@ public class AMIE {
             System.exit(1);
         }
 
+        if (cli.hasOption("mins") && cli.hasOption("minhc") && !cli.hasOption("pm")) {
+            System.out.println("Warning: Both -mins and -minhc are set but only the default pruning metric will be used");
+        }
+
         if (cli.hasOption("mins")) {
             String minSupportStr = cli.getOptionValue("mins");
             try {
@@ -974,6 +983,8 @@ public class AMIE {
                 System.exit(1);
             }
         }
+
+        minMetricValue = minHeadCover;
 
         if (cli.hasOption("minc")) {
             String minConfidenceStr = cli.getOptionValue("minc");
@@ -1161,24 +1172,31 @@ public class AMIE {
             schemaSource.load(schemaFiles);
         }
 
+        if (cli.hasOption("mins") != cli.hasOption("minhc")) {
+            if (cli.hasOption("mins")) {
+                    metric = Metric.Support;
+                    minMetricValue = minSup;
+                    if (!cli.hasOption("minis")) { minInitialSup = minSup; }
+            } else {
+                    metric = Metric.HeadCoverage;
+                    minMetricValue = minHeadCover;
+            }
+        }
+
         if (cli.hasOption("pm")) {
             switch (cli.getOptionValue("pm")) {
                 case "support":
                     metric = Metric.Support;
-                    System.err.println("Using " + metric + " as pruning metric with threshold " + minSup);
                     minMetricValue = minSup;
-                    minInitialSup = minSup;
+                    if (!cli.hasOption("minis")) { minInitialSup = minSup; }
                     break;
                 default:
                     metric = Metric.HeadCoverage;
-                    System.err.println("Using " + metric + " as pruning metric with threshold " + minHeadCover);
-                    minMetricValue = minHeadCover;                    
+                    minMetricValue = minHeadCover;
                     break;
             }
-        } else {
-            System.out.println("Using " + metric + " as pruning metric with minimum threshold " + minHeadCover);
-            minMetricValue = minHeadCover;
         }
+        System.out.println("Using " + metric + " as pruning metric with minimum threshold " + minMetricValue);
 
         if (cli.hasOption("bias")) {
             bias = cli.getOptionValue("bias");
@@ -1334,6 +1352,7 @@ public class AMIE {
         mineAssistant.setOmmitStdConfidence(ommitStdConfidence);
         mineAssistant.setDatalogNotation(datalogOutput);
         mineAssistant.setOptimAdaptiveInstantiations(adaptiveInstantiations);
+        mineAssistant.setUseSkylinePruning(!cli.hasOption("noSkyline"));
 
         System.out.println(mineAssistant.getDescription());
 

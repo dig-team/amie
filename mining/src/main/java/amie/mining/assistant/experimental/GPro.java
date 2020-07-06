@@ -74,6 +74,9 @@ public class GPro extends InjectiveMappingsAssistant {
 		&& (candidate.getMeasure("GPro_conf_tail") >= minPcaConfidence
                  || candidate.getMeasure("GPro_conf_head") >= minPcaConfidence)){
 			//Now check the confidence with respect to its ancestors
+                        if (!useSkylinePruning) {
+                            return true;
+                        }
 			Set<Rule> ancestors = candidate.getAncestors();
 			for(Rule ancestor : ancestors){
 				double ancestorConfidence = 0.0;

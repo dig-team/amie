@@ -12,7 +12,7 @@ import amie.data.tuple.IntArrays;
 import amie.data.tuple.IntPair;
 import amie.mining.assistant.MiningAssistant;
 import amie.mining.assistant.MiningOperator;
-import amie.rules.QueryEquivalenceChecker;
+import amie.rules.QueryEquivalenceChecker3;
 import amie.rules.Rule;
 
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
@@ -21,7 +21,6 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import javatools.datatypes.MultiMap;
-import javatools.datatypes.Pair;
 
 public class CompletenessMiningAssistant extends MiningAssistant {
 	public enum Mode {Standard, OnlyStar, OnlyType, OnlyCard};
@@ -529,7 +528,7 @@ public class CompletenessMiningAssistant extends MiningAssistant {
 			}
 		}
 		
-		return QueryEquivalenceChecker.areEquivalent(parent.getTriples(), currentRule.getTriples())
+		return QueryEquivalenceChecker3.areEquivalent(parent.getTriples(), currentRule.getTriples())
 				|| parent.subsumes(currentRule);
 	}
 

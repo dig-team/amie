@@ -173,14 +173,14 @@ public class DefaultMiningAssistant extends MiningAssistant{
 								promisingRelations = kb.countProjectionBindings(rule.getHead(), rule.getAntecedent(), newEdge[1]);
 								long t2 = System.currentTimeMillis();
 								if((t2 - t1) > 20000 && this.verbose)
-									System.err.println("countProjectionBindings var=" + newEdge[1] + " "  + rule + " has taken " + (t2 - t1) + " ms");
+									System.err.println("countProjectionBindings var=" + KB.unmap(newEdge[1]) + " "  + rule + " has taken " + (t2 - t1) + " ms");
 							}else{
 								System.out.println(rewrittenQuery + " is a rewrite of " + rule);
 								long t1 = System.currentTimeMillis();
 								promisingRelations = kb.countProjectionBindings(rewrittenQuery.getHead(), rewrittenQuery.getAntecedent(), newEdge[1]);
 								long t2 = System.currentTimeMillis();
 								if((t2 - t1) > 20000 && this.verbose)
-									System.err.println("countProjectionBindings on rewritten query var=" + newEdge[1] + " "  + rewrittenQuery + " has taken " + (t2 - t1) + " ms");						
+									System.err.println("countProjectionBindings on rewritten query var=" + KB.unmap(newEdge[1]) + " "  + rewrittenQuery + " has taken " + (t2 - t1) + " ms");
 							}
 						} else {
 							promisingRelations = this.kb.countProjectionBindings(rule.getHead(), rule.getAntecedent(), newEdge[1]);
@@ -297,14 +297,14 @@ public class DefaultMiningAssistant extends MiningAssistant{
 					promisingRelations = this.kb.countProjectionBindings(query.getHead(), query.getAntecedent(), newEdge[1]);
 					long t2 = System.currentTimeMillis();
 					if((t2 - t1) > 20000 && this.verbose) {
-						System.err.println("countProjectionBindings var=" + newEdge[1] + " "  + query + " has taken " + (t2 - t1) + " ms");
+						System.err.println("countProjectionBindings var=" + KB.unmap(newEdge[1]) + " "  + query + " has taken " + (t2 - t1) + " ms");
 					}
 				}else{
 					long t1 = System.currentTimeMillis();
 					promisingRelations = this.kb.countProjectionBindings(rewrittenQuery.getHead(), rewrittenQuery.getAntecedent(), newEdge[1]);
 					long t2 = System.currentTimeMillis();
 					if((t2 - t1) > 20000 && this.verbose)
-					System.err.println("countProjectionBindings on rewritten query var=" + newEdge[1] + " "  + rewrittenQuery + " has taken " + (t2 - t1) + " ms");						
+					System.err.println("countProjectionBindings on rewritten query var=" + KB.unmap(newEdge[1]) + " "  + rewrittenQuery + " has taken " + (t2 - t1) + " ms");
 				}
 				
 				query.getTriples().remove(nPatterns);					
@@ -337,8 +337,8 @@ public class DefaultMiningAssistant extends MiningAssistant{
 					
 					newEdge[1] = relation;
 					//Before adding the edge, verify whether it leads to the hard case
-					if(containsHardCase(query, newEdge))
-						continue;
+					//if(containsHardCase(query, newEdge))
+					//	continue;
 					
 					Rule candidate = query.addAtom(newEdge, cardinality);
 					List<int[]> recursiveAtoms = candidate.getRedundantAtoms();
@@ -420,6 +420,17 @@ public class DefaultMiningAssistant extends MiningAssistant{
 	protected void getInstantiatedAtoms(Rule query, Rule parentQuery, 
 			int bindingTriplePos, int danglingPosition, double minSupportThreshold, Collection<Rule> output) {
 		int[] danglingEdge = query.getTriples().get(bindingTriplePos);
+
+		if (this.instantiationExcludedRelations != null
+				&& this.instantiationExcludedRelations.contains(danglingEdge[1])) {
+			return;
+		}
+
+		if (this.instantiationTargetRelations != null
+				&& !this.instantiationTargetRelations.contains(danglingEdge[1])) {
+			return;
+		}
+
 		Rule rewrittenQuery = null;
 		if (!query.isEmpty() && this.enableQueryRewriting) {
 			rewrittenQuery = rewriteProjectionQuery(query, bindingTriplePos, danglingPosition == 0 ? 2 : 0);
@@ -431,13 +442,13 @@ public class DefaultMiningAssistant extends MiningAssistant{
 			constants = this.kb.countProjectionBindings(rewrittenQuery.getHead(), rewrittenQuery.getAntecedent(), danglingEdge[danglingPosition]);
 			long t2 = System.currentTimeMillis();
 			if((t2 - t1) > 20000 && this.verbose)
-				System.err.println("countProjectionBindings var=" + danglingEdge[danglingPosition] + " in " + query + " (rewritten to " + rewrittenQuery + ") has taken " + (t2 - t1) + " ms");						
+				System.err.println("countProjectionBindings var=" + KB.unmap(danglingEdge[danglingPosition]) + " in " + query + " (rewritten to " + rewrittenQuery + ") has taken " + (t2 - t1) + " ms");
 		}else{
 			long t1 = System.currentTimeMillis();		
 			constants = this.kb.countProjectionBindings(query.getHead(), query.getAntecedent(), danglingEdge[danglingPosition]);
 			long t2 = System.currentTimeMillis();
 			if((t2 - t1) > 20000 && this.verbose)
-				System.err.println("countProjectionBindings var=" + danglingEdge[danglingPosition] + " in " + query + " has taken " + (t2 - t1) + " ms");			
+				System.err.println("countProjectionBindings var=" + KB.unmap(danglingEdge[danglingPosition]) + " in " + query + " has taken " + (t2 - t1) + " ms");
 		}
 		
 		int joinPosition = (danglingPosition == 0 ? 2 : 0);
@@ -541,7 +552,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		long t2 = System.currentTimeMillis();	
 		query.setConfidenceRunningTime(t2 - t1);
 		if((t2 - t1) > 20000 && this.verbose) {
-			System.err.println("countPairs vars " + var1 + ", " + var2 + " in " + KB.toString(query.getAntecedent()) + " has taken " + (t2 - t1) + " ms");
+			System.err.println("countPairs vars " + KB.unmap(var1) + ", " + KB.unmap(var2) + " in " + KB.toString(query.getAntecedent()) + " has taken " + (t2 - t1) + " ms");
 		}
 		return result;
 	}
@@ -563,7 +574,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		long t2 = System.currentTimeMillis();
 		query.setPcaConfidenceRunningTime(t2 - t1);
 		if((t2 - t1) > 20000 && this.verbose) {
-			System.err.println("countPairs vars " + var1 + ", " + var2 + " in " + KB.toString(antecedent) + " has taken " + (t2 - t1) + " ms");
+			System.err.println("countPairs vars " + KB.unmap(var1) + ", " + KB.unmap(var2) + " in " + KB.toString(antecedent) + " has taken " + (t2 - t1) + " ms");
 		}
 		return result;
 	}

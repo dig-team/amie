@@ -2,6 +2,7 @@ package amie.data.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.stream.Collectors;
 
 
 import amie.data.KB;
@@ -67,7 +68,7 @@ public class KBsSummarizer {
 			} else {
 				db2.summarize(true);	
 			}
-			System.out.println(relationsInCommon);
+			System.out.println(relationsInCommon.stream().map(KB::unmap).collect(Collectors.toList()));
 		}
 	}
 }

@@ -33,9 +33,19 @@ In case of memory issues, try to increase the virtual machine's memory resources
 
 `MAX_HEAP_SPACE` depends on your input size and the system's available memory. The package also contains the utilities to generate and evaluate predictions from the rules mined by AMIE. Without additional arguments AMIE thresholds using PCA confidence 0.1 and head coverage 0.01. You can change these default settings. Run `java -jar amie3.jar -h` (without an input file) to see a detailed description of the available options.
 
+### Reproducing our experiments
+
+The executables can be found in the milestone directory or in the "releases" github onglet. Option names and default options are subject to change compared these milestones. To reproduce experiments, use by default:
+
+```java -jar amie-milestone-intKB.jar -bias lazy -full -noHeuristics -ostd [TSV file]```
+
+Experimental implementation of the GPro and GRank measures can be found in the "gpro" branch. After recompiling the sources ot this branch, use:
+
+```java -jar amie3.jar -bias amie.mining.assistant.experimental.[GPro|GRank] [TSVFile]```
+
 ## Deploying AMIE
 
-If you want to modify the code of AMIE,you need
+If you want to modify the code of AMIE, you need
 
 * Apache Maven >= 3.6.0
 * Java >= 8
@@ -56,7 +66,6 @@ AMIE is managed with [Maven](https://maven.apache.org/), therefore to deploy you
 > Jonathan Lajus, Luis Galárraga, Fabian M. Suchanek:  
 > [“Fast and Exact Rule Mining with AMIE 3”  ](https://suchanek.name/work/publications/eswc-2020-amie-3.pdf)  
 > Full paper at the Extended Semantic Web Conference (ESWC), 2020  
-> accepted conditionally  
 
 > Luis Galárraga, Christina Teflioudi, Katja Hose, Fabian M. Suchanek:  
 > [“Fast Rule Mining in Ontological Knowledge Bases with AMIE+”](https://suchanek.name/work/publications/vldbj2015.pdf)  
@@ -66,18 +75,6 @@ AMIE is managed with [Maven](https://maven.apache.org/), therefore to deploy you
 > [“AMIE: Association Rule Mining under Incomplete Evidence in Ontological Knowledge Bases”](https://suchanek.name/work/publications/www2013.pdf)  
 > Full paper at the International World Wide Web Conference  (WWW), 2013  
 
-### AMIE 3
-
-Latest version of AMIE with a set of runtime enhancements: 
-
-Lajus, J., Galárraga, L., & Suchanek, F. M (2020). Fast and Exact Rule Mining with AMIE 3. Under revision at the Extended Semantic Web Conference.
-
-**Executables used**: Can be found in the milestone directory or in the "releases" github onglet. Option names and default options are subject to change compared these milestones. To reproduce experiments, use by default:
-
-```java -jar amie-milestone-intKB.jar -bias lazy -full -noHeuristics -ostd [TSV file]```
-
-**Data**: 
-
 ### Determining Obligatory Attributes in Knowledge Bases
 
 The present repository also contains the code for the following paper:
@@ -86,4 +83,10 @@ The present repository also contains the code for the following paper:
 > [“Are All People Married? Determining Obligatory Attributes in Knowledge Bases”](https://suchanek.name/work/publications/www-2018.pdf)  
 > Full paper at the Web Conference  (WWW) , 2018  
 
-This code resides in: kb/ rosa/ rules/ 
+The code resides in: typing/
+
+## Licensing
+
+AMIE is distributed under the terms of the [Creative Commons Attribution-NonComercial license v3.0](https://creativecommons.org/licenses/by-nc/3.0/) by the [YAGO-NAGA team](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/amie/) and the [DIG team](https://dig.telecom-paris.fr/blog/).
+
+AMIE uses Javatools, a library released under the [Creative Commons Attribution license v3.0](https://creativecommons.org/licenses/by/3.0/) by the [YAGO-NAGA team](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/javatools/).

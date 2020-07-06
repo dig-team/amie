@@ -1,5 +1,6 @@
 package amie.mining;
 
+import static amie.data.U.increase;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -8,57 +9,72 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 
 /**
  * A queue implementation with barriers tailored for the AMIE mining system.
  * This implementation guarantees that rules produced in the nth-round of a breath-first
  * search strategy are always dequeued and refined before any rule corresponding
  * to the (n+1)th-round.
- * 
+ *
  * @author galarrag
  *
  */
 public final class AMIEQueue {
-	private final Lock lock = new ReentrantLock(); 
+	private final Lock lock = new ReentrantLock();
         private final Lock qlock = new ReentrantLock();
-	
-	private final Condition empty = lock.newCondition(); 
-	
-	private LinkedHashSet<Rule> current;
-	
+
+	private final Condition empty = lock.newCondition();
+
+	private Iterator<Rule> current;
+
 	private LinkedHashSet<Rule> next;
-	
+
 	private int generation;
-	
+
 	private int maxThreads;
-	
+
 	private int waitingThreads = 0;
-	
+
+        private Int2IntMap queueCalls = new Int2IntOpenHashMap();
+        private Int2IntMap queueAdded = new Int2IntOpenHashMap();
+
+        public void printStats() {
+            System.err.println("AMIE Queue statistics:");
+            int gen = 1;
+            while(queueCalls.containsKey(gen)) {
+                System.err.println("gen: " + gen + ", calls: " + queueCalls.get(gen) + ", added: " + queueAdded.get(gen));
+                gen++;
+            }
+        }
+
 	public AMIEQueue(Collection<Rule> seeds, int maxThreads) {
 		this.generation = 1;
-		this.maxThreads = maxThreads; 
+                this.queueCalls.put(this.generation, 0);
+                this.queueAdded.put(this.generation, 0);
+		this.maxThreads = maxThreads;
 		this.waitingThreads = 0;
-		this.current = new LinkedHashSet<>();
-		for (Rule seed : seeds) {
-			seed.setGeneration(generation);
-			this.current.add(seed);
-		}
-		this.generation++;
 		this.next = new LinkedHashSet<>();
-               this.done = false;
+		this.queueAll(seeds);
+		this.nextGeneration();
+                this.done = false;
 	}
-	
+
 	/**
 	 * Adds an item to the queue.
 	 * @param o
 	 */
 	public void queue(Rule o) {
 		qlock.lock();
+                increase(queueCalls, this.generation);
 		o.setGeneration(generation);
-		next.add(o);
+		if (next.add(o)) {
+                    increase(queueAdded, this.generation);
+                }
 		qlock.unlock();
 	}
-	
+
 	/**
 	 * Adds a collection of items to the queue.
 	 * @param rules
@@ -66,12 +82,15 @@ public final class AMIEQueue {
 	public void queueAll(Collection<Rule> rules) {
 		qlock.lock();
 		for (Rule r : rules) {
-			r.setGeneration(generation);
-			next.add(r);			
+                    increase(queueCalls, this.generation);
+                    r.setGeneration(generation);
+                    if (next.add(r)) {
+                        increase(queueAdded, this.generation);
+                    }
 		}
 		qlock.unlock();
 	}
-	
+
 	/**
 	 * Retrieves and removes the oldest item that was added to the queue.
 	 * @return An object or null if the queue is empty.
@@ -87,14 +106,14 @@ public final class AMIEQueue {
 	    if (current.isEmpty()) {
     		++waitingThreads;
 	    	if (waitingThreads < maxThreads) {
-	    		empty.await();    		
+	    		empty.await();
 	    		--waitingThreads;
-	    	} else {	    	
+	    	} else {
 	    		nextGeneration();
 	    		--waitingThreads;
-		    	empty.signalAll();	
+		    	empty.signalAll();
 	    	}
-	    	
+
 	    	if (current.isEmpty()) {
 	    		item = null;
 	    	} else {
@@ -107,13 +126,13 @@ public final class AMIEQueue {
 	    return item;
 	}
         */
-        
+
         private boolean done = false;
-	
+
         public Rule dequeue() throws InterruptedException {
             lock.lock();
             Rule item = null;
-            while (current.isEmpty() && !done) {
+            while (!current.hasNext() && !done) {
                 ++waitingThreads;
                 if (waitingThreads < maxThreads) {
                     empty.await();
@@ -141,23 +160,22 @@ public final class AMIEQueue {
 	 * @return
 	 */
 	private Rule poll() {
-    	Iterator<Rule> iterator = current.iterator();
-        Rule nextItem = iterator.next();
-        iterator.remove();
-        return nextItem;		
+            return current.next();
 	}
 
 
 	private void nextGeneration() {
 		generation++;
-		current = next;
+                this.queueCalls.put(this.generation, 0);
+                this.queueAdded.put(this.generation, 0);
+		current = next.iterator();
 		next = new LinkedHashSet<>();
 	}
-	
+
 	public boolean isEmpty() {
-		return current.isEmpty() && next.isEmpty();
+		return !current.hasNext() && next.isEmpty();
 	}
-	
+
 	public int getGeneration() {
 		return generation;
 	}

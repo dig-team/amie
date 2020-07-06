@@ -40,6 +40,16 @@ public class TaxonomyCleaner {
                     g.addVertex(o);
                     g.addEdge(s, o);
                 }
+            } else if (split.length == 3) {
+                int s = KB.map(split[0]);
+                int o = KB.map(split[2]);
+                if (s == (o)) {
+                    System.err.println(KB.unmap(s));
+                } else {
+                    g.addVertex(s);
+                    g.addVertex(o);
+                    g.addEdge(s, o);
+                }
             }
         }
         StrongConnectivityAlgorithm<Integer, DefaultEdge> gi = new KosarajuStrongConnectivityInspector<>(g);

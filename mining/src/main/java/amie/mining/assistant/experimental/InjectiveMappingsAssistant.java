@@ -147,7 +147,7 @@ public class InjectiveMappingsAssistant extends LazyMiningAssistant {
                                 continue;
                             }
 
-                            //Here we still have to make a redundancy check							
+                            //Here we still have to make a redundancy check
                             newEdge[1] = relation;
                             Rule candidate = rule.addAtom(newEdge, cardinality);
                             if (!candidate.isRedundantRecursive()) {
@@ -281,9 +281,9 @@ public class InjectiveMappingsAssistant extends LazyMiningAssistant {
 
                     newEdge[1] = relation;
                     //Before adding the edge, verify whether it leads to the hard case
-                    if (containsHardCase(query, newEdge)) {
-                        continue;
-                    }
+                    //if (containsHardCase(query, newEdge)) {
+                    //    continue;
+                    //}
 
                     Rule candidate = query.addAtom(newEdge, cardinality);
                     List<int[]> recursiveAtoms = candidate.getRedundantAtoms();

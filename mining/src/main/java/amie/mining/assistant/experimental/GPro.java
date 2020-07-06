@@ -11,21 +11,22 @@ import amie.rules.Metric;
 import amie.rules.Rule;
 import java.text.DecimalFormat;
 import java.util.List;
+import java.util.Set;
 
 /**
  * GPro class to compute GPro measures:
  *  ``Graph pattern entity ranking model for knowledge graph completion''
  *  From Ebisu, Takuma and Ichise, Ryutaro
- * 
+ *
  * Which is basically PCA confidence (both ways) using injective mappings
  * @author jlajus
  */
 public class GPro extends InjectiveMappingsAssistant {
-	
+
 	public GPro(KB dataSource) {
 		super(dataSource);
 	}
-	
+
 	@Override
 	public String getDescription() {
        	return "Computes GPro measures instead of PCA Confidence";
@@ -62,45 +63,45 @@ public class GPro extends InjectiveMappingsAssistant {
             }
         }
     }
-    
+
     public boolean testConfidenceThresholds(Rule candidate) {
         boolean addIt = true;
-	if(candidate.containsLevel2RedundantSubgraphs()) {
-            return false;
-	}	
-		
-	if(candidate.getStdConfidence() >= minStdConfidence 
+	//if(candidate.containsLevel2RedundantSubgraphs()) {
+        //    return false;
+	//}
+
+	if(candidate.getStdConfidence() >= minStdConfidence
 		&& (candidate.getMeasure("GPro_conf_tail") >= minPcaConfidence
                  || candidate.getMeasure("GPro_conf_head") >= minPcaConfidence)){
 			//Now check the confidence with respect to its ancestors
-			List<Rule> ancestors = candidate.getAncestors();			
-			for(int i = 0; i < ancestors.size(); ++i){
+			Set<Rule> ancestors = candidate.getAncestors();
+			for(Rule ancestor : ancestors){
 				double ancestorConfidence = 0.0;
 				double ruleConfidence = 0.0;
 				if (this.confidenceMetric == ConfidenceMetric.PCAConfidence) {
-                                    if (shouldBeOutput(ancestors.get(i)) 
-                                            && candidate.getMeasure("GPro_conf_tail") <= ancestors.get(i).getMeasure("GPro_conf_tail")
-                                            && candidate.getMeasure("GPro_conf_head") <= ancestors.get(i).getMeasure("GPro_conf_head"))
+                                    if (shouldBeOutput(ancestor)
+                                            && candidate.getMeasure("GPro_conf_tail") <= ancestor.getMeasure("GPro_conf_tail")
+                                            && candidate.getMeasure("GPro_conf_head") <= ancestor.getMeasure("GPro_conf_head"))
                                         addIt = false;
 					break;
 				} else {
-					ancestorConfidence = ancestors.get(i).getStdConfidence();
+					ancestorConfidence = ancestor.getStdConfidence();
 					ruleConfidence = candidate.getStdConfidence();
 				}
-				// Skyline technique on PCA confidence					
-				if (shouldBeOutput(ancestors.get(i)) && 
+				// Skyline technique on PCA confidence
+				if (shouldBeOutput(ancestor) &&
 						ruleConfidence <= ancestorConfidence){
 					addIt = false;
 					break;
-				}		
+				}
 			}
 		}else{
 			return false;
 		}
-		
+
 		return addIt;
 	}
-    
+
     public double computeConfTail(Rule rule) {
         /*
          * e.g Injective PCA.
@@ -144,7 +145,7 @@ public class GPro extends InjectiveMappingsAssistant {
         }
         return rule.getMeasure("GPro_conf_tail");
     }
-    
+
     public double computeConfHead(Rule rule) {
         /*
          * e.g Injective PCA.
@@ -188,7 +189,7 @@ public class GPro extends InjectiveMappingsAssistant {
         }
         return rule.getMeasure("GPro_conf_head");
     }
-    
+
     /**
      * It returns a string representation of the rule depending on the assistant configurations
      * @param rule
@@ -202,18 +203,18 @@ public class GPro extends InjectiveMappingsAssistant {
 		if (this.ommitStdConfidence) {
 			metrics2Ommit = new Metric[]{Metric.PCAConfidence, Metric.PCABodySize, Metric.StandardConfidence, Metric.BodySize};
 		}
-		
+
 		if (this.datalogNotation) {
                     if (isVerbose()) {
     			result.append(rule.getDatalogFullRuleString(metrics2Ommit));
                     } else {
     			result.append(rule.getDatalogBasicRuleString(metrics2Ommit));
                     }
-                } else {     
+                } else {
                     if (isVerbose()) {
     			result.append(rule.getFullRuleString(metrics2Ommit));
                     } else {
-    			result.append(rule.getBasicRuleString(metrics2Ommit));                        			
+    			result.append(rule.getBasicRuleString(metrics2Ommit));
                     }
                 }
                 double lazyval = rule.getMeasure("GPro_conf_tail");
@@ -228,7 +229,7 @@ public class GPro extends InjectiveMappingsAssistant {
                 } else {
                     result.append("\t" + df.format(lazyval));
                 }
-                
+
 		return result.toString();
 	}
 }

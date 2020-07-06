@@ -252,8 +252,6 @@ public class InjectiveMappingsAssistant extends LazyMiningAssistant {
                 }
 
                 query.getTriples().remove(nPatterns);
-                int danglingPosition = (joinPosition == 0 ? 2 : 0);
-                boolean boundHead = !KB.isVariable(query.getTriples().get(0)[danglingPosition]);
                 IntList listOfPromisingRelations = decreasingKeys(promisingRelations);
                 // The relations are sorted by support, therefore we can stop once we have reached
                 // the minimum support.
@@ -286,34 +284,6 @@ public class InjectiveMappingsAssistant extends LazyMiningAssistant {
                     //}
 
                     Rule candidate = query.addAtom(newEdge, cardinality);
-                    List<int[]> recursiveAtoms = candidate.getRedundantAtoms();
-                    if (!recursiveAtoms.isEmpty()) {
-                        if (canAddInstantiatedAtoms()) {
-                            for (int[] triple : recursiveAtoms) {
-                                if (!KB.isVariable(triple[danglingPosition])) {
-                                    candidate.getTriples().add(
-                                            KB.triple(newEdge[danglingPosition],
-                                                    KB.DIFFERENTFROMbs,
-                                                    triple[danglingPosition]));
-                                }
-                            }
-                            long finalCardinality;
-                            if (boundHead) {
-                                //Single variable in head
-                                finalCardinality = this.kb.countDistinct(candidate.getFunctionalVariable(), candidate.injectiveTriples());
-                            } else {
-                                //Still pending
-                                finalCardinality = this.kb.countProjection(candidate.getHead(), candidate.injectiveBody());
-                            }
-
-                            if (finalCardinality < minSupportThreshold) {
-                                continue;
-                            }
-
-                            candidate.setSupport(finalCardinality);
-                        }
-                    }
-
                     candidate.setHeadCoverage(candidate.getSupport() / getHeadCardinality(candidate));
                     candidate.setSupportRatio(candidate.getSupport() / this.kb.size());
                     candidate.addParent(query);

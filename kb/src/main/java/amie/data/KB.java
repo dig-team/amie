@@ -3741,9 +3741,9 @@ public class KB {
 	public static final Pattern triplePattern = Pattern
 			.compile("(\\w+)\\((\\??\\w+)\\s*,\\s*(\\??\\w+)\\)");
 
-	private static final String uriPattern = "<?[-._\\p{L}:/–'\\(\\),]+>?";
+	private static final String uriPattern = "<?[-._\\p{L}\\d:/–'\\(\\),]+>?";
 	/** We do not still support typed literals **/
-	private static final String literalPattern = "\\\"?[-._\\p{L}\\s,'–:/]+\\\"?(@\\w+)?";
+	private static final String literalPattern = "\\\"?[-._\\p{L}\\d\\s,'–:/]+\\\"?(@\\w+)?";
 	
 	/** Pattern of a triple */
 	public static final Pattern amieTriplePattern = Pattern
@@ -4806,6 +4806,7 @@ public class KB {
 	
 	public static void main(String[] args) {
 		System.out.println(Arrays.binarySearch(new int[]{3, 4}, 1));
-		
+		System.out.println(KB.rule("?a  /location/statistical_region/rent50_1./measurement_unit/dated_money_value/currency  ?b   => ?a  /location/statistical_region/rent50_2./measurement_unit/dated_money_value/currency"));
+		System.out.println(KB.rule("?a  /location/administrative_division/second_level_division_of  ?j  ?j  /location/statistical_region/gni_in_ppp_dollars./measurement_unit/dated_money_value/currency  ?b   => ?a  /location/statistical_region/rent50_2./measurement_unit/dated_money_value/currency  ?b"));
 	}
 }

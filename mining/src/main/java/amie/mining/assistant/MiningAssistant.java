@@ -2,15 +2,7 @@ package amie.mining.assistant;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import amie.data.KB;
 import amie.data.Schema;
@@ -264,14 +256,14 @@ public class MiningAssistant {
 	 *
 	 */
 	class OperatorDependencyTree {
-		HashMap<Method, OperatorDependencyTree> tree;
+		TreeMap<Method, OperatorDependencyTree> tree;
 
 		public OperatorDependencyTree() {
-			tree = new HashMap<>();
+			tree = new TreeMap<>(Comparator.comparing(Method::getName));
 		}
 
 		public void addMethod(Method m) {
-			tree.put(m, new OperatorDependencyTree());
+			tree.putIfAbsent(m, new OperatorDependencyTree());
 		}
 
 		public void addMethod(Method m, String parentId) {

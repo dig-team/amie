@@ -599,7 +599,11 @@ public class MiningAssistant {
 
 		if (exploitMaxLengthOption) {
 			if(rule.getRealLength() == maxDepth - 1){
-				if(!rule.getOpenVariables().isEmpty() && !allowConstants){
+				if (rule.getOpenVariables().size() > 1) {
+					return;
+				}
+
+				if (rule.getOpenVariables().size() == 1 && !allowConstants) {
 					return;
 				}
 			}

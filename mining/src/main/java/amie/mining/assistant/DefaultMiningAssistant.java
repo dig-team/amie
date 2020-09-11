@@ -248,9 +248,12 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		// Pruning by maximum length for the \mathcal{O}_D operator.
 		if(query.getRealLength() == this.maxDepth - 1) {
 			if (this.exploitMaxLengthOption) {
-				if(!query.getOpenVariables().isEmpty() 
-						&& !this.allowConstants 
-						&& !this.enforceConstants) {
+				if (query.getOpenVariables().size() > 1) {
+					return;
+				}
+
+				if (query.getOpenVariables().size() == 1
+						&& !canAddInstantiatedAtoms()) {
 					return;
 				}
 			}

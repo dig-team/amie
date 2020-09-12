@@ -1395,6 +1395,10 @@ public class AMIE {
                 System.out.println("Perfect rules pruning disabled");
             }
         }
+        
+        if (verbose) {
+        	mineAssistant.outputOperatorHierarchy(System.err);
+        }
 
         return miner;
     }

@@ -829,7 +829,7 @@ public class KB {
 
 		long size = size();
 		long time = System.currentTimeMillis();
-		long memory = Runtime.getRuntime().freeMemory();
+		long memory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 		Announce.doing("Loading files");
 		final int[] running = new int[1];
 		for (final File file : files) {
@@ -864,11 +864,11 @@ public class KB {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-
+		long memoryAfter = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 		Announce.done("Loaded " + (size() - size) + " facts in "
 				+ NumberFormatter.formatMS(System.currentTimeMillis() - time)
 				+ " using "
-				+ ((Runtime.getRuntime().freeMemory() - memory) / 1000000)
+				+ ((memoryAfter - memory) / 1000000)
 				+ " MB");
 	}
 
@@ -916,14 +916,15 @@ public class KB {
 			throws IOException {
 		long size = size();
 		long time = System.currentTimeMillis();
-		long memory = Runtime.getRuntime().freeMemory();
+		long memory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 		Announce.doing("Loading files");
 		for (File file : files)
 			load(file);
+		long memoryAfter = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 		Announce.done("Loaded " + (size() - size) + " facts in "
 				+ NumberFormatter.formatMS(System.currentTimeMillis() - time)
 				+ " using "
-				+ ((Runtime.getRuntime().freeMemory() - memory) / 1000000)
+				+ ((memoryAfter - memory) / 1000000)
 				+ " MB");
 	}
 

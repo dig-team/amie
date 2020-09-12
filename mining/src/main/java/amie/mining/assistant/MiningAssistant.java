@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import java.io.PrintStream;
+
 import amie.data.KB;
 import amie.data.Schema;
 import amie.data.tuple.IntPair;
@@ -189,10 +191,10 @@ public class MiningAssistant {
 	 */
 	protected ConfidenceMetric confidenceMetric;
 
-        /**
-         * Use the skyline pruning of outputted rules.
-         */
-        protected boolean useSkylinePruning;
+    /**
+     * Use the skyline pruning of outputted rules.
+     */
+    protected boolean useSkylinePruning;
 
 	/**
 	 * Do not calculate standard confidence.
@@ -306,6 +308,13 @@ public class MiningAssistant {
 				tree.get(m).traverse(output);
 			}
 		}
+	}
+	
+	public void outputOperatorHierarchy(PrintStream st) {
+    	st.println("List of Mining Operators: ");
+    	for (Method m : this.miningOperators) {
+    		st.println("--" + m);
+    	}
 	}
 
 	/**

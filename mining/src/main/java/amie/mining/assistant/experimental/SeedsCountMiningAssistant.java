@@ -206,9 +206,13 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 		//General case
 		if(query.getLength() == maxDepth - 1) {
 			if (this.exploitMaxLengthOption) {
-				if(!openVariables.isEmpty() 
-						&& !this.allowConstants 
-						&& !this.enforceConstants) {
+				if (query.getOpenVariables().size() > 1) {
+					// There will be more than 2 open variables and we will not be able to close all of them.
+					return;
+				}
+
+				if (!canAddInstantiatedAtoms()) {
+					// We can't count on instantiation operator to close the new dangling variable.
 					return;
 				}
 			}

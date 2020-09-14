@@ -178,10 +178,6 @@ public final class AMIEQueue {
 
 
 	private void nextGeneration() {
-		generation++;
-                this.queueCalls.put(this.generation, 0);
-                this.queueAdded.put(this.generation, 0);
-
 		if (this.progressBar != null) {
 			this.progressBar.close();
 		}
@@ -190,6 +186,10 @@ public final class AMIEQueue {
 			// Heuristic for calculating updateIntervalMillis considering the queue's size and the number of consumers.
 			this.progressBar = new ProgressBar("Generation " + generation + ":", next.size(), Math.min(1000, next.size() * 1000 / 1000 / maxThreads));
 		}
+
+		generation++;
+		this.queueCalls.put(this.generation, 0);
+		this.queueAdded.put(this.generation, 0);
 
 		current = next.iterator();
 		next = new LinkedHashSet<>();

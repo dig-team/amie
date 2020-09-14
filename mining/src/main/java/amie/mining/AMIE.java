@@ -416,35 +416,11 @@ public class AMIE {
                         double threshold = getCountThreshold(currentRule);
 
                         // Application of the mining operators
-                        Map<String, Collection<Rule>> temporalOutputMap = null;
                         try {
-                            temporalOutputMap = assistant.applyMiningOperators(currentRule, threshold);
-                        } catch (IllegalAccessException e) {
-                            // TODO Auto-generated catch block
+                            Map<String, Collection<Rule>> temporalOutputMap = assistant.applyMiningOperators(currentRule, threshold);
+                            temporalOutputMap.values().forEach(queryPool::queueAll);
+                        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                             e.printStackTrace();
-                        } catch (IllegalArgumentException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        } catch (InvocationTargetException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        }
-
-                        for (Map.Entry<String, Collection<Rule>> entry : temporalOutputMap.entrySet()) {
-                            String operator = entry.getKey();
-                            Collection<Rule> items = entry.getValue();
-                            if (!operator.equals("dangling")) {
-                                queryPool.queueAll(items);
-                            }
-                        }
-
-                        // Addition of the specializations to the queue
-                        //queryPool.queueAll(temporalOutput);
-                        if (currentRule.getRealLength()
-                                < assistant.getMaxDepth() - 1) {
-                            if (temporalOutputMap.containsKey("dangling")) {
-                                queryPool.queueAll(temporalOutputMap.get("dangling"));
-                            }
                         }
                     }
 

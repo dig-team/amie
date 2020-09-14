@@ -249,11 +249,12 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		if(query.getRealLength() == this.maxDepth - 1) {
 			if (this.exploitMaxLengthOption) {
 				if (query.getOpenVariables().size() > 1) {
+					// There will be more than 2 open variables and we will not be able to close all of them.
 					return;
 				}
 
-				if (query.getOpenVariables().size() == 1
-						&& !canAddInstantiatedAtoms()) {
+				if (!canAddInstantiatedAtoms()) {
+					// We can't count on instantiation operator to close the new dangling variable.
 					return;
 				}
 			}

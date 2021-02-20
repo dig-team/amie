@@ -61,6 +61,11 @@ AMIE is managed with [Maven](https://maven.apache.org/), therefore to deploy you
  * IDEs such as Eclipse offer the option to create a project from an existing Maven project. The IDE will call Maven to compile the code.
 3. Maven will generate an executable jar named amie3.jar in a new "bin/" directory. This executable accepts RDF files in TSV format [like this one](http://resources.mpi-inf.mpg.de/yago-naga/amie/data/yago2_sample/yago2core.10kseedsSample.compressed.notypes.tsv) as input, but also other format described below. To run it, just write in your comand line: 
 
+## Build  and test AMIE with docker 
+` docker build --no-cache -t  amie:latest -f  ./Dockerfile . `
+
+` docker run -it amie:latest mvn test `
+
 ## Publications 
 
 > Jonathan Lajus, Luis Galárraga, Fabian M. Suchanek:  

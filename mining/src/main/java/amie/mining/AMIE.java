@@ -230,7 +230,7 @@ public class AMIE {
             seedRules = assistant.getInitialAtomsFromSeeds(seeds, minInitialSupport);
         }
 
-        AMIEQueue queue = new AMIEQueue(seedRules, nThreads);
+        AMIEQueue queue = new AMIEQueue(seedRules, nThreads, isVerbose());
 
         if (realTime) {
             consumerObj = new RuleConsumer(result, resultsLock, resultsCondVar);

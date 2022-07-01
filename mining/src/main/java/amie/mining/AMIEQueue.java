@@ -11,6 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import amie.rules.Rule;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import me.tongfei.progressbar.ProgressBar;
 
 /**
  * A queue implementation with barriers tailored for the AMIE mining system.
@@ -31,6 +32,10 @@ public final class AMIEQueue {
 
 	private LinkedHashSet<Rule> next;
 
+	private ProgressBar progressBar;
+
+	private boolean verbose;
+
 	private int generation;
 
 	private int maxThreads;
@@ -49,13 +54,15 @@ public final class AMIEQueue {
             }
         }
 
-	public AMIEQueue(Collection<Rule> seeds, int maxThreads) {
+	public AMIEQueue(Collection<Rule> seeds, int maxThreads, boolean verbose) {
 		this.generation = 1;
                 this.queueCalls.put(this.generation, 0);
                 this.queueAdded.put(this.generation, 0);
 		this.maxThreads = maxThreads;
 		this.waitingThreads = 0;
 		this.next = new LinkedHashSet<>();
+		this.progressBar = null;
+		this.verbose = verbose;
 		this.queueAll(seeds);
 		this.nextGeneration();
                 this.done = false;
@@ -139,6 +146,9 @@ public final class AMIEQueue {
                     --waitingThreads;
                 } else {
                     if (next.isEmpty()) {
+                        if (this.verbose) {
+                            this.progressBar.close();
+                        }
                         done = true;
                     } else {
                         nextGeneration();
@@ -160,14 +170,27 @@ public final class AMIEQueue {
 	 * @return
 	 */
 	private Rule poll() {
-            return current.next();
+		if (this.verbose) {
+			this.progressBar.step();
+		}
+		return current.next();
 	}
 
 
 	private void nextGeneration() {
+		if (this.progressBar != null) {
+			this.progressBar.close();
+		}
+
+		if (this.verbose) {
+			// Heuristic for calculating updateIntervalMillis considering the queue's size and the number of consumers.
+			this.progressBar = new ProgressBar("Generation " + generation + ":", next.size(), Math.min(1000, next.size() * 1000 / 1000 / maxThreads));
+		}
+
 		generation++;
-                this.queueCalls.put(this.generation, 0);
-                this.queueAdded.put(this.generation, 0);
+		this.queueCalls.put(this.generation, 0);
+		this.queueAdded.put(this.generation, 0);
+
 		current = next.iterator();
 		next = new LinkedHashSet<>();
 	}

@@ -1,0 +1,151 @@
+Command line parameters documentation
+
+Basic command: 
+java -jar amie3.jar [TSV file]
+
+Parameters:
+
+#  -mins <number>
+   Minimum absolute support. The number of positive examples.
+   Default value: 100 
+
+#  -minc <number>
+   Minimum size of the relations to be considered as head relations. The number of  facts or entities depending on the bias.
+   Default value: 100 
+
+#  -minhc <number>
+   Minimum head coverage. 
+   Default value: 0.01
+
+#  -oute <number>
+   Print the rules at the end and not while they are discovered.
+   Default: False
+   
+#  -pm <support/headcoverage>
+   Metric used for pruning of intermediate queries: support|headcoverage.
+   Default value: headcoverage
+
+
+#  -datalog
+   Print rules using the datalog notation.
+   Default: False
+
+#  -bexr <relations>
+   Do not use these relations as atoms in the body of rules.
+   Example: java -jar amie3.jar -bexr bornIn
+
+#  -hexr <relations>
+   Do not use these relations as atoms in the head of rules. (Incompatible with head-target-relations)
+   Example: java -jar amie3.jar -hexr bornIn
+
+#  -iexr <relations>
+   Do not instantiate these relations. Should be used with -fconst or -const. (incompatible with instantiation-target-relations). 
+   Example: java -jar amie3.jar -iexr bornIn
+
+#  -htr <relations>
+   Mine only rules with these relations in the head. Provide a list of relation names separated by commas. (incompatible with head-excluded-relations)
+   Example: java -jar amie3.jar -htr bornIn
+
+#  -btr <relations>
+   Allow only these relations in the body. Provide a list of relation names separated by commas (incompatible with body-excluded-relations)
+   Example: java -jar amie3.jar -btr bornIn
+
+#  -itr <relations>
+   Allow only these relations to be instantiated. Should be used with -fconst or -const. Provide a list of relation names separated by commas(incompatible with instantiation-excluded-relations).
+   Example: java -jar amie3.jar -itr bornIn
+
+#  -maxad <number>
+   Maximum number of atoms in the antecedent and succedent of rules.
+   Default value: 3
+
+#  -minpca <number>
+   Minimum PCA confidence threshold.This value is not used for pruning, only for filtering of the results.
+   Defalut value: 0.0
+
+!!!   #  -const
+         Enable rules with constants. 
+         Default value: false
+
+!!!   #  -fconst
+         Enforce constants in all atoms. 
+         Default: false
+
+#  -bias
+   Syntatic/semantic bias: oneVar|default|lazy|lazit|[Path to a subclass of amie.mining.assistant.MiningAssistant]
+   Default: default (defines support and confidence in terms of 2 head variables given an order, cf -vo)
+
+#  -caos
+   If a single variable bias is used (oneVar),force to count support always on the subject position.
+
+#  -nc
+   Preferred number of cores. Round down to the actual number of cores in the system if a higher value is provided
+
+#  -minc <number>
+   Minimum standard confidence threshold. This value is not used for pruning, only for filtering of the results. 
+   Default: 0.0.
+
+#  -optimcb
+   Enable the calculation of confidence upper bounds to prune rules.
+
+#  -optimfh
+   Enable functionality heuristic to identify potential low confident rules for pruning.
+
+???   #  -verbose
+         Maximal verbosity.
+
+???   #  -rl
+      Recursivity limit
+
+#  -auta
+   Avoid unbound type atoms, e.g., type(x, y), i.e., bind always 'y' to a type.
+
+#  -deml
+   Do not exploit max length for speedup(requested by the reviewers of AMIE+). 
+   Defalut value: False
+
+#  -dqrw
+   Disable query rewriting and caching.
+
+#  -dpr
+   Disable perfect rules.
+
+#  -oout
+   If enabled, it activates only the output enhacements, that is, the confidence approximation and upper bounds. It overrides any other configuration that is incompatible.
+
+#  -full
+   It enables all enhancements: lossless heuristics and confidence approximation and upper bounds. It overrides any other configuration that is incompatible.
+
+#  -noHeuristics
+   Disable functionality heuristic, should be used with the -full option.
+
+#  -noKbRewrite
+   Prevent the KB to rewrite query when counting pairs.
+
+#  -noKbExistsDetection 
+   Prevent the KB to detect existential variable on-the-fly and to optimize the query.
+
+#  -noSkyline
+   Disable Skyline pruning of results.
+
+#  -vo
+   Define the order of the variable in counting query among: app, fun (default), ifun.
+
+#  -ef
+   An additional text file whose interpretation depends on the selected mining assistant (bias).
+
+#  -ostd
+   Do not calculate standard confidence.
+
+#  -cc
+   Cache count results.
+
+#  -optimai
+   Prune instantiated rules that decrease too much the support of their parent rule (ratio 0.2).
+
+#  -mlg
+   Parse labels language as new facts
+
+#  -d <>
+   Separator in input files. 
+   Default separator: TAB
+

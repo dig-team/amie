@@ -62,11 +62,11 @@ Parameters:
    Minimum PCA confidence threshold.This value is not used for pruning, only for filtering of the results.
    Defalut value: 0.0
 
-!!!   #  -const
+#  -const
          Enable rules with constants. 
          Default value: false
 
-!!!   #  -fconst
+#  -fconst
          Enforce constants in all atoms. 
          Default: false
 
@@ -90,10 +90,10 @@ Parameters:
 #  -optimfh
    Enable functionality heuristic to identify potential low confident rules for pruning.
 
-???   #  -verbose
+#  -verbose
          Maximal verbosity.
 
-???   #  -rl
+#  -rl
       Recursivity limit
 
 #  -auta

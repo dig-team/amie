@@ -90,10 +90,10 @@ public class Predictor {
 				}
 			}
 		} else {
-			Int2ObjectMap<Int2IntMap> pairs = (Int2ObjectMap<Int2IntMap>) bindings; 
+			Int2ObjectMap<IntSet> pairs = (Int2ObjectMap<IntSet>) bindings; 
 			int functionalPosition = rule.getFunctionalVariablePosition();
 			for (int subject : pairs.keySet()) {
-				for (int object : pairs.get(subject).keySet()) {
+				for (int object : pairs.get(subject)) {
 					if (functionalPosition == 0) {
 						triples.add(new IntTriple(subject, relation, object));
 					} else {

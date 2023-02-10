@@ -16,6 +16,13 @@ public class ILPMiningAssistant extends DefaultMiningAssistant {
 		super(dataSource);
 	}
 	
+	@Override
+	public String getDescription() {
+       	return "Mining assistant that defines support "
+       			+ "by counting support on both head variables " 
+       			+ "and using explicit counter-examples.";
+	}
+	
 	/**
 	 * Negate the string form of a predicate.
 	 */
@@ -80,7 +87,7 @@ public class ILPMiningAssistant extends DefaultMiningAssistant {
 		
 	}
 	
-	private List<Rule> filterRuleWithNegatedHeadInBody(List<Rule> input) {
+	protected List<Rule> filterRuleWithNegatedHeadInBody(List<Rule> input) {
 		// Check if the rule contains an atom with the negated version of the head
 		// predicate
 		List<Rule> tmpOutput = new ArrayList<>();

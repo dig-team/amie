@@ -1606,6 +1606,24 @@ public class Rule {
 
         return builder.toString();
     }
+    
+    /**
+     * Replaces all the occurrences of a variable with a constant according to the mappings
+     * in the input arguments.
+     * @param mapping
+     * @return
+     */
+	public Rule instantiate(Int2IntMap mappings) {
+        Rule newQuery = new Rule(this, this.support);
+        for (int[] triple : newQuery.triples) {
+        	for (int i = 0; i < triple.length; ++i) {
+        		if (mappings.containsKey(triple[i])) {
+        			triple[i] = mappings.get(triple[i]);
+        		}
+        	}
+        }
+        return newQuery;
+	}
 
     /**
      * Returns a new query where the variable at the dangling position of the
@@ -2399,6 +2417,17 @@ public class Rule {
         result.setGeneration(generation);
         return result;
     }
+    
+    public boolean containsInstantiatedAtoms() {
+		for (int[] atom : this.triples) {
+			if (!KB.specialRelations.contains(atom[1])) {
+				if (KB.numVariables(atom) < 2) {
+					return true;
+				}
+	        }
+		}
+		return false;
+	}
 
 
     public static void main(String[] args) {
@@ -2422,5 +2451,8 @@ public class Rule {
     	System.out.println(rule5);
     	System.out.println(variablesRegex.matcher("?c").matches());
     }
+
+	
+
 
 }

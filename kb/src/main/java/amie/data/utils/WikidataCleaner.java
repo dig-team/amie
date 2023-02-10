@@ -68,7 +68,7 @@ public class WikidataCleaner {
 			Map<String, String> relationsMap, 
 			Map<String, String> entitiesMap) 
 			throws FileNotFoundException, IOException {
-		NxParser nxp = new NxParser(new FileInputStream(file), false);
+		NxParser nxp = new NxParser(new FileInputStream(file));
 		
 		if (withLabels) {
 			while (nxp.hasNext()) {

@@ -1,7 +1,6 @@
-AMIE (c) by Luis Galárraga, Fabian Suchanek, Jonathan Lajus
+AMIE (c) by the YAGO-NAGA team (https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/) and the DIG Team (https://dig.telecom-paris.fr/blog/)
 
-AMIE is licensed under a
-Creative Commons Attribution 4.0 International License.
+AMIE is licensed under a Creative Commons Attribution 4.0 International License.
 
 You should have received a copy of the license along with this
 work. If not, see <http://creativecommons.org/licenses/by/4.0/>.

@@ -12,6 +12,8 @@ import amie.data.tuple.IntPair;
 import amie.rules.ConfidenceMetric;
 import amie.rules.Metric;
 import amie.rules.Rule;
+import amie.rules.format.RuleFormatter;
+import amie.rules.format.RuleFormatterFactory;
 import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 
@@ -194,12 +196,6 @@ public class MiningAssistant {
 	protected boolean ommitStdConfidence;
 
     /**
-     * If true, AMIE outputs rules using the datalog notation
-     * otherwise its default [subject, relation, object] notation
-     */
-    protected boolean datalogNotation;
-
-    /**
      * Sequence of mining operators to be applied to a rule.
      */
     private LinkedList<Method> miningOperators;
@@ -211,9 +207,10 @@ public class MiningAssistant {
      */
 	protected boolean optimAdaptiveInstantiations;
 
-	public void setOptimAdaptiveInstantiations(boolean optim) {
-		optimAdaptiveInstantiations = optim;
-	}
+	/**
+	 * It defines the rule's output format
+	 */
+	protected RuleFormatter formatter;
 
 	/**
 	 * @param dataSource
@@ -241,12 +238,12 @@ public class MiningAssistant {
 		this.enableQueryRewriting = true;
 		this.enablePerfectRules = true;
 		this.confidenceMetric = ConfidenceMetric.PCAConfidence;
-		this.datalogNotation = false;
 		this.ommitStdConfidence = false;
 		this.optimAdaptiveInstantiations = false;
 		buildRelationsDictionary();
 		this.miningOperators = new LinkedList<>();
 		computeOperatorHierarchy();
+		this.formatter = RuleFormatterFactory.getDefaultFormatter(false);
 	}
 
 	/**
@@ -448,7 +445,6 @@ public class MiningAssistant {
 	}
 
 	public void setKbSchema(KB schemaSource) {
-		// TODO Auto-generated method stub
 		this.kbSchema = schemaSource;
 	}
 
@@ -488,7 +484,6 @@ public class MiningAssistant {
 	protected boolean canAddInstantiatedAtoms() {
 		return allowConstants || enforceConstants;
 	}
-
 
 	/**
 	 * Returns a list of one-atom queries using the head relations provided in the collection relations.
@@ -1377,25 +1372,7 @@ public class MiningAssistant {
      */
 	public String formatRule(Rule rule) {
 		StringBuilder result = new StringBuilder();
-		Metric[] metrics2Ommit = new Metric[0];
-		if (this.ommitStdConfidence) {
-			metrics2Ommit = new Metric[]{Metric.StandardConfidence, Metric.BodySize};
-		}
-
-		if (this.datalogNotation) {
-    		if (isVerbose()) {
-    			result.append(rule.getDatalogFullRuleString(metrics2Ommit));
-    		} else {
-    			result.append(rule.getDatalogBasicRuleString(metrics2Ommit));
-    		}
-    	} else {
-    		if (isVerbose()) {
-    			result.append(rule.getFullRuleString(metrics2Ommit));
-    		} else {
-    			result.append(rule.getBasicRuleString(metrics2Ommit));
-    		}
-    	}
-
+		result.append(formatter.fullFormat(rule));
 		return result.toString();
 	}
 
@@ -1426,7 +1403,6 @@ public class MiningAssistant {
 	}
 
 	public void setAllowConstants(boolean allowConstants) {
-		// TODO Auto-generated method stub
 		this.allowConstants = allowConstants;
 	}
 
@@ -1500,12 +1476,10 @@ public class MiningAssistant {
 	}
 
 	public void setCountAlwaysOnSubject(boolean countAlwaysOnSubject) {
-		// TODO Auto-generated method stub
 		this.countAlwaysOnSubject = countAlwaysOnSubject;
 	}
 
 	public long getFactsCount() {
-		// TODO Auto-generated method stub
 		return kb.size();
 	}
 
@@ -1525,13 +1499,15 @@ public class MiningAssistant {
 		this.enabledConfidenceUpperBounds = enabledConfidenceUpperBounds;
 	}
 
-
 	public boolean isVerbose() {
 		return verbose;
 	}
 
 	public void setVerbose(boolean verbose) {
 		this.verbose = verbose;
+		if (this.formatter != null) {
+			this.formatter.setVerbose(verbose);
+		}
 	}
 
 	public boolean isExploitMaxLengthOption() {
@@ -1574,21 +1550,32 @@ public class MiningAssistant {
 		return this.ommitStdConfidence;
 	}
 
-	public boolean isDatalogNotation() {
-		return datalogNotation;
+	public boolean isUseSkylinePruning() {
+		return useSkylinePruning;
 	}
 
-	public void setDatalogNotation(boolean datalogNotation) {
-		this.datalogNotation = datalogNotation;
+	public void setUseSkylinePruning(boolean useSkylinePruning) {
+		this.useSkylinePruning = useSkylinePruning;
 	}
 
-        public boolean isUseSkylinePruning() {
-            return useSkylinePruning;
-        }
+	public RuleFormatter getFormatter() {
+		return formatter;
+	}
 
-        public void setUseSkylinePruning(boolean useSkylinePruning) {
-            this.useSkylinePruning = useSkylinePruning;
-        }
+	public void setFormatter(String outputFormat) {
+		try {
+			Map<String, Object> args = new HashMap<>();
+			args.put("ommitStd", (Boolean)this.ommitStdConfidence);
+			this.formatter = RuleFormatterFactory.getFormatter(outputFormat, this.verbose, args);
+		} catch (Exception e) {
+			System.err.println("Unknown output formatter " + outputFormat + ": Using default formatter");
+			this.formatter = RuleFormatterFactory.getDefaultFormatter(this.verbose);
+		}
+	}
+
+	public void setOptimAdaptiveInstantiations(boolean optim) {
+		optimAdaptiveInstantiations = optim;
+	}
 
 	public boolean shouldBeClosed() {
 		return true;

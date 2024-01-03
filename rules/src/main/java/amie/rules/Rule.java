@@ -1342,11 +1342,11 @@ public class Rule {
         int result = 1;
         if (generation > 0) {
 	        result = prime * result + (int) initialSupport;
-	        result = prime * result + (int) generation;
+	        result = prime * result + generation;
 	        result = prime * result + headKey;
         } else {
 	        result = prime * result + (int) initialSupport;
-	        result = prime * result + (int) getRealLength();
+	        result = prime * result + getRealLength();
 	        result = prime * result + headKey;
        }
         return result;
@@ -1387,6 +1387,37 @@ public class Rule {
             return false;
         }
         return QueryEquivalenceChecker3.areEquivalent(getTriples(), other.getTriples());
+    }
+
+    public Object getMetric(Metric m) {
+        switch(m){
+            case BodySize:
+                return (Long)this.getBodySize();
+            case FunctionalVariable:
+                return (Integer)this.getFunctionalVariable();
+            case HeadCoverage:
+                return (Double)this.getHeadCoverage();
+            case None:
+                return this;
+            case PcaBodySize:
+                return (Double)this.getPcaBodySize();
+            case PcaConfEstimation:
+                return (Double)this.getPcaEstimation();
+            case PcaConfidence:
+                return (Double)this.getPcaConfidence();
+            case PcaUpperBound:
+                return (Double)this.pcaConfidenceUpperBound;
+            case StdConfidence:
+                return (Double)this.getStdConfidence();
+            case StdUpperBound:
+                return (Double)this.stdConfidenceUpperBound;
+            case Support:
+                return (Double)this.getSupportRatio();
+            case PositiveExamples:
+                return (Double)this.getSupport();
+            default:
+                return this;            
+        }
     }
 
     public String getRuleString() {
@@ -1462,7 +1493,7 @@ public class Rule {
         return sortedBody;
     }
 
-    public String getDatalogRuleString(Metric... metrics2Ommit) {
+    public String getReverseDatalogRuleString() {
         StringBuilder strBuilder = new StringBuilder();
         for (int[] pattern : sortBody()) {
             if (pattern[1] == KB.DIFFERENTFROMbs) {
@@ -1492,10 +1523,10 @@ public class Rule {
         return strBuilder.toString();
     }
 
-    public String getDatalogBasicRuleString(Metric... metrics2Ommit) {
+    public String getReverseDatalogBasicRuleString(Metric... metrics2Ommit) {
     	StringBuilder strBuilder = new StringBuilder();
-        strBuilder.append(getDatalogRuleString(metrics2Ommit));
-        addBasicFields(strBuilder);
+        strBuilder.append(getReverseDatalogRuleString());
+        addBasicFields(strBuilder, metrics2Ommit);
         return strBuilder.toString();
 	}
 
@@ -1518,15 +1549,15 @@ public class Rule {
         	List<Metric> metricsList = Arrays.asList(metrics2Ommit);
         	if (!metricsList.contains(Metric.HeadCoverage))
         		strBuilder.append("\t" + df.format(getHeadCoverage()));
-	        if (!metricsList.contains(Metric.StandardConfidence))
+	        if (!metricsList.contains(Metric.StdConfidence))
 	        	strBuilder.append("\t" + df.format(getStdConfidence()));
-	        if (!metricsList.contains(Metric.PCAConfidence))
+	        if (!metricsList.contains(Metric.PcaConfidence))
 	        	strBuilder.append("\t" + df.format(getPcaConfidence()));
 	        if (!metricsList.contains(Metric.Support))
 	        	strBuilder.append("\t" + df1.format(getSupport()));
 	        if (!metricsList.contains(Metric.BodySize))
 	        	strBuilder.append("\t" + df1.format(getBodySize()));
-	        if (!metricsList.contains(Metric.PCABodySize))
+	        if (!metricsList.contains(Metric.PcaBodySize))
 	        	strBuilder.append("\t" + df1.format(getPcaBodySize()));
 	        strBuilder.append("\t" + KB.unmap(getFunctionalVariable()));
 	        strBuilder.append("\t" + stdConfidenceUpperBound);
@@ -1549,23 +1580,23 @@ public class Rule {
         	List<Metric> metricsList = Arrays.asList(metrics2Ommit);
         	if (!metricsList.contains(Metric.HeadCoverage))
         		strBuilder.append("\t" + df.format(getHeadCoverage()));
-	        if (!metricsList.contains(Metric.StandardConfidence))
+	        if (!metricsList.contains(Metric.StdConfidence))
 	        	strBuilder.append("\t" + df.format(getStdConfidence()));
-	        if (!metricsList.contains(Metric.PCAConfidence))
+	        if (!metricsList.contains(Metric.PcaConfidence))
 	        	strBuilder.append("\t" + df.format(getPcaConfidence()));
 	        if (!metricsList.contains(Metric.Support))
 	        	strBuilder.append("\t" + df.format(getSupport()));
 	        if (!metricsList.contains(Metric.BodySize))
 	        	strBuilder.append("\t" + getBodySize());
-	        if (!metricsList.contains(Metric.PCABodySize))
+	        if (!metricsList.contains(Metric.PcaBodySize))
 	        	strBuilder.append("\t" + df.format(getPcaBodySize()));
 	        strBuilder.append("\t" + KB.unmap(getFunctionalVariable()));
     	}
     }
 
-    public String getDatalogFullRuleString(Metric... metrics2Ommit) {
+    public String getReverseDatalogFullRuleString(Metric... metrics2Ommit) {
     	StringBuilder strBuilder = new StringBuilder();
-        strBuilder.append(getDatalogRuleString(metrics2Ommit));
+        strBuilder.append(getReverseDatalogRuleString());
         addFullFields(strBuilder, metrics2Ommit);
         return strBuilder.toString();
     }
@@ -1586,7 +1617,7 @@ public class Rule {
 
     public static String toDatalog(int[] atom) {
         return KB.unmap(atom[1]).replace("<", "").replace(">", "")
-                + "(" + KB.unmap(atom[0]) + ", " + KB.unmap(atom[2]) + ")";
+                + "(" + KB.unmap(atom[0]) + "," + KB.unmap(atom[2]) + ")";
     }
 
     public String getDatalogString() {
@@ -2422,5 +2453,4 @@ public class Rule {
     	System.out.println(rule5);
     	System.out.println(variablesRegex.matcher("?c").matches());
     }
-
 }

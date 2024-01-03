@@ -62,8 +62,8 @@ import javatools.parsers.NumberFormatter;
 public class KB {
 
 	protected static Lock mappingLock = new ReentrantLock();
-	protected static ArrayList<ByteString> idToEntity = new ArrayList(Arrays.asList(ByteString.of("null")));
-	protected static ArrayList<ByteString> compositeEntity = new ArrayList();
+	protected static ArrayList<ByteString> idToEntity = new ArrayList<>(Arrays.asList(ByteString.of("null")));
+	protected static ArrayList<ByteString> compositeEntity = new ArrayList<>();
 
 	protected static Object2IntMap<ByteString> entityToId = new Object2IntOpenHashMap<ByteString>();
 	protected static Object2IntMap<ByteString> compositeToId = new Object2IntOpenHashMap<ByteString>();
@@ -224,8 +224,6 @@ public class KB {
 	}
 
 	private static void unmapVariable(int pos, StringBuilder sb) {
-		int mod = 1;
-		int r = 0;
 		if (pos <= 26) {
 			sb.append((char) (pos + 96));
 		} else if (pos <= 286) {
@@ -772,7 +770,6 @@ public class KB {
         public void run() {
             Pair<SignedPredicate, SignedPredicate> q;
             int overlap;
-            IntHashMap e;
             while(true) {
                 synchronized(queue) {
                     q = queue.pollFirst();
@@ -2482,7 +2479,6 @@ public class KB {
         }
 
         // If the variable is not in the most restrictive triple...
-        Int2ObjectMap<IntSet> instantiations;
         List<int[]> others = remove(bestPos, query);
         switch (numVariables(best)) {
             case 0:
@@ -3401,8 +3397,7 @@ public class KB {
 
 		try (Instantiator insty1 = new Instantiator(subquery, joinVariable)) {
 			for (int value : selectDistinct(joinVariable, subquery)) {
-				result += (long) countDistinct(targetVariable,
-						insty1.instantiate(value));
+				result += countDistinct(targetVariable, insty1.instantiate(value));
 			}
 		}
 

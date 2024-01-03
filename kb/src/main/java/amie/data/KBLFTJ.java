@@ -5,17 +5,6 @@
  */
 package amie.data;
 
-import static amie.data.KB.DIFFERENTFROMbs;
-import static amie.data.KB.EQUALSbs;
-import static amie.data.KB.EXISTSINVbs;
-import static amie.data.KB.EXISTSbs;
-import static amie.data.KB.NOTEXISTSINVbs;
-import static amie.data.KB.NOTEXISTSbs;
-import static amie.data.KB.TRANSITIVETYPEbs;
-import static amie.data.KB.isVariable;
-import static amie.data.KB.numVariables;
-import static amie.data.KB.toString;
-import static amie.data.KB.varpos;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;

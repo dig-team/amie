@@ -41,9 +41,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.naming.OperationNotSupportedException;
-
 import javatools.administrative.Announce;
 import javatools.datatypes.ByteString;
 
@@ -64,44 +61,44 @@ import javatools.parsers.NumberFormatter;
  */
 public class KB {
 
-        protected static Lock mappingLock = new ReentrantLock();
-        protected static ArrayList<ByteString> idToEntity = new ArrayList(Arrays.asList(ByteString.of("null")));
-        protected static ArrayList<ByteString> compositeEntity = new ArrayList();
+	protected static Lock mappingLock = new ReentrantLock();
+	protected static ArrayList<ByteString> idToEntity = new ArrayList(Arrays.asList(ByteString.of("null")));
+	protected static ArrayList<ByteString> compositeEntity = new ArrayList();
 
-        protected static Object2IntMap<ByteString> entityToId = new Object2IntOpenHashMap<ByteString>();
-        protected static Object2IntMap<ByteString> compositeToId = new Object2IntOpenHashMap<ByteString>();
+	protected static Object2IntMap<ByteString> entityToId = new Object2IntOpenHashMap<ByteString>();
+	protected static Object2IntMap<ByteString> compositeToId = new Object2IntOpenHashMap<ByteString>();
 
-        /** Variable sign (as defined in SPARQL) **/
+	/** Variable sign (as defined in SPARQL) **/
 	public static final char VariableSign = '?';
 
-        private static final String VariableRegex = Pattern.quote(Character.toString(VariableSign))
-                + "(_)?([a-z])([0-9])?([0-9])?";
+	private static final String VariableRegex = Pattern.quote(Character.toString(VariableSign))
+			+ "(_)?([a-z])([0-9])?([0-9])?";
 
-        private static final Pattern VariablePattern = Pattern.compile(VariableRegex);
+	private static final Pattern VariablePattern = Pattern.compile(VariableRegex);
 
-        public static boolean isComposite(int id) {
-            return id <= -2048;
-        }
+	public static boolean isComposite(int id) {
+		return id <= -2048;
+	}
 
-        public static int mapComposite(CharSequence cs) {
-            ByteString b = _compress(cs);
-            int r;
-            mappingLock.lock();
-            if (entityToId.containsKey(b)) {
-                throw new IllegalStateException(cs.toString() + " is used as usual and composite entity");
-            }
-            if (compositeToId.containsKey(b)) {
-                r = compositeToId.getInt(b);
-            } else {
-                compositeEntity.add(b);
-                compositeToId.put(b, -2047-compositeEntity.size());
-                r = -2047-compositeEntity.size();
-            }
-            mappingLock.unlock();
-            return r;
-        }
+	public static int mapComposite(CharSequence cs) {
+		ByteString b = _compress(cs);
+		int r;
+		mappingLock.lock();
+		if (entityToId.containsKey(b)) {
+			throw new IllegalStateException(cs.toString() + " is used as usual and composite entity");
+		}
+		if (compositeToId.containsKey(b)) {
+			r = compositeToId.getInt(b);
+		} else {
+			compositeEntity.add(b);
+			compositeToId.put(b, -2047-compositeEntity.size());
+			r = -2047-compositeEntity.size();
+		}
+		mappingLock.unlock();
+		return r;
+	}
 
-        public static final String hasNumberOfValuesEquals = "hasNumberOfValuesEquals";
+	public static final String hasNumberOfValuesEquals = "hasNumberOfValuesEquals";
 
 	public static final String hasNumberOfValuesEqualsInv = "hasNumberOfValuesEqualsInv";
 
@@ -125,40 +122,40 @@ public class KB {
 
 	public static final int hasNumberOfValuesSmallerThanInvBS = KB.mapComposite(hasNumberOfValuesSmallerThanInv);
 
-        public static final IntList cardinalityRelations = IntArrays.asList(hasNumberOfValuesEqualsBS,
-                hasNumberOfValuesEqualsInvBS, hasNumberOfValuesGreaterThanBS, hasNumberOfValuesGreaterThanInvBS,
-                hasNumberOfValuesSmallerThanBS, hasNumberOfValuesSmallerThanInvBS);
+	public static final IntList cardinalityRelations = IntArrays.asList(hasNumberOfValuesEqualsBS,
+			hasNumberOfValuesEqualsInvBS, hasNumberOfValuesGreaterThanBS, hasNumberOfValuesGreaterThanInvBS,
+			hasNumberOfValuesSmallerThanBS, hasNumberOfValuesSmallerThanInvBS);
 
-        private static final String cardinalityRelationsRegex = "(" +
-			hasNumberOfValuesEquals + "|" + hasNumberOfValuesGreaterThan + "|" + hasNumberOfValuesSmallerThan + "|" +
-			hasNumberOfValuesEqualsInv + "|" + hasNumberOfValuesGreaterThanInv + "|" + hasNumberOfValuesSmallerThanInv +
-			")([0-9]+)";
+	private static final String cardinalityRelationsRegex = "(" +
+		hasNumberOfValuesEquals + "|" + hasNumberOfValuesGreaterThan + "|" + hasNumberOfValuesSmallerThan + "|" +
+		hasNumberOfValuesEqualsInv + "|" + hasNumberOfValuesGreaterThanInv + "|" + hasNumberOfValuesSmallerThanInv +
+		")([0-9]+)";
 
 	private static final Pattern cardinalityRelationsRegexPattern =
 			Pattern.compile(cardinalityRelationsRegex);
 
-        public static final int COMPOSE_SIZE = 15;
+	public static final int COMPOSE_SIZE = 15;
 
-        public static int compose(int id, int n) {
-            return -(-id + (n << COMPOSE_SIZE));
-        }
+	public static int compose(int id, int n) {
+		return -(-id + (n << COMPOSE_SIZE));
+	}
 
-        public static IntPair uncompose(int c) {
-            if (!isComposite(c)) { return null; }
-            return new IntPair(-((-c) % ((1 << COMPOSE_SIZE))), (-c) >> COMPOSE_SIZE);
-        }
+	public static IntPair uncompose(int c) {
+		if (!isComposite(c)) { return null; }
+		return new IntPair(-((-c) % ((1 << COMPOSE_SIZE))), (-c) >> COMPOSE_SIZE);
+	}
 
-        public static int mapComposite(CharSequence cs, int n) {
-            return compose(mapComposite(cs), n);
-        }
+	public static int mapComposite(CharSequence cs, int n) {
+		return compose(mapComposite(cs), n);
+	}
 
-        private static int parseCardinality(CharSequence cs) {
-            Matcher m = cardinalityRelationsRegexPattern.matcher(cs);
-            if (m.matches()) {
-                return mapComposite(m.group(1), Integer.parseInt(m.group(2)));
-            }
-            return 0;
-        }
+	private static int parseCardinality(CharSequence cs) {
+		Matcher m = cardinalityRelationsRegexPattern.matcher(cs);
+		if (m.matches()) {
+			return mapComposite(m.group(1), Integer.parseInt(m.group(2)));
+		}
+		return 0;
+	}
 	/**
 	 * Determines whether the relation has
 	 * @param byteString
@@ -171,126 +168,126 @@ public class KB {
             return r;
 	}
 
-        public static String unmapComposite(int composite) {
-            IntPair p = uncompose(composite);
-            return compositeEntity.get(-p.first-2048).toString() + Integer.toString(p.second);
-        }
+	public static String unmapComposite(int composite) {
+		IntPair p = uncompose(composite);
+		return compositeEntity.get(-p.first-2048).toString() + Integer.toString(p.second);
+	}
 
 	/** TRUE if the int is a SPARQL variable */
 	public static boolean isVariable(CharSequence s) {
 		return (s.length() > 0 && s.charAt(0) == VariableSign);
 	}
 
-        public static boolean isVariable(int s) {
-            return (s < 0 && s > -2048);
-        }
+	public static boolean isVariable(int s) {
+		return (s < 0 && s > -2048);
+	}
 
-        public static boolean isOpenableVariable(CharSequence s) {
-            return (s.length() > 1 && s.charAt(0) == VariableSign && s.charAt(1) != '_');
-        }
+	public static boolean isOpenableVariable(CharSequence s) {
+		return (s.length() > 1 && s.charAt(0) == VariableSign && s.charAt(1) != '_');
+	}
 
-        public static boolean isOpenableVariable(int s) {
-            return (s < 0 && s > -1024);
-        }
+	public static boolean isOpenableVariable(int s) {
+		return (s < 0 && s > -1024);
+	}
 
-        /**
-         * Map a variable of the form [a-z][0-9]{1-2} to an integer between 1 and 1023.
-         * @param letter
-         * @param num
-         * @return
-         */
-        private static int mapVariable(char letter, int num1, int num2) {
-            int r = letter - 96;
-            if (num1 < 0) {
-                return r;
-            } else {
-                if (num2 < 0) {
-                    return ((r-1) * 10) + num1 + 27;
-                } else {
-                    return Math.min(((r-1) * 100) + num1*10 + num2 + 287, 1023);
-                }
-            }
-        }
+	/**
+	 * Map a variable of the form [a-z][0-9]{1-2} to an integer between 1 and 1023.
+	 * @param letter
+	 * @param num
+	 * @return
+	 */
+	private static int mapVariable(char letter, int num1, int num2) {
+		int r = letter - 96;
+		if (num1 < 0) {
+			return r;
+		} else {
+			if (num2 < 0) {
+				return ((r-1) * 10) + num1 + 27;
+			} else {
+				return Math.min(((r-1) * 100) + num1*10 + num2 + 287, 1023);
+			}
+		}
+	}
 
-        public static int parseVariable(CharSequence cs) {
-            Matcher m = VariablePattern.matcher(cs);
-            if (m.matches()) {
-                if (m.group(1) == null) {
-                    return -mapVariable(m.group(2).charAt(0), (m.group(3) == null) ? -1 : Integer.parseInt(m.group(3)),
-                            (m.group(4) == null) ? -1 : Integer.parseInt(m.group(4)));
-                } else {
-                    return -1023-mapVariable(m.group(2).charAt(0), (m.group(3).isEmpty()) ? -1 : Integer.parseInt(m.group(3)),
-                            (m.group(4) == null) ? -1 : Integer.parseInt(m.group(4)));
-                }
-            }
-            throw new IllegalArgumentException("Variable " + cs.toString() + " DO NOT MATCH \"\\?(_?)[a-z][0-9]{1,2}\"");
-        }
+	public static int parseVariable(CharSequence cs) {
+		Matcher m = VariablePattern.matcher(cs);
+		if (m.matches()) {
+			if (m.group(1) == null) {
+				return -mapVariable(m.group(2).charAt(0), (m.group(3) == null) ? -1 : Integer.parseInt(m.group(3)),
+						(m.group(4) == null) ? -1 : Integer.parseInt(m.group(4)));
+			} else {
+				return -1023-mapVariable(m.group(2).charAt(0), (m.group(3).isEmpty()) ? -1 : Integer.parseInt(m.group(3)),
+						(m.group(4) == null) ? -1 : Integer.parseInt(m.group(4)));
+			}
+		}
+		throw new IllegalArgumentException("Variable " + cs.toString() + " DO NOT MATCH \"\\?(_?)[a-z][0-9]{1,2}\"");
+	}
 
-        private static void unmapVariable(int pos, StringBuilder sb) {
-            int mod = 1;
-            int r = 0;
-            if (pos <= 26) {
-                sb.append((char) (pos + 96));
-            } else if (pos <= 286) {
-                pos -= 27; // ?a0 <-> -27
-                sb.append((char) (pos / 10 + 97));
-                sb.append(pos % 10);
-            } else {
-                pos -= 287; // ?a00 <-> -287
-                sb.append((char) (pos / 100 + 97));
-                sb.append(pos % 100);
-            }
-        }
+	private static void unmapVariable(int pos, StringBuilder sb) {
+		int mod = 1;
+		int r = 0;
+		if (pos <= 26) {
+			sb.append((char) (pos + 96));
+		} else if (pos <= 286) {
+			pos -= 27; // ?a0 <-> -27
+			sb.append((char) (pos / 10 + 97));
+			sb.append(pos % 10);
+		} else {
+			pos -= 287; // ?a00 <-> -287
+			sb.append((char) (pos / 100 + 97));
+			sb.append(pos % 100);
+		}
+	}
 
-        public static String unparseVariable(int v) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(VariableSign);
-            if (!isOpenableVariable(v)) {
-                sb.append('_');
-                v += 1023;
-            }
-            unmapVariable(-v, sb);
-            return sb.toString();
-        }
+	public static String unparseVariable(int v) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(VariableSign);
+		if (!isOpenableVariable(v)) {
+			sb.append('_');
+			v += 1023;
+		}
+		unmapVariable(-v, sb);
+		return sb.toString();
+	}
 
-        public static String unmap(int e) {
-            if (isComposite(e)) {
-                return unmapComposite(e);
-            }
-            if (isVariable(e)) {
-                return unparseVariable(e);
-            }
-            if (e < idToEntity.size()) {
-                return idToEntity.get(e).toString();
-            }
+	public static String unmap(int e) {
+		if (isComposite(e)) {
+			return unmapComposite(e);
+		}
+		if (isVariable(e)) {
+			return unparseVariable(e);
+		}
+		if (e < idToEntity.size()) {
+			return idToEntity.get(e).toString();
+		}
 
-            throw new IllegalArgumentException("Cannot unmap invalid id: " + e + " (/" + idToEntity.size() + ")");
-        }
+		throw new IllegalArgumentException("Cannot unmap invalid id: " + e + " (/" + idToEntity.size() + ")");
+	}
 
-        public static int map(CharSequence cs) {
-            if (isVariable(cs)) {
-                return parseVariable(cs);
-            }
+	public static int map(CharSequence cs) {
+		if (isVariable(cs)) {
+			return parseVariable(cs);
+		}
 
-            int r = 0;
-            if ((r = parseCardinality(cs)) != 0) {
-                return r;
-            }
+		int r = 0;
+		if ((r = parseCardinality(cs)) != 0) {
+			return r;
+		}
 
-            ByteString b = _compress(cs);
-            mappingLock.lock();
-            if (compositeToId.containsKey(b)) {
-                r = mapComposite(b);
-            } else if (entityToId.containsKey(b)) {
-                r = entityToId.getInt(b);
-            } else {
-                r = idToEntity.size();
-                idToEntity.add(b);
-                entityToId.put(b, r);
-            }
-            mappingLock.unlock();
-            return r;
-        }
+		ByteString b = _compress(cs);
+		mappingLock.lock();
+		if (compositeToId.containsKey(b)) {
+			r = mapComposite(b);
+		} else if (entityToId.containsKey(b)) {
+			r = entityToId.getInt(b);
+		} else {
+			r = idToEntity.size();
+			idToEntity.add(b);
+			entityToId.put(b, r);
+		}
+		mappingLock.unlock();
+		return r;
+	}
 
 	// ---------------------------------------------------------------------------
 	// Indexes
@@ -412,16 +409,16 @@ public class KB {
 		delimiter = newDelimiter;
 	}
 
-        protected boolean optimConnectedComponent = true;
-        protected boolean optimExistentialDetection = true;
+	protected boolean optimConnectedComponent = true;
+	protected boolean optimExistentialDetection = true;
 
-        public void setOptimConnectedComponent(boolean value) {
-            this.optimConnectedComponent = value;
-        }
+	public void setOptimConnectedComponent(boolean value) {
+		this.optimConnectedComponent = value;
+	}
 
-        public void setOptimExistentialDetection(boolean value) {
-            this.optimExistentialDetection = value;
-        }
+	public void setOptimExistentialDetection(boolean value) {
+		this.optimExistentialDetection = value;
+	}
 
 	public KB() {}
 
@@ -865,8 +862,9 @@ public class KB {
 			e.printStackTrace();
 		}
 		long memoryAfter = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+		long totalTime = System.currentTimeMillis() - time;
 		Announce.done("Loaded " + (size() - size) + " facts in "
-				+ NumberFormatter.formatMS(System.currentTimeMillis() - time)
+				+ NumberFormatter.formatMS(totalTime)
 				+ " using "
 				+ ((memoryAfter - memory) / 1000000)
 				+ " MB");
@@ -900,15 +898,10 @@ public class KB {
 				add(split[0].trim(), split[1].trim(), split[2].trim());
 			} else if (split.length == 4)
 				add(split[1].trim(), split[2].trim(), split[3].trim());
-			/*String[] split = line.trim().split(">" + delimiter);
-			if (split.length == 3) {
-				add(split[0].trim() +">", split[1].trim()+">", split[2].trim());
-			} else if (split.length == 4)
-				add(split[0].trim() +">", split[1].trim()+">", split[2].trim()+">");*/
 		}
 
 		if (message != null)
-			Announce.message("     Loaded", (size() - size), "facts");
+			Announce.message("Loaded", (size() - size), "facts");
 	}
 
 	/** Loads the files */
@@ -4798,13 +4791,13 @@ public class KB {
         return result;
     }
 
-        public IntSet getRelationSet() {
-            return new IntOpenHashSet(relationSize.keySet());
-        }
+	public IntSet getRelationSet() {
+		return new IntOpenHashSet(relationSize.keySet());
+	}
 
-        public IntSet getClassSet() {
-            return null;
-        }
+	public IntSet getClassSet() {
+		return null;
+	}
 
 	public static void main(String[] args) {
 		System.out.println(Arrays.binarySearch(new int[]{3, 4}, 1));

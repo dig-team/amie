@@ -27,8 +27,8 @@ import javatools.filehandlers.FileLines;
 
 public class Schema {
 	
-        public static String top = "owl:Thing";
-        public static int topBS = KB.map(top);
+	public static String top = "owl:Thing";
+	public static int topBS = KB.map(top);
     
 	/** X rdf:type Class **/
 	public static String typeRelation = "rdf:type";

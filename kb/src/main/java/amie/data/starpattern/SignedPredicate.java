@@ -7,10 +7,6 @@ package amie.data.starpattern;
 
 import amie.data.KB;
 
-import amie.data.KB;
-
-
-
 /**
  *
  * @author jlajus

@@ -8,12 +8,7 @@ import java.util.List;
 import amie.data.KB;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
-
-
 import javatools.datatypes.Pair;
-import javatools.filehandlers.FileLines;
 import javatools.filehandlers.TSVFile;
 
 /**

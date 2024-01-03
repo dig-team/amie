@@ -8,8 +8,6 @@ import java.util.List;
 import javatools.datatypes.Pair;
 import junit.framework.TestCase;
 import amie.data.KB;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
 
 public class TestEquivalenceChecker extends TestCase {
 	

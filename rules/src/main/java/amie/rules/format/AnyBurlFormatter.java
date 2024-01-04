@@ -1,5 +1,7 @@
 package amie.rules.format;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,11 +23,15 @@ public class AnyBurlFormatter extends RuleFormatter {
 		String ruleString = rule.getDatalogString();
 		ruleString = ruleString.replace("?a", "X").replace("?b", "Y");
 		Matcher m = Pattern.compile("(\\?[a-z])").matcher(ruleString);
-		char start = 'A';
+		char newVar = 'A';
+		Map<String, String> replaceMap = new HashMap<>();
 		while (m.find()) {
 			String var = m.group();
-			ruleString = ruleString.replace(var, "" + start);
-			start++;
+			if (!replaceMap.containsKey(var)) {
+				replaceMap.put(var, "" + newVar);
+				newVar++;
+			}
+			ruleString = ruleString.replace(var, replaceMap.get(var));
 		}
 		return ruleString;
 	}

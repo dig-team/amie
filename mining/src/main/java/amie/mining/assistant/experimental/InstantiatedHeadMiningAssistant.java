@@ -12,6 +12,7 @@ import amie.mining.assistant.MiningOperator;
 import amie.rules.Rule;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.IntCollection;
+import it.unimi.dsi.fastutil.ints.IntList;
 
 public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 
@@ -90,14 +91,13 @@ public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 	
 	@Override
 	@MiningOperator(name="dangling")
-	public void getDanglingAtoms(Rule query, double minCardinality, Collection<Rule> output) {
-		int[] newEdge = query.fullyUnboundTriplePattern();
+	public void getDanglingAtoms(Rule rule, double minCardinality, Collection<Rule> output) {
+		int[] newEdge = rule.fullyUnboundTriplePattern();
 		
-		if(query.isEmpty()) {
-			//Initial case
-			query.getTriples().add(newEdge);
+		if (rule.isEmpty()) {
+			rule.getTriples().add(newEdge);
 			List<int[]> emptyList = Collections.emptyList();
-			Int2IntMap relations = kb.countProjectionBindings(query.getHead(), emptyList, newEdge[1]);
+			Int2IntMap relations = kb.countProjectionBindings(rule.getHead(), emptyList, newEdge[1]);
 			for(int relation : relations.keySet()){
 				if(headExcludedRelations != null && headExcludedRelations.contains(relation))
 					continue;
@@ -114,23 +114,36 @@ public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 					output.add(candidate);
 				}
 			}			
-			query.getTriples().remove(0);
+			rule.getTriples().remove(0);
 		} else {
-			if (!isNotTooLong(query)) {
+			if (!isNotTooLong(rule)) {
 				return;
 			}
 			
 			// Enforce this only for n > 2
 			if (maxDepth > 2) {
-				if(query.getRealLength() == maxDepth - 1) {
-					if(!query.getOpenVariables().isEmpty() && (!allowConstants && !enforceConstants)) {
+				if(rule.getRealLength() == maxDepth - 1) {
+					if(!rule.getOpenVariables().isEmpty() && (!allowConstants && !enforceConstants)) {
 						return;
 					}
 				}
 			}
-			
-			getDanglingAtoms(query, newEdge, minCardinality, output);
 		}
+
+		IntList joinVariables = null;
+		IntList openVariables = rule.getOpenVariables();
+		
+		//Then do it for all values
+		if (rule.isClosed(true)) {
+			joinVariables = rule.getOpenableVariables();
+		} else {
+			joinVariables = openVariables;
+		}
+		
+		int[] joinPositions = new int[]{0, 2};
+			
+		super.getDanglingAtoms(rule, newEdge, minCardinality, joinVariables, joinPositions, output);
+		
 	}
 	
 	/**

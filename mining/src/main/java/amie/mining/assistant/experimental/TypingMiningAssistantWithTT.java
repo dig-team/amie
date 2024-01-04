@@ -89,7 +89,7 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 			double cardinality = (double)kb.countDistinct(head[0], succedent.getTriples());
 			if (cardinality >= minSupportThreshold) {
 				succedent.setSupport(cardinality);
-				succedent.setSupportRatio((double)cardinality / (double)this.kb.size());
+				succedent.setSupportRatio(cardinality / this.kb.size());
 				succedent.setId(rule.getId()+1);
 				output.add(succedent);
 			}
@@ -174,7 +174,6 @@ public class TypingMiningAssistantWithTT extends DefaultMiningAssistant {
 		try {
 			kb.load(files);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		TypingMiningAssistantWithTT assistant = new TypingMiningAssistantWithTT(kb);

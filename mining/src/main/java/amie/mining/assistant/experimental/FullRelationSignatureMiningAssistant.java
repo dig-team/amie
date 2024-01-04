@@ -22,25 +22,27 @@ public class FullRelationSignatureMiningAssistant extends DefaultMiningAssistant
         		+ "or type(y, C) r(x, y) => type(x, C')";
 	}
 	
-	public void getDanglingAtoms(Rule query, double minCardinality, Collection<Rule> output) {		
-		int[] newEdge = query.fullyUnboundTriplePattern();
+	public void getDanglingAtoms(Rule rule, double minCardinality, Collection<Rule> output) {		
+		int[] newEdge = rule.fullyUnboundTriplePattern();
 		int rdfType = KB.map("rdf:type");
 		
-		if(query.isEmpty()){
+		if(rule.isEmpty()){
 			//Initial case
 			newEdge[1] = rdfType;
 			Rule candidate = new Rule(newEdge, minCardinality);
 			candidate.setFunctionalVariablePosition(0);
 			registerHeadRelation(candidate);
 			getInstantiatedAtoms(candidate, null, 0, 2, minCardinality, output);
-		} else if (query.getLength() == 1) {
-			getDanglingAtoms(query, newEdge, minCardinality, output);
-		} else if (query.getLength() == 2) {
-			IntList variables = query.getOpenVariables();
+		} else if (rule.getLength() == 1) {
+			IntList joinVariables = rule.getOpenVariables();
+			int[] joinPositions = new int[]{0, 2};
+			super.getDanglingAtoms(rule, newEdge, minCardinality, joinVariables, joinPositions, output);
+		} else if (rule.getLength() == 2) {
+			IntList variables = rule.getOpenVariables();
 			// There must be one
 			newEdge[0] = variables.get(0);
 			newEdge[1] = rdfType;
-			Rule candidate = query.addAtom(newEdge, minCardinality);
+			Rule candidate = rule.addAtom(newEdge, minCardinality);
 			getInstantiatedAtoms(candidate, candidate, 0, 2, minCardinality, output);
 		}
 	}

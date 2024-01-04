@@ -18,7 +18,6 @@ public class UnclosedMiningAssistant extends DefaultMiningAssistant {
 		super(dataSource);
 		confidenceMetric = ConfidenceMetric.StandardConfidence;
 		amie.data.Schema.materializeTaxonomy(dataSource);
-		// TODO Auto-generated constructor stub
 	}
 	
 	@Override

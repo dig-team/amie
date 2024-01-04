@@ -6,16 +6,12 @@
 package amie.data;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntIterators;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.Closeable;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
-
-import javatools.datatypes.Pair;
 
 /**
  * Iterators to simulate SELECT DISTINCT operation as a generator.

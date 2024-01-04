@@ -91,100 +91,50 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 		return false;
 	}
 	
-	
-	@Override
-	/**
-	 * It adds to the output all the rules resulting from adding dangling atom instantiation of "edge"
-	 * to the query.
-	 * @param query
-	 * @param edge
-	 * @param minSupportThreshold Minimum support threshold.
+
+		/**
+	 * Returns all candidates obtained by adding a new triple pattern to the query
+	 * @param rule and will therefore predict too many new facts with scarce evidence, 
+	 * @param minSupportThreshold
 	 * @param output
 	 */
-	protected void getDanglingAtoms(Rule query, int[] edge, double minSupportThreshold, Collection<Rule> output) {
-		IntList joinVariables = null;
-		IntList openVariables = query.getOpenVariables();
+	@MiningOperator(name="dangling")
+	public void getDanglingAtoms(Rule rule, double minSupportThreshold, Collection<Rule> output) {		
+		int[] newEdge = rule.fullyUnboundTriplePattern();
 		
-		//Then do it for all values
-		if(query.isClosed(true)) {				
-			joinVariables = query.getHeadVariables();
-		} else {
-			joinVariables = openVariables;
-			joinVariables.add(query.getHead()[0]);
+		if (rule.isEmpty()) {
+			throw new IllegalArgumentException("This method expects a non-empty query");
 		}
-		
-		int nPatterns = query.getLength();
-		
-		for(int joinPosition = 0; joinPosition <= 2; joinPosition += 2){			
-			for(int joinVariable: joinVariables){
-				int[] newEdge = edge.clone();
-				
-				newEdge[joinPosition] = joinVariable;
-				query.getTriples().add(newEdge);
-				Int2IntMap promisingRelations = null;
-				Rule rewrittenQuery = null;
-				if (this.enableQueryRewriting) {
-					rewrittenQuery = rewriteProjectionQuery(query, nPatterns, joinPosition == 0 ? 0 : 2);	
-				}
-				
-				if(rewrittenQuery == null){
-					long t1 = System.currentTimeMillis();
-					promisingRelations = this.kb.countProjectionBindings(query.getHead(), query.getAntecedent(), newEdge[1]);
-					long t2 = System.currentTimeMillis();
-					if((t2 - t1) > 20000 && this.verbose) {
-						System.err.println("countProjectionBindings var=" + KB.unmap(newEdge[1]) + " "  + query + " has taken " + (t2 - t1) + " ms");
-					}
-				}else{
-					long t1 = System.currentTimeMillis();
-					promisingRelations = this.kb.countProjectionBindings(rewrittenQuery.getHead(), rewrittenQuery.getAntecedent(), newEdge[1]);
-					long t2 = System.currentTimeMillis();
-					if((t2 - t1) > 20000 && this.verbose)
-					System.err.println("countProjectionBindings on rewritten query var=" + KB.unmap(newEdge[1]) + " "  + rewrittenQuery + " has taken " + (t2 - t1) + " ms");
-				}
-				
-				query.getTriples().remove(nPatterns);								
-				// The relations are sorted by support, therefore we can stop once we have reached
-				// the minimum support.
-				for(int relation: promisingRelations.keySet()){
-					int cardinality = promisingRelations.get(relation);
+	
+	
+		if (!isNotTooLong(rule))
+			return;
 					
-					if (cardinality < minSupportThreshold) {
-						continue;
-					}			
-					
-					// Language bias test
-					if (query.cardinalityForRelation(relation) >= recursivityLimit) {
-						continue;
-					}
-					
-					if (bodyExcludedRelations != null 
-							&& bodyExcludedRelations.contains(relation)) {
-						continue;
-					}
-					
-					if (bodyTargetRelations != null 
-							&& !bodyTargetRelations.contains(relation)) {
-						continue;
-					}
-					
-					newEdge[1] = relation;
-					//Before adding the edge, verify whether it leads to the hard case
-					if(containsHardCase(query, newEdge))
-						continue;
-					
-					Rule candidate = query.addAtom(newEdge, cardinality);
-					List<int[]> recursiveAtoms = candidate.getRedundantAtoms();
-					if(!recursiveAtoms.isEmpty()){
-						continue;
-					}
-					
-					candidate.setHeadCoverage(candidate.getSupport() / getHeadCardinality(candidate));
-					candidate.setSupportRatio(candidate.getSupport() / this.kb.size());
-					candidate.addParent(query);	
-					output.add(candidate);
+		// Pruning by maximum length for the \mathcal{O}_D operator.
+		if(rule.getRealLength() == this.maxDepth - 1) {
+			if (this.exploitMaxLengthOption) {
+				if(!rule.getOpenVariables().isEmpty() 
+						&& !this.allowConstants 
+						&& !this.enforceConstants) {
+					return;
 				}
 			}
 		}
+
+		IntList joinVariables = null;
+		IntList openVariables = rule.getOpenVariables();
+		
+		//Then do it for all values
+		if (rule.isClosed(true)) {				
+			joinVariables = rule.getHeadVariables();
+		} else {
+			joinVariables = openVariables;
+			joinVariables.add(rule.getHead()[0]);
+		}
+		
+		int[] joinPositions = new int[]{0, 2};
+
+		super.getDanglingAtoms(rule, newEdge, minSupportThreshold, joinVariables, joinPositions, output);
 	}
 	
 	public void getSubTypingRules(Rule rule, double minSupportThreshold, Collection<Rule> output) {
@@ -257,7 +207,6 @@ public class TypingMiningAssistant extends DefaultMiningAssistant {
 	
 	@Override
 	public boolean testConfidenceThresholds(Rule candidate) {
-		
 		if(candidate.containsLevel2RedundantSubgraphs()) {
 			return false;
 		}	

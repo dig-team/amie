@@ -109,10 +109,9 @@ public class DefaultMiningAssistant extends MiningAssistant{
 			return;
 		}
 		
-		int nPatterns = rule.getTriples().size();
-
-		if(rule.isEmpty())
-			return;
+		if (rule.isEmpty()) {
+			throw new IllegalArgumentException("This method expects a non-empty query");
+		}
 		
 		if(!isNotTooLong(rule))
 			return;
@@ -126,12 +125,12 @@ public class DefaultMiningAssistant extends MiningAssistant{
 			return;
 		}
 		
-		if(rule.isClosed(false)){
+		if (rule.isClosed(false)) {
 			sourceVariables = allVariables;
 			targetVariables = allVariables;
-		}else{
+		} else {
 			sourceVariables = openVariables; 
-			if(sourceVariables.size() > 1){
+			if (sourceVariables.size() > 1) {
 				if (this.exploitMaxLengthOption) {
 					// Pruning by maximum length for the \mathcal{O}_C operator.
 					if (sourceVariables.size() > 2 
@@ -140,18 +139,33 @@ public class DefaultMiningAssistant extends MiningAssistant{
 					}
 				}
 				targetVariables = sourceVariables;
-			}else{
+			} else {
 				targetVariables = allVariables;
 			}
 		}
 		
+		this.getClosingAtoms(rule, minSupportThreshold, sourceVariables, targetVariables, output);
+	}
+
+	/**
+	 * Helper method that implements the logic to produce new rules with an additional closing atom
+	 * given the variables chosen for the closure.
+	 * @param rule
+	 * @param minSupportThreshold
+	 * @param sourceVariables
+	 * @param targetVariables
+	 * @param output
+	 */
+	protected void getClosingAtoms(Rule rule, double minSupportThreshold, IntList sourceVariables, 
+								IntList targetVariables, Collection<Rule> output) {
+		int nPatterns = rule.getTriples().size();
 		IntPair[] varSetups = new IntPair[2];
 		varSetups[0] = new IntPair(0, 2);
 		varSetups[1] = new IntPair(2, 0);
 		int[] newEdge = rule.fullyUnboundTriplePattern();
 		int relationVariable = newEdge[1];
 		
-		for(IntPair varSetup: varSetups){			
+		for (IntPair varSetup: varSetups) {			
 			int joinPosition = varSetup.first;
 			int closeCirclePosition = varSetup.second;
 			int joinVariable = newEdge[joinPosition];
@@ -160,8 +174,8 @@ public class DefaultMiningAssistant extends MiningAssistant{
 			for(int sourceVariable: sourceVariables){					
 				newEdge[joinPosition] = sourceVariable;
 				
-				for(int variable: targetVariables){
-					if(variable != sourceVariable){
+				for(int variable: targetVariables) {
+					if(variable != sourceVariable) {
 						newEdge[closeCirclePosition] = variable;
 						
 						rule.getTriples().add(newEdge);
@@ -187,7 +201,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 						}
 						rule.getTriples().remove(nPatterns);
 						IntList listOfPromisingRelations = decreasingKeys(promisingRelations);
-						for(int relation: listOfPromisingRelations){
+						for (int relation: listOfPromisingRelations){
 							int cardinality = promisingRelations.get(relation);
 							if (cardinality < minSupportThreshold) {
 								break;
@@ -224,80 +238,83 @@ public class DefaultMiningAssistant extends MiningAssistant{
 				newEdge[closeCirclePosition] = closeCircleVariable;
 				newEdge[joinPosition] = joinVariable;
 			}
-		}
+		}									
 	}
 	
 	/**
 	 * Returns all candidates obtained by adding a new triple pattern to the query
-	 * @param query and will therefore predict too many new facts with scarce evidence, 
-	 * @param minCardinality
+	 * @param rule and will therefore predict too many new facts with scarce evidence, 
+	 * @param minSupportThreshold
 	 * @param output
 	 */
 	@MiningOperator(name="dangling")
-	public void getDanglingAtoms(Rule query, double minCardinality, Collection<Rule> output) {		
-		int[] newEdge = query.fullyUnboundTriplePattern();
+	public void getDanglingAtoms(Rule rule, double minSupportThreshold, Collection<Rule> output) {		
+		int[] newEdge = rule.fullyUnboundTriplePattern();
 		
-		if (query.isEmpty()) {
+		if (rule.isEmpty()) {
 			throw new IllegalArgumentException("This method expects a non-empty query");
 		}
 	
 	
-		if(!isNotTooLong(query))
+		if (!isNotTooLong(rule))
 			return;
 					
 		// Pruning by maximum length for the \mathcal{O}_D operator.
-		if(query.getRealLength() == this.maxDepth - 1) {
+		if(rule.getRealLength() == this.maxDepth - 1) {
 			if (this.exploitMaxLengthOption) {
-				if(!query.getOpenVariables().isEmpty() 
+				if(!rule.getOpenVariables().isEmpty() 
 						&& !this.allowConstants 
 						&& !this.enforceConstants) {
 					return;
 				}
 			}
 		}
+
+		IntList joinVariables = null;
+		IntList openVariables = rule.getOpenVariables();
 		
-		getDanglingAtoms(query, newEdge, minCardinality, output);
+		//Then do it for all values
+		if (rule.isClosed(true)) {
+			joinVariables = rule.getOpenableVariables();
+		} else {
+			joinVariables = openVariables;
+		}
+		
+		int[] joinPositions = new int[]{0, 2};
+
+		getDanglingAtoms(rule, newEdge, minSupportThreshold, joinVariables, joinPositions, output);
 	}
 	
 	/**
 	 * It adds to the output all the rules resulting from adding dangling atom instantiation of "edge"
 	 * to the query.
-	 * @param query
+	 * @param rule
 	 * @param edge
 	 * @param minSupportThreshold Minimum support threshold.
 	 * @param output
 	 */
-	protected void getDanglingAtoms(Rule query, int[] edge, double minSupportThreshold, Collection<Rule> output) {
-		IntList joinVariables = null;
-		IntList openVariables = query.getOpenVariables();
+	protected void getDanglingAtoms(Rule rule, int[] edge, double minSupportThreshold, IntList joinVariables, 
+									int[] joinPositions, Collection<Rule> output) {
+		int nPatterns = rule.getLength();
 		
-		//Then do it for all values
-		if(query.isClosed(true)) {
-			joinVariables = query.getOpenableVariables();
-		} else {
-			joinVariables = openVariables;
-		}
-		
-		int nPatterns = query.getLength();
-		
-		for(int joinPosition = 0; joinPosition <= 2; joinPosition += 2){			
-			for(int joinVariable: joinVariables){
+		for (int joinPosition : joinPositions){			
+			for (int joinVariable: joinVariables){
 				int[] newEdge = edge.clone();
 				
 				newEdge[joinPosition] = joinVariable;
-				query.getTriples().add(newEdge);
+				rule.getTriples().add(newEdge);
 				Int2IntMap promisingRelations = null;
 				Rule rewrittenQuery = null;
 				if (this.enableQueryRewriting) {
-					rewrittenQuery = rewriteProjectionQuery(query, nPatterns, joinPosition == 0 ? 0 : 2);	
+					rewrittenQuery = rewriteProjectionQuery(rule, nPatterns, joinPosition == 0 ? 0 : 2);	
 				}
 				
 				if(rewrittenQuery == null){
 					long t1 = System.currentTimeMillis();
-					promisingRelations = this.kb.countProjectionBindings(query.getHead(), query.getAntecedent(), newEdge[1]);
+					promisingRelations = this.kb.countProjectionBindings(rule.getHead(), rule.getAntecedent(), newEdge[1]);
 					long t2 = System.currentTimeMillis();
 					if((t2 - t1) > 20000 && this.verbose) {
-						System.err.println("countProjectionBindings var=" + KB.unmap(newEdge[1]) + " "  + query + " has taken " + (t2 - t1) + " ms");
+						System.err.println("countProjectionBindings var=" + KB.unmap(newEdge[1]) + " "  + rule + " has taken " + (t2 - t1) + " ms");
 					}
 				}else{
 					long t1 = System.currentTimeMillis();
@@ -307,9 +324,9 @@ public class DefaultMiningAssistant extends MiningAssistant{
 					System.err.println("countProjectionBindings on rewritten query var=" + KB.unmap(newEdge[1]) + " "  + rewrittenQuery + " has taken " + (t2 - t1) + " ms");
 				}
 				
-				query.getTriples().remove(nPatterns);					
+				rule.getTriples().remove(nPatterns);					
 				int danglingPosition = (joinPosition == 0 ? 2 : 0);
-				boolean boundHead = !KB.isVariable(query.getTriples().get(0)[danglingPosition]);
+				boolean boundHead = !KB.isVariable(rule.getTriples().get(0)[danglingPosition]);
 				IntList listOfPromisingRelations = decreasingKeys(promisingRelations);				
 				// The relations are sorted by support, therefore we can stop once we have reached
 				// the minimum support.
@@ -321,7 +338,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 					}			
 					
 					// Language bias test
-					if (query.cardinalityForRelation(relation) >= recursivityLimit) {
+					if (rule.cardinalityForRelation(relation) >= recursivityLimit) {
 						continue;
 					}
 					
@@ -340,7 +357,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 					//if(containsHardCase(query, newEdge))
 					//	continue;
 					
-					Rule candidate = query.addAtom(newEdge, cardinality);
+					Rule candidate = rule.addAtom(newEdge, cardinality);
 					List<int[]> recursiveAtoms = candidate.getRedundantAtoms();
 					if(!recursiveAtoms.isEmpty()){
 						if(canAddInstantiatedAtoms()){
@@ -370,7 +387,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 					
 					candidate.setHeadCoverage(candidate.getSupport() / getHeadCardinality(candidate));
 					candidate.setSupportRatio(candidate.getSupport() / this.kb.size());
-					candidate.addParent(query);	
+					candidate.addParent(rule);	
 					output.add(candidate);
 				}
 			}
@@ -592,7 +609,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 			} else {
 				rule.setSupport(this.kb.countDistinct(rule.getFunctionalVariable(), rule.getTriples()));
 			}
-			rule.setSupportRatio((double) rule.getSupport() / this.kb.size());
+			rule.setSupportRatio(rule.getSupport() / this.kb.size());
 			Double relationSize = new Double(this.getHeadCardinality(rule));
 			if (relationSize != null) {
 				rule.setHeadCoverage(rule.getSupport() / relationSize);
@@ -647,7 +664,6 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		if (candidate.isEmpty()) {
 			return candidate.getStdConfidence();
 		}
-		// TODO Auto-generated method stub
 		List<int[]> antecedent = new ArrayList<int[]>();
 		antecedent.addAll(candidate.getAntecedent());
 		double denominator = 0.0;

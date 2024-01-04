@@ -9,8 +9,6 @@
   <modules>
     <module>kb</module>
     <module>mining</module>
-    <module>typing</module>
-    <module>rosa</module>
     <module>rules</module>
   </modules>
 

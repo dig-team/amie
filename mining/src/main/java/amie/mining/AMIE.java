@@ -5,7 +5,9 @@
 package amie.mining;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -120,6 +122,11 @@ public class AMIE {
     protected IntCollection seeds;
 
     /**
+     * Output stream for the rules (stdout by default)
+     */
+    protected PrintStream rulesOutputStream;
+
+    /**
      *
      * @param assistant An object that implements the logic of the mining
      * operators.
@@ -138,6 +145,7 @@ public class AMIE {
         this.nThreads = nThreads;
         this.realTime = true;
         this.seeds = null;
+        this.rulesOutputStream = System.out;
     }
 
     public MiningAssistant getAssistant() {
@@ -222,7 +230,7 @@ public class AMIE {
         AMIEQueue queue = new AMIEQueue(seedRules, nThreads);
 
         if (realTime) {
-            consumerObj = new RuleConsumer(result, resultsLock, resultsCondVar);
+            consumerObj = new RuleConsumer(result, resultsLock, resultsCondVar, this.rulesOutputStream);
             consumerThread = new Thread(consumerObj);
             consumerThread.start();
         }
@@ -274,23 +282,26 @@ public class AMIE {
 
         protected Condition conditionVariable;
 
-        public RuleConsumer(List<Rule> consumeList, Lock consumeLock, Condition conditionVariable) {
+        protected PrintStream outStream;
+
+        public RuleConsumer(List<Rule> consumeList, Lock consumeLock, Condition conditionVariable, PrintStream outStream) {
             this.consumeList = consumeList;
             this.lastConsumedIndex = -1;
             this.consumeLock = consumeLock;
             this.conditionVariable = conditionVariable;
+            this.outStream = outStream;
         }
 
         @Override
         public void run() {
-            System.out.print(assistant.getFormatter().header());
+            this.outStream.print(assistant.getFormatter().header());
             while (!Thread.currentThread().isInterrupted()) {
                 consumeLock.lock();
                 try {
                     while (lastConsumedIndex == consumeList.size() - 1) {
                         conditionVariable.await();
                         for (int i = lastConsumedIndex + 1; i < consumeList.size(); ++i) {
-                            System.out.println(assistant.formatRule(consumeList.get(i)));
+                            this.outStream.println(assistant.formatRule(consumeList.get(i)));
                         }
                         lastConsumedIndex = consumeList.size() - 1;
                         if (done) {
@@ -300,7 +311,7 @@ public class AMIE {
                     }
                 } catch (InterruptedException e) {
                     consumeLock.unlock();
-                    System.out.flush();
+                    this.outStream.flush();
                     break;
                 }
             }
@@ -408,13 +419,10 @@ public class AMIE {
                         try {
                             temporalOutputMap = assistant.applyMiningOperators(currentRule, threshold);
                         } catch (IllegalAccessException e) {
-                            // TODO Auto-generated catch block
                             e.printStackTrace();
                         } catch (IllegalArgumentException e) {
-                            // TODO Auto-generated catch block
                             e.printStackTrace();
                         } catch (InvocationTargetException e) {
-                            // TODO Auto-generated catch block
                             e.printStackTrace();
                         }
 
@@ -779,6 +787,10 @@ public class AMIE {
                 .withDescription("Separator in input files (default: TAB)")
                 .hasArg()
                 .create("d");
+        Option outputFileOpt = OptionBuilder.withArgName("output-file")
+                .withDescription("Output file to store the rules")
+                .hasArg()
+                .create("ofile");
 
         options.addOption(stdConfThresholdOpt);
         options.addOption(supportOpt);
@@ -821,6 +833,7 @@ public class AMIE {
         options.addOption(optimAdaptiveInstantiations);
         options.addOption(multilingual);
         options.addOption(delimOpt);
+        options.addOption(outputFileOpt);
 
         return options;
     }
@@ -1001,6 +1014,7 @@ public class AMIE {
         IntCollection headTargetRelations = null;
         IntCollection bodyTargetRelations = null;
         IntCollection instantiationTargetRelations = null;
+        String outputFilePath = null;
 
         int nThreads = nProcessors; // By default use as many threads as processors.
         HelpFormatter formatter = new HelpFormatter();
@@ -1330,13 +1344,16 @@ public class AMIE {
         }
         mineAssistant.setFormatter(outputFormat);
 
+        if (cli.hasOption("ofile")) {
+            outputFilePath = cli.getOptionValue("ofile");
+        }
 
         System.out.println(mineAssistant.getDescription());
 
         AMIE miner = new AMIE(mineAssistant, minInitialSup, minMetricValue, metric, nThreads);
         miner.setRealTime(realTime);
         miner.setSeeds(headTargetRelations);
-
+        
         if (minStdConf > 0.0) {
             System.out.println("Filtering on standard confidence with minimum threshold " + minStdConf);
         } else {
@@ -1377,7 +1394,40 @@ public class AMIE {
         	mineAssistant.outputOperatorHierarchy(System.err);
         }
 
+        if (outputFilePath != null) {
+            try {
+                miner.setRulesOutputStream(new PrintStream(outputFilePath));
+                System.out.println("Writing rules to file " + outputFilePath);
+            } catch (FileNotFoundException e) {
+                System.err.println("The output file " + outputFilePath + " could not be found. Outputting" +
+                                    " the rules to stdout");
+            }
+        }
+
+
         return miner;
+    }
+    /**
+     * It defines the stream on which the mined rules will be written.
+     * By default this is System.out
+     * @param outStream
+     */
+    public void setRulesOutputStream(PrintStream outStream) {
+        this.rulesOutputStream = outStream;
+    }
+
+    public void outputHeader() {
+        this.rulesOutputStream.print(assistant.getFormatter().header());
+    }
+
+    public void outputRule(Rule rule) {
+        this.rulesOutputStream.println(assistant.formatRule(rule));
+    }
+
+    public void closeOutput() {
+        if (this.rulesOutputStream != System.out) {
+            this.rulesOutputStream.close();
+        }
     }
 
     /**
@@ -1401,11 +1451,13 @@ public class AMIE {
         List<Rule> rules = miner.mine();
 
         if (!miner.isRealTime()) {
-            System.out.print(assistant.getFormatter().header());
+            miner.outputHeader();
             for (Rule rule : rules) {
-                System.out.println(assistant.formatRule(rule));
+                miner.outputRule(rule);
             }
         }
+
+        miner.closeOutput();
 
         long miningTime = System.currentTimeMillis() - time;
         System.out.println("Mining done in " + NumberFormatter.formatMS(miningTime));
@@ -1419,5 +1471,7 @@ public class AMIE {
 //	    	System.out.println("Collisions: " + String.valueOf(KB.queryCache.collisionCount.get()));
 //          }
     }
+
+   
 
 }

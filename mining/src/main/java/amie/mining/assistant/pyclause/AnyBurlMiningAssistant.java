@@ -91,12 +91,17 @@ public class AnyBurlMiningAssistant extends DefaultMiningAssistant {
 		}
 
 		if (rule.getRealLength() > 1) {
-			joinVariables.add(rule.getLastRealTriplePattern()[2]);
+			int[] lastTriplePattern = rule.getLastRealTriplePattern();
+			if (rule.getOpenVariables().contains(lastTriplePattern[0])) {				
+				joinVariables.add(lastTriplePattern[0]);
+			} else {
+				joinVariables.add(lastTriplePattern[2]);
+			}
 		} else {
 			joinVariables.add(rule.getHead()[0]);
 		}
 
-		int[] joinPositions = new int[]{0};
+		int[] joinPositions = new int[]{0, 2};
 		
 		super.getDanglingAtoms(rule, newEdge, minCardinality, joinVariables, joinPositions, output);
 	}

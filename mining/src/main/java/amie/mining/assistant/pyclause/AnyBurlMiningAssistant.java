@@ -27,9 +27,15 @@ public class AnyBurlMiningAssistant extends DefaultMiningAssistant {
 			throw new IllegalArgumentException("This method expects a non-empty query");
 		}
 		
-		if (!isNotTooLong(rule))
+		if (!isNotTooLong(rule)) {
 			return;
+		}
 		
+		// If the object or the subject is bounded, then
+		if (KB.numVariables(rule.getHead()) > 1) {
+			return;
+		}
+
 		if (this.enforceConstants) {
 			return;
 		}

@@ -327,6 +327,8 @@ public class AMIE {
             done = true;
             conditionVariable.signalAll();
             consumeLock.unlock();
+            this.outStream.flush();
+
         }
     }
 

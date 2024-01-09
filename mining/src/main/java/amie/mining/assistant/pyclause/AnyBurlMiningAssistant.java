@@ -32,7 +32,7 @@ public class AnyBurlMiningAssistant extends DefaultMiningAssistant {
 		}
 		
 		// If the object or the subject is bounded, then
-		if (KB.numVariables(rule.getHead()) > 1) {
+		if (KB.numVariables(rule.getHead()) < 2) {
 			return;
 		}
 

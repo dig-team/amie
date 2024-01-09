@@ -359,10 +359,10 @@ public class DefaultMiningAssistant extends MiningAssistant{
 					
 					Rule candidate = rule.addAtom(newEdge, cardinality);
 					List<int[]> recursiveAtoms = candidate.getRedundantAtoms();
-					if(!recursiveAtoms.isEmpty()){
-						if(canAddInstantiatedAtoms()){
-							for(int[] triple: recursiveAtoms){										
-								if(!KB.isVariable(triple[danglingPosition])){
+					if (!recursiveAtoms.isEmpty()) {
+						if (canAddInstantiatedAtoms()) {
+							for (int[] triple: recursiveAtoms) {										
+								if (!KB.isVariable(triple[danglingPosition])) {
 									candidate.getTriples().add(
 											KB.triple(newEdge[danglingPosition], 
 											KB.DIFFERENTFROMbs, 
@@ -370,10 +370,10 @@ public class DefaultMiningAssistant extends MiningAssistant{
 								}
 							}
 							long finalCardinality;
-							if(boundHead){
+							if(boundHead) {
 								//Single variable in head
 								finalCardinality = this.kb.countDistinct(candidate.getFunctionalVariable(), candidate.getTriples());
-							}else{
+							} else {
 								//Still pending
 								finalCardinality = this.kb.countProjection(candidate.getHead(), candidate.getAntecedent());
 							}
@@ -408,7 +408,6 @@ public class DefaultMiningAssistant extends MiningAssistant{
 	 * @return
 	 */
 	protected boolean containsHardCase(Rule query, int[] newEdge) {
-		// TODO Auto-generated method stub
 		int[] hardnessInfo = this.kb.identifyHardQueryTypeI(query.getTriples());
 		if(hardnessInfo == null) return false;
 		int[] hardAtom1 = query.getTriples().get(hardnessInfo[2]);

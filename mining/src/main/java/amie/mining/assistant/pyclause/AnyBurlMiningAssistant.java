@@ -74,7 +74,6 @@ public class AnyBurlMiningAssistant extends DefaultMiningAssistant {
 			throw new IllegalArgumentException("This method expects a non-empty query");
 		}
 	
-	
 		if (!isNotTooLong(rule))
 			return;
 					
@@ -110,6 +109,56 @@ public class AnyBurlMiningAssistant extends DefaultMiningAssistant {
 		int[] joinPositions = new int[]{0, 2};
 		
 		super.getDanglingAtoms(rule, newEdge, minCardinality, joinVariables, joinPositions, output);
+	}
+
+	/**
+	 * Returns all candidates obtained by instantiating the dangling variable of the last added
+	 * triple pattern in the rule
+	 * @param rule
+	 * @param minSupportThreshold
+	 * @param danglingEdges
+	 * @param output
+	 */
+	@MiningOperator(name="instantiated", dependency="dangling")
+	public void getInstantiatedAtoms(Rule rule, double minSupportThreshold,
+			Collection<Rule> danglingEdges, Collection<Rule> output) {
+		if (!canAddInstantiatedAtoms()) {
+			return;
+		}
+		if (KB.numVariables(rule.getHead()) > 1) {
+			return;
+		}
+
+		IntList queryFreshVariables = rule.getOpenVariables();
+		if (this.exploitMaxLengthOption
+				|| rule.getRealLength() < this.maxDepth - 1
+				|| queryFreshVariables.size() < 2) {
+			for (Rule candidate : danglingEdges) {
+				// Find the dangling position of the query
+				int lastTriplePatternIndex = candidate.getLastRealTriplePatternIndex();
+				int[] lastTriplePattern = candidate.getTriples().get(lastTriplePatternIndex);
+
+				IntList candidateFreshVariables = candidate.getOpenVariables();
+				int danglingPosition = 0;
+				if (candidateFreshVariables.contains(lastTriplePattern[0])) {
+					danglingPosition = 0;
+				} else if (candidateFreshVariables.contains(lastTriplePattern[2])) {
+					danglingPosition = 2;
+				} else {
+					throw new IllegalArgumentException("The query " + rule.getRuleString() +
+								" does not contain fresh variables in the last triple pattern.");
+				}
+				if (optimAdaptiveInstantiations) {
+					getInstantiatedAtoms(candidate, candidate,
+							lastTriplePatternIndex, danglingPosition,
+							candidate.getSupport() / 5, output);
+				} else {
+					getInstantiatedAtoms(candidate, candidate,
+							lastTriplePatternIndex, danglingPosition,
+							minSupportThreshold, output);
+				}
+			}
+		}
 	}
 	
 }

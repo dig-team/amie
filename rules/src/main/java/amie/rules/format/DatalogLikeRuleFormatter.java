@@ -10,6 +10,6 @@ public class DatalogLikeRuleFormatter extends DefaultRuleFormatter {
 
 	@Override
 	public String format(Rule rule) {
-		return rule.getDatalogString();
+		return rule.getDatalogString(true);
 	}
 }

@@ -36,11 +36,7 @@ public class AnyBurlMiningAssistant extends DefaultMiningAssistant {
 			return;
 		}
 
-		if (this.enforceConstants) {
-			return;
-		}
-		
-		if (rule.isClosed(false)) {
+		if (rule.isClosed(false) || this.enforceConstants) {
 			return;
 		}
 
@@ -95,18 +91,34 @@ public class AnyBurlMiningAssistant extends DefaultMiningAssistant {
 			return;
 		}
 
+		int[] lastTriplePattern = rule.getLastRealTriplePattern();
+		if (KB.numVariables(lastTriplePattern) == 0) {
+			throw new IllegalArgumentException("This rule has a fully instantiated atom: " + rule.toString());
+		}
+
 		if (rule.getRealLength() > 1) {
-			int[] lastTriplePattern = rule.getLastRealTriplePattern();
 			if (rule.getOpenVariables().contains(lastTriplePattern[0])) {				
 				joinVariables.add(lastTriplePattern[0]);
 			} else {
 				joinVariables.add(lastTriplePattern[2]);
 			}
 		} else {
-			joinVariables.add(rule.getHead()[0]);
+			if (KB.isVariable(rule.getHead()[0]))
+				joinVariables.add(rule.getHead()[0]);
+			else 
+				joinVariables.add(rule.getHead()[2]);
 		}
 
-		int[] joinPositions = new int[]{0, 2};
+		int[] joinPositions = null;
+		if (KB.isVariable(lastTriplePattern[0])) {
+			if (KB.isVariable(lastTriplePattern[2])) {
+				joinPositions = new int[]{0, 2};
+			} else {
+				joinPositions = new int[]{0};
+			}
+		} else {
+			joinPositions = new int[]{2};
+		}
 		
 		super.getDanglingAtoms(rule, newEdge, minCardinality, joinVariables, joinPositions, output);
 	}

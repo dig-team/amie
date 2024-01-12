@@ -10,9 +10,7 @@ import amie.mining.assistant.variableorder.VariableOrder;
 import amie.data.KB;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.Rule;
-import java.util.ArrayList;
 import java.util.List;
-import javatools.datatypes.ByteString;
 
 /**
  *

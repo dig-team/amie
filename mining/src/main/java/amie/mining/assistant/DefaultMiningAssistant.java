@@ -35,7 +35,6 @@ public class DefaultMiningAssistant extends MiningAssistant{
 	public DefaultMiningAssistant(KB dataSource) {
 		super(dataSource);
 		this.hardQueries = Collections.synchronizedMap(new HashMap<Pair<Integer, Boolean>, Long>());
-		// TODO Auto-generated constructor stub
 	}
 	
 	public long getTotalCount(Rule query){

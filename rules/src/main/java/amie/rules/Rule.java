@@ -1617,15 +1617,18 @@ public class Rule {
 
     public static String toDatalog(int[] atom) {
         return KB.unmap(atom[1]).replace("<", "").replace(">", "")
-                + "(" + KB.unmap(atom[0]) + "," + KB.unmap(atom[2]) + ")";
+                + "(" + KB.unmap(atom[0]).replace("<", "").replace(">", "") 
+                + "," + KB.unmap(atom[2]).replace("<", "").replace(">", "") + ")";
     }
 
-    public String getDatalogString() {
+    public String getDatalogString(boolean includeSpecialAtoms) {
         StringBuilder builder = new StringBuilder();
 
         builder.append(Rule.toDatalog(getHead()));
         builder.append(" <=");
         for (int[] atom : getBody()) {
+            if (!includeSpecialAtoms && atom[1] == KB.DIFFERENTFROMbs)
+                continue;
             builder.append(" ");
             builder.append(Rule.toDatalog(atom));
             builder.append(",");

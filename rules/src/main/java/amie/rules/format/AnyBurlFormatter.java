@@ -20,7 +20,7 @@ public class AnyBurlFormatter extends RuleFormatter {
 
 	@Override
 	public String format(Rule rule) {		
-		String ruleString = rule.getDatalogString();
+		String ruleString = rule.getDatalogString(false);
 		ruleString = ruleString.replace("?a", "X").replace("?b", "Y");
 		Matcher m = Pattern.compile("(\\?[a-z])").matcher(ruleString);
 		char newVar = 'A';

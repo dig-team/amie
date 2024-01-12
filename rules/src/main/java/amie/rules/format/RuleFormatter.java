@@ -2,10 +2,12 @@ package amie.rules.format;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import amie.rules.Metric;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.Hash;
 
 /**
  * Abstract class designed to format rules in different ways
@@ -19,6 +21,22 @@ public abstract class RuleFormatter {
     public static final List<Metric> headers = Arrays.asList(Metric.None, Metric.HeadCoverage, Metric.StdConfidence,
             Metric.PcaConfidence, Metric.PositiveExamples, Metric.BodySize, Metric.PcaBodySize,
             Metric.FunctionalVariable, Metric.StdUpperBound, Metric.PcaUpperBound, Metric.PcaConfEstimation);
+
+	protected static final HashMap<Metric, String> formatMappings = new HashMap<>();
+
+	static {
+		formatMappings.put(Metric.None, "%s");
+		formatMappings.put(Metric.HeadCoverage, "%f");		
+		formatMappings.put(Metric.StdConfidence, "%f");
+		formatMappings.put(Metric.PcaConfidence, "%f");
+		formatMappings.put(Metric.PositiveExamples, "%.0f");		
+		formatMappings.put(Metric.BodySize, "%d");
+		formatMappings.put(Metric.PcaBodySize, "%.0f");
+		formatMappings.put(Metric.FunctionalVariable, "%d");
+		formatMappings.put(Metric.StdUpperBound, "%f");
+		formatMappings.put(Metric.PcaUpperBound, "%f");
+		formatMappings.put(Metric.PcaConfEstimation, "%f");											
+	}
 
 
 	public abstract String format(Rule rule);
@@ -60,7 +78,8 @@ public abstract class RuleFormatter {
 			if (col == Metric.None){
 				selectedCols.add(format(rule));
 			} else {
-				selectedCols.add(""+rule.getMetric(col));
+				selectedCols.add(String.format(formatMappings.get(col), 
+												rule.getMetric(col)));
 			}
 		} 
 		strBuilder.append(String.join(getSeparator(), selectedCols));

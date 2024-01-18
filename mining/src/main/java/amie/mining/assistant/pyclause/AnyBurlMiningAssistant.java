@@ -141,6 +141,11 @@ public class AnyBurlMiningAssistant extends DefaultMiningAssistant {
 			return;
 		}
 
+		// AnyBurl cares only about rules up to 3 atoms for constants 
+		if (rule.getRealLength() >= 3) {
+			return;
+		}
+
 		IntList queryFreshVariables = rule.getOpenVariables();
 		if (this.exploitMaxLengthOption
 				|| rule.getRealLength() < this.maxDepth - 1

@@ -8,6 +8,8 @@ AMIE can find rules in such knowledge bases, such as for example
 
 These rules are accompanied by various confidence scores. “AMIE” stands for “Association Rule Mining under Incomplete Evidence”. This repository contains the latest version of AMIE, called AMIE 3. The previous version of AMIE can be found [here](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/amie/). 
 
+**Note**: This code branch includes some functionalities that allow AMIE to be integrated into to the library [PyClause](https://github.com/symbolic-kg/PyClause). To see how to instruct AMIE to provide a PyClause-compatible output, read the section *Running AMIE > PyClause Integration* below. 
+
 ## Input files
 
 AMIE takes as input a file that contains a knowledge base. This file must have one of the following formats:
@@ -31,6 +33,14 @@ In case of memory issues, try to increase the virtual machine's memory resources
 ```java -XX:-UseGCOverheadLimit -Xmx2G -jar amie3.jar [TSV file]```
 
 `MAX_HEAP_SPACE` depends on your input size and the system's available memory. The package also contains the utilities to generate and evaluate predictions from the rules mined by AMIE. Without additional arguments AMIE thresholds using PCA confidence 0.1 and head coverage 0.01. You can change these default settings. Run `java -jar amie3.jar -h` (without an input file) to see a detailed description of the available options.
+
+### PyClause Integration
+To output rules that can be used by the PyClause library, you need to run AMIE with these additional parameters:
+
+```-bias amie.mining.assistant.pyclause.AnyBurlMiningAssistant -ofmt anyburl```
+
+Additionally this version of AMIE also offers the possibility of outputting the rules directly into a file via the parameter via the argument: `-ofile [OUTPUT file]`. Also, users can establish different limits on rule length for rules with constants and for rules without constants (the default setting). For example, the argument `-maxad 4` mines rules up to 4 atoms (head atom included, the default value being 3). Similarly the combination of arguments `-const -maxad 4 -maxadc 3` enables constants in rule atoms, sets a limit of 4 atoms in rules without constants, and a limit of 3 atoms for rules for constants. This can be useful since the inclusion of constants in atoms (`-const`) increases the search space, thus the runtime, in a significant way.
+
 
 ### Reproducing our experiments
 

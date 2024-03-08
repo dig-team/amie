@@ -1,0 +1,16 @@
+image: openjdk:8
+
+before_install:
+  - apt-get update
+  - apt-get install -y git
+  - apt-get install -y software-properties-common
+  - apt-get update
+  - apt-get install -y  maven
+  - git clone https://github.com/lajus/amie-utils
+  - cd amie-utils/javatools/ && mvn install
+
+install:
+  - mvn clean install
+
+script:
+  - mvn test

@@ -6,8 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javatools.datatypes.Pair;
-import javatools.filehandlers.TSVFile;
+import amie.data.javatools.datatypes.Pair;
+import amie.data.javatools.filehandlers.TSVFile;
 
 public class TSVDifference {
 	/**

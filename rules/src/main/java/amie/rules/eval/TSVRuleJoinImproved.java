@@ -7,7 +7,7 @@ import java.util.List;
 
 import amie.rules.AMIEParser;
 import amie.rules.Rule;
-import javatools.filehandlers.TSVFile;
+import amie.data.javatools.filehandlers.TSVFile;
 
 public class TSVRuleJoinImproved {
 

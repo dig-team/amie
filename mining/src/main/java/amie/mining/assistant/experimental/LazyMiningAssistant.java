@@ -17,10 +17,6 @@ import java.util.List;
  */
 public class LazyMiningAssistant extends DefaultMiningAssistantWithOrder {
 
-    public LazyMiningAssistant(KB dataSource) {
-        super(dataSource);
-    }
-
     public LazyMiningAssistant(KB dataSource, VariableOrder order) {
         super(dataSource, order);
     }
@@ -63,11 +59,10 @@ public class LazyMiningAssistant extends DefaultMiningAssistantWithOrder {
      * @param query
      * @param antecedent
      * @param existentialTriple
-     * @param nonExistentialPosition
      * @return
      */
     @Override
-    protected double computePcaBodySize(int var1, int var2, Rule query, List<int[]> antecedent, int[] existentialTriple, int nonExistentialPosition) {
+    protected double computePcaBodySize(int var1, int var2, Rule query, List<int[]> antecedent, int[] existentialTriple) {
         antecedent.add(existentialTriple);
         long t1 = System.currentTimeMillis();
         long result;

@@ -64,28 +64,28 @@ public final class AMIEQueueDebug {
                 this.done = false;
 	}
 	
-	/**
-	 * Adds an item to the queue.
-	 * @param o
-	 */
-	public void queue(Rule o) {
-		qlock.lock();
-                increase(queueCalls, this.generation);
-		o.setGeneration(generation);
-		if (next.add(o)) {
-                    increase(queueAdded, this.generation);
-                } else if (DEBUG_DUPLICATES) {
-                    System.err.println("[DUP] Duplicate rules:");
-                    System.err.println("> " + o.getRuleString());
-                    for (Rule rin : next) {
-                        if (rin.equals(o)) {
-                            System.err.println("< " + o.getRuleString());
-                        }
-                    }
-                }
-		qlock.unlock();
-	}
-	
+//	/**
+//	 * Adds an item to the queue.
+//	 * @param o
+//	 */
+//	public void queue(Rule o) {
+//		qlock.lock();
+//                increase(queueCalls, this.generation);
+//		o.setGeneration(generation);
+//		if (next.add(o)) {
+//                    increase(queueAdded, this.generation);
+//                } else if (DEBUG_DUPLICATES) {
+//                    System.err.println("[DUP] Duplicate rules:");
+//                    System.err.println("> " + o.getRuleString());
+//                    for (Rule rin : next) {
+//                        if (rin.equals(o)) {
+//                            System.err.println("< " + o.getRuleString());
+//                        }
+//                    }
+//                }
+//		qlock.unlock();
+//	}
+//
 	/**
 	 * Adds a collection of items to the queue.
 	 * @param rules
@@ -190,14 +190,7 @@ public final class AMIEQueueDebug {
 		current = next.iterator();
 		next = new LinkedHashSet<>();
 	}
-	
-	public boolean isEmpty() {
-		return !current.hasNext() && next.isEmpty();
-	}
-	
-	public int getGeneration() {
-		return generation;
-	}
+
 
 	public void decrementMaxThreads() {
 		lock.lock();

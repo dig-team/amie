@@ -11,8 +11,8 @@ import amie.data.KB;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import javatools.datatypes.Triple;
-import javatools.filehandlers.TSVFile;
+import amie.data.javatools.datatypes.Triple;
+import amie.data.javatools.filehandlers.TSVFile;
 
 /**
  * Given a file with the relevance score of a set of entities and a KB, 

@@ -24,17 +24,9 @@ the YAGO-NAGA team (see http://mpii.de/yago-naga). */
   public int first() {
     return first;
   }
-  /** Sets the first */
-  public void setFirst(int first) {
-    this.first=first;
-  }
   /** Returns the second */
   public int second() {
     return second;
-  }
-  /** Sets the second */
-  public void setSecond(int second) {
-    this.second=second;
   }
   
   /** Constructs a Pair*/
@@ -42,11 +34,6 @@ the YAGO-NAGA team (see http://mpii.de/yago-naga). */
     super();
     this.first=first;
     this.second=second;
-  }
-  
-  /** Constructs an empty pair */
-  public IntPair(){
-    super();
   }
 
   public int hashCode() {

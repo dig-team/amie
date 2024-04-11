@@ -7,18 +7,16 @@ package amie.mining.utils;
 
 import amie.data.KB;
 import amie.mining.AMIE;
-import amie.mining.assistant.DefaultMiningAssistant;
 import amie.mining.assistant.MiningAssistant;
 import amie.rules.AMIEParser;
 import amie.rules.Rule;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import javatools.datatypes.MultiMap;
-import javatools.filehandlers.TSVFile;
+
+import amie.data.javatools.datatypes.MultiMap;
+import amie.data.javatools.filehandlers.TSVFile;
 
 /**
  *
@@ -42,7 +40,6 @@ public class TSVRuleIsSkyline {
         HashSet<Rule> rules1 = new HashSet<>();
         MultiMap<Integer, Rule> indexedOutputSet = new MultiMap<>();
         //Map<Query, List<String>> recordsMap = new LinkedHashMap<Query, List<String>>();
-        Map<String, List<String>> recordsMap = new LinkedHashMap<String, List<String>>();
 
         //Preprocess one of the files
         for (List<String> record1 : tsv1) {

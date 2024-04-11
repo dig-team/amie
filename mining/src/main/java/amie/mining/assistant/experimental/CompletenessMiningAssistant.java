@@ -20,10 +20,10 @@ import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import javatools.datatypes.MultiMap;
+import amie.data.javatools.datatypes.MultiMap;
 
 public class CompletenessMiningAssistant extends MiningAssistant {
-	public enum Mode {Standard, OnlyStar, OnlyType, OnlyCard};
+	public enum Mode {Standard, OnlyType, OnlyCard};
 	
 	protected Mode mode;
 

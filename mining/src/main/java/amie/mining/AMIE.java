@@ -8,16 +8,12 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+//import amie.mining.utils.initLogRecord;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -44,10 +40,10 @@ import amie.rules.Metric;
 import amie.rules.Rule;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntCollection;
-import javatools.administrative.Announce;
+import amie.data.javatools.administrative.Announce;
 
-import javatools.datatypes.MultiMap;
-import javatools.parsers.NumberFormatter;
+import amie.data.javatools.datatypes.MultiMap;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Main class that implements the AMIE algorithm for rule mining on ontologies.
@@ -121,7 +117,7 @@ public class AMIE {
      * List of target head relations.
      */
     protected IntCollection seeds;
-
+    protected  Set<String> rulePrefixes = new HashSet<>();
     /**
      * Column headers
      */
@@ -154,11 +150,6 @@ public class AMIE {
         return assistant;
     }
 
-    public boolean isVerbose() {
-        // TODO Auto-generated method stub
-        return assistant.isVerbose();
-    }
-
     public boolean isRealTime() {
         return realTime;
     }
@@ -167,44 +158,8 @@ public class AMIE {
         this.realTime = realTime;
     }
 
-    public IntCollection getSeeds() {
-    	return seeds;
-    }
-
     public void setSeeds(IntCollection seeds) {
     	this.seeds = seeds;
-    }
-
-    public double getMinSignificanceThreshold() {
-        return minSignificanceThreshold;
-    }
-
-    public void setMinSignificanceThreshold(double minSignificanceThreshold) {
-        this.minSignificanceThreshold = minSignificanceThreshold;
-    }
-
-    public Metric getPruningMetric() {
-        return pruningMetric;
-    }
-
-    public void setPruningMetric(Metric pruningMetric) {
-        this.pruningMetric = pruningMetric;
-    }
-
-    public double getMinInitialSupport() {
-        return minInitialSupport;
-    }
-
-    public void setMinInitialSupport(double minInitialSupport) {
-        this.minInitialSupport = minInitialSupport;
-    }
-
-    public int getnThreads() {
-        return nThreads;
-    }
-
-    public void setnThreads(int nThreads) {
-        this.nThreads = nThreads;
     }
 
     /**
@@ -215,6 +170,7 @@ public class AMIE {
      * @throws Exception
      */
     public List<Rule> mine() throws Exception {
+//        initLogRecord.initLog();
         List<Rule> result = new ArrayList<>();
         MultiMap<Integer, Rule> indexedResult = new MultiMap<>();
         RuleConsumer consumerObj = null;
@@ -265,7 +221,32 @@ public class AMIE {
 
         if (assistant.isVerbose()) queue.printStats();
 
+        for (Rule rule : result) {
+            for (int[] triple : rule.getTriples()) {
+                String subject = KB.unmap(triple[0]);
+                printRulePrefix(subject);
+                String predicate  = KB.unmap(triple[1]);
+                printRulePrefix(predicate);
+                String object = KB.unmap(triple[2]);
+                printRulePrefix(object);
+            }
+        }
         return result;
+    }
+
+    private void printRulePrefix (String input) {
+        List<String> prefixList = Arrays.asList(input.split(":"));
+        for (String s : prefixList) {
+            if (!rulePrefixes.contains(s) && StringUtils.isNotBlank(assistant.kb.prefixMap.get(s))) {
+                System.out.println(s +":" + assistant.kb.prefixMap.get(s));
+
+                synchronized (rulePrefixes) {
+                    rulePrefixes.add(s);
+                }
+
+            }
+
+        }
     }
 
     /**
@@ -370,6 +351,7 @@ public class AMIE {
             this.resultsCondition = resultsCondition;
             this.indexedOutputSet = indexedOutputSet;
         }
+
 
         @Override
         public void run() {
@@ -505,69 +487,69 @@ public class AMIE {
                 Runtime.getRuntime().availableProcessors());
     }
 
-    /**
-     * Factory methods. They return canned instances of AMIE. *
-     */
-    /**
-     * Returns an instance of AMIE that mines rules on the given KB using the
-     * vanilla setting of head coverage 1% and a given PCA confidence threshold
-     *
-     * @param db
-     * @return
-     */
-    public static AMIE getVanillaSettingInstance(KB db, double minPCAConfidence) {
-        DefaultMiningAssistant miningAssistant = new DefaultMiningAssistant(db);
-        miningAssistant.setPcaConfidenceThreshold(minPCAConfidence);
-        return new AMIE(miningAssistant,
-                DEFAULT_INITIAL_SUPPORT, // Do not look at relations smaller than 100 facts
-                DEFAULT_HEAD_COVERAGE, // Head coverage 1%
-                Metric.HeadCoverage,
-                Runtime.getRuntime().availableProcessors());
-    }
+//    /**
+//     * Factory methods. They return canned instances of AMIE. *
+//     */
+//    /**
+//     * Returns an instance of AMIE that mines rules on the given KB using the
+//     * vanilla setting of head coverage 1% and a given PCA confidence threshold
+//     *
+//     * @param db
+//     * @return
+//     */
+//    public static AMIE getVanillaSettingInstance(KB db, double minPCAConfidence) {
+//        DefaultMiningAssistant miningAssistant = new DefaultMiningAssistant(db);
+//        miningAssistant.setPcaConfidenceThreshold(minPCAConfidence);
+//        return new AMIE(miningAssistant,
+//                DEFAULT_INITIAL_SUPPORT, // Do not look at relations smaller than 100 facts
+//                DEFAULT_HEAD_COVERAGE, // Head coverage 1%
+//                Metric.HeadCoverage,
+//                Runtime.getRuntime().availableProcessors());
+//    }
 
-    /**
-     * Returns an (vanilla setting) instance of AMIE that enables the lossy
-     * optimizations, i.e., optimizations that optimize for runtime but that
-     * could in principle omit some rules that should be mined.
-     *
-     * @param db
-     * @param minPCAConfidence
-     * @param startSupport
-     * @return
-     */
-    public static AMIE getLossyVanillaSettingInstance(KB db, double minPCAConfidence, int startSupport) {
-        DefaultMiningAssistant miningAssistant = new DefaultMiningAssistant(db);
-        miningAssistant.setPcaConfidenceThreshold(minPCAConfidence);
-        miningAssistant.setEnabledConfidenceUpperBounds(true);
-        miningAssistant.setEnabledFunctionalityHeuristic(true);
-        return new AMIE(miningAssistant,
-                startSupport, // Do not look at relations smaller than 100 facts
-                DEFAULT_HEAD_COVERAGE, // Head coverage 1%
-                Metric.HeadCoverage,
-                Runtime.getRuntime().availableProcessors());
-    }
-
-    /**
-     * Returns an instance of AMIE that enables the lossy optimizations, i.e.,
-     * optimizations that optimize for runtime but that could in principle omit
-     * some rules that should be mined.
-     *
-     * @param db
-     * @param minPCAConfidence
-     * @param minSupport
-     * @return
-     */
-    public static AMIE getLossyInstance(KB db, double minPCAConfidence, int minSupport) {
-        DefaultMiningAssistant miningAssistant = new DefaultMiningAssistant(db);
-        miningAssistant.setPcaConfidenceThreshold(minPCAConfidence);
-        miningAssistant.setEnabledConfidenceUpperBounds(true);
-        miningAssistant.setEnabledFunctionalityHeuristic(true);
-        return new AMIE(miningAssistant,
-                minSupport, // Do not look at relations smaller than the support threshold
-                minSupport, // Head coverage 1%
-                Metric.Support,
-                Runtime.getRuntime().availableProcessors());
-    }
+//    /**
+//     * Returns an (vanilla setting) instance of AMIE that enables the lossy
+//     * optimizations, i.e., optimizations that optimize for runtime but that
+//     * could in principle omit some rules that should be mined.
+//     *
+//     * @param db
+//     * @param minPCAConfidence
+//     * @param startSupport
+//     * @return
+//     */
+//    public static AMIE getLossyVanillaSettingInstance(KB db, double minPCAConfidence, int startSupport) {
+//        DefaultMiningAssistant miningAssistant = new DefaultMiningAssistant(db);
+//        miningAssistant.setPcaConfidenceThreshold(minPCAConfidence);
+//        miningAssistant.setEnabledConfidenceUpperBounds(true);
+//        miningAssistant.setEnabledFunctionalityHeuristic(true);
+//        return new AMIE(miningAssistant,
+//                startSupport, // Do not look at relations smaller than 100 facts
+//                DEFAULT_HEAD_COVERAGE, // Head coverage 1%
+//                Metric.HeadCoverage,
+//                Runtime.getRuntime().availableProcessors());
+//    }
+//
+//    /**
+//     * Returns an instance of AMIE that enables the lossy optimizations, i.e.,
+//     * optimizations that optimize for runtime but that could in principle omit
+//     * some rules that should be mined.
+//     *
+//     * @param db
+//     * @param minPCAConfidence
+//     * @param minSupport
+//     * @return
+//     */
+//    public static AMIE getLossyInstance(KB db, double minPCAConfidence, int minSupport) {
+//        DefaultMiningAssistant miningAssistant = new DefaultMiningAssistant(db);
+//        miningAssistant.setPcaConfidenceThreshold(minPCAConfidence);
+//        miningAssistant.setEnabledConfidenceUpperBounds(true);
+//        miningAssistant.setEnabledFunctionalityHeuristic(true);
+//        return new AMIE(miningAssistant,
+//                minSupport, // Do not look at relations smaller than the support threshold
+//                minSupport, // Head coverage 1%
+//                Metric.Support,
+//                Runtime.getRuntime().availableProcessors());
+//    }
 
     /**
      * Gets an instance of AMIE configured according to the command line
@@ -615,7 +597,6 @@ public class AMIE {
         boolean exploitMaxLengthForRuntime = true;
         boolean enableQueryRewriting = true;
         boolean enablePerfectRulesPruning = true;
-        long sourcesLoadingTime = 0l;
         /**
          * ******************************
          */
@@ -838,10 +819,6 @@ public class AMIE {
                 .withDescription("Do not calculate standard confidence")
                 .create("ostd");
 
-        Option enableCountCache = OptionBuilder.withArgName("count-cache")
-                .withDescription("Cache count results")
-                .create("cc");
-
         Option optimAdaptiveInstantiations = OptionBuilder.withArgName("adaptive-instantiations")
                 .withDescription("Prune instantiated rules that decrease too much the support of their parent rule (ratio 0.2)")
                 .create("optimai");
@@ -892,7 +869,6 @@ public class AMIE {
         options.addOption(extraFileOp);
         options.addOption(datalogNotationOpt);
         options.addOption(calculateStdConfidenceOp);
-        //options.addOption(enableCountCache);
         options.addOption(optimAdaptiveInstantiations);
         options.addOption(multilingual);
         options.addOption(delimOpt);
@@ -1155,12 +1131,7 @@ public class AMIE {
         if (cli.hasOption("noKbExistsDetection")) {
             dataSource.setOptimExistentialDetection(false);
         }
-
-        long timeStamp1 = System.currentTimeMillis();
         dataSource.load(dataFiles);
-        long timeStamp2 = System.currentTimeMillis();
-
-        sourcesLoadingTime = timeStamp2 - timeStamp1;
 
         if (!targetFiles.isEmpty()) {
             targetSource = new KB();
@@ -1325,7 +1296,7 @@ public class AMIE {
             Announce.doing("Building overlap tables for confidence approximation...");
             long time = System.currentTimeMillis();
             dataSource.buildOverlapTables(nThreads);
-            Announce.done("Overlap tables computed in " + NumberFormatter.formatMS(System.currentTimeMillis() - time)
+            Announce.done("Overlap tables computed in " + String.format("%d s", (System.currentTimeMillis() - time) / 1000)
                             + " using " + Integer.toString(nThreads) + " threads.");
         }
 
@@ -1395,7 +1366,7 @@ public class AMIE {
                 System.out.println("Perfect rules pruning disabled");
             }
         }
-        
+
         if (verbose) {
         	mineAssistant.outputOperatorHierarchy(System.err);
         }
@@ -1444,8 +1415,8 @@ public class AMIE {
         }
 
         long miningTime = System.currentTimeMillis() - time;
-        System.out.println("Mining done in " + NumberFormatter.formatMS(miningTime));
-        Announce.done("Total time " + NumberFormatter.formatMS(miningTime + loadingTime));
+        System.out.println("Mining done in " + String.format("%.3f", (double)miningTime / 1000)+"s");
+        Announce.done("Total time " + String.format("%.3f", (double)(miningTime + loadingTime)/ 1000)+"s");
         System.out.println(rules.size() + " rules mined.");
 
 //	    if (assistant.kb.countCacheEnabled) {

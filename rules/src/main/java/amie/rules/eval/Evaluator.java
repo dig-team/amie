@@ -6,8 +6,8 @@ import java.io.PrintWriter;
 import java.util.List;
 
 
-import javatools.datatypes.Pair;
-import javatools.filehandlers.TSVFile;
+import javafx.util.Pair;
+import amie.data.javatools.filehandlers.TSVFile;
 import amie.data.KB;
 import amie.rules.Rule;
 
@@ -117,8 +117,8 @@ public class Evaluator {
 			}else{
 				Pair<List<int[]>, int[]> rulePair = KB.rule(ruleStr);
 				currentRule = new Rule();
-				currentRule.getTriples().add(rulePair.second);
-				currentRule.getTriples().addAll(rulePair.first);
+				currentRule.getTriples().add(rulePair.getValue());
+				currentRule.getTriples().addAll(rulePair.getKey());
 			}
 			
 			for(int i = 0; i < 3; ++i){

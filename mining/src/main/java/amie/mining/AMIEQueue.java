@@ -61,19 +61,19 @@ public final class AMIEQueue {
                 this.done = false;
 	}
 
-	/**
-	 * Adds an item to the queue.
-	 * @param o
-	 */
-	public void queue(Rule o) {
-		qlock.lock();
-                increase(queueCalls, this.generation);
-		o.setGeneration(generation);
-		if (next.add(o)) {
-                    increase(queueAdded, this.generation);
-                }
-		qlock.unlock();
-	}
+//	/**
+//	 * Adds an item to the queue.
+//	 * @param o
+//	 */
+//	public void queue(Rule o) {
+//		qlock.lock();
+//                increase(queueCalls, this.generation);
+//		o.setGeneration(generation);
+//		if (next.add(o)) {
+//                    increase(queueAdded, this.generation);
+//                }
+//		qlock.unlock();
+//	}
 
 	/**
 	 * Adds a collection of items to the queue.
@@ -172,13 +172,6 @@ public final class AMIEQueue {
 		next = new LinkedHashSet<>();
 	}
 
-	public boolean isEmpty() {
-		return !current.hasNext() && next.isEmpty();
-	}
-
-	public int getGeneration() {
-		return generation;
-	}
 
 	public void decrementMaxThreads() {
 		lock.lock();

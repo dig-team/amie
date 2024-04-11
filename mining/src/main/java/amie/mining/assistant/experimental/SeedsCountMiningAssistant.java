@@ -19,7 +19,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 	protected long subjectSchemaCount;
 	
 	private IntSet allSubjects;
-	
+
 	public SeedsCountMiningAssistant(KB dataSource, KB schemaSource) {
 		super(dataSource);
 		this.kbSchema = schemaSource;
@@ -246,7 +246,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 					int cardinality = seedsCardinality(query);
 					query.getTriples().remove(nPatterns);						
 					if(cardinality >= minCardinality){
-						Rule candidate = query.addAtom(newEdge, cardinality, newEdge[joinPosition], newEdge[danglingPosition]);
+						Rule candidate = query.addAtom(newEdge, cardinality);
 						if(candidate.containsUnifiablePatterns()){
 							//Verify whether dangling variable unifies to a single value (I do not like this hack)
 							if(boundHead && kb.countDistinct(newEdge[danglingPosition], candidate.getTriples()) < 2)

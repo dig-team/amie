@@ -8,7 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javatools.filehandlers.TSVFile;
+import amie.data.javatools.filehandlers.TSVFile;
 
 /**
  * Simple class to join and project two tsv file on the rules

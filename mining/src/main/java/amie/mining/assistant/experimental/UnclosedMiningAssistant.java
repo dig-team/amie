@@ -20,22 +20,22 @@ public class UnclosedMiningAssistant extends DefaultMiningAssistant {
 		amie.data.Schema.materializeTaxonomy(dataSource);
 		// TODO Auto-generated constructor stub
 	}
-	
+
 	@Override
 	public String getDescription() {
 		return "Return also unclosed rules.";
 	}
-	
+
 	@Override
 	public boolean shouldBeOutput(Rule candidate) {
 		return true;
 	}
-	
+
 	@Override
 	public double computePCAConfidence(Rule rule) {
 		return -1.0;
 	}
-	
+
 	@Override
 	protected Collection<Rule> buildInitialQueries(Int2IntMap relations, double minSupportThreshold) {
 		List<Rule> output = new ArrayList<>();
@@ -53,25 +53,21 @@ public class UnclosedMiningAssistant extends DefaultMiningAssistant {
 		}
 		return output;
 	}
-	
-	@Override
-	public boolean shouldBeClosed() {
-		return false;
-	}
-	
+
+
 	@Override
 	public boolean testConfidenceThresholds(Rule candidate) {
-		
+
 		if(candidate.containsLevel2RedundantSubgraphs()) {
 			return false;
-		}	
-		
+		}
+
 		if(candidate.getStdConfidence() >= minStdConfidence){
 			//Now check the confidence with respect to its ancestors
 			Set<Rule> ancestors = candidate.getAncestors();
 			for(Rule ancestor : ancestors){
 				double ancestorConfidence = ancestor.getStdConfidence();
-				// Skyline technique on PCA confidence					
+				// Skyline technique on PCA confidence
 				if ((ancestor.getRealLength() > 1) &&
 					  (ancestorConfidence >= .95)) {
 					return false;
@@ -80,7 +76,7 @@ public class UnclosedMiningAssistant extends DefaultMiningAssistant {
 		}else{
 			return false;
 		}
-		
+
 		return true;
 	}
 

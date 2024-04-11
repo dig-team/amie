@@ -6,5 +6,5 @@ package amie.rules;
  *
  */
 public enum Metric {
-	None, Support, StandardConfidence, PCAConfidence, HeadCoverage, BodySize, PCABodySize
+	Support, StandardConfidence, PCAConfidence, HeadCoverage, BodySize, PCABodySize
 }

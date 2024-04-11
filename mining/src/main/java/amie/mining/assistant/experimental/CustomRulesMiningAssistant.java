@@ -19,7 +19,7 @@ import java.util.Collection;
  * @author jlajus
  */
 public class CustomRulesMiningAssistant extends DefaultMiningAssistant {
-    
+
     private static final boolean _debug_ = true;
 
     protected Rule ruleParser(String s) {
@@ -30,22 +30,22 @@ public class CustomRulesMiningAssistant extends DefaultMiningAssistant {
         System.err.println(candidate.toString() + "\t" + Double.toString(candidate.getSupport()));
         return candidate;
     }
-    
+
     public CustomRulesMiningAssistant(KB dataSource) {
         super(dataSource);
         this.maxDepth = 10;
     }
-    
+
     @Override
     public void setMaxDepth(int maxAntecedentDepth) {
 	this.maxDepth = Math.min(8, maxAntecedentDepth);
     }
-    
+
     @Override
     public boolean shouldBeOutput(Rule candidate) {
 	return _debug_ || candidate.isClosed(false);
     }
-    
+
     @Override
     public Collection<Rule> getInitialAtoms(double minSupportThreshold) {
         Collection<Rule> output = new ArrayList<>();
@@ -87,5 +87,5 @@ public class CustomRulesMiningAssistant extends DefaultMiningAssistant {
                 + " => ?x rdfs:label ?_z"));
         return output;
     }
-    
+
 }

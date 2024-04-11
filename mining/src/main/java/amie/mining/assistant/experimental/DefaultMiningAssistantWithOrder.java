@@ -10,9 +10,8 @@ import amie.mining.assistant.variableorder.VariableOrder;
 import amie.data.KB;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.Rule;
-import java.util.ArrayList;
+
 import java.util.List;
-import javatools.datatypes.ByteString;
 
 /**
  *
@@ -21,11 +20,6 @@ import javatools.datatypes.ByteString;
 public class DefaultMiningAssistantWithOrder extends DefaultMiningAssistant {
 
     protected VariableOrder order;
-
-    public DefaultMiningAssistantWithOrder(KB dataSource) {
-        super(dataSource);
-        this.order = new FunctionalOrder();
-    }
 
     public DefaultMiningAssistantWithOrder(KB dataSource, VariableOrder order) {
         super(dataSource);
@@ -36,29 +30,29 @@ public class DefaultMiningAssistantWithOrder extends DefaultMiningAssistant {
         this.order = order;
     }
 
-    @Override
-    public double computeCardinality(Rule rule) {
-        if (rule.isEmpty()) {
-            rule.setSupport(0l);
-            rule.setHeadCoverage(0.0);
-            rule.setSupportRatio(0.0);
-        } else {
-            int[] head = rule.getHead();
-            if (KB.numVariables(head) == 2) {
-                rule.setSupport(this.kb.countDistinctPairs(
-                        order.getFirstCountVariable(rule),
-                        order.getSecondCountVariable(rule), rule.getTriples()));
-            } else {
-                rule.setSupport(this.kb.countDistinct(rule.getFunctionalVariable(), rule.getTriples()));
-            }
-            rule.setSupportRatio((double) rule.getSupport() / this.kb.size());
-            Double relationSize = new Double(this.getHeadCardinality(rule));
-            if (relationSize != null) {
-                rule.setHeadCoverage(rule.getSupport() / relationSize.doubleValue());
-            }
-        }
-        return rule.getSupport();
-    }
+//    @Override
+//    public double computeCardinality(Rule rule) {
+//        if (rule.isEmpty()) {
+//            rule.setSupport(0l);
+//            rule.setHeadCoverage(0.0);
+//            rule.setSupportRatio(0.0);
+//        } else {
+//            int[] head = rule.getHead();
+//            if (KB.numVariables(head) == 2) {
+//                rule.setSupport(this.kb.countDistinctPairs(
+//                        order.getFirstCountVariable(rule),
+//                        order.getSecondCountVariable(rule), rule.getTriples()));
+//            } else {
+//                rule.setSupport(this.kb.countDistinct(rule.getFunctionalVariable(), rule.getTriples()));
+//            }
+//            rule.setSupportRatio((double) rule.getSupport() / this.kb.size());
+//            Double relationSize = new Double(this.getHeadCardinality(rule));
+//            if (relationSize != null) {
+//                rule.setHeadCoverage(rule.getSupport() / relationSize.doubleValue());
+//            }
+//        }
+//        return rule.getSupport();
+//    }
 
     @Override
     public double computePCAConfidence(Rule rule) {
@@ -93,7 +87,7 @@ public class DefaultMiningAssistantWithOrder extends DefaultMiningAssistant {
                 } else {
                     pcaDenominator = (double) computePcaBodySize(
                             order.getFirstCountVariable(rule),
-                            order.getSecondCountVariable(rule), rule, antecedent, existentialTriple, freeVarPos);
+                            order.getSecondCountVariable(rule), rule, antecedent, existentialTriple);
                 }
                 rule.setPcaBodySize(pcaDenominator);
             } catch (UnsupportedOperationException e) {

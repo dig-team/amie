@@ -6,7 +6,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javatools.filehandlers.TSVFile;
+import amie.data.javatools.filehandlers.TSVFile;
 
 public class TSVSpecialMerge {
 

@@ -15,17 +15,17 @@ public class FullRelationSignatureMiningAssistant extends DefaultMiningAssistant
 		super(dataSource);
 		bodyExcludedRelations = IntArrays.asList(KB.map("<rdf:type>"));
 	}
-	
+
 	@Override
 	public String getDescription() {
         return "Rules of the form type(x, C) r(x, y) => type(y, C') "
         		+ "or type(y, C) r(x, y) => type(x, C')";
 	}
-	
-	public void getDanglingAtoms(Rule query, double minCardinality, Collection<Rule> output) {		
+
+	public void getDanglingAtoms(Rule query, double minCardinality, Collection<Rule> output) {
 		int[] newEdge = query.fullyUnboundTriplePattern();
 		int rdfType = KB.map("rdf:type");
-		
+
 		if(query.isEmpty()){
 			//Initial case
 			newEdge[1] = rdfType;
@@ -44,6 +44,6 @@ public class FullRelationSignatureMiningAssistant extends DefaultMiningAssistant
 			getInstantiatedAtoms(candidate, candidate, 0, 2, minCardinality, output);
 		}
 	}
-	
+
 	public void getClosingAtoms(Rule query, double minSupportThreshold, Collection<Rule> output) {}
 }

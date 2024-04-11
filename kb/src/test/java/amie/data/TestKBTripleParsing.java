@@ -1,6 +1,6 @@
 package amie.data;
 
-import javatools.datatypes.Pair;
+import amie.data.javatools.datatypes.Pair;
 import junit.framework.TestCase;
 
 import java.util.ArrayList;

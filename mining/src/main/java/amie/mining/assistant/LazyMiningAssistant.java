@@ -5,7 +5,6 @@
  */
 package amie.mining.assistant;
 
-import amie.mining.assistant.experimental.DefaultMiningAssistantWithOrder;
 import amie.mining.assistant.variableorder.VariableOrder;
 import amie.data.KB;
 import amie.rules.Rule;

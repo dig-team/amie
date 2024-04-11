@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package amie.mining.assistant.experimental;
+package amie.mining.assistant;
 
 import amie.mining.assistant.variableorder.VariableOrder;
 import amie.data.KB;

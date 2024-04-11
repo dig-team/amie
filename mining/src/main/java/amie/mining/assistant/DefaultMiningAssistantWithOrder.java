@@ -3,14 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package amie.mining.assistant.experimental;
+package amie.mining.assistant;
 
 import amie.mining.assistant.variableorder.FunctionalOrder;
 import amie.mining.assistant.variableorder.VariableOrder;
 import amie.data.KB;
-import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.Rule;
-
 import java.util.List;
 
 /**
@@ -30,29 +28,29 @@ public class DefaultMiningAssistantWithOrder extends DefaultMiningAssistant {
         this.order = order;
     }
 
-//    @Override
-//    public double computeCardinality(Rule rule) {
-//        if (rule.isEmpty()) {
-//            rule.setSupport(0l);
-//            rule.setHeadCoverage(0.0);
-//            rule.setSupportRatio(0.0);
-//        } else {
-//            int[] head = rule.getHead();
-//            if (KB.numVariables(head) == 2) {
-//                rule.setSupport(this.kb.countDistinctPairs(
-//                        order.getFirstCountVariable(rule),
-//                        order.getSecondCountVariable(rule), rule.getTriples()));
-//            } else {
-//                rule.setSupport(this.kb.countDistinct(rule.getFunctionalVariable(), rule.getTriples()));
-//            }
-//            rule.setSupportRatio((double) rule.getSupport() / this.kb.size());
-//            Double relationSize = new Double(this.getHeadCardinality(rule));
-//            if (relationSize != null) {
-//                rule.setHeadCoverage(rule.getSupport() / relationSize.doubleValue());
-//            }
-//        }
-//        return rule.getSupport();
-//    }
+    @Override
+    public double computeCardinality(Rule rule) {
+        if (rule.isEmpty()) {
+            rule.setSupport(0l);
+            rule.setHeadCoverage(0.0);
+            rule.setSupportRatio(0.0);
+        } else {
+            int[] head = rule.getHead();
+            if (KB.numVariables(head) == 2) {
+                rule.setSupport(this.kb.countDistinctPairs(
+                        order.getFirstCountVariable(rule),
+                        order.getSecondCountVariable(rule), rule.getTriples()));
+            } else {
+                rule.setSupport(this.kb.countDistinct(rule.getFunctionalVariable(), rule.getTriples()));
+            }
+            rule.setSupportRatio(rule.getSupport() / this.kb.size());
+            Double relationSize = new Double(this.getHeadCardinality(rule));
+            if (relationSize != null) {
+                rule.setHeadCoverage(rule.getSupport() / relationSize.doubleValue());
+            }
+        }
+        return rule.getSupport();
+    }
 
     @Override
     public double computePCAConfidence(Rule rule) {
@@ -83,9 +81,9 @@ public class DefaultMiningAssistantWithOrder extends DefaultMiningAssistant {
             try {
                 if (noOfHeadVars == 1) {
                     antecedent.add(existentialTriple);
-                    pcaDenominator = (double) this.kb.countDistinct(rule.getFunctionalVariable(), antecedent);
+                    pcaDenominator = this.kb.countDistinct(rule.getFunctionalVariable(), antecedent);
                 } else {
-                    pcaDenominator = (double) computePcaBodySize(
+                    pcaDenominator = computePcaBodySize(
                             order.getFirstCountVariable(rule),
                             order.getSecondCountVariable(rule), rule, antecedent, existentialTriple);
                 }
@@ -109,7 +107,7 @@ public class DefaultMiningAssistantWithOrder extends DefaultMiningAssistant {
         int[] head = candidate.getHead();
 
         if (!antecedent.isEmpty()) {
-           //Confidence
+            // Confidence
             try {
                 if (KB.numVariables(head) == 2) {
                     int var1, var2;

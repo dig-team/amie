@@ -3,13 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package amie.mining.assistant.experimental;
+package amie.mining.assistant;
 
+import amie.mining.assistant.experimental.DefaultMiningAssistantWithOrder;
 import amie.mining.assistant.variableorder.VariableOrder;
 import amie.data.KB;
 import amie.rules.Rule;
 import java.util.List;
-
 
 /**
  *
@@ -62,19 +62,22 @@ public class LazyMiningAssistant extends DefaultMiningAssistantWithOrder {
      * @return
      */
     @Override
-    protected double computePcaBodySize(int var1, int var2, Rule query, List<int[]> antecedent, int[] existentialTriple) {
+    protected double computePcaBodySize(int var1, int var2, Rule query, List<int[]> antecedent, int[] existentialTriple,
+            int nonExistentialPosition) {
         antecedent.add(existentialTriple);
         long t1 = System.currentTimeMillis();
         long result;
         if (this.minPcaConfidence > 0.0) {
-            result = this.kb.countDistinctPairsUpTo((long) Math.ceil(query.getSupport() / this.minPcaConfidence) + 1, var1, var2, antecedent);
+            result = this.kb.countDistinctPairsUpTo((long) Math.ceil(query.getSupport() / this.minPcaConfidence) + 1,
+                    var1, var2, antecedent);
         } else {
             result = this.kb.countDistinctPairs(var1, var2, antecedent);
         }
         long t2 = System.currentTimeMillis();
         query.setPcaConfidenceRunningTime(t2 - t1);
         if ((t2 - t1) > 20000 && this.verbose) {
-            System.err.println("countPairs vars " + KB.unmap(var1) + ", " + KB.unmap(var2) + " in " + KB.toString(antecedent) + " has taken " + (t2 - t1) + " ms");
+            System.err.println("countPairs vars " + KB.unmap(var1) + ", " + KB.unmap(var2) + " in "
+                    + KB.toString(antecedent) + " has taken " + (t2 - t1) + " ms");
         }
         return result;
     }
@@ -93,14 +96,16 @@ public class LazyMiningAssistant extends DefaultMiningAssistantWithOrder {
         long t1 = System.currentTimeMillis();
         long result;
         if (this.minStdConfidence > 0.0) {
-            result = this.kb.countDistinctPairsUpTo((long) Math.ceil(query.getSupport() / this.minStdConfidence) + 1, var1, var2, query.getAntecedent());
+            result = this.kb.countDistinctPairsUpTo((long) Math.ceil(query.getSupport() / this.minStdConfidence) + 1,
+                    var1, var2, query.getAntecedent());
         } else {
             result = this.kb.countDistinctPairs(var1, var2, query.getAntecedent());
         }
         long t2 = System.currentTimeMillis();
         query.setConfidenceRunningTime(t2 - t1);
         if ((t2 - t1) > 20000 && this.verbose) {
-            System.err.println("countPairs vars " + KB.unmap(var1) + ", " + KB.unmap(var2) + " in " + KB.toString(query.getAntecedent()) + " has taken " + (t2 - t1) + " ms");
+            System.err.println("countPairs vars " + KB.unmap(var1) + ", " + KB.unmap(var2) + " in "
+                    + KB.toString(query.getAntecedent()) + " has taken " + (t2 - t1) + " ms");
         }
         return result;
     }

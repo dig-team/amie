@@ -4,5 +4,6 @@
 .project
 .settings/
 .vscode/
+.idea/
 bin/
 kb/nb-configuration.xml

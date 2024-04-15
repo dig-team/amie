@@ -1262,18 +1262,18 @@ public class MiningAssistant {
 	 * @param rule
 	 * @return
 	 */
-//	public double computeCardinality(Rule rule) {
-//		int[] head = rule.getHead();
-//		int countVariable = 0;
-//		if (countAlwaysOnSubject) {
-//			countVariable = head[0];
-//		} else {
-//			countVariable = rule.getFunctionalVariable();
-//		}
-//		rule.setSupport(kb.countDistinct(countVariable, rule.getTriples()));
-//		rule.setSupportRatio((double) rule.getSupport() / kb.size());
-//		return rule.getSupport();
-//	}
+	public double computeCardinality(Rule rule) {
+		int[] head = rule.getHead();
+		int countVariable = 0;
+		if (countAlwaysOnSubject) {
+			countVariable = head[0];
+		} else {
+			countVariable = rule.getFunctionalVariable();
+		}
+		rule.setSupport(kb.countDistinct(countVariable, rule.getTriples()));
+		rule.setSupportRatio((double) rule.getSupport() / kb.size());
+		return rule.getSupport();
+	}
 
 	/**
 	 * It computes the PCA confidence of the given rule based on the evidence in database.

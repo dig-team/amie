@@ -553,7 +553,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		}
 		return result;
 	}
-	
+
 	/**
 	 * Returns the denominator of the PCA confidence expression for the antecedent of a rule.
 	 * @param var1
@@ -561,9 +561,10 @@ public class DefaultMiningAssistant extends MiningAssistant{
 	 * @param query
 	 * @param antecedent
 	 * @param existentialTriple
+	 * @param nonExistentialPosition
 	 * @return
 	 */
-	protected double computePcaBodySize(int var1, int var2, Rule query, List<int[]> antecedent, int[] existentialTriple) {
+	protected double computePcaBodySize(int var1, int var2, Rule query, List<int[]> antecedent, int[] existentialTriple, int nonExistentialPosition) {
 		antecedent.add(existentialTriple);
 		long t1 = System.currentTimeMillis();
 		long result = this.kb.countDistinctPairs(var1, var2, antecedent);
@@ -575,27 +576,27 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		return result;
 	}
 
-//	@Override
-//	public double computeCardinality(Rule rule) {
-//		if (rule.isEmpty()) {
-//			rule.setSupport(0l);
-//			rule.setHeadCoverage(0.0);
-//			rule.setSupportRatio(0.0);
-//		} else {
-//			int[] head = rule.getHead();
-//			if (KB.numVariables(head) == 2) {
-//				rule.setSupport(this.kb.countDistinctPairs(head[0], head[2], rule.getTriples()));
-//			} else {
-//				rule.setSupport(this.kb.countDistinct(rule.getFunctionalVariable(), rule.getTriples()));
-//			}
-//			rule.setSupportRatio((double) rule.getSupport() / this.kb.size());
-//			Double relationSize = new Double(this.getHeadCardinality(rule));
-//			if (relationSize != null) {
-//				rule.setHeadCoverage(rule.getSupport() / relationSize);
-//			}
-//		}
-//		return rule.getSupport();
-//	}
+	@Override
+	public double computeCardinality(Rule rule) {
+		if (rule.isEmpty()) {
+			rule.setSupport(0l);
+			rule.setHeadCoverage(0.0);
+			rule.setSupportRatio(0.0);
+		} else {
+			int[] head = rule.getHead();
+			if (KB.numVariables(head) == 2) {
+				rule.setSupport(this.kb.countDistinctPairs(head[0], head[2], rule.getTriples()));
+			} else {
+				rule.setSupport(this.kb.countDistinct(rule.getFunctionalVariable(), rule.getTriples()));
+			}
+			rule.setSupportRatio((double) rule.getSupport() / this.kb.size());
+			Double relationSize = new Double(this.getHeadCardinality(rule));
+			if (relationSize != null) {
+				rule.setHeadCoverage(rule.getSupport() / relationSize);
+			}
+		}
+		return rule.getSupport();
+	}
 	
 	@Override
 	public double computePCAConfidence(Rule rule) {

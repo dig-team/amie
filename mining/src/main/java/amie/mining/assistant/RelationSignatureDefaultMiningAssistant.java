@@ -1,7 +1,5 @@
 package amie.mining.assistant;
 
-
-
 import amie.data.KB;
 import amie.data.Schema;
 import amie.data.tuple.IntArrays;
@@ -10,10 +8,14 @@ import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntList;
 
 /**
- * This class overrides the default mining assistant enforcing type constraints on the 
- * head variables of rules. The type constraints correspond to the domain and ranges of 
- * the head relation, that is, it mines rules of the form B ^ is(x, D) ^ is(y, R) =&gt; rh(x, y)
+ * This class overrides the default mining assistant enforcing type constraints
+ * on the
+ * head variables of rules. The type constraints correspond to the domain and
+ * ranges of
+ * the head relation, that is, it mines rules of the form B ^ is(x, D) ^ is(y,
+ * R) =&gt; rh(x, y)
  * where D and R are the domain and ranges of relation rh.
+ * 
  * @author luis
  *
  */

@@ -2,18 +2,22 @@
  * @author lgalarra
  * @date Aug 8, 2012 AMIE Version 0.1
  */
-package amie.mining;
+package amie.mining.utils;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-//import amie.mining.utils.initLogRecord;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -26,7 +30,6 @@ import org.apache.commons.cli.PosixParser;
 import amie.data.KB;
 import amie.data.MultilingualKB;
 import amie.data.Schema;
-import amie.mining.assistant.DefaultMiningAssistant;
 import amie.mining.assistant.MiningAssistant;
 import amie.mining.assistant.RelationSignatureDefaultMiningAssistant;
 import amie.mining.assistant.experimental.DefaultMiningAssistantWithOrder;
@@ -37,13 +40,16 @@ import amie.mining.assistant.variableorder.FunctionalOrder;
 import amie.mining.assistant.variableorder.InverseOrder;
 import amie.mining.assistant.variableorder.VariableOrder;
 import amie.rules.Metric;
+import amie.rules.QueryEquivalenceChecker3;
 import amie.rules.Rule;
+import amie.rules.eval.TSVRuleDiff;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntCollection;
+import java.util.Collections;
+import java.util.HashSet;
 import amie.data.javatools.administrative.Announce;
 
 import amie.data.javatools.datatypes.MultiMap;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Main class that implements the AMIE algorithm for rule mining on ontologies.
@@ -53,7 +59,7 @@ import org.apache.commons.lang.StringUtils;
  * @author lgalarra
  *
  */
-public class AMIE {
+public class AMIEDebug {
 
     /**
      * Default standard confidence threshold
@@ -117,7 +123,7 @@ public class AMIE {
      * List of target head relations.
      */
     protected IntCollection seeds;
-    protected  Set<String> rulePrefixes = new HashSet<>();
+    
     /**
      * Column headers
      */
@@ -136,7 +142,7 @@ public class AMIE {
      * argument.
      * @param metric Head coverage or support.
      */
-    public AMIE(MiningAssistant assistant, int minInitialSupport, double threshold, Metric metric, int nThreads) {
+    public AMIEDebug(MiningAssistant assistant, int minInitialSupport, double threshold, Metric metric, int nThreads) {
         this.assistant = assistant;
         this.minInitialSupport = minInitialSupport;
         this.minSignificanceThreshold = threshold;
@@ -162,6 +168,7 @@ public class AMIE {
     	this.seeds = seeds;
     }
 
+
     /**
      * The key method which returns a set of rules mined from the KB based on
      * the AMIE object's configuration.
@@ -170,7 +177,6 @@ public class AMIE {
      * @throws Exception
      */
     public List<Rule> mine() throws Exception {
-//        initLogRecord.initLog();
         List<Rule> result = new ArrayList<>();
         MultiMap<Integer, Rule> indexedResult = new MultiMap<>();
         RuleConsumer consumerObj = null;
@@ -186,7 +192,7 @@ public class AMIE {
             seedRules = assistant.getInitialAtomsFromSeeds(seeds, minInitialSupport);
         }
 
-        AMIEQueue queue = new AMIEQueue(seedRules, nThreads);
+        AMIEQueueDebug queue = new AMIEQueueDebug(seedRules, nThreads);
 
         if (realTime) {
             consumerObj = new RuleConsumer(result, resultsLock, resultsCondVar);
@@ -218,35 +224,10 @@ public class AMIE {
             consumerObj.terminate();
             consumerThread.join();
         }
-
+        
         if (assistant.isVerbose()) queue.printStats();
 
-        for (Rule rule : result) {
-            for (int[] triple : rule.getTriples()) {
-                String subject = KB.unmap(triple[0]);
-                printRulePrefix(subject);
-                String predicate  = KB.unmap(triple[1]);
-                printRulePrefix(predicate);
-                String object = KB.unmap(triple[2]);
-                printRulePrefix(object);
-            }
-        }
         return result;
-    }
-
-    private void printRulePrefix (String input) {
-        List<String> prefixList = Arrays.asList(input.split(":"));
-        for (String s : prefixList) {
-            if (!rulePrefixes.contains(s) && StringUtils.isNotBlank(assistant.kb.prefixMap.get(s))) {
-                System.out.println(s +":" + assistant.kb.prefixMap.get(s));
-
-                synchronized (rulePrefixes) {
-                    rulePrefixes.add(s);
-                }
-
-            }
-
-        }
     }
 
     /**
@@ -275,7 +256,7 @@ public class AMIE {
 
         @Override
         public void run() {
-            AMIE.printRuleHeaders(assistant);
+            AMIEDebug.printRuleHeaders(assistant);
             while (!Thread.currentThread().isInterrupted()) {
                 consumeLock.lock();
                 try {
@@ -317,13 +298,16 @@ public class AMIE {
      * @author lgalarra
      */
     protected class RDFMinerJob implements Runnable {
+        
+        public static final boolean _DEBUG_GENERATION_ = false;
+        public static final boolean _DEBUG_OUTPUT_ = true;
 
         protected List<Rule> outputSet;
 
         // A version of the output set thought for search.
         protected MultiMap<Integer, Rule> indexedOutputSet;
 
-        protected AMIEQueue queryPool;
+        protected AMIEQueueDebug queryPool;
 
         protected Lock resultsLock;
 
@@ -341,7 +325,7 @@ public class AMIE {
          * of the number of threads that are running in the system.
          * @param indexedOutputSet
          */
-        public RDFMinerJob(AMIEQueue seedsPool,
+        public RDFMinerJob(AMIEQueueDebug seedsPool,
                 List<Rule> outputSet, Lock resultsLock,
                 Condition resultsCondition,
                 MultiMap<Integer, Rule> indexedOutputSet) {
@@ -351,7 +335,6 @@ public class AMIE {
             this.resultsCondition = resultsCondition;
             this.indexedOutputSet = indexedOutputSet;
         }
-
 
         @Override
         public void run() {
@@ -368,6 +351,9 @@ public class AMIE {
                     this.queryPool.decrementMaxThreads();
                     break;
                 } else {
+                    if (_DEBUG_GENERATION_) {
+                        System.err.println("[PopQ] Rule: " + currentRule.getRuleString());
+                    }
                     // Check if the rule meets the language bias and confidence thresholds and
                     // decide whether to output it.
                     boolean outputRule = false;
@@ -386,13 +372,66 @@ public class AMIE {
                             outputRule = false;
                         }
                     }
-
+                    
+                    if (currentRule.getLength() == 5 &&
+                            QueryEquivalenceChecker3.areEquivalent(currentRule.getTriples(), 
+                                    KB.triples("?a  <hasZ>  ?b  ?g  <connectsTo>  ?a  ?n  <hasZ>  ?b  ?g  <relatesTo>  ?a  ?g  <relatesTo>  ?n"))) {
+                        System.err.println("FOUND YA");
+                    }
+                    
+                    if (_DEBUG_OUTPUT_ && currentRule.getLength() > 2) {
+                        Rule rule2 = currentRule.getAlternativeEquivalent();
+                        if (assistant.shouldBeOutput(currentRule) != assistant.shouldBeOutput(rule2)) {
+                            System.err.println("[Output] ERROR shouldBeOutput for rule: " + currentRule.getRuleString());
+                        } else if (assistant.shouldBeOutput(currentRule)) {
+                            boolean ruleSatisfiesConfidenceBounds
+                                = assistant.calculateConfidenceBoundsAndApproximations(currentRule);
+                            if (ruleSatisfiesConfidenceBounds != assistant.calculateConfidenceBoundsAndApproximations(rule2)) {
+                                System.err.println("[Output] ERROR calculateConfidenceBoundsAndApproximations for rule: " + currentRule.getRuleString());
+                            } else if (ruleSatisfiesConfidenceBounds) {
+                                this.resultsLock.lock();
+                                assistant.setAdditionalParents(currentRule, indexedOutputSet);
+                                assistant.setAdditionalParents(rule2, indexedOutputSet);
+                                this.resultsLock.unlock();
+                                if (!rule2.getAncestors().equals(currentRule.getAncestors())) {
+                                    this.resultsLock.lock();
+                                    System.err.println("[Output] ERROR ancestors for rule: " + currentRule.getRuleString());
+                                    TSVRuleDiff.diff(currentRule.getAncestors(), rule2.getAncestors());
+                                    this.resultsLock.unlock();
+                                }
+                                assistant.calculateConfidenceMetrics(rule2);
+                                if (currentRule.getSupport() != rule2.getSupport()) {
+                                    System.err.println("[Output] ERROR support for rule: " + currentRule.getRuleString());
+                                }
+                                if (currentRule.getPcaBodySize() != rule2.getPcaBodySize()) {
+                                    System.err.println("[Output] ERROR PCA BS for rule: " + currentRule.getRuleString());
+                                }
+                                if (currentRule.getBodySize() != rule2.getBodySize()) {
+                                    System.err.println("[Output] ERROR BS for rule: " + currentRule.getRuleString());
+                                }
+                                if (assistant.testConfidenceThresholds(currentRule) != assistant.testConfidenceThresholds(rule2)) {
+                                    this.resultsLock.lock();
+                                    System.err.println("[Output] ERROR testConfidenceThresholds for rule: " + currentRule.getRuleString());
+                                    for (Rule r : currentRule.getAncestors()) {
+                                        System.err.println("< " + r.getRuleString() + ": " + 
+                                                ((indexedOutputSet.get(r.alternativeParentHashCode()) == null) ? "No alternative Key" : ((indexedOutputSet.get(r.alternativeParentHashCode()).contains(r)) ? "OK" : "Not in")));
+                                    }
+                                    for (Rule r : rule2.getAncestors()) {
+                                        System.err.println("> " + r.getRuleString() + ": " + 
+                                                ((indexedOutputSet.get(r.alternativeParentHashCode()) == null) ? "No alternative Key" : ((indexedOutputSet.get(r.alternativeParentHashCode()).contains(r)) ? "OK" : "Not in")));
+                                    }
+                                    this.resultsLock.unlock();
+                                }
+                            }
+                        }
+                    }
+                    
                     // Check if we should further refine the rule
                     boolean furtherRefined = !currentRule.isFinal();
                     if (assistant.isEnablePerfectRules()) {
                         furtherRefined = !currentRule.isPerfect();
                     }
-
+                    
                     // If so specialize it
                     if (furtherRefined) {
                         double threshold = getCountThreshold(currentRule);
@@ -411,21 +450,56 @@ public class AMIE {
                             // TODO Auto-generated catch block
                             e.printStackTrace();
                         }
+                        
+                        if (_DEBUG_GENERATION_ && currentRule.getLength() > 2) {
+                                                    
+                            Map<String, Collection<Rule>> temporalOutputMap2 = null;
+                            Rule rule2 = currentRule.getAlternativeEquivalent();
+                            double threshold2 = getCountThreshold(rule2);
+                            try {
+                                temporalOutputMap2 = assistant.applyMiningOperators(rule2, threshold2);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                System.exit(12);
+                            }
+                            this.resultsLock.lock();
+                            for (String method : temporalOutputMap.keySet()) {
+                                System.err.println("[Diff] Rule: " + currentRule.getRuleString() + ", Method: " + method);
+                                Set<Rule> rules1 = new HashSet<>(temporalOutputMap.get(method));
+                                Set<Rule> rules2 = Collections.EMPTY_SET;
+                                Collection<Rule> r2;
+                                if ((r2 = temporalOutputMap2.get(method)) != null) {
+                                    rules2 = new HashSet<>(r2);
+                                }
+                                TSVRuleDiff.diff(rules1, rules2);
+                            }
+                            this.resultsLock.unlock();
+                        }
 
                         for (Map.Entry<String, Collection<Rule>> entry : temporalOutputMap.entrySet()) {
                             String operator = entry.getKey();
                             Collection<Rule> items = entry.getValue();
                             if (!operator.equals("dangling")) {
                                 queryPool.queueAll(items);
+                                if (_DEBUG_GENERATION_) {
+                                    for (Rule r : items) {
+                                        System.err.println("[PushQ] Rule: " + r.getRuleString());
+                                    }
+                                }
                             }
                         }
 
                         // Addition of the specializations to the queue
-                        //queryPool.queueAll(temporalOutput);
+                        //queryPool.queueAll(temporalOutput);                            
                         if (currentRule.getRealLength()
                                 < assistant.getMaxDepth() - 1) {
                             if (temporalOutputMap.containsKey("dangling")) {
                                 queryPool.queueAll(temporalOutputMap.get("dangling"));
+                                if (_DEBUG_GENERATION_) {
+                                    for (Rule r : temporalOutputMap.get("dangling")) {
+                                        System.err.println("[PushQ] Rule: " + r.getRuleString());
+                                    }
+                                }
                             }
                         }
                     }
@@ -472,20 +546,20 @@ public class AMIE {
         }
     }
 
-    /**
-     * Returns an instance of AMIE that mines rules on the given KB using the
-     * vanilla setting of head coverage 1% and no confidence threshold.
-     *
-     * @param db
-     * @return
-     */
-    public static AMIE getVanillaSettingInstance(KB db) {
-        return new AMIE(new DefaultMiningAssistant(db),
-                100, // Do not look at relations smaller than 100 facts
-                0.01, // Head coverage 1%
-                Metric.HeadCoverage,
-                Runtime.getRuntime().availableProcessors());
-    }
+//    /**
+//     * Returns an instance of AMIE that mines rules on the given KB using the
+//     * vanilla setting of head coverage 1% and no confidence threshold.
+//     *
+//     * @param db
+//     * @return
+//     */
+//    public static AMIEDebug getVanillaSettingInstance(KB db) {
+//        return new AMIEDebug(new DefaultMiningAssistant(db),
+//                100, // Do not look at relations smaller than 100 facts
+//                0.01, // Head coverage 1%
+//                Metric.HeadCoverage,
+//                Runtime.getRuntime().availableProcessors());
+//    }
 
 //    /**
 //     * Factory methods. They return canned instances of AMIE. *
@@ -497,10 +571,10 @@ public class AMIE {
 //     * @param db
 //     * @return
 //     */
-//    public static AMIE getVanillaSettingInstance(KB db, double minPCAConfidence) {
+//    public static AMIEDebug getVanillaSettingInstance(KB db, double minPCAConfidence) {
 //        DefaultMiningAssistant miningAssistant = new DefaultMiningAssistant(db);
 //        miningAssistant.setPcaConfidenceThreshold(minPCAConfidence);
-//        return new AMIE(miningAssistant,
+//        return new AMIEDebug(miningAssistant,
 //                DEFAULT_INITIAL_SUPPORT, // Do not look at relations smaller than 100 facts
 //                DEFAULT_HEAD_COVERAGE, // Head coverage 1%
 //                Metric.HeadCoverage,
@@ -517,18 +591,18 @@ public class AMIE {
 //     * @param startSupport
 //     * @return
 //     */
-//    public static AMIE getLossyVanillaSettingInstance(KB db, double minPCAConfidence, int startSupport) {
+//    public static AMIEDebug getLossyVanillaSettingInstance(KB db, double minPCAConfidence, int startSupport) {
 //        DefaultMiningAssistant miningAssistant = new DefaultMiningAssistant(db);
 //        miningAssistant.setPcaConfidenceThreshold(minPCAConfidence);
 //        miningAssistant.setEnabledConfidenceUpperBounds(true);
 //        miningAssistant.setEnabledFunctionalityHeuristic(true);
-//        return new AMIE(miningAssistant,
+//        return new AMIEDebug(miningAssistant,
 //                startSupport, // Do not look at relations smaller than 100 facts
 //                DEFAULT_HEAD_COVERAGE, // Head coverage 1%
 //                Metric.HeadCoverage,
 //                Runtime.getRuntime().availableProcessors());
 //    }
-//
+
 //    /**
 //     * Returns an instance of AMIE that enables the lossy optimizations, i.e.,
 //     * optimizations that optimize for runtime but that could in principle omit
@@ -539,12 +613,12 @@ public class AMIE {
 //     * @param minSupport
 //     * @return
 //     */
-//    public static AMIE getLossyInstance(KB db, double minPCAConfidence, int minSupport) {
+//    public static AMIEDebug getLossyInstance(KB db, double minPCAConfidence, int minSupport) {
 //        DefaultMiningAssistant miningAssistant = new DefaultMiningAssistant(db);
 //        miningAssistant.setPcaConfidenceThreshold(minPCAConfidence);
 //        miningAssistant.setEnabledConfidenceUpperBounds(true);
 //        miningAssistant.setEnabledFunctionalityHeuristic(true);
-//        return new AMIE(miningAssistant,
+//        return new AMIEDebug(miningAssistant,
 //                minSupport, // Do not look at relations smaller than the support threshold
 //                minSupport, // Head coverage 1%
 //                Metric.Support,
@@ -563,7 +637,7 @@ public class AMIE {
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
-    public static AMIE getInstance(String[] args)
+    public static AMIEDebug getInstance(String[] args)
             throws IOException, InstantiationException,
             IllegalAccessException, IllegalArgumentException,
             InvocationTargetException {
@@ -601,17 +675,14 @@ public class AMIE {
          * ******************************
          */
         int nProcessors = Runtime.getRuntime().availableProcessors();
-        String bias = "lazy"; // Counting support on the two head variables.
+        String bias = "default"; // Counting support on the two head variables.
         Metric metric = Metric.HeadCoverage; // Metric used to prune the search space.
         VariableOrder variableOrder = new FunctionalOrder();
         MiningAssistant mineAssistant = null;
         IntCollection bodyExcludedRelations = null;
         IntCollection headExcludedRelations = null;
-        IntCollection instantiationExcludedRelations = null;
         IntCollection headTargetRelations = null;
         IntCollection bodyTargetRelations = null;
-        IntCollection instantiationTargetRelations = null;
-
         KB targetSource = null;
         KB schemaSource = null;
         int nThreads = nProcessors; // By default use as many threads as processors.
@@ -666,13 +737,6 @@ public class AMIE {
                         + "(incompatible with head-target-relations). Example: <livesIn>,<bornIn>")
                 .create("hexr");
 
-        Option instantiationExcludedOpt = OptionBuilder.withArgName("instantiation-excluded-relations")
-                .hasArg()
-                .withDescription("Do not instantiate these relations. "
-                        + "Should be used with -fconst or -const "
-                        + "(incompatible with instantiation-target-relations). Example: <livesIn>,<bornIn>")
-                .create("iexr");
-
         Option headTargetRelationsOpt = OptionBuilder.withArgName("head-target-relations")
                 .hasArg()
                 .withDescription("Mine only rules with these relations in the head. "
@@ -687,15 +751,6 @@ public class AMIE {
                         + "names separated by commas (incompatible with body-excluded-relations). "
                         + "Example: <livesIn>,<bornIn>")
                 .create("btr");
-
-        Option instantiationTargetOpt = OptionBuilder.withArgName("instantiation-target-relations")
-                .hasArg()
-                .withDescription("Allow only these relations to be instantiated. "
-                        + "Should be used with -fconst or -const. "
-                        + "Provide a list of relation names separated by commas "
-                        + "(incompatible with instantiation-excluded-relations). "
-                        + "Example: <livesIn>,<bornIn>")
-                .create("itr");
 
         Option maxDepthOpt = OptionBuilder.withArgName("max-depth")
                 .hasArg()
@@ -800,10 +855,6 @@ public class AMIE {
                         + "and to optimize the query")
                 .create("noKbExistsDetection");
 
-        Option noSkylineOp = OptionBuilder.withArgName("noSkyline")
-                .withDescription("Disable Skyline pruning of results")
-                .create("noSkyline");
-
         Option variableOrderOp = OptionBuilder.withArgName("variableOrder")
                 .withDescription("Define the order of the variable in counting query among: app, fun (default), ifun")
                 .hasArg()
@@ -840,12 +891,10 @@ public class AMIE {
         options.addOption(realTimeOpt);
         options.addOption(bodyExcludedOpt);
         options.addOption(headExcludedOpt);
-        options.addOption(instantiationExcludedOpt);
         options.addOption(maxDepthOpt);
         options.addOption(pcaConfThresholdOpt);
         options.addOption(headTargetRelationsOpt);
         options.addOption(bodyTargetRelationsOpt);
-        options.addOption(instantiationTargetOpt);
         options.addOption(allowConstantsOpt);
         options.addOption(enforceConstantsOpt);
         options.addOption(countOnSubjectOpt);
@@ -864,11 +913,11 @@ public class AMIE {
         options.addOption(noHeuristicsOp);
         options.addOption(noKbRewrite);
         options.addOption(noKbExistsDetection);
-        options.addOption(noSkylineOp);
         options.addOption(variableOrderOp);
         options.addOption(extraFileOp);
         options.addOption(datalogNotationOpt);
         options.addOption(calculateStdConfidenceOp);
+        //options.addOption(enableCountCache);
         options.addOption(optimAdaptiveInstantiations);
         options.addOption(multilingual);
         options.addOption(delimOpt);
@@ -900,28 +949,6 @@ public class AMIE {
             System.err.println("The options body-target-relations and body-excluded-relations cannot appear at the same time");
             formatter.printHelp("AMIE+", options);
             System.exit(1);
-        }
-
-        if (cli.hasOption("itr") && cli.hasOption("iexr")) {
-            System.err.println("The options instantiation-target-relations and instantiation-excluded-relations cannot appear at the same time");
-            formatter.printHelp("AMIE+", options);
-            System.exit(1);
-        }
-
-        if (cli.hasOption("itr") && !(cli.hasOption("const") || cli.hasOption("fconst"))) {
-            System.err.println("The option instantiation-target-relations should be used  with -const or -fconst");
-            formatter.printHelp("AMIE+", options);
-            System.exit(1);
-        }
-
-        if (cli.hasOption("iexr") && !(cli.hasOption("const") || cli.hasOption("fconst"))) {
-            System.err.println("The option instantiation-excluded-relations should be used  with -const or -fconst");
-            formatter.printHelp("AMIE+", options);
-            System.exit(1);
-        }
-
-        if (cli.hasOption("mins") && cli.hasOption("minhc") && !cli.hasOption("pm")) {
-            System.out.println("Warning: Both -mins and -minhc are set but only the default pruning metric will be used");
         }
 
         if (cli.hasOption("mins")) {
@@ -959,8 +986,6 @@ public class AMIE {
                 System.exit(1);
             }
         }
-
-        minMetricValue = minHeadCover;
 
         if (cli.hasOption("minc")) {
             String minConfidenceStr = cli.getOptionValue("minc");
@@ -1019,24 +1044,6 @@ public class AMIE {
             String[] excludedValueArr = excludedValuesStr.split(",");
             for (String excludedValue : excludedValueArr) {
                 headExcludedRelations.add(KB.map(excludedValue.trim()));
-            }
-        }
-
-        if (cli.hasOption("itr")) {
-            instantiationTargetRelations = new IntArrayList();
-            String targetValuesStr = cli.getOptionValue("itr");
-            String[] targetValueArr = targetValuesStr.split(",");
-            for (String targetValue : targetValueArr) {
-                instantiationTargetRelations.add(KB.map(targetValue.trim()));
-            }
-        }
-
-        if (cli.hasOption("iexr")) {
-            instantiationExcludedRelations = new IntArrayList();
-            String excludedValuesStr = cli.getOptionValue("iexr");
-            String[] excludedValueArr = excludedValuesStr.split(",");
-            for (String excludedValue : excludedValueArr) {
-                instantiationExcludedRelations.add(KB.map(excludedValue.trim()));
             }
         }
 
@@ -1131,7 +1138,10 @@ public class AMIE {
         if (cli.hasOption("noKbExistsDetection")) {
             dataSource.setOptimExistentialDetection(false);
         }
+
+
         dataSource.load(dataFiles);
+
 
         if (!targetFiles.isEmpty()) {
             targetSource = new KB();
@@ -1143,31 +1153,23 @@ public class AMIE {
             schemaSource.load(schemaFiles);
         }
 
-        if (cli.hasOption("mins") != cli.hasOption("minhc")) {
-            if (cli.hasOption("mins")) {
-                    metric = Metric.Support;
-                    minMetricValue = minSup;
-                    if (!cli.hasOption("minis")) { minInitialSup = minSup; }
-            } else {
-                    metric = Metric.HeadCoverage;
-                    minMetricValue = minHeadCover;
-            }
-        }
-
         if (cli.hasOption("pm")) {
             switch (cli.getOptionValue("pm")) {
                 case "support":
                     metric = Metric.Support;
+                    System.err.println("Using " + metric + " as pruning metric with threshold " + minSup);
                     minMetricValue = minSup;
-                    if (!cli.hasOption("minis")) { minInitialSup = minSup; }
+                    minInitialSup = minSup;
                     break;
                 default:
                     metric = Metric.HeadCoverage;
-                    minMetricValue = minHeadCover;
+                    System.err.println("Using " + metric + " as pruning metric with threshold " + minHeadCover);
                     break;
             }
+        } else {
+            System.out.println("Using " + metric + " as pruning metric with minimum threshold " + minHeadCover);
+            minMetricValue = minHeadCover;
         }
-        System.out.println("Using " + metric + " as pruning metric with minimum threshold " + minMetricValue);
 
         if (cli.hasOption("bias")) {
             bias = cli.getOptionValue("bias");
@@ -1215,7 +1217,7 @@ public class AMIE {
                 // To support customized assistant classes
                 // The assistant classes must inherit from amie.mining.assistant.MiningAssistant
                 // and implement a constructor with the any of the following signatures.
-                // ClassName(amie.data.KB), ClassName(amie.data.KB, String), ClassName(amie.data.KB, amie.data.KB)
+                // ClassName(amie.data.KB), ClassName(amie.data.KB, String), ClassName(amie.data.KB, amie.data.KB) 
                 Class<?> assistantClass = null;
                 try {
                     assistantClass = Class.forName(bias);
@@ -1232,12 +1234,12 @@ public class AMIE {
                     mineAssistant = (MiningAssistant) constructor.newInstance(dataSource);
                 } catch (NoSuchMethodException e) {
                     try {
-                        // Constructor with additional input
+                        // Constructor with additional input            			
                         constructor = assistantClass.getConstructor(new Class[]{KB.class, String.class});
                         System.out.println(cli.getOptionValue("ef"));
                         mineAssistant = (MiningAssistant) constructor.newInstance(dataSource, cli.getOptionValue("ef"));
                     } catch (NoSuchMethodException ep) {
-                        // Constructor with schema KB
+                        // Constructor with schema KB       
                         try {
                             constructor = assistantClass.getConstructor(new Class[]{KB.class, KB.class});
                             mineAssistant = (MiningAssistant) constructor.newInstance(dataSource, schemaSource);
@@ -1275,6 +1277,7 @@ public class AMIE {
             exploitMaxLengthForRuntime = false;
             enableConfidenceUpperBounds = true;
             enableFunctionalityHeuristic = true;
+            minPCAConf = DEFAULT_PCA_CONFIDENCE;
         }
 
         if (full) {
@@ -1284,6 +1287,7 @@ public class AMIE {
             exploitMaxLengthForRuntime = true;
             enableConfidenceUpperBounds = true;
             enableFunctionalityHeuristic = true;
+            minPCAConf = DEFAULT_PCA_CONFIDENCE;
         }
 
         if (cli.hasOption("noHeuristics")) {
@@ -1310,9 +1314,7 @@ public class AMIE {
         mineAssistant.setEnforceConstants(enforceConstants);
         mineAssistant.setBodyExcludedRelations(bodyExcludedRelations);
         mineAssistant.setHeadExcludedRelations(headExcludedRelations);
-        mineAssistant.setInstantiationExcludedRelations(instantiationExcludedRelations);
         mineAssistant.setTargetBodyRelations(bodyTargetRelations);
-        mineAssistant.setInstantiationTargetRelations(instantiationTargetRelations);
         mineAssistant.setCountAlwaysOnSubject(countAlwaysOnSubject);
         mineAssistant.setRecursivityLimit(recursivityLimit);
         mineAssistant.setAvoidUnboundTypeAtoms(avoidUnboundTypeAtoms);
@@ -1323,11 +1325,10 @@ public class AMIE {
         mineAssistant.setOmmitStdConfidence(ommitStdConfidence);
         mineAssistant.setDatalogNotation(datalogOutput);
         mineAssistant.setOptimAdaptiveInstantiations(adaptiveInstantiations);
-        mineAssistant.setUseSkylinePruning(!cli.hasOption("noSkyline"));
 
         System.out.println(mineAssistant.getDescription());
 
-        AMIE miner = new AMIE(mineAssistant, minInitialSup, minMetricValue, metric, nThreads);
+        AMIEDebug miner = new AMIEDebug(mineAssistant, minInitialSup, minMetricValue, metric, nThreads);
         miner.setRealTime(realTime);
         miner.setSeeds(headTargetRelations);
 
@@ -1367,10 +1368,6 @@ public class AMIE {
             }
         }
 
-        if (verbose) {
-        	mineAssistant.outputOperatorHierarchy(System.err);
-        }
-
         return miner;
     }
 
@@ -1395,9 +1392,9 @@ public class AMIE {
      */
     public static void main(String[] args) throws Exception {
         Schema.loadSchemaConf();
-        System.out.println("Assuming " + KB.unmap(Schema.typeRelationBS) + " as type relation");
+        System.out.println("Assuming " + Schema.typeRelationBS + " as type relation");
         long loadingStartTime = System.currentTimeMillis();
-        AMIE miner = AMIE.getInstance(args);
+        AMIEDebug miner = AMIEDebug.getInstance(args);
         long loadingTime = System.currentTimeMillis() - loadingStartTime;
         MiningAssistant assistant = miner.getAssistant();
 
@@ -1408,15 +1405,15 @@ public class AMIE {
         List<Rule> rules = miner.mine();
 
         if (!miner.isRealTime()) {
-            AMIE.printRuleHeaders(assistant);
+            AMIEDebug.printRuleHeaders(assistant);
             for (Rule rule : rules) {
                 System.out.println(assistant.formatRule(rule));
             }
         }
 
         long miningTime = System.currentTimeMillis() - time;
-        System.out.println("Mining done in " + String.format("%.3f", (double)miningTime / 1000)+"s");
-        Announce.done("Total time " + String.format("%.3f", (double)(miningTime + loadingTime)/ 1000)+"s");
+        System.out.println("Mining done in " + String.format("%d s", miningTime / 1000));
+        Announce.done("Total time " + String.format("%d s", (miningTime + loadingTime)/ 1000));
         System.out.println(rules.size() + " rules mined.");
 
 //	    if (assistant.kb.countCacheEnabled) {

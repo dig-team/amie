@@ -1,4 +1,5 @@
 # AMIE 
+
 AMIE is a system to mine Horn rules on knowledge bases. A knowledge base is a collection of facts, such as e.g. 
 > wasBornIn(Elvis, Tupelo)  
 > isLocatedIn(Tupelo, USA)
@@ -49,7 +50,7 @@ If you want to modify the code of AMIE, you need
 * Apache Maven >= 3.6.0
 * Java >= 8
 * Apache Commons >= 1.3.1
-* [Javatools](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/javatools/). This package can be found as Maven projects here: https://github.com/lajus/amie-utils. As this artifact is not yet uploaded into a central repository, please follow the installation procedure described in the previous link before trying to compile this project.
+* [Javatools](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/amie.data.javatools/). This package can be found as Maven projects here: https://github.com/lajus/amie-utils. As this artifact is not yet uploaded into a central repository, please follow the installation procedure described in the previous link before trying to compile this project.
 
 AMIE is managed with [Maven](https://maven.apache.org/), therefore to deploy you need:
 
@@ -86,6 +87,6 @@ The code resides in: typing/
 
 ## Licensing
 
-<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>. AMIE is distributed under the terms of the <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a> by the [YAGO-NAGA team](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/amie/) and the [DIG team](https://dig.telecom-paris.fr/blog/).
+AMIE is distributed under the terms of the [Creative Commons Attribution-NonComercial license v3.0](https://creativecommons.org/licenses/by-nc/3.0/) by the [YAGO-NAGA team](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/amie/) and the [DIG team](https://dig.telecom-paris.fr/blog/).
 
-AMIE uses Javatools, a library released under the [Creative Commons Attribution license v3.0](https://creativecommons.org/licenses/by/3.0/) by the [YAGO-NAGA team](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/javatools/).
+AMIE uses Javatools, a library released under the [Creative Commons Attribution license v3.0](https://creativecommons.org/licenses/by/3.0/) by the [YAGO-NAGA team](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/amie.data.javatools/).

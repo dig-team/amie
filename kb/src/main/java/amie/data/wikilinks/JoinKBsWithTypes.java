@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.List;
 
-import javatools.filehandlers.TSVFile;
+import amie.data.javatools.filehandlers.TSVFile;
 
 public class JoinKBsWithTypes {
 

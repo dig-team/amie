@@ -5,8 +5,6 @@
  */
 package amie.data.tuple;
 
-import javatools.datatypes.Triple;
-
 /**
  *
  * @author jlajus

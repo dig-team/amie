@@ -82,43 +82,6 @@ public class PCAFalseFactsSampler {
 			}
 		}
 	}
-	
-	/**
-	 * It outputs a sample of the assumed-false facts
-	 * @param rules
-	 */
-	private void runAndGroupByRelation(Collection<Rule> rules) {
-		Int2ObjectMap<Collection<Rule>> headsToRules = new Int2ObjectOpenHashMap<Collection<Rule>>();
-		
-		for(Rule rule: rules){
-			Collection<Rule> rulesForRelation = headsToRules.get(rule.getHead()[1]);
-			if(rulesForRelation == null){
-				rulesForRelation = new ArrayList<Rule>();
-				headsToRules.put(rule.getHead()[1], rulesForRelation);
-			}
-			rulesForRelation.add(rule);			
-		}
-		
-		for(int relation: headsToRules.keySet()){
-			Map<IntTriple, Rule> factToRule = new HashMap<IntTriple, Rule>();
-			Set<IntTriple> allAssumedFalse = new LinkedHashSet<IntTriple>();	
-			for(Rule rule: headsToRules.get(relation)){		
-				Collection<IntTriple> ruleAssumedFalse = generateAssumedFalseFacts(rule);
-				for(IntTriple fact: ruleAssumedFalse){
-					factToRule.put(fact, rule);
-				}	
-				allAssumedFalse.addAll(ruleAssumedFalse);				
-			}
-			Collection<IntTriple> sample =  Predictor.sample(allAssumedFalse, sampleSize);
-			printSample(sample, factToRule);
-		}
-	}
-
-	private void printSample(Collection<IntTriple> sample, Map<IntTriple, Rule> factToRule) {
-		for(IntTriple fact: sample){
-			System.out.println(factToRule.get(fact).getRuleString() + "\t" + fact.first + "\t" + fact.second + "\t" + fact.third);
-		}
-	}
 
 	private Set<IntTriple> generateAssumedFalseFacts(Rule rule) {
 		List<int[]> query = new ArrayList<int[]>();	

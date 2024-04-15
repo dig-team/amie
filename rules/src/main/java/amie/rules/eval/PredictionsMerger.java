@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javatools.filehandlers.TSVFile;
+import amie.data.javatools.filehandlers.TSVFile;
 
 public class PredictionsMerger {
 	

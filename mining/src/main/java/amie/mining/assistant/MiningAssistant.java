@@ -19,7 +19,7 @@ import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.IntCollection;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import javatools.datatypes.MultiMap;
+import amie.data.javatools.datatypes.MultiMap;
 
 /**
  * Simpler miner assistant which implements all the logic required
@@ -531,7 +531,6 @@ public class MiningAssistant {
 	 * Returns a list of one-atom queries using the relations from the KB
 	 * @param minSupportThreshold Only relations of size bigger or equal than this value will
 	 * be considered.
-	 * @param output
 	 */
 	public Collection<Rule> getInitialAtoms(double minSupportThreshold) {
 		List<int[]> newEdgeList = new ArrayList<int[]>(1);
@@ -548,7 +547,6 @@ public class MiningAssistant {
 	 *
 	 * @param relations
 	 * @param minSupportThreshold Only relations with support equal or above this value are considered.
-	 * @param output
 	 */
 	protected Collection<Rule> buildInitialQueries(Int2IntMap relations, double minSupportThreshold) {
 		Collection<Rule> output = new ArrayList<>();
@@ -1006,9 +1004,8 @@ public class MiningAssistant {
 	/**
 	 * Given two relations and the positions at which they join, it returns the number
 	 * of entities in the overlap of such positions.
-	 * @param joinInformation
 	 * @param r1
-	 * @param rh
+	 * @param r2
 	 * @return
 	 */
 	private double computeOverlap(int[] jinfo, int r1, int r2) {
@@ -1118,9 +1115,9 @@ public class MiningAssistant {
 	public boolean testConfidenceThresholds(Rule candidate) {
 		boolean addIt = true;
 
-		//if(candidate.containsLevel2RedundantSubgraphs()) {
-		//	return false;
-		//}
+		if(candidate.containsLevel2RedundantSubgraphs()) {
+			return false;
+		}
 
 		if(candidate.getStdConfidence() < minStdConfidence
 				|| candidate.getPcaConfidence() < minPcaConfidence){
@@ -1265,18 +1262,18 @@ public class MiningAssistant {
 	 * @param rule
 	 * @return
 	 */
-	public double computeCardinality(Rule rule) {
-		int[] head = rule.getHead();
-		int countVariable = 0;
-		if (countAlwaysOnSubject) {
-			countVariable = head[0];
-		} else {
-			countVariable = rule.getFunctionalVariable();
-		}
-		rule.setSupport(kb.countDistinct(countVariable, rule.getTriples()));
-		rule.setSupportRatio((double) rule.getSupport() / kb.size());
-		return rule.getSupport();
-	}
+//	public double computeCardinality(Rule rule) {
+//		int[] head = rule.getHead();
+//		int countVariable = 0;
+//		if (countAlwaysOnSubject) {
+//			countVariable = head[0];
+//		} else {
+//			countVariable = rule.getFunctionalVariable();
+//		}
+//		rule.setSupport(kb.countDistinct(countVariable, rule.getTriples()));
+//		rule.setSupportRatio((double) rule.getSupport() / kb.size());
+//		return rule.getSupport();
+//	}
 
 	/**
 	 * It computes the PCA confidence of the given rule based on the evidence in database.
@@ -1590,15 +1587,12 @@ public class MiningAssistant {
             this.useSkylinePruning = useSkylinePruning;
         }
 
-	public boolean shouldBeClosed() {
-		return true;
-	}
 
-	public void applyMiningOperators(Rule rule, double minSupportThreshold,
-			Collection<Rule> danglingOutput, Collection<Rule> output) {
-		getClosingAtoms(rule, minSupportThreshold, output);
-        getDanglingAtoms(rule, minSupportThreshold, danglingOutput);
-        getInstantiatedAtoms(rule, minSupportThreshold, danglingOutput, output);
-        getTypeSpecializedAtoms(rule, minSupportThreshold, output);
-	}
+//	public void applyMiningOperators(Rule rule, double minSupportThreshold,
+//									 Collection<Rule> danglingOutput, Collection<Rule> output) {
+//		getClosingAtoms(rule, minSupportThreshold, output);
+//		getDanglingAtoms(rule, minSupportThreshold, danglingOutput);
+//		getInstantiatedAtoms(rule, minSupportThreshold, danglingOutput, output);
+//		getTypeSpecializedAtoms(rule, minSupportThreshold, output);
+//	}
 }

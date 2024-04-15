@@ -1,5 +1,5 @@
 package amie.rules.eval;
 
 public enum EvalSource {
-	TrainingSource, TargetSource, ManualEvaluation, Undefined
+	TrainingSource, TargetSource, Undefined
 }

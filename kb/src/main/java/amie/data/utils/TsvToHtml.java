@@ -6,10 +6,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javatools.administrative.Announce;
-import javatools.filehandlers.FileLines;
-import javatools.filehandlers.TSVFile;
-import javatools.parsers.Char;
+import amie.data.javatools.administrative.Announce;
+import amie.data.javatools.filehandlers.FileLines;
+import amie.data.javatools.filehandlers.TSVFile;
 
 /**
  * formats a TSV file into an HTML file
@@ -27,7 +26,7 @@ public static void main(String[] args) throws Exception {
     File tsvFile = new File(args[0]);
     File template = new File(args[1]);
     File htmlFile = new File(args[2]);
-    Writer out = javatools.util.FileUtils.getBufferedUTF8Writer(htmlFile);
+    Writer out = amie.data.javatools.util.FileUtils.getBufferedUTF8Writer(htmlFile);
     for (String line : new FileLines(template)) {
       out.write(line);
       out.write("\n");
@@ -65,7 +64,7 @@ public static void main(String[] args) throws Exception {
           else if(columns[i].endsWith("l")) align = "left";
           else align = "center";
           out.write("<TD align=" + align + ">");
-          out.write(Char.encodeAmpersand(tsvLine.get(tsvColumnNames.indexOf(columns[i].substring(0,columns[i].indexOf(':'))))));
+          out.write(tsvLine.get(tsvColumnNames.indexOf(columns[i].substring(0,columns[i].indexOf(':')))));
         }
       }
     }

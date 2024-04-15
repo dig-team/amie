@@ -9,8 +9,8 @@ import java.util.Set;
 import amie.data.KB;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 
-import javatools.datatypes.IntHashMap;
-import javatools.filehandlers.TSVFile;
+import amie.data.javatools.datatypes.IntHashMap;
+import amie.data.javatools.filehandlers.TSVFile;
 
 public class RelevanceCalculator {
 

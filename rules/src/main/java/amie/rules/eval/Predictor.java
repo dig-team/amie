@@ -39,127 +39,14 @@ public class Predictor {
 	 * Input dataset
 	 */
 	private KB source;
-	
-	public Predictor(KB dataset) {
-		super();
-		this.source = dataset;
-		sampleSize = 30;
-	}
-	
+
 	public Predictor(KB dataset, int sampleSize) {
 		super();
 		this.source = dataset;
 		this.sampleSize = sampleSize;
 	}
-	
-	/**
-	 * @return the sampleSize
-	 */
-	public int getSampleSize() {
-		return sampleSize;
-	}
 
-	/**
-	 * @param sampleSize the sampleSize to set
-	 */
-	public void setNumberOfPredictions(int numberOfPredictions) {
-		this.sampleSize = numberOfPredictions;
-	}
-		
-	
-	public Set<IntTriple> generateBodyTriples(Rule rule, boolean PCAMode) {
-		Object bindings = null;
-		if (PCAMode) {
-			bindings = generateBodyPCABindings(rule);
-		} else {
-			bindings = generateBodyBindings(rule);
-		}
-		
-		Set<IntTriple> triples = new LinkedHashSet<>();
-		int[] head = rule.getHead();
-		int relation = rule.getHead()[1];
-		
-		if (KB.numVariables(rule.getHead()) == 1) {
-			IntSet constants = (IntSet) bindings;
-			int variablePosition = rule.getFunctionalVariablePosition();
-			for (int constant : constants) {
-				if (variablePosition == 0) {
-					triples.add(new IntTriple(constant, relation, head[2]));
-				} else {
-					triples.add(new IntTriple(head[0], relation, constant));					
-				}
-			}
-		} else {
-			Int2ObjectMap<Int2IntMap> pairs = (Int2ObjectMap<Int2IntMap>) bindings; 
-			int functionalPosition = rule.getFunctionalVariablePosition();
-			for (int subject : pairs.keySet()) {
-				for (int object : pairs.get(subject).keySet()) {
-					if (functionalPosition == 0) {
-						triples.add(new IntTriple(subject, relation, object));
-					} else {
-						triples.add(new IntTriple(object, relation, subject));						
-					}
-				}
-			}
-		}
-		
-		return triples;
-	}
-	
-	/**
-	 * Given a rule, it produces a sample from the body bindings of the rule.
-	 * 
-	 * @param rule
-	 * @return
-	 */
-	public Object generateBodyBindings(Rule rule){
-		if(KB.numVariables(rule.getHead()) == 1)
-			return generateBindingsForSingleVariable(rule);
-		else if (KB.numVariables(rule.getHead()) == 2)
-			return generateBindingsForTwoVariables(rule);
-		else 
-			return generateBindingsForThreeVariables(rule);
-	}
-	
-	private Object generateBindingsForThreeVariables(Rule rule) {
-		int[] head = rule.getHead();
-		return source.selectDistinct(rule.getFunctionalVariable(), 
-				head[1], rule.getNonFunctionalVariable(), rule.getAntecedent());
-	}
 
-	private Object generateBindingsForTwoVariables(Rule rule) {
-		return source.selectDistinct(rule.getFunctionalVariable(), 
-				rule.getNonFunctionalVariable(), rule.getAntecedent());
-	}
-
-	private Object generateBindingsForSingleVariable(Rule rule) {
-		return source.selectDistinct(rule.getFunctionalVariable(), rule.getAntecedent());
-	}
-	
-	/**
-	 * Given a rule, it produces a sample from the body* bindings
-	 * of the rule (the bindings that match the denominator of the
-	 * PCA confidence expression)
-	 * @param rule
-	 * @return
-	 */
-	public Object generateBodyPCABindings(Rule rule) {
-		if(KB.numVariables(rule.getHead()) == 1)
-			return generatePCABindingsForSingleVariable(rule);
-		else
-			return generatePCABindingsForTwoVariables(rule);		
-		
-	}
-	
-	private Object generatePCABindingsForSingleVariable(Rule rule) {
-		return source.selectDistinct(rule.getFunctionalVariable(), rule.getPCAQuery());
-	}
-
-	private Object generatePCABindingsForTwoVariables(Rule rule) {
-		// TODO Auto-generated method stub
-		return source.selectDistinct(rule.getFunctionalVariable(),
-				rule.getNonFunctionalVariable(), rule.getPCAQuery());
-	}
 
 	/**
 	 * Given a rule, it produces sample of predictions (triples that are beyond the database)

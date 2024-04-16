@@ -4,8 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import javatools.datatypes.IntHashMap;
-import javatools.filehandlers.TSVFile;
+import amie.data.javatools.datatypes.IntHashMap;
+import amie.data.javatools.filehandlers.TSVFile;
 
 public class IngoingLinksCalculator {
 

@@ -19,21 +19,21 @@ public class ExistentialRulesMiningAssistant extends DefaultMiningAssistant {
 		headCardinalities.put(KB.EXISTSINVbs, -1.0);
 		// TODO Auto-generated constructor stub
 	}
-	
+
 	@Override
 	public long getHeadCardinality(Rule query){
 		if (query.getHeadRelationBS() == (KB.EXISTSbs) || query.getHeadRelationBS() == (KB.EXISTSINVbs)) {
 			return (long) headCardinalities.get(query.getHead()[0]);
 		} else {
 			return (long) headCardinalities.get(query.getHeadRelationBS());
-		}	
+		}
 	}
-	
+
 	@Override
 	public String getDescription() {
 		return "Also mine existential rules";
 	}
-	
+
 	@Override
 	public boolean shouldBeOutput(Rule candidate) {
 		return candidate.isClosed(false);
@@ -78,5 +78,5 @@ public class ExistentialRulesMiningAssistant extends DefaultMiningAssistant {
 			output.add(nRule);
 		}
 	}
-	
+
 }

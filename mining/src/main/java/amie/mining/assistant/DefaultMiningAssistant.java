@@ -5,12 +5,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
-import javatools.datatypes.Pair;
 import amie.data.KB;
 import static amie.data.U.decreasingKeys;
 import amie.data.tuple.IntPair;
@@ -29,12 +26,12 @@ public class DefaultMiningAssistant extends MiningAssistant{
 	/**
 	 * Store counts for hard queries
 	 */
-	protected Map<Pair<Integer, Boolean>, Long> hardQueries;
+//	protected Map<Pair<Integer, Boolean>, Long> hardQueries;
 	
 	
 	public DefaultMiningAssistant(KB dataSource) {
 		super(dataSource);
-		this.hardQueries = Collections.synchronizedMap(new HashMap<Pair<Integer, Boolean>, Long>());
+//		this.hardQueries = Collections.synchronizedMap(new HashMap<Pair<Integer, Boolean>, Long>());
 		// TODO Auto-generated constructor stub
 	}
 	
@@ -108,7 +105,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		if (this.enforceConstants) {
 			return;
 		}
-		
+
 		int nPatterns = rule.getTriples().size();
 
 		if(rule.isEmpty())
@@ -390,20 +387,20 @@ public class DefaultMiningAssistant extends MiningAssistant{
 	 * @param newEdge
 	 * @return
 	 */
-	protected boolean containsHardCase(Rule query, int[] newEdge) {
-		// TODO Auto-generated method stub
-		int[] hardnessInfo = this.kb.identifyHardQueryTypeI(query.getTriples());
-		if(hardnessInfo == null) return false;
-		int[] hardAtom1 = query.getTriples().get(hardnessInfo[2]);
-		int[] hardAtom2 = query.getTriples().get(hardnessInfo[3]);
-		List<int[]> subquery = new ArrayList<int[]>(2);
-		subquery.add(newEdge);
-		subquery.add(hardAtom1);
-		if (this.kb.identifyHardQueryTypeI(subquery) != null) return true;
-		subquery.set(1, hardAtom2);
-		if (this.kb.identifyHardQueryTypeI(subquery) != null) return true;		
-		return false;
-	}
+//	protected boolean containsHardCase(Rule query, int[] newEdge) {
+//		// TODO Auto-generated method stub
+//		int[] hardnessInfo = this.kb.identifyHardQueryTypeI(query.getTriples());
+//		if(hardnessInfo == null) return false;
+//		int[] hardAtom1 = query.getTriples().get(hardnessInfo[2]);
+//		int[] hardAtom2 = query.getTriples().get(hardnessInfo[3]);
+//		List<int[]> subquery = new ArrayList<int[]>(2);
+//		subquery.add(newEdge);
+//		subquery.add(hardAtom1);
+//		if (this.kb.identifyHardQueryTypeI(subquery) != null) return true;
+//		subquery.set(1, hardAtom2);
+//		if (this.kb.identifyHardQueryTypeI(subquery) != null) return true;
+//		return false;
+//	}
 
 	/**
 	 * Application of the "Add instantiated atom" operator. It takes a rule of the form
@@ -556,7 +553,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		}
 		return result;
 	}
-	
+
 	/**
 	 * Returns the denominator of the PCA confidence expression for the antecedent of a rule.
 	 * @param var1
@@ -567,7 +564,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 	 * @param nonExistentialPosition
 	 * @return
 	 */
-	protected double computePcaBodySize(int var1, int var2, Rule query, List<int[]> antecedent, int[] existentialTriple, int nonExistentialPosition) {		
+	protected double computePcaBodySize(int var1, int var2, Rule query, List<int[]> antecedent, int[] existentialTriple, int nonExistentialPosition) {
 		antecedent.add(existentialTriple);
 		long t1 = System.currentTimeMillis();
 		long result = this.kb.countDistinctPairs(var1, var2, antecedent);

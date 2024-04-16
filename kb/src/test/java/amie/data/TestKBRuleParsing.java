@@ -1,6 +1,6 @@
 package amie.data;
 
-import javatools.datatypes.Pair;
+import javafx.util.Pair;
 import junit.framework.TestCase;
 
 import java.util.ArrayList;
@@ -70,11 +70,11 @@ public class TestKBRuleParsing extends TestCase {
 
     private void runTestCaseId(int case_id) {
         Pair<List<int[]>, int[]> c = cases.get(case_id);
-        String expected = KB.toString(c.first) + " => " + KB.toString(c.second);
+        String expected = KB.toString(c.getKey()) + " => " + KB.toString(c.getValue());
         Pair<List<int[]>, int[]> result = KB.rule(expected);
 
         assertNotNull("expected:<" + expected + ">", result);
-        String actual = KB.toString(result.first) + " => " + KB.toString(result.second);
+        String actual = KB.toString(result.getKey()) + " => " + KB.toString(result.getValue());
         System.out.println(expected + "\n" + actual);
         assertEquals(expected, actual);
     }

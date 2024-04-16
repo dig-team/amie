@@ -5,7 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 
-import javatools.datatypes.Pair;
+import amie.data.javatools.datatypes.Pair;
 import junit.framework.TestCase;
 import amie.data.KB;
 import static junit.framework.Assert.assertFalse;

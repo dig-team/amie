@@ -11,11 +11,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import javatools.filehandlers.TSVFile;
+import amie.data.javatools.filehandlers.TSVFile;
 
 /**
  *
@@ -51,7 +49,7 @@ public class TSVRuleDiff {
         HashMap<Rule, Rule> rules2 = new HashMap<>();
         TSVFile tsv2 = new TSVFile(file2);
         //Map<Query, List<String>> recordsMap = new LinkedHashMap<Query, List<String>>();
-        Map<String, List<String>> recordsMap = new LinkedHashMap<String, List<String>>();
+
 
         //Preprocess one of the files
         for (List<String> record1 : tsv1) {

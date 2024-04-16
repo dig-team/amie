@@ -25,10 +25,6 @@ public class SignedPredicate implements Comparable<SignedPredicate> {
         this.subject = s;
     }
 
-    public SignedPredicate inverse() {
-        return new SignedPredicate(this.predicate, !this.subject);
-    }
-
     public boolean equals(Object o) {
         if(this == o) {
             return true;

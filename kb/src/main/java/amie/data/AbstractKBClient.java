@@ -87,7 +87,7 @@ public abstract class AbstractKBClient extends AbstractKB {
     /**
      * Returns the number of facts in the KB.
      **/
-    // TODO fix this ????
+    // TODO
     public long size() {
         return (0);
     }

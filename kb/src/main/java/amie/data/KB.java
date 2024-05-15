@@ -161,7 +161,6 @@ public class KB extends AbstractKB {
 	 * @return TRUE if the KB was changed, i.e., the fact did not exist before.
 	 */
 	public boolean add(int... fact) {
-		// TODO problème récursion infinie... c'est relou réaranger les fonctions pour que ça n'arrive pas
 		if (fact.length == 3) {
 			return add(fact[0], fact[1], fact[2]);
 		} else if (fact.length == 4) {

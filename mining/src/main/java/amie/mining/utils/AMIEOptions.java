@@ -262,7 +262,6 @@ public interface AMIEOptions {
         return cli.hasOption(REMOTE_KB_MODE_SERVER.getOpt()) || cli.hasOption(PORT.getOpt()) ;
     }
 
-        // TODO Refactor options
     static boolean CheckForConflictingArguments(CommandLine cli, Options commandLineOptions) {
 
         HelpFormatter formatter = new HelpFormatter();

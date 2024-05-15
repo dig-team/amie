@@ -24,7 +24,7 @@ public class SimpleTypingKB extends KB {
     
     @Override
     protected boolean add(int subject, int relation, int object) {
-        if (relation == Schema.typeRelationBS) {
+        if (relation == schema.typeRelationBS) {
             //System.err.println(object);
             synchronized (classes) {
                 IntSet eS = classes.get(object);
@@ -33,7 +33,7 @@ public class SimpleTypingKB extends KB {
                 }
                 return eS.add(subject);
             }
-        } else if (relation == Schema.subClassRelationBS) {
+        } else if (relation == schema.subClassRelationBS) {
             return super.add(subject, relation, object);
         } else {
             //System.err.println(relation);
@@ -43,7 +43,7 @@ public class SimpleTypingKB extends KB {
                     relations.put(relation, eS = new IntOpenHashSet());
                 }
                 eS.add(subject);
-                int relationy = KB.map(KB.unmap(relation) + "-1");
+                int relationy = map(unmap(relation) + "-1");
                 eS = relations.get(relationy);
                 if (eS == null) {
                     relations.put(relationy, eS = new IntOpenHashSet());

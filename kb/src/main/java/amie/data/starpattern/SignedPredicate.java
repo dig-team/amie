@@ -7,10 +7,6 @@ package amie.data.starpattern;
 
 import amie.data.KB;
 
-import amie.data.KB;
-
-
-
 /**
  *
  * @author jlajus
@@ -20,9 +16,16 @@ public class SignedPredicate implements Comparable<SignedPredicate> {
     public int predicate;
     public boolean subject;
 
-    public SignedPredicate(int p, boolean s) {
+    public KB kb ;
+
+    public SignedPredicate(int p, boolean s, KB kb) {
         this.predicate = p;
         this.subject = s;
+        this.kb = kb ;
+    }
+
+    public SignedPredicate inverse() {
+        return new SignedPredicate(this.predicate, !this.subject, kb);
     }
 
     public boolean equals(Object o) {
@@ -46,7 +49,7 @@ public class SignedPredicate implements Comparable<SignedPredicate> {
             return -1;
         }
     }
-    
+
     @Override
     public int hashCode() {
         if (subject) {
@@ -55,12 +58,12 @@ public class SignedPredicate implements Comparable<SignedPredicate> {
             return predicate^(-1); // XOR 111...1 32 bits.
         }
     }
-    
+
     @Override
     public String toString() {
         if (!subject) {
-            return KB.unmap(predicate) + "-1";
+            return kb.unmap(predicate) + "-1";
         }
-        return KB.unmap(predicate);
+        return kb.unmap(predicate);
     }
 }

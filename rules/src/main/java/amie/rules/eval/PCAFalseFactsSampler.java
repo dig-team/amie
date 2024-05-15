@@ -58,7 +58,7 @@ public class PCAFalseFactsSampler {
 	
 		List<Rule> rules = new ArrayList<Rule>();
 		for(int i = 2; i < args.length; ++i){		
-			rules.addAll(AMIEParser.rules(new File(args[i])));
+			rules.addAll(AMIEParser.rules(new File(args[i]), trainingSource));
 		}
 		
 		for(Rule rule: rules){
@@ -91,9 +91,9 @@ public class PCAFalseFactsSampler {
 		int relation = head[1];
 				
 		if(rule.getFunctionalVariablePosition() == 0)
-			existential[2] = KB.map("?x");
+			existential[2] = db.map("?x");
 		else
-			existential[0] = KB.map("?x");
+			existential[0] = db.map("?x");
 		
 		query.add(existential);
 		for(int[] triple: rule.getAntecedent())

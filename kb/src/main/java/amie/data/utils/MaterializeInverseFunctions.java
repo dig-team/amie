@@ -22,13 +22,13 @@ public class MaterializeInverseFunctions {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException {
-		// TODO Auto-generated method stub
-		amie.data.Schema.loadSchemaConf();
-		System.out.println("Type relation: " + amie.data.Schema.typeRelation);
 		KB db = amie.data.U.loadFiles(args);
-		Int2ObjectMap<Int2ObjectMap<IntSet>> map = 
-				db.resultsThreeVariables(KB.map("?s"), KB.map("?p"), KB.map("?o"),
-						KB.triple("?o", "?p", "?s"));
+		// TODO Auto-generated method stub
+		db.schema.loadSchemaConf();
+		System.out.println("Type relation: " + amie.data.Schema.typeRelation);
+		Int2ObjectMap<Int2ObjectMap<IntSet>> map =
+				db.resultsThreeVariables(db.map("?s"), db.map("?p"), db.map("?o"),
+						db.triple("?o", "?p", "?s"));
 		for(int object: map.keySet()){
 			Int2ObjectMap<IntSet > predicates = map.get(object);
 			for(int predicate: predicates.keySet()){
@@ -38,7 +38,7 @@ public class MaterializeInverseFunctions {
 				} else {
 					for(int subject: predicates.get(predicate))
 						System.out.println(object + "\t" + "<inv-" 
-					+ KB.unmap(predicate).subSequence(1, KB.unmap(predicate).length()) + "\t" + subject);					
+					+ db.unmap(predicate).subSequence(1, db.unmap(predicate).length()) + "\t" + subject);
 				}
 			}
 		}

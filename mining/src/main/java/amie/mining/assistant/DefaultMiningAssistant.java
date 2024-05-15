@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 
 
+import amie.data.AbstractKB;
 import amie.data.KB;
 import static amie.data.U.decreasingKeys;
 import amie.data.tuple.IntPair;
@@ -29,7 +30,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 //	protected Map<Pair<Integer, Boolean>, Long> hardQueries;
 	
 	
-	public DefaultMiningAssistant(KB dataSource) {
+	public DefaultMiningAssistant(AbstractKB dataSource) {
 		super(dataSource);
 //		this.hardQueries = Collections.synchronizedMap(new HashMap<Pair<Integer, Boolean>, Long>());
 		// TODO Auto-generated constructor stub
@@ -48,7 +49,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 	@Override
 	public Collection<Rule> getInitialAtomsFromSeeds(IntCollection relations, double minCardinality) {
 		Collection<Rule> output = new ArrayList<>();
-		Rule query = new Rule();
+		Rule query = new Rule(kb);
 		//The query must be empty
 		if (!query.isEmpty()){
 			throw new IllegalArgumentException("Expected an empty query");
@@ -65,11 +66,11 @@ public class DefaultMiningAssistant extends MiningAssistant{
 			long cardinality = this.kb.countProjection(query.getHead(), emptyList);
 			
 			int[] succedent = newEdge.clone();
-			Rule candidate = new Rule(succedent, cardinality);
+			Rule candidate = new Rule(succedent, cardinality, kb);
 			candidate.setFunctionalVariablePosition(countVarPos);
 			registerHeadRelation(candidate);
 			ArrayList<Rule> tmpOutput = new ArrayList<>();
-			if(canAddInstantiatedAtoms() && relation != KB.EQUALSbs) {
+			if(canAddInstantiatedAtoms() && relation != kb.EQUALSbs) {
 				getInstantiatedAtoms(candidate, null, 0, countVarPos == 0 ? 2 : 0, minCardinality, tmpOutput);			
 				output.addAll(tmpOutput);
 			}
@@ -86,7 +87,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 	@Override
 	public Collection<Rule> getInitialAtoms(double minSupportThreshold) {
 		List<int[]> newEdgeList = new ArrayList<int[]>(1);
-		int[] newEdge = new int[]{KB.map("?x"), KB.map("?y"), KB.map("?z")};
+		int[] newEdge = new int[]{kb.map("?x"), kb.map("?y"), kb.map("?z")};
 		newEdgeList.add(newEdge);
 		List<int[]> emptyList = Collections.emptyList();
 		Int2IntMap relations = this.kb.countProjectionBindings(newEdge, emptyList, newEdge[1]);
@@ -170,14 +171,14 @@ public class DefaultMiningAssistant extends MiningAssistant{
 								promisingRelations = kb.countProjectionBindings(rule.getHead(), rule.getAntecedent(), newEdge[1]);
 								long t2 = System.currentTimeMillis();
 								if((t2 - t1) > 20000 && this.verbose)
-									System.err.println("countProjectionBindings var=" + KB.unmap(newEdge[1]) + " "  + rule + " has taken " + (t2 - t1) + " ms");
+									System.err.println("countProjectionBindings var=" + kb.unmap(newEdge[1]) + " "  + rule + " has taken " + (t2 - t1) + " ms");
 							}else{
 								System.out.println(rewrittenQuery + " is a rewrite of " + rule);
 								long t1 = System.currentTimeMillis();
 								promisingRelations = kb.countProjectionBindings(rewrittenQuery.getHead(), rewrittenQuery.getAntecedent(), newEdge[1]);
 								long t2 = System.currentTimeMillis();
 								if((t2 - t1) > 20000 && this.verbose)
-									System.err.println("countProjectionBindings on rewritten query var=" + KB.unmap(newEdge[1]) + " "  + rewrittenQuery + " has taken " + (t2 - t1) + " ms");
+									System.err.println("countProjectionBindings on rewritten query var=" + kb.unmap(newEdge[1]) + " "  + rewrittenQuery + " has taken " + (t2 - t1) + " ms");
 							}
 						} else {
 							promisingRelations = this.kb.countProjectionBindings(rule.getHead(), rule.getAntecedent(), newEdge[1]);
@@ -294,14 +295,14 @@ public class DefaultMiningAssistant extends MiningAssistant{
 					promisingRelations = this.kb.countProjectionBindings(query.getHead(), query.getAntecedent(), newEdge[1]);
 					long t2 = System.currentTimeMillis();
 					if((t2 - t1) > 20000 && this.verbose) {
-						System.err.println("countProjectionBindings var=" + KB.unmap(newEdge[1]) + " "  + query + " has taken " + (t2 - t1) + " ms");
+						System.err.println("countProjectionBindings var=" + kb.unmap(newEdge[1]) + " "  + query + " has taken " + (t2 - t1) + " ms");
 					}
 				}else{
 					long t1 = System.currentTimeMillis();
 					promisingRelations = this.kb.countProjectionBindings(rewrittenQuery.getHead(), rewrittenQuery.getAntecedent(), newEdge[1]);
 					long t2 = System.currentTimeMillis();
 					if((t2 - t1) > 20000 && this.verbose)
-					System.err.println("countProjectionBindings on rewritten query var=" + KB.unmap(newEdge[1]) + " "  + rewrittenQuery + " has taken " + (t2 - t1) + " ms");
+					System.err.println("countProjectionBindings on rewritten query var=" + kb.unmap(newEdge[1]) + " "  + rewrittenQuery + " has taken " + (t2 - t1) + " ms");
 				}
 				
 				query.getTriples().remove(nPatterns);					
@@ -345,7 +346,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 								if(!KB.isVariable(triple[danglingPosition])){
 									candidate.getTriples().add(
 											KB.triple(newEdge[danglingPosition], 
-											KB.DIFFERENTFROMbs, 
+											kb.DIFFERENTFROMbs,
 											triple[danglingPosition]));
 								}
 							}
@@ -439,13 +440,13 @@ public class DefaultMiningAssistant extends MiningAssistant{
 			constants = this.kb.countProjectionBindings(rewrittenQuery.getHead(), rewrittenQuery.getAntecedent(), danglingEdge[danglingPosition]);
 			long t2 = System.currentTimeMillis();
 			if((t2 - t1) > 20000 && this.verbose)
-				System.err.println("countProjectionBindings var=" + KB.unmap(danglingEdge[danglingPosition]) + " in " + query + " (rewritten to " + rewrittenQuery + ") has taken " + (t2 - t1) + " ms");
+				System.err.println("countProjectionBindings var=" + kb.unmap(danglingEdge[danglingPosition]) + " in " + query + " (rewritten to " + rewrittenQuery + ") has taken " + (t2 - t1) + " ms");
 		}else{
 			long t1 = System.currentTimeMillis();		
 			constants = this.kb.countProjectionBindings(query.getHead(), query.getAntecedent(), danglingEdge[danglingPosition]);
 			long t2 = System.currentTimeMillis();
 			if((t2 - t1) > 20000 && this.verbose)
-				System.err.println("countProjectionBindings var=" + KB.unmap(danglingEdge[danglingPosition]) + " in " + query + " has taken " + (t2 - t1) + " ms");
+				System.err.println("countProjectionBindings var=" + kb.unmap(danglingEdge[danglingPosition]) + " in " + query + " has taken " + (t2 - t1) + " ms");
 		}
 		
 		int joinPosition = (danglingPosition == 0 ? 2 : 0);
@@ -549,7 +550,8 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		long t2 = System.currentTimeMillis();	
 		query.setConfidenceRunningTime(t2 - t1);
 		if((t2 - t1) > 20000 && this.verbose) {
-			System.err.println("countPairs vars " + KB.unmap(var1) + ", " + KB.unmap(var2) + " in " + KB.toString(query.getAntecedent()) + " has taken " + (t2 - t1) + " ms");
+			System.err.println("countPairs vars " + kb.unmap(var1) + ", " + kb.unmap(var2) + " in " +
+					kb.toString(query.getAntecedent()) + " has taken " + (t2 - t1) + " ms");
 		}
 		return result;
 	}
@@ -571,7 +573,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 		long t2 = System.currentTimeMillis();
 		query.setPcaConfidenceRunningTime(t2 - t1);
 		if((t2 - t1) > 20000 && this.verbose) {
-			System.err.println("countPairs vars " + KB.unmap(var1) + ", " + KB.unmap(var2) + " in " + KB.toString(antecedent) + " has taken " + (t2 - t1) + " ms");
+			System.err.println("countPairs vars " + kb.unmap(var1) + ", " + kb.unmap(var2) + " in " + kb.toString(antecedent) + " has taken " + (t2 - t1) + " ms");
 		}
 		return result;
 	}
@@ -621,7 +623,7 @@ public class DefaultMiningAssistant extends MiningAssistant{
 				freeVarPos = 0;
 		}
 
-		existentialTriple[freeVarPos] = KB.map("?x9");
+		existentialTriple[freeVarPos] = kb.map("?x9");
 		if (!antecedent.isEmpty()) {
 			antecedent.add(existentialTriple);
 			try{
@@ -671,17 +673,17 @@ public class DefaultMiningAssistant extends MiningAssistant{
 	}
 	
 	public static void main(String[] args) throws IOException {
-		KB db = new KB();
+		KB kb = new KB();
 		//db.load(new File("/home/galarrag/workspace/AMIE/Data/yago2s/yagoFacts.decoded.compressed.ttl"));
-		db.load(new File("/home/galarrag/workspace/AMIE/Data/yago2/yago2core.decoded.compressed.notypes.nolanguagecode.tsv"));
+		kb.load(new File("/home/galarrag/workspace/AMIE/Data/yago2/yago2core.decoded.compressed.notypes.nolanguagecode.tsv"));
 		List<int[]> pcaDenom = KB.triples(
-				KB.triple("?a", "<hasChild>", "?x"),
-				KB.triple("?e", "<hasChild>", "?b"),
-				KB.triple("?e", "<isMarriedTo>", "?a"));
+				kb.triple("?a", "<hasChild>", "?x"),
+				kb.triple("?e", "<hasChild>", "?b"),
+				kb.triple("?e", "<isMarriedTo>", "?a"));
 		//?e  <hasChild>  ?b  ?e  <isMarriedTo>  ?a   => ?a  <hasChild>  ?b
 		long timeStamp1 = System.currentTimeMillis();
-		System.out.println("Results Std: " + db.countDistinctPairs(KB.map("?a"), KB.map("?b"), pcaDenom.subList(1,  pcaDenom.size() - 1)));
-		System.out.println("Results PCA: " + db.countDistinctPairs(KB.map("?a"), KB.map("?b"), pcaDenom));
+		System.out.println("Results Std: " + kb.countDistinctPairs(kb.map("?a"), kb.map("?b"), pcaDenom.subList(1,  pcaDenom.size() - 1)));
+		System.out.println("Results PCA: " + kb.countDistinctPairs(kb.map("?a"), kb.map("?b"), pcaDenom));
 		System.out.println("PCA denom: " + ((System.currentTimeMillis() - timeStamp1) / 1000.0) + " seconds");
 	}
 }

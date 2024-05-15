@@ -23,7 +23,8 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 	public SeedsCountMiningAssistant(KB dataSource, KB schemaSource) {
 		super(dataSource);
 		this.kbSchema = schemaSource;
-		int[] rootPattern = Rule.fullyUnboundTriplePattern1();
+		Rule rule = new Rule(kb) ;
+		int[] rootPattern = rule.fullyUnboundTriplePattern1();
 		List<int[]> triples = new ArrayList<int[]>();
 		triples.add(rootPattern);
 		allSubjects = this.kbSchema.selectDistinct(rootPattern[0], triples);
@@ -63,9 +64,9 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 	
 	/**
 	 * Returns all candidates obtained by binding two values
-	 * @param currentNode
+	 * @param query
 	 * @param minSupportThreshold
-	 * @param omittedVariables
+	 * @param output
 	 * @return
 	 */
 	@MiningOperator(name="closing")
@@ -165,7 +166,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 	@Override
 	public Collection<Rule> getInitialAtoms(double minSupportThreshold) {
 		Collection<Rule> output = new ArrayList<>();		
-		Rule query = new Rule();
+		Rule query = new Rule(kb);
 		int[] newEdge = query.fullyUnboundTriplePattern();
 		query.getTriples().add(newEdge);
 		Int2IntMap relations = 
@@ -181,7 +182,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 			query.setSupport(cardinality);
 			if(cardinality >= minSupportThreshold) {
 				int[] succedent = newEdge.clone();					
-				Rule candidate = new Rule(succedent, cardinality);
+				Rule candidate = new Rule(succedent, cardinality, kb);
 				candidate.setFunctionalVariablePosition(countVarPos);
 				registerHeadRelation(candidate);
 				if(allowConstants)
@@ -299,7 +300,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 				freeVarPos = 0;
 		}
 
-		existentialTriple[freeVarPos] = KB.map("?x");
+		existentialTriple[freeVarPos] = kb.map("?x");
 				
 		if (!antecedent.isEmpty()) {			
 			try{

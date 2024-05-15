@@ -80,20 +80,20 @@ public class KBRelationDelta {
 						int domain = 0;
 						int qVariable = 0;
 						String relationlabel = null;
-						List<int[]> query = KB.triples(KB.triple(KB.map("?s"), relation, KB.map("?o")));
-						int[] query2 = KB.triple(KB.map("?s"), relation, KB.map("?o"));
+						List<int[]> query = KB.triples(KB.triple(db1.map("?s"), relation, db1.map("?o")));
+						int[] query2 = KB.triple(db1.map("?s"), relation, db1.map("?o"));
 						boolean isFunctional = ddb2.isFunctional(relation); 
 						if (isFunctional) {
-							domain = Schema.getRelationDomain(ddb2, relation);
+							domain = db1.schema.getRelationDomain(ddb2, relation);
 							qVariable = query.get(0)[0];
-							relationlabel = KB.unmap(relation);
+							relationlabel = db1.unmap(relation);
 						} else {
-							domain = Schema.getRelationRange(ddb2, relation);
+							domain = db1.schema.getRelationRange(ddb2, relation);
 							qVariable = query.get(0)[2];
-							relationlabel = KB.unmap(relation).replace(">", "-inv>");
+							relationlabel = db1.unmap(relation).replace(">", "-inv>");
 						}
 						System.out.println("Getting the values for the domain");
-						IntSet entities = new IntOpenHashSet(Schema.getAllEntitiesForType(ddb2, domain));					
+						IntSet entities = new IntOpenHashSet(db1.schema.getAllEntitiesForType(ddb2, domain));
 						entities.addAll(ddb2.selectDistinct(qVariable, query));
 						System.out.println("Checking those that appear in the old database");
 						entities.retainAll(allEntitiesOldKB);			
@@ -101,10 +101,10 @@ public class KBRelationDelta {
 						for (int entity : entities) {
 							if (isFunctional) {
 								query2[0] = entity;
-								query2[2] = KB.map("?o");
+								query2[2] = db1.map("?o");
 							} else {
 								query2[2] = entity;
-								query2[0] = KB.map("?s");
+								query2[0] = db1.map("?s");
 							}
 							IntSet s1 = ddb1.resultsOneVariable(query2);
 							IntSet s2 = ddb2.resultsOneVariable(query2);

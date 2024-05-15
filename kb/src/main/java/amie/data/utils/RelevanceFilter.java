@@ -54,19 +54,19 @@ public class RelevanceFilter {
 				System.err.println(t.first + " is Nan");
 				System.exit(1);
 			}
-			relevanceMap.put(KB.map(t.first), t.third);
+			relevanceMap.put(kb.map(t.first), t.third);
 		}
 		
 		// Now filter the facts
-		int s = KB.map("?s");
-		int r = KB.map("?r");
-		int o = KB.map("?o");		
+		int s = kb.map("?s");
+		int r = kb.map("?r");
+		int o = kb.map("?o");		
 		List<int[]> query =  KB.triples(KB.triple(s, r, o));
-		for (int relation : kb.selectDistinct(KB.map("?r"), query)) {			
+		for (int relation : kb.selectDistinct(kb.map("?r"), query)) {			
 			int[] query2 = KB.triple(s, relation, o);
 			Int2ObjectMap<IntSet> bindings = null;
 			boolean inversed = false;
-			if (kb.isFunctional(relation) || relation == amie.data.Schema.typeRelationBS) {				
+			if (kb.isFunctional(relation) || relation == kb.schema.typeRelationBS) {
 				bindings = kb.resultsTwoVariables(s, o, query2);
 			} else {
 				inversed = true;
@@ -88,7 +88,7 @@ public class RelevanceFilter {
 	 * fixed.
 	 * @param argument Either the subject or the object of the triples
 	 * @param relation
-	 * @param intHashMap
+	 * @param values
 	 * @param inversed If true, then the object is fixed, otherwise the subject
 	 */
 	private static void outputEntry(int argument, int relation, 

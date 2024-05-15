@@ -5,6 +5,7 @@
  */
 package amie.rules.eval;
 
+import amie.data.KB;
 import amie.rules.AMIEParser;
 import amie.rules.Rule;
 import java.io.File;
@@ -37,6 +38,7 @@ public class TSVRuleDiff {
     }
 
     public static void main(String args[]) throws IOException {
+        KB kb = new KB() ;
         if (args.length < 2) {
             System.out.println("TSVRuleDiff <file1> <file2>");
             System.exit(1);
@@ -53,7 +55,7 @@ public class TSVRuleDiff {
 
         //Preprocess one of the files
         for (List<String> record1 : tsv1) {
-            Rule q = AMIEParser.rule(record1.get(0).trim());
+            Rule q = AMIEParser.rule(record1.get(0).trim(), kb);
             if (q == null) continue;
             if (rules1.containsKey(q)) {
                 System.err.println("[DUP] in first file:");
@@ -65,7 +67,7 @@ public class TSVRuleDiff {
         }
 
         for (List<String> record2 : tsv2) {
-            Rule q = AMIEParser.rule(record2.get(0).trim());
+            Rule q = AMIEParser.rule(record2.get(0).trim(), kb);
             if (q == null) continue;
             if (rules2.containsKey(q)) {
                 System.err.println("[DUP] in second file:");

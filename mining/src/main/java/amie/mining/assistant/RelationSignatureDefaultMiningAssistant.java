@@ -1,5 +1,6 @@
 package amie.mining.assistant;
 
+import amie.data.AbstractKB;
 import amie.data.KB;
 import amie.data.Schema;
 import amie.data.tuple.IntArrays;
@@ -23,10 +24,10 @@ public class RelationSignatureDefaultMiningAssistant extends DefaultMiningAssist
 	/**
 	 * @param dataSource
 	 */
-	public RelationSignatureDefaultMiningAssistant(KB dataSource) {
+	public RelationSignatureDefaultMiningAssistant(AbstractKB dataSource) {
 		super(dataSource);
-        IntList excludedRelationsSignatured = IntArrays.asList(KB.map("rdf:type"),
-                KB.map("rdfs:domain"), KB.map("rdfs:range"));
+        IntList excludedRelationsSignatured = IntArrays.asList(kb.map("rdf:type"),
+                kb.map("rdfs:domain"), kb.map("rdfs:range"));
         bodyExcludedRelations = excludedRelationsSignatured;
         headExcludedRelations = excludedRelationsSignatured;
 	}
@@ -55,21 +56,21 @@ public class RelationSignatureDefaultMiningAssistant extends DefaultMiningAssist
 		//Add the schema information to the rule
 		int domain, range, relation;
 		relation = candidate.getHead()[1];
-		domain = Schema.getRelationDomain(kb, relation);
+		domain = kb.schema.getRelationDomain(kb, relation);
 		if(domain != 0){
 			int[] domainTriple = new int[3];
 			domainTriple[0] = candidate.getHead()[0];
-			domainTriple[1] = KB.map("rdf:type");
+			domainTriple[1] = kb.map("rdf:type");
 			domainTriple[2] = domain;
 			candidate.getTriples().add(domainTriple);
 			queryChanged = true;
 		}
 		
-		range = Schema.getRelationRange(kb, relation);
+		range = kb.schema.getRelationRange(kb, relation);
 		if(range != 0){
 			int[] rangeTriple = new int[3];
 			rangeTriple[0] = candidate.getHead()[2];
-			rangeTriple[1] = KB.map("rdf:type");
+			rangeTriple[1] = kb.map("rdf:type");
 			rangeTriple[2] = range;
 			candidate.getTriples().add(rangeTriple);
 			queryChanged = true;

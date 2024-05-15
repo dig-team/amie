@@ -42,6 +42,41 @@ Experimental implementation of the GPro and GRank measures can be found in the "
 
 ```java -jar amie3.jar -bias amie.mining.assistant.experimental.[GPro|GRank] [TSVFile]```
 
+### Use with remote knowledge base server
+
+Since loading knowledge graphs can take a significant amount of memory space and loading time, it is possible to run 
+AMIE with a remote autonomous knowledge base, slicing the architecture into two parts communicating over network.
+
+Bellow is a basic setup example to use AMIE with a remote knowledge base.
+
+#### Server-side
+
+```java -jar amie3.jar -server WS [TSVFile] -port <Server Port (default: 9092)>```
+
+#### Client-side
+
+```java -jar amie3.jar -client WS -serverAddress <Server Address (default: localhost:9092)>```
+
+#### Choosing protocol
+As of now, two communication protocols are available:
+- WebSocket, which is the recommended choice for using AMIE in remote KB mode. (```WS``` option value)
+- REST, which is only recommended for testing and development purposes (significantly slower). (```REST``` option value)
+
+#### Optional: Enabling cache
+
+It is possible to enable query caching for either server or client side with the ```-cache``` option.
+
+Cache is used for remote KB mode, either by client or server depending on user passed parameters.
+
+Cache can significantly improve performances by reducing the amount of queries sent over network or executed by the KB.
+Performances will vary based on chosen policy (see below), scale, knowledge graph or other AMIE user parameters.
+
+Cache is automatically saved upon shutdown. If found, cache save is loaded.
+
+__NOTE__: As of yet:
+- Only Least Recently Used (LRU) cache policy has been implemented.
+- Cache saves ignore KG names or run options. Cache save directory should be deleted when changing KG or run options.
+
 ## Deploying AMIE
 
 If you want to modify the code of AMIE, you need

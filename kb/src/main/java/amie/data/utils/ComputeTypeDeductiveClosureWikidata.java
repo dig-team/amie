@@ -24,26 +24,26 @@ public class ComputeTypeDeductiveClosureWikidata {
      */
     
     public static void main(String[] args) throws IOException {
-        Schema.typeRelation = "<P106>";
-        Schema.typeRelationBS = KB.map(Schema.typeRelation);
-        Schema.subClassRelation = "<P279>";
-        Schema.subClassRelationBS = KB.map(Schema.subClassRelation);
-        Schema.top = "<Q35120>";
-        Schema.topBS = KB.map(Schema.top);
-        System.out.println("Assuming " + Schema.typeRelation + " as type relation");
         KB kb = U.loadFiles(args, " ");
+        kb.schema.typeRelation = "<P106>";
+        kb.schema.typeRelationBS = kb.map(kb.schema.typeRelation);
+        kb.schema.subClassRelation = "<P279>";
+        kb.schema.subClassRelationBS = kb.map(kb.schema.subClassRelation);
+        kb.schema.top = "<Q35120>";
+        kb.schema.topBS = kb.map(kb.schema.top);
+        System.out.println("Assuming " + kb.schema.typeRelation + " as type relation");
         Int2ObjectMap<IntSet> allEntitiesAndTypes
-                = kb.resultsTwoVariables("?s", "?o", new String[]{"?s", amie.data.Schema.typeRelation, "?o"});
+                = kb.resultsTwoVariables("?s", "?o", new String[]{"?s", kb.schema.typeRelation, "?o"});
         PrintWriter pw  = new PrintWriter(new File("wikidataTransitiveTypes.tsv"));
         PrintWriter pw2 = new PrintWriter(new File("wikidataTypedEntities.tsv"));
         for (int entity : allEntitiesAndTypes.keySet()) {
             IntSet superTypes = new IntOpenHashSet(allEntitiesAndTypes.get(entity));
             for (int type : allEntitiesAndTypes.get(entity)) {
-                superTypes.addAll(amie.data.Schema.getAllSuperTypes(kb, type));
+                superTypes.addAll(kb.schema.getAllSuperTypes(kb, type));
             }
-            if (superTypes.contains(Schema.topBS)) {
+            if (superTypes.contains(kb.schema.topBS)) {
                 output(entity, superTypes, pw);
-                pw2.println(KB.unmap(entity).replace("<", "").replace(">", ""));
+                pw2.println(kb.unmap(entity).replace("<", "").replace(">", ""));
             }
         }
     }

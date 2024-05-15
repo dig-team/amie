@@ -10,7 +10,6 @@
     <modules>
         <module>kb</module>
         <module>mining</module>
-
         <module>rules</module>
     </modules>
 

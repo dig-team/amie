@@ -58,8 +58,8 @@ public class RelevanceCalculator {
 					ingoingLinks = 2;
 				}
 				if (kb != null) {
-					nFacts = kb.count(KB.map(entity), KB.map("?p"), KB.map("?o"));
-					nFacts += kb.count(KB.map("?s"), KB.map("?p"), KB.map(entity));
+					nFacts = kb.count(kb.map(entity), kb.map("?p"), kb.map("?o"));
+					nFacts += kb.count(kb.map("?s"), kb.map("?p"), kb.map(entity));
 				}
 				
 				double coefficient = 0.0;

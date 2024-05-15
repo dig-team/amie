@@ -32,13 +32,13 @@ public class KBsSummarizer {
 		}		
 		IntSet relationsInCommon = new IntOpenHashSet();
 		
-		IntSet relationsDb1 = db1.selectDistinct(KB.map("?p"), 
-				KB.triples(KB.triple(KB.map("?s"), 
-						KB.map("?p"), KB.map("?o"))));
+		IntSet relationsDb1 = db1.selectDistinct(db1.map("?p"), 
+				KB.triples(KB.triple(db1.map("?s"), 
+						db1.map("?p"), db1.map("?o"))));
 		if (db2 != null) {
-			IntSet relationsDb2 = db2.selectDistinct(KB.map("?p"), 
-					KB.triples(KB.triple(KB.map("?s"), 
-							KB.map("?p"), KB.map("?o"))));
+			IntSet relationsDb2 = db2.selectDistinct(db1.map("?p"), 
+					KB.triples(KB.triple(db1.map("?s"), 
+							db1.map("?p"), db1.map("?o"))));
 			
 			for (int relation : relationsDb1) {
 				if (relationsDb2.contains(relation)) {
@@ -68,7 +68,7 @@ public class KBsSummarizer {
 			} else {
 				db2.summarize(true);	
 			}
-			System.out.println(relationsInCommon.stream().map(KB::unmap).collect(Collectors.toList()));
+			System.out.println(relationsInCommon.stream().map(db1::unmap).collect(Collectors.toList()));
 		}
 	}
 }

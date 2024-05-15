@@ -13,12 +13,12 @@ public class TrivialRelevanceCalculator {
 	public static void main(String[] args) throws IOException {
 		KB kb = new KB();
 		kb.load(new File(args[0]));
-		List<int[]> query = KB.triples(KB.triple("?s", "?p", "?o"));
-		IntSet allEntities = kb.selectDistinct(KB.map("?s"), query);
-		allEntities.addAll(kb.selectDistinct(KB.map("?o"), query));
+		List<int[]> query = KB.triples(kb.triple("?s", "?p", "?o"));
+		IntSet allEntities = kb.selectDistinct(kb.map("?s"), query);
+		allEntities.addAll(kb.selectDistinct(kb.map("?o"), query));
 		for (int entity : allEntities) {			
-			int nFacts = (int) kb.count(entity, KB.map("?p"), KB.map("?o"));
-			nFacts += kb.count(KB.map("?s"), KB.map("?p"), entity);
+			int nFacts = (int) kb.count(entity, kb.map("?p"), kb.map("?o"));
+			nFacts += (int) kb.count(kb.map("?s"), kb.map("?p"), entity);
 			
 			System.out.println(entity + "\t<hasNumberOfFacts>\t" + nFacts);								
 		}

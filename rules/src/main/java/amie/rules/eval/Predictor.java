@@ -173,7 +173,8 @@ public class Predictor {
 
 	private void printPredictions(Rule rule, Collection<IntTriple> newPredictions) {
 		for(IntTriple triple: newPredictions){
-			System.out.println(rule.getRuleString() + "\t" + KB.unmap(triple.first) + "\t" + KB.unmap(triple.second) + "\t" + KB.unmap(triple.third));
+			System.out.println(rule.getRuleString() + "\t" + source.unmap(triple.first) + "\t" +
+					source.unmap(triple.second) + "\t" + source.unmap(triple.third));
 		}
 	}
 
@@ -358,7 +359,7 @@ public class Predictor {
 	
 		List<Rule> rules = new ArrayList<Rule>();
 		for(int i = 3; i < args.length; ++i){		
-			rules.addAll(AMIEParser.rules(new File(args[i])));
+			rules.addAll(AMIEParser.rules(new File(args[i]), trainingSource));
 		}
 		
 		for(Rule rule: rules){

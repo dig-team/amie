@@ -19,75 +19,75 @@ public class A_KBstaticTest extends TestCase {
         }
         
         public void testComposeSize() {
-            assertTrue(KB.COMPOSE_SIZE >= 15);
+            assertTrue(Schema.COMPOSE_SIZE >= 15);
         }
         
         public void testMapEntity() {
-            int j = KB.map("<Jonathan>");
-            int l = KB.map("<Luis>");
+            int j = kb.map("<Jonathan>");
+            int l = kb.map("<Luis>");
             assertTrue(j != l);
             assertTrue(j > 0);
             assertTrue(l > 0);
-            assertEquals("<Jonathan>", KB.unmap(j));
-            assertEquals("<Luis>", KB.unmap(l));
-            assertTrue(j == KB.map("<Jonathan>"));
-            assertTrue(l == KB.map("<Luis>"));
+            assertEquals("<Jonathan>", kb.unmap(j));
+            assertEquals("<Luis>", kb.unmap(l));
+            assertTrue(j == kb.map("<Jonathan>"));
+            assertTrue(l == kb.map("<Luis>"));
         }
         
         public void testMapVariable() {
-            int x = KB.map("?x");
+            int x = kb.map("?x");
             System.err.println("?x -mapTo-> " + x);
-            System.err.println("?x -unmapTo-> " + KB.unmap(x));
-            int l = KB.map("?a86");
+            System.err.println("?x -unmapTo-> " + kb.unmap(x));
+            int l = kb.map("?a86");
             System.err.println("?a86 -mapTo-> " + l);
-            System.err.println("?a86 -unmapTo-> " + KB.unmap(l));
-            int nox = KB.map("?_x1");
+            System.err.println("?a86 -unmapTo-> " + kb.unmap(l));
+            int nox = kb.map("?_x1");
             System.err.println("?_x1 -mapTo-> " + nox);
-            System.err.println("?_x1 -unmapTo-> " + KB.unmap(nox));
+            System.err.println("?_x1 -unmapTo-> " + kb.unmap(nox));
             assertTrue(x != nox);
             assertTrue(x != l);
             assertTrue(l != nox);
             assertTrue(KB.isVariable(x));
             assertTrue(KB.isVariable(l));
             assertTrue(KB.isVariable(nox));
-            assertTrue(KB.isOpenableVariable(x));
-            assertTrue(KB.isOpenableVariable(l));
-            assertFalse(KB.isOpenableVariable(nox));
-            assertEquals("?x", KB.unmap(x));
-            assertEquals("?a86", KB.unmap(l));
-            assertEquals("?_x1", KB.unmap(nox));
-            assertTrue(x == KB.map("?x"));
-            assertTrue(l == KB.map("?a86"));
-            assertTrue(nox == KB.map("?_x1"));
+            assertTrue(Schema.isOpenableVariable(x));
+            assertTrue(Schema.isOpenableVariable(l));
+            assertFalse(Schema.isOpenableVariable(nox));
+            assertEquals("?x", kb.unmap(x));
+            assertEquals("?a86", kb.unmap(l));
+            assertEquals("?_x1", kb.unmap(nox));
+            assertTrue(x == kb.map("?x"));
+            assertTrue(l == kb.map("?a86"));
+            assertTrue(nox == kb.map("?_x1"));
         }
         
         public void testMapComposite() {
-            int j = KB.mapComposite("Jonathan");
-            int j1 = KB.mapComposite("Jonathan", 1);
-            int j1b = KB.compose(j, 1);
-            int l2 = KB.mapComposite("Luis", 2);
-            int l3 = KB.mapComposite("Luis", 3);
-            int l = KB.map("Luis");
-            assertTrue(KB.isComposite(j));
-            assertTrue(KB.isComposite(j1));
+            int j = kb.schema.mapComposite("Jonathan");
+            int j1 = kb.schema.mapComposite("Jonathan", 1);
+            int j1b = Schema.compose(j, 1);
+            int l2 = kb.schema.mapComposite("Luis", 2);
+            int l3 = kb.schema.mapComposite("Luis", 3);
+            int l = kb.map("Luis");
+            assertTrue(Schema.isComposite(j));
+            assertTrue(Schema.isComposite(j1));
             assertTrue(j1 == j1b);
-            assertTrue(KB.isComposite(l2));
-            assertTrue(KB.isComposite(l3));
-            assertTrue(KB.isComposite(l));
-            assertTrue(KB.uncompose(j).first == j);
-            assertTrue(KB.uncompose(j).second == 0);
-            assertTrue(KB.uncompose(l).first == l);
-            assertTrue(KB.uncompose(l).second == 0);
-            assertTrue(KB.uncompose(j1).first == j);
-            assertTrue(KB.uncompose(j1).second == 1);
-            assertTrue(KB.uncompose(l2).first == l);
-            assertTrue(KB.uncompose(l2).second == 2);
-            assertTrue(KB.uncompose(l3).first == l);
-            assertTrue(KB.uncompose(l3).second == 3);
+            assertTrue(Schema.isComposite(l2));
+            assertTrue(Schema.isComposite(l3));
+            assertTrue(Schema.isComposite(l));
+            assertTrue(Schema.uncompose(j).first == j);
+            assertTrue(Schema.uncompose(j).second == 0);
+            assertTrue(Schema.uncompose(l).first == l);
+            assertTrue(Schema.uncompose(l).second == 0);
+            assertTrue(Schema.uncompose(j1).first == j);
+            assertTrue(Schema.uncompose(j1).second == 1);
+            assertTrue(Schema.uncompose(l2).first == l);
+            assertTrue(Schema.uncompose(l2).second == 2);
+            assertTrue(Schema.uncompose(l3).first == l);
+            assertTrue(Schema.uncompose(l3).second == 3);
         }
         
                 
         public void testNullEntity() {
-            assertEquals("null", KB.unmap(0));
+            assertEquals("null", kb.unmap(0));
         }
 }

@@ -15,6 +15,7 @@ import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 
+import amie.data.AbstractKB;
 import amie.data.Schema;
 import amie.data.U;
 import amie.data.KB;
@@ -36,6 +37,7 @@ import java.util.HashSet;
  */
 public class Rule {
 
+    public AbstractKB kb ;
     /**
      * The triple patterns
      */
@@ -182,19 +184,19 @@ public class Rule {
      * @return
      */
     public int[] fullyUnboundTriplePattern() {
-        return new int[] {newVariable(), KB.map("?p9"), newVariable()};
+        return new int[] {newVariable(), kb.map("?p9"), newVariable()};
     }
 
     /** It creates a new unbound atom with fresh variables for the subject and object
     * and an undefined property, i.e., ?s[n] ?p ?o[n]. n is optional and is always greater
     * than 1.
     **/
-    public static synchronized int[] fullyUnboundTriplePattern1() {
+    public synchronized int[] fullyUnboundTriplePattern1() {
         int[] result = new int[3];
         ++varsCount;
-        result[0] = KB.map("?s" + varsCount);
-        result[1] = KB.map("?p" + varsCount);
-        result[2] = KB.map("?o" + varsCount);
+        result[0] = kb.map("?s" + varsCount);
+        result[1] = kb.map("?p" + varsCount);
+        result[2] = kb.map("?o" + varsCount);
         return result;
     }
 
@@ -223,7 +225,7 @@ public class Rule {
     /**
      * Instantiates an empty rule.
      */
-    public Rule() {
+    public Rule(AbstractKB kb) {
         this.triples = new ArrayList<>();
         this.headKey = 0;
         this.support = -1;
@@ -237,6 +239,7 @@ public class Rule {
         this.pcaConfidenceEstimation = 0.0;
         this.ancestors = new HashSet<>();
         this.generation = -1;
+        this.kb = kb ;
     }
 
     /**
@@ -245,7 +248,7 @@ public class Rule {
      * @param headAtom The head atom as an array of the form [?a, r, ?b].
      * @param cardinality
      */
-    public Rule(int[] headAtom, double cardinality) {
+    public Rule(int[] headAtom, double cardinality, AbstractKB kb) {
         this.triples = new ArrayList<>();
         this.support = cardinality;
         this.initialSupport = (int) cardinality;
@@ -261,6 +264,7 @@ public class Rule {
         this.pcaConfidenceEstimation = 0.0;
         this.ancestors = new HashSet<>();
         this.generation = -1;
+        this.kb = kb ;
     }
 
     /**
@@ -269,7 +273,7 @@ public class Rule {
      * @param otherQuery
      * @param support
      */
-    public Rule(Rule otherQuery, double support) {
+    public Rule(Rule otherQuery, double support, AbstractKB kb) {
         this.triples = U.deepCloneInt(otherQuery.triples);
         this.support = support;
         this.initialSupport = (int) support;
@@ -286,9 +290,10 @@ public class Rule {
         this.pcaConfidenceEstimation = 0.0;
         this.ancestors = new HashSet<>();
         this.generation = -1;
+        this.kb = kb ;
     }
 
-    public Rule(int[] head, List<int[]> body, double cardinality) {
+    public Rule(int[] head, List<int[]> body, double cardinality, AbstractKB kb) {
         triples = new ArrayList<int[]>();
         triples.add(head.clone());
         triples.addAll(amie.data.U.deepCloneInt(body));
@@ -305,12 +310,12 @@ public class Rule {
         this.pcaConfidenceEstimation = 0.0;
         this.ancestors = new HashSet<>();
         this.generation = -1;
+        this.kb = kb ; 
     }
 
     /**
      * It adjusts the rule so that new generated variables do not conflict
      * with the given atom.
-     * @param headAtom
      */
     private void parseVariables() {
     	this.highestVariable = 0;
@@ -380,7 +385,7 @@ public class Rule {
     public List<int[]> getTriplesWithoutSpecialRelations() {
         List<int[]> resultList = new ArrayList<>();
         for (int[] triple : triples) {
-            if (triple[1] != KB.DIFFERENTFROMbs) {
+            if (triple[1] != kb.DIFFERENTFROMbs) {
                 resultList.add(triple);
             }
         }
@@ -439,7 +444,7 @@ public class Rule {
         Int2IntMap histogram = variablesHistogram(true);
         IntList variables = new IntArrayList();
         for (int var : histogram.keySet()) {
-            if (histogram.get(var) < 2 && KB.isOpenableVariable(var)) {
+            if (histogram.get(var) < 2 && Schema.isOpenableVariable(var)) {
                 variables.add(var);
             }
         }
@@ -568,7 +573,7 @@ public class Rule {
             int[] last = null;
             while (index >= 0) {
                 last = triples.get(index);
-                if (last[1] != KB.DIFFERENTFROMbs) {
+                if (last[1] != kb.DIFFERENTFROMbs) {
                     break;
                 }
                 --index;
@@ -781,13 +786,13 @@ public class Rule {
     public IntList getOpenableVariables() {
         IntList variables = new IntArrayList();
         for (int[] triple : triples) {
-            if (KB.isOpenableVariable(triple[0])) {
+            if (Schema.isOpenableVariable(triple[0])) {
                 if (!variables.contains(triple[0])) {
                     variables.add(triple[0]);
                 }
             }
 
-            if (KB.isOpenableVariable(triple[2])) {
+            if (Schema.isOpenableVariable(triple[2])) {
                 if (!variables.contains(triple[2])) {
                     variables.add(triple[2]);
                 }
@@ -848,7 +853,7 @@ public class Rule {
     private Int2IntMap variablesHistogram(boolean ignoreSpecialAtoms) {
         Int2IntMap varsHistogram = new Int2IntOpenHashMap();
         for (int triple[] : triples) {
-            if (triple[1] == KB.DIFFERENTFROMbs
+            if (triple[1] == kb.DIFFERENTFROMbs
             		&& ignoreSpecialAtoms) {
                 continue;
             }
@@ -875,7 +880,7 @@ public class Rule {
         Int2IntMap hist = new Int2IntOpenHashMap(triples.size(), 1.0f);
         for (int i = 1; i < triples.size(); ++i) {
             int[] triple = triples.get(i);
-            if (triple[1] == KB.DIFFERENTFROMbs) {
+            if (triple[1] == kb.DIFFERENTFROMbs) {
                 continue;
             }
 
@@ -944,7 +949,7 @@ public class Rule {
      * @return
      */
     public String getHeadRelation() {
-        return KB.unmap(triples.get(0)[1]);
+        return kb.unmap(triples.get(0)[1]);
     }
 
     /**
@@ -974,7 +979,7 @@ public class Rule {
     public int getRealLength() {
         int length = 0;
         for (int[] triple : triples) {
-            if (!KB.specialRelations.contains(triple[1])) {
+            if (!kb.specialRelations.contains(triple[1])) {
                 ++length;
             }
         }
@@ -1038,7 +1043,7 @@ public class Rule {
 
 
     public Rule addAtoms(int[] atom1, int[] atom2, double cardinality) {
-		Rule newQuery = new Rule(this, cardinality);
+		Rule newQuery = new Rule(this, cardinality, kb);
 		newQuery.triples.add(atom1.clone());
 		newQuery.triples.add(atom2.clone());
 		return newQuery;
@@ -1046,7 +1051,7 @@ public class Rule {
 
 
     public Rule addAtom(int[] newAtom, double cardinality) {
-        Rule newQuery = new Rule(this, cardinality);
+        Rule newQuery = new Rule(this, cardinality, kb);
         int[] copyNewEdge = newAtom.clone();
         newQuery.triples.add(copyNewEdge);
         return newQuery;
@@ -1059,7 +1064,7 @@ public class Rule {
      * @return
      */
 	public Rule replaceLastAtom(int[] newAtom, double cardinality) {
-		Rule newRule = new Rule(this, cardinality);
+		Rule newRule = new Rule(this, cardinality, kb);
 		int ruleSize = newRule.getLength();
 		newRule.getTriples().set(ruleSize - 1, newAtom.clone());
 		return newRule;
@@ -1073,9 +1078,9 @@ public class Rule {
      * @return
      */
     public Rule specializeTypeAtom(int subtype, double cardinality) {
-		Rule newRule = new Rule(this.getHead(), this.getBody(), cardinality);
+		Rule newRule = new Rule(this.getHead(), this.getBody(), cardinality, kb);
 		int[] lastTriple = newRule.getLastTriplePattern();
-		lastTriple[1] = Schema.typeRelationBS;
+		lastTriple[1] = kb.schema.typeRelationBS;
 		lastTriple[2] = subtype;
 		newRule.setFunctionalVariablePosition(functionalVariablePosition);
 		return newRule;
@@ -1166,28 +1171,28 @@ public class Rule {
     public String getRuleString() {
         StringBuilder strBuilder = new StringBuilder();
         for (int[] pattern : sortBody()) {
-            if (pattern[1] == KB.DIFFERENTFROMbs) {
-            	strBuilder.append(KB.unmap(pattern[0]));
+            if (pattern[1] == kb.DIFFERENTFROMbs) {
+            	strBuilder.append(kb.unmap(pattern[0]));
                 strBuilder.append("!=");
-                strBuilder.append(KB.unmap(pattern[2]));
+                strBuilder.append(kb.unmap(pattern[2]));
                 strBuilder.append(" ");
                 continue;
             }
-            strBuilder.append(KB.unmap(pattern[0]));
+            strBuilder.append(kb.unmap(pattern[0]));
             strBuilder.append("  ");
-            strBuilder.append(KB.unmap(pattern[1]));
+            strBuilder.append(kb.unmap(pattern[1]));
             strBuilder.append("  ");
-            strBuilder.append(KB.unmap(pattern[2]));
+            strBuilder.append(kb.unmap(pattern[2]));
             strBuilder.append("  ");
         }
 
         strBuilder.append(" => ");
         int[] head = triples.get(0);
-        strBuilder.append(KB.unmap(head[0]));
+        strBuilder.append(kb.unmap(head[0]));
         strBuilder.append("  ");
-        strBuilder.append(KB.unmap(head[1]));
+        strBuilder.append(kb.unmap(head[1]));
         strBuilder.append("  ");
-        strBuilder.append(KB.unmap(head[2]));
+        strBuilder.append(kb.unmap(head[2]));
 
         return strBuilder.toString();
     }
@@ -1197,11 +1202,11 @@ public class Rule {
         class TripleComparator implements Comparator<int[]> {
 
             public int compare(int[] t1, int[] t2) {
-                int predicateCompare = KB.unmap(t1[1]).compareTo(KB.unmap(t2[1]));
+                int predicateCompare = kb.unmap(t1[1]).compareTo(kb.unmap(t2[1]));
                 if (predicateCompare == 0) {
-                    int objectCompare = KB.unmap(t1[2]).compareTo(KB.unmap(t2[2]));
+                    int objectCompare = kb.unmap(t1[2]).compareTo(kb.unmap(t2[2]));
                     if (objectCompare == 0) {
-                        return KB.unmap(t1[0]).compareTo(KB.unmap(t2[0]));
+                        return kb.unmap(t1[0]).compareTo(kb.unmap(t2[0]));
                     }
                     return objectCompare;
                 }
@@ -1217,28 +1222,28 @@ public class Rule {
     public String getDatalogRuleString() {
         StringBuilder strBuilder = new StringBuilder();
         for (int[] pattern : sortBody()) {
-            if (pattern[1] == KB.DIFFERENTFROMbs) {
-                strBuilder.append(KB.unmap(pattern[0]));
+            if (pattern[1] == kb.DIFFERENTFROMbs) {
+                strBuilder.append(kb.unmap(pattern[0]));
                 strBuilder.append("!=");
-                strBuilder.append(KB.unmap(pattern[2]));
+                strBuilder.append(kb.unmap(pattern[2]));
                 strBuilder.append(" ");
                 continue;
             }
-            strBuilder.append(KB.unmap(pattern[1]));
+            strBuilder.append(kb.unmap(pattern[1]));
             strBuilder.append("(");
-            strBuilder.append(KB.unmap(pattern[0]));
+            strBuilder.append(kb.unmap(pattern[0]));
             strBuilder.append(",");
-            strBuilder.append(KB.unmap(pattern[2]));
+            strBuilder.append(kb.unmap(pattern[2]));
             strBuilder.append(") ");
         }
 
         strBuilder.append(" => ");
         int[] head = triples.get(0);
-        strBuilder.append(KB.unmap(head[1]));
+        strBuilder.append(kb.unmap(head[1]));
         strBuilder.append("(");
-        strBuilder.append(KB.unmap(head[0]));
+        strBuilder.append(kb.unmap(head[0]));
         strBuilder.append(",");
-        strBuilder.append(KB.unmap(head[2]));
+        strBuilder.append(kb.unmap(head[2]));
         strBuilder.append(")");
 
         return strBuilder.toString();
@@ -1262,7 +1267,7 @@ public class Rule {
 	        strBuilder.append("\t" + df1.format(getSupport()));
 	        strBuilder.append("\t" + df1.format(getBodySize()));
 	        strBuilder.append("\t" + df1.format(getPcaBodySize()));
-	        strBuilder.append("\t" + KB.unmap(getFunctionalVariable()));
+	        strBuilder.append("\t" + kb.unmap(getFunctionalVariable()));
 	        strBuilder.append("\t" + stdConfidenceUpperBound);
 	        strBuilder.append("\t" + pcaConfidenceUpperBound);
 	        strBuilder.append("\t" + pcaConfidenceEstimation);
@@ -1280,7 +1285,7 @@ public class Rule {
 	        	strBuilder.append("\t" + df1.format(getBodySize()));
 	        if (!metricsList.contains(Metric.PCABodySize))
 	        	strBuilder.append("\t" + df1.format(getPcaBodySize()));
-	        strBuilder.append("\t" + KB.unmap(getFunctionalVariable()));
+	        strBuilder.append("\t" + kb.unmap(getFunctionalVariable()));
 	        strBuilder.append("\t" + stdConfidenceUpperBound);
 	        strBuilder.append("\t" + pcaConfidenceUpperBound);
 	        strBuilder.append("\t" + pcaConfidenceEstimation);
@@ -1296,7 +1301,7 @@ public class Rule {
 	        strBuilder.append("\t" + df.format(getSupport()));
 	        strBuilder.append("\t" + getBodySize());
 	        strBuilder.append("\t" + df.format(getPcaBodySize()));
-	        strBuilder.append("\t" + KB.unmap(getFunctionalVariable()));
+	        strBuilder.append("\t" + kb.unmap(getFunctionalVariable()));
     	} else {
         	List<Metric> metricsList = Arrays.asList(metrics2Ommit);
         	if (!metricsList.contains(Metric.HeadCoverage))
@@ -1311,7 +1316,7 @@ public class Rule {
 	        	strBuilder.append("\t" + getBodySize());
 	        if (!metricsList.contains(Metric.PCABodySize))
 	        	strBuilder.append("\t" + df.format(getPcaBodySize()));
-	        strBuilder.append("\t" + KB.unmap(getFunctionalVariable()));
+	        strBuilder.append("\t" + kb.unmap(getFunctionalVariable()));
     	}
     }
 
@@ -1347,7 +1352,7 @@ public class Rule {
      * @return
      */
     public Rule instantiateConstant(int danglingPosition, int constant, double cardinality) {
-        Rule newQuery = new Rule(this, cardinality);
+        Rule newQuery = new Rule(this, cardinality, kb);
         int[] lastNewPattern = newQuery.getLastTriplePattern();
         lastNewPattern[danglingPosition] = constant;
         newQuery.computeHeadKey();
@@ -1365,7 +1370,7 @@ public class Rule {
      * @return
      */
     public Rule instantiateConstant(int triplePos, int danglingPosition, int constant, double cardinality) {
-        Rule newQuery = new Rule(this, cardinality);
+        Rule newQuery = new Rule(this, cardinality, kb);
         int[] targetEdge = newQuery.getTriples().get(triplePos);
         targetEdge[danglingPosition] = constant;
         newQuery.cleanInequalityConstraints();
@@ -1376,7 +1381,7 @@ public class Rule {
         List<int[]> toRemove = new ArrayList<>();
         Int2IntMap varHistogram = variablesHistogram(true);
         for (int[] triple : triples) {
-            if (triple[1] == KB.DIFFERENTFROMbs) {
+            if (triple[1] == kb.DIFFERENTFROMbs) {
                 int varPos = KB.firstVariablePos(triple);
                 // Check if the variable became orphan
                 if (!varHistogram.containsKey(triple[varPos])) {
@@ -1418,7 +1423,7 @@ public class Rule {
             }
         }
 
-        Rule result = new Rule();
+        Rule result = new Rule(kb);
         //If the removal triple is the head, make sure the target is the new head
         if (remove == triples.get(0)) {
             for (int i = 0; i < newTriples.size(); ++i) {
@@ -1531,7 +1536,7 @@ public class Rule {
 //
 //            IntSet otherVariables = rule.getNonHeadVariables();
 //            for (int var : otherVariables) {
-//                Rule.bind(var, KB.map("?v" + varCount), antecedentClone);
+//                Rule.bind(var, kb.map("?v" + varCount), antecedentClone);
 //                ++varCount;
 //                nonHeadVariables.add(var);
 //            }
@@ -1805,27 +1810,29 @@ public class Rule {
         if (!body.isEmpty()) {
             newBody.add(body.get(0));
         }
-        Rule result = new Rule(getHead(), newBody, this.support);
+        Rule result = new Rule(getHead(), newBody, this.support, kb);
         result.setGeneration(generation);
         return result;
     }
 
 
     public static void main(String[] args) {
-    	Rule rule1 = new Rule(KB.triple("?a", "livesIn", "?x"),
-    			KB.triples(KB.triple("?a", "wasBornIn", "?x"), KB.triple("?a", "diedIn", "?x")), 4);
+        KB kb = new KB() ; 
+    	Rule rule1 = new Rule(kb.triple("?a", "livesIn", "?x"),
+    			KB.triples(kb.triple("?a", "wasBornIn", "?x"), kb.triple("?a", "diedIn", "?x")),
+                4, kb);
 
-    	Rule rule2 = new Rule(KB.triple("?a", "livesIn", "?x"),
-    			KB.triples(KB.triple("?a", "diedIn", "?x")), 1);
+    	Rule rule2 = new Rule(kb.triple("?a", "livesIn", "?x"),
+    			KB.triples(kb.triple("?a", "diedIn", "?x")), 1, kb);
 
-    	Rule rule3 = new Rule(KB.triple("?x", "livesIn", "?z"),
-    			KB.triples(KB.triple("?x", "wasBornIn", "?z")), 1);
+    	Rule rule3 = new Rule(kb.triple("?x", "livesIn", "?z"),
+    			KB.triples(kb.triple("?x", "wasBornIn", "?z")), 1, kb);
 
-    	Rule rule4 = new Rule(KB.triple("?x", "livesIn", "?z"),
-    			KB.triples(KB.triple("?x", "wasBorn", "?h")), 1);
+    	Rule rule4 = new Rule(kb.triple("?x", "livesIn", "?z"),
+    			KB.triples(kb.triple("?x", "wasBorn", "?h")), 1, kb);
 
-    	Rule rule5 = new Rule(KB.triple("?s1", "livesIn", "?x0"),
-    			KB.triples(KB.triple("?x0", "wasBorn", "?v9")), 1);
+    	Rule rule5 = new Rule(kb.triple("?s1", "livesIn", "?x0"),
+    			KB.triples(kb.triple("?x0", "wasBorn", "?v9")), 1, kb);
     	System.out.println(rule2.subsumes(rule1));
     	System.out.println(rule3.subsumes(rule1));
     	System.out.println(rule4.subsumes(rule1));

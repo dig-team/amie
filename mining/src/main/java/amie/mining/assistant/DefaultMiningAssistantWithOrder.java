@@ -5,6 +5,7 @@
  */
 package amie.mining.assistant;
 
+import amie.data.AbstractKB;
 import amie.mining.assistant.variableorder.FunctionalOrder;
 import amie.mining.assistant.variableorder.VariableOrder;
 import amie.data.KB;
@@ -19,12 +20,12 @@ public class DefaultMiningAssistantWithOrder extends DefaultMiningAssistant {
 
     protected VariableOrder order;
 
-    public DefaultMiningAssistantWithOrder(KB dataSource) {
+    public DefaultMiningAssistantWithOrder(AbstractKB dataSource) {
         super(dataSource);
         this.order = new FunctionalOrder();
     }
 
-    public DefaultMiningAssistantWithOrder(KB dataSource, VariableOrder order) {
+    public DefaultMiningAssistantWithOrder(AbstractKB dataSource, VariableOrder order) {
         super(dataSource);
         this.order = order;
     }
@@ -80,7 +81,7 @@ public class DefaultMiningAssistantWithOrder extends DefaultMiningAssistant {
             }
         }
 
-        existentialTriple[freeVarPos] = KB.map("?x9");
+        existentialTriple[freeVarPos] = kb.map("?x9");
         if (!antecedent.isEmpty()) {
 
             try {

@@ -1,7 +1,5 @@
 package amie.data.remote;
 
-import amie.data.remote.cachepolicies.Experimental;
-import amie.data.remote.cachepolicies.LFU;
 import amie.data.remote.cachepolicies.LRU;
 
 import java.util.List;
@@ -22,12 +20,9 @@ import java.util.List;
 public abstract class Caching {
 
     private static final String LRU_POLICY = "LRU" ;
-    private static final String LFU_POLICY = "LRU" ;
-    private static final String EXP_POLICY = "EXP" ;
     private static final List<String> Policies = List.of(
             LRU_POLICY
-//            LFU_POLICY,
-//            EXP_POLICY
+            // Add here other policy names
     ) ;
 
 
@@ -58,12 +53,7 @@ public abstract class Caching {
                 case "LRU":
                     cache = new LRU();
                     break;
-                case "LFU":
-                    cache = new LFU();
-                    break;
-                case "EXP":
-                    cache = new Experimental();
-                    break;
+                // Add here other policies
             }
         System.out.println("Set cache policy to " + cache.getClass());
     }

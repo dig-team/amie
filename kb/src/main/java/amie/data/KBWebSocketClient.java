@@ -68,9 +68,9 @@ public class KBWebSocketClient extends AbstractKBClient {
 
         @Override
         public void onOpen(ServerHandshake serverHandshake) {
-            System.out.format("[%s] Connection opened with %s",
-                    Thread.currentThread().getName(),
-                    getURI());
+//            System.out.format("[%s] Connection opened with %s",
+//                    Thread.currentThread().getName(),
+//                    getURI());
             OpenSockets.get(parentgetId).complete(this);
         }
 
@@ -137,22 +137,25 @@ public class KBWebSocketClient extends AbstractKBClient {
 
     static private void logStat(long[] millisArr, long[] arr, long v, long millis, int[] id, boolean[] flag,
                                 int[] n, float[] rate, float[] avg) {
-        synchronized (lock) {
-            millisArr[id[0]] = millis ;
-            arr[id[0]] = v;
-            rate(millisArr, id, flag, rate) ;
-            avg(arr, flag, avg) ;
-            id[0]++;
-            n[0]++;
-            if (id[0] >= RESPONSE_FETCH_TIMES_WINDOW_SIZE) {
-                id[0] = 0;
-                if (!flag[0])
-                    flag[0] = true;
+        if (enableLiveMetrics) {
+            synchronized (lock) {
+                millisArr[id[0]] = millis ;
+                arr[id[0]] = v;
+                rate(millisArr, id, flag, rate) ;
+                avg(arr, flag, avg) ;
+                id[0]++;
+                n[0]++;
+                if (id[0] >= RESPONSE_FETCH_TIMES_WINDOW_SIZE) {
+                    id[0] = 0;
+                    if (!flag[0])
+                        flag[0] = true;
+                }
             }
         }
     }
 
     static private String getStats() {
+
         return String.format("NT:%s threads, CM: %s q, CH: %s q, T: %s q, CFT: %s ms, KB FT: %s ms, GFT: %s ms, " +
                         "CR: %s q/s, KB R: %s q/s, GR: %s q/s",
                 Thread.activeCount(),
@@ -222,7 +225,9 @@ public class KBWebSocketClient extends AbstractKBClient {
         long globalFetchTime = System.currentTimeMillis() - globalStartTime;
         logStat(globalFetchMillis, globalFetchTimes, globalFetchTime, globalStartTime, globalFetchTimesRollingIndex,
                 globalFetchTimesInitFlag, nTotal, globalFetchTimesRollingRate, globalFetchTimesRollingAvg);
-        System.out.format("%s\r", getStats());
+
+        if (enableLiveMetrics)
+            System.out.format("%s\r", getStats());
 
         Payload responsePayload = UnmarhsalPayload(
                 responsePayloadJSON

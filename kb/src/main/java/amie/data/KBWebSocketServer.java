@@ -423,17 +423,19 @@ public class KBWebSocketServer extends KB {
 
     static private void logStat(long[] millisArr, long[] arr, long v, long millis, int[] id, boolean[] flag,
                                 int[] n, float[] rate, float[] avg) {
-        synchronized (lock) {
-            millisArr[id[0]] = millis ;
-            arr[id[0]] = v;
-            rate(millisArr, id, flag, rate) ;
-            avg(arr, flag, avg) ;
-            id[0]++;
-            n[0]++;
-            if (id[0] >= RESPONSE_FETCH_TIMES_WINDOW_SIZE) {
-                id[0] = 0;
-                if (!flag[0])
-                    flag[0] = true;
+        if (enableLiveMetrics) {
+            synchronized (lock) {
+                millisArr[id[0]] = millis;
+                arr[id[0]] = v;
+                rate(millisArr, id, flag, rate);
+                avg(arr, flag, avg);
+                id[0]++;
+                n[0]++;
+                if (id[0] >= RESPONSE_FETCH_TIMES_WINDOW_SIZE) {
+                    id[0] = 0;
+                    if (!flag[0])
+                        flag[0] = true;
+                }
             }
         }
     }
@@ -486,7 +488,9 @@ public class KBWebSocketServer extends KB {
             long globalFetchTime = System.currentTimeMillis() - globalStartTime ;
             logStat(globalFetchMillis, globalFetchTimes, globalFetchTime, globalStartTime, globalFetchTimesRollingIndex,
                     globalFetchTimesInitFlag, nTotal, globalFetchTimesRollingRate, globalFetchTimesRollingAvg);
-            System.out.format("%s\r", getStats());
+
+            if(enableLiveMetrics)
+                System.out.format("%s\r", getStats());
         }
 
         @Override
@@ -501,10 +505,10 @@ public class KBWebSocketServer extends KB {
 
         @Override
         public void onOpen(WebSocket session, org.java_websocket.handshake.ClientHandshake handshake)  {
-            System.out.format("[%s %s] New connection with : %s\n",
-                    Thread.currentThread().getName(),
-                    Thread.currentThread().getId(),
-                    session.getRemoteSocketAddress());
+//            System.out.format("[%s %s] New connection with : %s\n",
+//                    Thread.currentThread().getName(),
+//                    Thread.currentThread().getId(),
+//                    session.getRemoteSocketAddress());
         }
 
         @Override

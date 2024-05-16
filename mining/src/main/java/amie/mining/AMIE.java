@@ -727,15 +727,19 @@ public class AMIE {
             System.exit(1);
         }
 
+        // Enabling live metrics
+        if (cli.hasOption(AMIEOptions.LIVE_METRICS.getOpt()) &&
+                (AMIEOptions.isClientMode(cli) || AMIEOptions.isServerMode(cli)) )
+            AbstractKB.EnableLiveMetrics();
+
         // Client
-        KB kbDataSource, kbTargetSource, kbSchemaSource ;
         if (AMIEOptions.isClientMode(cli)) {
 
             Caching.InitClientDir();
             try {
 
                 if (cli.hasOption(AMIEOptions.SERVER_ADDRESS.getOpt()))
-                    KBRESTClient.SetServerAddress(cli.getOptionValue(AMIEOptions.SERVER_ADDRESS.getOpt()));
+                    AbstractKB.SetServerAddress(cli.getOptionValue(AMIEOptions.SERVER_ADDRESS.getOpt()));
                 else
                     System.out.println("Unspecified server address ; using default " +
                             AbstractKBClient.DEFAULT_SERVER_ADDRESS);

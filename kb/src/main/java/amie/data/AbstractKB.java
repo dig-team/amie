@@ -18,6 +18,7 @@ import static amie.data.U.increase;
  */
 public abstract class AbstractKB {
 
+    protected static boolean enableLiveMetrics = false ;
     protected static String baseURL = null ;
     public static final int DEFAULT_PORT = 9092;
     public static int Port = DEFAULT_PORT ;
@@ -47,6 +48,10 @@ public abstract class AbstractKB {
     public static void SetPort(int port){
         Port = port ;
         System.out.println("Set port to "+port);
+    }
+
+    public static void EnableLiveMetrics() {
+        enableLiveMetrics = true ;
     }
 
     public static KB NewKBServer(String serverStr) {

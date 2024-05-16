@@ -32,6 +32,8 @@ public interface AMIEOptions {
                     AbstractKB.GetDefaultCommunicationLayerType(),
                     AbstractKB.DEFAULT_PORT));
 
+    Option LIVE_METRICS = new Option("liveMetrics", "Enable live metrics.") ;
+
     Option MIN_SUPPORT = new Option("mins", "min-support", true,
             "Minimum absolute support. Default: 100 positive examples");
 
@@ -247,6 +249,7 @@ public interface AMIEOptions {
         options.addOption(CACHE);
         options.addOption(PORT) ;
         options.addOption(DATALOG) ;
+        options.addOption(LIVE_METRICS) ;
         return options;
     }
 
@@ -266,6 +269,12 @@ public interface AMIEOptions {
 
         HelpFormatter formatter = new HelpFormatter();
 
+        if (cli.hasOption(LIVE_METRICS.getOpt()) && !(isClientMode(cli) || isServerMode(cli))) {
+            System.err.println("Live metrics can only be enabled with remote KB client or server mode.");
+            formatter.printHelp(AMIE_CMD_LINE_SYNTAX, commandLineOptions);
+            return false;
+        }
+
         if ( isClientMode(cli) && isServerMode(cli) ) {
             System.err.println("Remote KB client mode and remote KB server mode options are incompatible. Pick either one.");
             formatter.printHelp(AMIE_CMD_LINE_SYNTAX, commandLineOptions);
@@ -273,7 +282,7 @@ public interface AMIEOptions {
         }
 
         if (cli.hasOption(CACHE.getOpt()) && !isClientMode(cli)) {
-            System.err.println("Query cache can only be enabled with remote KB client mode (-remoteKBClientMode option)");
+            System.err.println("Query cache can only be enabled with remote KB client mode.");
             formatter.printHelp(AMIE_CMD_LINE_SYNTAX, commandLineOptions);
             return false;
         }

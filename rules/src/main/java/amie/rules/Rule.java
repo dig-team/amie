@@ -1165,7 +1165,7 @@ public class Rule {
         if (((long)support) != ((long)other.support)) {
             return false;
         }
-        return QueryEquivalenceChecker3.areEquivalent(getTriples(), other.getTriples());
+        return QueryEquivalenceChecker.areEquivalent(getTriples(), other.getTriples());
     }
 
     public String getRuleString() {
@@ -1788,7 +1788,7 @@ public class Rule {
 			for (int idx : cmb) {
 				subsetOfAtoms.add(targetAntecedent.get(idx));
 			}
-			if (QueryEquivalenceChecker3.areEquivalent(subsetOfAtoms, triples))
+			if (QueryEquivalenceChecker.areEquivalent(subsetOfAtoms, triples))
 				return true;
 		}
 

@@ -195,7 +195,7 @@ public class KBWebSocketClient extends AbstractKBClient {
                 CompletableFuture<String> futureResponse = new CompletableFuture<>();
                 long parentgetId = Thread.currentThread().getId();
                 if (!OpenSockets.containsKey(parentgetId)) {
-                    // new web socket will put itself in map once open
+                    // New web socket will put itself in map once open
                     OpenSockets.putIfAbsent(parentgetId, new CompletableFuture<>());
                     new KBWSClient(new URI(baseURL), parentgetId).connect();
                 }

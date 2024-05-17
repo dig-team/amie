@@ -24,14 +24,12 @@ public abstract class AbstractKB {
     public static int Port = DEFAULT_PORT ;
     public static final String DEFAULT_SERVER_ADDRESS = "localhost:" + DEFAULT_PORT ;
     public static String ServerAddress = DEFAULT_SERVER_ADDRESS ;
-    private static final String REST_LAYER = "REST"  ;
 
     private static final String WS_LAYER = "WS"  ;
 
-    private static final String EXP_LAYER = "EXP" ;
     private static final List<String> Layers = List.of(
-            REST_LAYER,
             WS_LAYER
+            // Add other layer names here
     ) ;
     private static final Class<? extends AbstractKBClient> DEFAULT_CLIENT_COMMUNICATION_LAYER_TYPE = KBWebSocketClient.class;
     private static final Class<? extends KB> DEFAULT_SERVER_COMMUNICATION_LAYER_TYPE = KBWebSocketServer.class;
@@ -54,10 +52,14 @@ public abstract class AbstractKB {
         enableLiveMetrics = true ;
     }
 
+    /** NewKBServer was initially implemented to choose between several communication layer
+    * implementations. To simplify AMIE's usage, this option has been removed and only WebSocket is
+    * available. This function might be removed in the future if no use for it has been found.
+     */
     public static KB NewKBServer(String serverStr) {
         KB kbServer = null ;
         if (serverStr == null) {
-            System.out.println("Unspecified server-client communication layer type.");
+//            System.out.println("Unspecified server-client communication layer type.");
             try {
                 kbServer = DEFAULT_SERVER_COMMUNICATION_LAYER_TYPE.getConstructor().newInstance() ;
             } catch (Exception e) {
@@ -74,47 +76,23 @@ public abstract class AbstractKB {
                             Layers);
                     System.exit(1);
                     break ;
-                case REST_LAYER:
-                    kbServer = new KBRESTServer();
-                    break;
                 case WS_LAYER:
                     kbServer = new KBWebSocketServer();
                     break ;
+
+                // Add other type of layers here
             }
         }
         return kbServer ;
     }
+
+    /** NewKBClient was initially implemented to choose between several communication layer
+     * implementations. To simplify AMIE's usage, this option has been removed and only WebSocket is
+     * available. This function might be removed in the future if no use for it has been found.
+     */
     public static AbstractKBClient NewKBClient(String clientStr) {
-        AbstractKBClient kbClient = null ;
-        if (clientStr == null) {
-            System.out.println("Unspecified client-server communication layer type.");
-            try {
-                kbClient = DEFAULT_CLIENT_COMMUNICATION_LAYER_TYPE.getConstructor().newInstance() ;
-            } catch (Exception e) {
-                System.err.println("Couldn't instantiate client-server communication layer type.");
-                e.printStackTrace();
-                System.exit(1);
-            }
-        } else {
-            switch (clientStr) {
-                default:
-                    System.err.format("Unrecognized client-server communication layer type \"%s\". " +
-                                    "Please select a type among the followings:\n%s.\n",
-                            clientStr,
-                            Layers);
-                    System.exit(1);
-                    break ;
-                case REST_LAYER:
-                    KBRESTClient.SetFormattedServerAddress();
-                    kbClient = new KBRESTClient();
-                    break;
-                case WS_LAYER:
-                    KBWebSocketClient.SetFormattedServerAddress();
-                    kbClient = new KBWebSocketClient();
-                    break;
-            }
-        }
-        return kbClient ;
+        KBWebSocketClient.SetFormattedServerAddress();
+        return  new KBWebSocketClient();
     }
 
     public Schema schema ;

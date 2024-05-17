@@ -18,12 +18,8 @@ public interface AMIEOptions {
             String.format("Enables cache and set cache size ; default %s queries", Caching.DEFAULT_CACHE_SIZE));
     Option CPOL = new Option("cpol", true,
             String.format("Enables cache and set cache policy ; default %s policy", Caching.DEFAULT_POLICY));
-    Option REMOTE_KB_MODE_SERVER = new Option("server", true,
-            String.format("Enables server mode (layer type as arg ; default is %s)",
-                    AbstractKB.GetDefaultCommunicationLayerType()));
-    Option REMOTE_KB_MODE_CLIENT = new Option("client", true,
-            String.format("Enables client mode (layer type as arg ; default is %s)",
-                    AbstractKB.GetDefaultCommunicationLayerType()));
+    Option REMOTE_KB_MODE_SERVER = new Option("server", "Enables server mode.") ;
+    Option REMOTE_KB_MODE_CLIENT = new Option("client", "Enables client mode.") ;
     Option SERVER_ADDRESS = new Option("serverAddress", true,
             String.format("Enables client mode and sets server address (default is %s)",
                     AbstractKB.DEFAULT_SERVER_ADDRESS));

@@ -742,9 +742,11 @@ public class AMIE {
                     AbstractKB.SetServerAddress(cli.getOptionValue(AMIEOptions.SERVER_ADDRESS.getOpt()));
                 else
                     System.out.println("Unspecified server address ; using default " +
-                            AbstractKBClient.DEFAULT_SERVER_ADDRESS);
-                dataSource =
-                        AbstractKB.NewKBClient(cli.getOptionValue(AMIEOptions.REMOTE_KB_MODE_CLIENT.getOpt()));
+                            AbstractKB.DEFAULT_SERVER_ADDRESS);
+                // See AbstractKB.NewKBClient description
+//                dataSource =
+//                        AbstractKB.NewKBClient(cli.getOptionValue(AMIEOptions.REMOTE_KB_MODE_CLIENT.getOpt()));
+                dataSource = AbstractKB.NewKBClient(null) ;
             } catch (Exception e) {
                 System.err.println("Internal error while initiating KB client.");
                 e.printStackTrace();
@@ -762,11 +764,15 @@ public class AMIE {
                 }
             }
             if (AMIEOptions.isServerMode(cli)) {
-                if (cli.hasOption(AMIEOptions.PORT.getOpt())) {
+                if (cli.hasOption(AMIEOptions.PORT.getOpt()))
                     AbstractKB.SetPort(Integer.parseInt(cli.getOptionValue(AMIEOptions.PORT.getOpt())));
-                }
+                else
+                    System.out.println("Unspecified port ; using default " +
+                            AbstractKB.DEFAULT_PORT);
                 try {
-                    dataSource = AbstractKB.NewKBServer(cli.getOptionValue(AMIEOptions.REMOTE_KB_MODE_SERVER.getOpt()));
+                    // See AbstractKB.NewKBServer description
+//                    dataSource = AbstractKB.NewKBServer(cli.getOptionValue(AMIEOptions.REMOTE_KB_MODE_SERVER.getOpt()));
+                    dataSource = AbstractKB.NewKBServer(null) ;
                 } catch (Exception e) {
                     System.err.println("Internal error while initiating KB server.");
                     e.printStackTrace();

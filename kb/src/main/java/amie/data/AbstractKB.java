@@ -56,41 +56,15 @@ public abstract class AbstractKB {
     * implementations. To simplify AMIE's usage, this option has been removed and only WebSocket is
     * available. This function might be removed in the future if no use for it has been found.
      */
-    public static KB NewKBServer(String serverStr) {
-        KB kbServer = null ;
-        if (serverStr == null) {
-//            System.out.println("Unspecified server-client communication layer type.");
-            try {
-                kbServer = DEFAULT_SERVER_COMMUNICATION_LAYER_TYPE.getConstructor().newInstance() ;
-            } catch (Exception e) {
-                System.err.println("Couldn't instantiate server-client communication layer type.");
-                e.printStackTrace();
-                System.exit(1);
-            }
-        } else {
-            switch (serverStr) {
-                default:
-                    System.err.format("Unrecognized server-client communication layer type \"%s\". " +
-                                    "Please select a type among the followings:\n%s.\n",
-                            serverStr,
-                            Layers);
-                    System.exit(1);
-                    break ;
-                case WS_LAYER:
-                    kbServer = new KBWebSocketServer();
-                    break ;
-
-                // Add other type of layers here
-            }
-        }
-        return kbServer ;
+    public static KB NewKBServer() {
+        return new KBWebSocketServer() ;
     }
 
     /** NewKBClient was initially implemented to choose between several communication layer
      * implementations. To simplify AMIE's usage, this option has been removed and only WebSocket is
      * available. This function might be removed in the future if no use for it has been found.
      */
-    public static AbstractKBClient NewKBClient(String clientStr) {
+    public static AbstractKBClient NewKBClient() {
         KBWebSocketClient.SetFormattedServerAddress();
         return  new KBWebSocketClient();
     }

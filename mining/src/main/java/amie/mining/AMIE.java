@@ -744,9 +744,7 @@ public class AMIE {
                     System.out.println("Unspecified server address ; using default " +
                             AbstractKB.DEFAULT_SERVER_ADDRESS);
                 // See AbstractKB.NewKBClient description
-//                dataSource =
-//                        AbstractKB.NewKBClient(cli.getOptionValue(AMIEOptions.REMOTE_KB_MODE_CLIENT.getOpt()));
-                dataSource = AbstractKB.NewKBClient(null) ;
+                dataSource = AbstractKB.NewKBClient() ;
             } catch (Exception e) {
                 System.err.println("Internal error while initiating KB client.");
                 e.printStackTrace();
@@ -771,8 +769,7 @@ public class AMIE {
                             AbstractKB.DEFAULT_PORT);
                 try {
                     // See AbstractKB.NewKBServer description
-//                    dataSource = AbstractKB.NewKBServer(cli.getOptionValue(AMIEOptions.REMOTE_KB_MODE_SERVER.getOpt()));
-                    dataSource = AbstractKB.NewKBServer(null) ;
+                    dataSource = AbstractKB.NewKBServer() ;
                 } catch (Exception e) {
                     System.err.println("Internal error while initiating KB server.");
                     e.printStackTrace();

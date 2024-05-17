@@ -9,7 +9,6 @@ import org.apache.commons.cli.Options;
 
 /**
  * Every possible options for AMIE.
- * TODO: refactoring default values as constant formated into descriptions like cache options
  */
 public interface AMIEOptions {
 

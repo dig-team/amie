@@ -4095,16 +4095,11 @@ public class KB extends AbstractKB {
 		PrintWriter writer = null;
 		try {
 			writer = new PrintWriter("sample.txt", "UTF-8");
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			System.exit(2);
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
+		} catch (FileNotFoundException | UnsupportedEncodingException e) {
 			e.printStackTrace();
 			System.exit(2);
 		}
-		for (int relation : relationSize.keySet()) {
+        for (int relation : relationSize.keySet()) {
 			if (ommittedRelations.contains(relation))
 				continue;
 

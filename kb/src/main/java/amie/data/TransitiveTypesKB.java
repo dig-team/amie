@@ -125,7 +125,6 @@ public class TransitiveTypesKB extends KB {
 		try {
 			kb.load(files);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		if (kb.contains(kb.map("<John_Ford_(musician)>"), kb.schema.typeRelationBS, kb.map("<wordnet_person_100007846>"))) {

@@ -99,6 +99,10 @@ public abstract class Queries {
         return gson.toJson(jsonPayload, Payload.class);
     }
 
+    static public class SizeQuery implements IQuerySchema { }
+
+    static public class GetServerConfigurationQuery implements IQuerySchema { }
+
     static public class CountProjectionBindingsQuery implements IQuerySchema {
 
         public int[] projectionTriple;
@@ -196,14 +200,6 @@ public abstract class Queries {
             this.triple = triple;
         }
     }
-
-//    static public class ContainsQuery implements IQuerySchema {
-//        public CharSequence[] fact;
-//
-//        public ContainsQuery(CharSequence... fact) {
-//            this.fact = fact;
-//        }
-//    }
 
     static public class FrequentBindingsOfQuery implements IQuerySchema {
         public int variable;
@@ -387,6 +383,8 @@ public abstract class Queries {
     }
 
     // Query names
+    static public String SizeQueryName = "Size" ;
+    static public String GetServerConfigurationQueryName = "GetServerConfiguration" ;
     static public String CountProjectionBindingsQueryName = "CountProjectionBindings";
     static public String CountProjectionQueryName = "CountProjection";
     static public String CountDistinctQueryName = "CountDistinct";
@@ -396,7 +394,6 @@ public abstract class Queries {
     static public String CountDistinctPairsUpToWithIteratorQueryName = "CountDistinctPairsUpToWithIterator";
     static public String GetRelationsQueryName = "GetRelations";
     static public String CountQueryName = "Count";
-//    static public String ContainsQueryName = "Contains";
     static public String FrequentBindingsOfQueryName = "FrequentBindingOf";
     static public String IsFunctionalQueryName = "IsFunctional";
     static public String FunctionalityQueryName = "Functionality";
@@ -418,17 +415,15 @@ public abstract class Queries {
     static public String TripleArrayQueryName = "TripleArray";
 
     static public final List<String> QueryList = List.of(
-            CountProjectionBindingsQueryName, CountProjectionQueryName, CountDistinctQueryName,
-            CountDistinctPairsQueryName, SelectDistinctQueryName, CountDistinctPairsUpToQueryName,
-            CountDistinctPairsUpToWithIteratorQueryName, GetRelationsQueryName, CountQueryName,
-//            ContainsQueryName,
-            FrequentBindingsOfQueryName, IsFunctionalQueryName,
-            FunctionalityQueryName, InverseFunctionalityQueryName, RelationColumnSizeQueryName,
-            OverlapQueryName, CountOneVariableQueryName, RelationSizeQueryName,
-            MaximalRightCumulativeCardinalityQueryName, MaximalRightCumulativeCardinalityInvQueryName,
-            MaximalCardinalityWithLimitQueryName, MaximalCardinalityQueryName,
-            MaximalCardinalityInvWithLimitQueryName, MaximalCardinalityInvQueryName, MapQueryName,
-            MapCharSequenceQueryName, UnmapQueryName, TripleQueryName, TripleArrayQueryName
+            SizeQueryName, GetServerConfigurationQueryName, CountProjectionBindingsQueryName, CountProjectionQueryName,
+            CountDistinctQueryName, CountDistinctPairsQueryName, SelectDistinctQueryName,
+            CountDistinctPairsUpToQueryName, CountDistinctPairsUpToWithIteratorQueryName, GetRelationsQueryName,
+            CountQueryName, FrequentBindingsOfQueryName, IsFunctionalQueryName, FunctionalityQueryName,
+            InverseFunctionalityQueryName, RelationColumnSizeQueryName, OverlapQueryName, CountOneVariableQueryName,
+            RelationSizeQueryName, MaximalRightCumulativeCardinalityQueryName,
+            MaximalRightCumulativeCardinalityInvQueryName, MaximalCardinalityWithLimitQueryName,
+            MaximalCardinalityQueryName, MaximalCardinalityInvWithLimitQueryName, MaximalCardinalityInvQueryName,
+            MapQueryName, MapCharSequenceQueryName, UnmapQueryName, TripleQueryName, TripleArrayQueryName
     );
 
     // Response topic names
@@ -436,6 +431,8 @@ public abstract class Queries {
 
     static public final LinkedHashMap<String, Class<? extends IQuerySchema>> QueriesLinkedHashMap = new LinkedHashMap<>(
             Map.ofEntries(
+                    entry(SizeQueryName, SizeQuery.class),
+                    entry(GetServerConfigurationQueryName, GetServerConfigurationQuery.class),
                     entry(CountProjectionBindingsQueryName, CountProjectionBindingsQuery.class),
                     entry(CountProjectionQueryName, CountProjectionQuery.class),
                     entry(CountDistinctQueryName, CountDistinctQuery.class),
@@ -445,7 +442,6 @@ public abstract class Queries {
                     entry(CountDistinctPairsUpToWithIteratorQueryName, CountDistinctPairsUpToWithIteratorQuery.class),
                     entry(GetRelationsQueryName, GetRelationsQuery.class),
                     entry(CountQueryName, CountQuery.class),
-//                    entry(ContainsQueryName, ContainsQuery.class),
                     entry(FrequentBindingsOfQueryName, FrequentBindingsOfQuery.class),
                     entry(IsFunctionalQueryName, IsFunctionalQuery.class),
                     entry(FunctionalityQueryName, FunctionalityQuery.class),

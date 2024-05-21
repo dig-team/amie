@@ -56,17 +56,17 @@ public abstract class AbstractKB {
     * implementations. To simplify AMIE's usage, this option has been removed and only WebSocket is
     * available. This function might be removed in the future if no use for it has been found.
      */
-    public static KB NewKBServer() {
-        return new KBWebSocketServer() ;
+    public static KB NewKBServer(String args) {
+        return new KBWebSocketServer(args) ;
     }
 
     /** NewKBClient was initially implemented to choose between several communication layer
      * implementations. To simplify AMIE's usage, this option has been removed and only WebSocket is
      * available. This function might be removed in the future if no use for it has been found.
      */
-    public static AbstractKBClient NewKBClient() {
+    public static AbstractKBClient NewKBClient(String args) {
         KBWebSocketClient.SetFormattedServerAddress();
-        return  new KBWebSocketClient();
+        return  new KBWebSocketClient(args);
     }
 
     public Schema schema ;
@@ -655,4 +655,10 @@ public abstract class AbstractKB {
     public abstract String unmap(int e);
     public abstract int[] triple(CharSequence s, CharSequence p, CharSequence o);
     public abstract int[] triple(CharSequence... triple);
+
+    /**
+     * Returns server configuration
+     * @return KG identifier and options
+     */
+    public abstract String getServerConfiguration() ;
 }

@@ -28,8 +28,7 @@ public class LRU implements Cache {
     private final long MAX_FILE_SIZE_BYTES = 100_000;
 
     public void InitClientDir() {
-        CACHE_DIRECTORY = "client-" + CACHE_DIRECTORY;
-        CACHE_DIRECTORY_PATH = CACHE_DIRECTORY + File.separator;
+        CACHE_DIRECTORY = String.format("client-%s", CACHE_DIRECTORY) ;
     }
 
     @Override
@@ -186,7 +185,10 @@ public class LRU implements Cache {
      * Load saved cache from cache directory if it exists.
      */
     @Override
-    public void LoadCache() {
+    public void LoadCache(String config) {
+        CACHE_DIRECTORY = String.format("%s-%s", CACHE_DIRECTORY, config) ;
+        CACHE_DIRECTORY_PATH = CACHE_DIRECTORY + File.separator;
+
         if (maxCacheSize == 0) return;
         File dir = new File(CACHE_DIRECTORY);
         if (!(dir.exists() && dir.isDirectory())) {

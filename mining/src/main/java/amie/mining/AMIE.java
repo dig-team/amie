@@ -16,12 +16,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import amie.data.*;
 import amie.data.remote.Caching;
 import amie.mining.utils.AMIEOptions;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.*;
 
 import amie.mining.assistant.MiningAssistant;
 import amie.mining.assistant.RelationSignatureDefaultMiningAssistant;
@@ -40,6 +35,7 @@ import amie.data.javatools.administrative.Announce;
 
 import amie.data.javatools.datatypes.MultiMap;
 import org.apache.commons.lang.StringUtils;
+import org.apache.zookeeper.Op;
 
 /**
  * Main class that implements the AMIE algorithm for rule mining on ontologies.
@@ -732,6 +728,21 @@ public class AMIE {
                 (AMIEOptions.isClientMode(cli) || AMIEOptions.isServerMode(cli)) )
             AbstractKB.EnableLiveMetrics();
 
+        // Formatting configuration identifier
+        String config = Arrays.toString(cli.getArgs());
+        config = config.replace("/","~")  ;
+        Option[] optionsArr = cli.getOptions();
+        String optionCon = "" ;
+        for(int k = 0 ; k < optionsArr.length ; k++) {
+            optionCon += optionsArr[k].getOpt() ;
+            String value = optionsArr[k].getValue() ;
+            if (value != null)
+                optionCon += "&"+value ;
+            if (k < optionsArr.length - 1)
+                optionCon += "+" ;
+        }
+        config = String.format("%s-options-%s",config, optionCon)  ;
+
         // Client
         if (AMIEOptions.isClientMode(cli)) {
 
@@ -743,8 +754,9 @@ public class AMIE {
                 else
                     System.out.println("Unspecified server address ; using default " +
                             AbstractKB.DEFAULT_SERVER_ADDRESS);
+
                 // See AbstractKB.NewKBClient description
-                dataSource = AbstractKB.NewKBClient() ;
+                dataSource = AbstractKB.NewKBClient(config) ;
             } catch (Exception e) {
                 System.err.println("Internal error while initiating KB client.");
                 e.printStackTrace();
@@ -769,7 +781,7 @@ public class AMIE {
                             AbstractKB.DEFAULT_PORT);
                 try {
                     // See AbstractKB.NewKBServer description
-                    dataSource = AbstractKB.NewKBServer() ;
+                    dataSource = AbstractKB.NewKBServer(config) ;
                 } catch (Exception e) {
                     System.err.println("Internal error while initiating KB server.");
                     e.printStackTrace();

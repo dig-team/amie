@@ -10,5 +10,5 @@ public interface Cache {
         void CacheResponse(String JSONResponse, String cacheKey) ;
         void InitClientDir() ;
         void SaveCache() ;
-        void LoadCache() ;
+        void LoadCache(String config) ;
 }

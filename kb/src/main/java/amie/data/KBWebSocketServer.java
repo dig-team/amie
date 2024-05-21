@@ -15,6 +15,7 @@ import org.java_websocket.server.WebSocketServer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -29,16 +30,10 @@ public class KBWebSocketServer extends KB {
 
     public AbstractKB kb;
 
-
-    public KBWebSocketServer() {
+    public KBWebSocketServer(String args) {
         super();
         this.kb = this;
-        setupServer();
-    }
-
-    public KBWebSocketServer(Schema schema) {
-        super(schema);
-        this.kb = this;
+        this.config = args;
         setupServer();
     }
 
@@ -50,6 +45,24 @@ public class KBWebSocketServer extends KB {
 
     private final LinkedHashMap<String, WebSocketHandlerInterface> handlers = new LinkedHashMap<>(
             Map.ofEntries(
+                    entry(GetServerConfigurationQueryName,
+                            (req) ->
+                            {
+                                QueryProcessing.IQueryFunction<GetServerConfigurationQuery, String> queryFunction =
+                                        (requestClass) -> kb.getServerConfiguration();
+                                return (QueryProcessing.processQuery(req, queryFunction,
+                                        GetServerConfigurationQuery.class)) ;
+                            }
+                    ),
+                    entry(SizeQueryName,
+                            (req) ->
+                            {
+                                QueryProcessing.IQueryFunction<SizeQuery, Long> queryFunction =
+                                        (requestClass) -> kb.size() ;
+                                return (QueryProcessing.processQuery(req, queryFunction,
+                                        SizeQuery.class)) ;
+                            }
+                    ),
                     entry(CountProjectionBindingsQueryName,
                             (req) ->
                             {
@@ -151,16 +164,6 @@ public class KBWebSocketServer extends KB {
                                 return (QueryProcessing.processQuery(req, queryFunction,
                                         CountQuery.class));
                             }),
-//                    entry(ContainsQueryName,
-//                            (req) ->
-//                            {
-//                                QueryProcessing.IQueryFunction<ContainsQuery, Boolean> queryFunction =
-//                                        (requestClass) -> kb.contains(
-//                                                requestClass.fact
-//                                        );
-//                                return (QueryProcessing.processQuery(req, queryFunction,
-//                                        ContainsQuery.class));
-//                            }),
                     entry(FrequentBindingsOfQueryName,
                             (req) ->
                             {
@@ -524,7 +527,7 @@ public class KBWebSocketServer extends KB {
         r.addShutdownHook(new ShutdownSequenceThread());
 
         // Loading cache
-        Caching.LoadCache();
+        Caching.LoadCache(config);
         server = new KBWSServer(Port);
         server.start();
         System.out.println("WebSocket Server listening on " + Port);

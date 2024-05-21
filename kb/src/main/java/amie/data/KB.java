@@ -98,6 +98,10 @@ public class KB extends AbstractKB {
 	/** Number of facts */
 	protected long size;
 
+	/** Concatenated arguments to identify a run configuration */
+	protected String config;
+
+
 	/**
 	 * Default constructor for KB.
 	 * Creates a new Schema.
@@ -115,8 +119,6 @@ public class KB extends AbstractKB {
 		this.schema = schema ;
 		initMapping();
 	}
-
-
 
 
 
@@ -3242,6 +3244,10 @@ public class KB extends AbstractKB {
 		return (result);
 	}
 
+	@Override
+	public String getServerConfiguration() {
+		return config;
+	}
 
 
 	/**

@@ -7,6 +7,7 @@ import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,22 +22,18 @@ public class KBWebSocketClient extends AbstractKBClient {
 
     static private final ConcurrentHashMap<Long, CompletableFuture<KBWSClient>> OpenSockets = new ConcurrentHashMap<>();
 
-    static private final int RESPONSE_WAITING_TIME_MS = 60_000;
+    static private final int RESPONSE_WAITING_TIME_MS = 5_000;
 
-    public KBWebSocketClient() {
-        initClient();
+    public KBWebSocketClient(String args) {
+        initClient(args);
         this.schema = new Schema();
         initMapping();
     }
 
-    public KBWebSocketClient(Schema schema) {
-        initClient();
-        this.schema = schema;
-        initMapping();
-    }
-
-    private void initClient() {
-        Caching.LoadCache();
+    private void initClient(String clientConfig) {
+        String serverConfig = this.getServerConfiguration() ;
+        String config = String.format("client-%s-server-%s", clientConfig, serverConfig) ;
+        Caching.LoadCache(config);
         Runtime r = Runtime.getRuntime();
         r.addShutdownHook(new ShutdownSequenceThread());
     }

@@ -1,7 +1,9 @@
 package amie.data.remote;
 
+import amie.data.AbstractKB;
 import amie.data.remote.cachepolicies.LRU;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -127,8 +129,8 @@ public abstract class Caching {
     /**
      * Loads cache content from local directory.
      */
-    public static void LoadCache() {
+    public static void LoadCache(String config) {
         if (cache == null) {return;}
-        cache.LoadCache();
+        cache.LoadCache(config);
     }
 }

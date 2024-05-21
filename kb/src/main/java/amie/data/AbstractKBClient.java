@@ -82,15 +82,21 @@ public abstract class AbstractKBClient extends AbstractKB {
             int[] arr = gson.fromJson(json, int[].class);
             return new IntArrayList(arr);
         }
+
     }
 
-    /**
-     * Returns the number of facts in the KB.
-     **/
-    // TODO
-    public long size() {
-        return (0);
+    @Override
+    public String getServerConfiguration() {
+        GetServerConfigurationQuery query = new GetServerConfigurationQuery() ;
+        return runRemoteQuery(query, GetServerConfigurationQueryName, String.class) ;
     }
+
+    @Override
+    public long size() {
+        SizeQuery query = new SizeQuery() ;
+        return runRemoteQuery(query, SizeQueryName, Long.class);
+    }
+
 
     @Override
     public long countProjection(int[] projectionTriple, List<int[]> otherTriples) {
@@ -146,12 +152,6 @@ public abstract class AbstractKBClient extends AbstractKB {
         CountQuery request = new CountQuery(triple);
         return runRemoteQuery(request, CountQueryName, Long.class);
     }
-
-//    @Override
-//    public boolean contains(CharSequence... fact) {
-//        ContainsQuery request = new ContainsQuery(fact);
-//        return runRemoteQuery(request, ContainsQueryName, Boolean.class);
-//    }
 
     @Override
     public Int2IntMap frequentBindingsOf(int variable, int projectionVariable, List<int[]> query) {
@@ -277,5 +277,6 @@ public abstract class AbstractKBClient extends AbstractKB {
         TripleArrayQuery request = new TripleArrayQuery(triple);
         return runRemoteQuery(request, TripleArrayQueryName, int[].class);
     }
+
 
 }

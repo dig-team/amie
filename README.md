@@ -51,31 +51,32 @@ Bellow is a basic setup example to use AMIE with a remote knowledge base.
 
 #### Server-side
 
-```java -jar amie3.jar -server WS [TSVFile] -port <Server Port (default: 9092)>```
+```java -jar amie3.jar -server [TSVFile] -port <Server Port (default: 9092)>```
 
 #### Client-side
 
-```java -jar amie3.jar -client WS -serverAddress <Server Address (default: localhost:9092)>```
-
-#### Choosing protocol
-As of now, two communication protocols are available:
-- WebSocket, which is the recommended choice for using AMIE in remote KB mode. (```WS``` option value)
-- REST, which is only recommended for testing and development purposes (significantly slower). (```REST``` option value)
+```java -jar amie3.jar -client -serverAddress <Server Address (default: localhost:9092)>```
 
 #### Optional: Enabling cache
 
 It is possible to enable query caching for either server or client side with the ```-cache``` option.
 
-Cache is used for remote KB mode, either by client or server depending on user passed parameters.
+Cache can be used for remote KB mode, either by client or server depending on user passed parameters.
 
 Cache can significantly improve performances by reducing the amount of queries sent over network or executed by the KB.
-Performances will vary based on chosen policy (see below), scale, knowledge graph or other AMIE user parameters.
+Performances will vary based knowledge graph or other AMIE user parameters. 
 
-Cache is automatically saved upon shutdown. If found, cache save is loaded.
+Knowledge graph quality can severely impact performances. We have noticed a significant
+performance gap between dbpedia version 3.8 and previous versions, thanks to a lower amount of queries sent to the server 
+greatly reducing communication overhead.
 
-__NOTE__: As of yet:
-- Only Least Recently Used (LRU) cache policy has been implemented.
-- Cache saves ignore KG names or run options. Cache save directory should be deleted when changing KG or run options.
+Cache is automatically saved upon shutdown. If a corresponding cache is found, cache save is loaded, unless 
+`-invalidateCache` is passed as argument.
+
+__NOTE__:
+- Cache uses Least Recently Used (LRU) policy. As of yet, only LRU cache policy has been implemented. 
+- Custom cache policies can be implemented in `amie/data/remote/cachepolicies` package.
+- Cache is saved locally in the cache directory using the knowledge graph file name and run options.
 
 ## Deploying AMIE
 

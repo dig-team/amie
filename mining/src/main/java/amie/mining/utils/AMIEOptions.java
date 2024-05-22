@@ -7,11 +7,15 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Every possible options for AMIE.
  */
 public interface AMIEOptions {
 
+    Option INVALIDATE_CACHE = new Option("invalidateCache", false, "Ignores previously saved cache.");
     Option CACHE = new Option("cache", false, "Enables query caching.");
     Option CSIZE = new Option("csize", true,
             String.format("Enables cache and set cache size ; default %s queries", Caching.DEFAULT_CACHE_SIZE));
@@ -187,9 +191,54 @@ public interface AMIEOptions {
     }
 
     /**
+     * List of options that do not influence remote KB queries (used for cache saving)
+     */
+    List<Option> ignoredByCacheOptions = List.of(
+            INVALIDATE_CACHE,
+            CACHE,
+            CSIZE,
+            CPOL,
+            REMOTE_KB_MODE_CLIENT,
+            REMOTE_KB_MODE_SERVER,
+            SERVER_ADDRESS,
+            PORT,
+            LIVE_METRICS,
+            OUTPUT_FORMAT,
+            VERBOSE,
+            DISABLE_QUERY_REWRITING,
+            DELIMITER,
+            DATALOG
+    ) ;
+
+    static String FormatConfigIndentifier(CommandLine cli) {
+        String result = "";
+        String config = Arrays.toString(cli.getArgs());
+        config = config.replace("/","~")  ;
+        Option[] optionsArr = cli.getOptions();
+        String optionCon = "" ;
+        for(int k = 0 ; k < optionsArr.length ; k++) {
+            // Checking if option changes queries to remote KB or their results
+            if (ignoredByCacheOptions.contains(optionsArr[k]))
+                continue;
+            optionCon += optionsArr[k].getOpt() ;
+            String value = optionsArr[k].getValue() ;
+            if (value != null)
+                optionCon += "&"+value ;
+            if (k < optionsArr.length - 1)
+                optionCon += "+" ;
+        }
+        if(!(cli.getArgs().length == 0))
+            result += config ;
+        if(!(cli.getArgs().length == 0) && !optionCon.isEmpty())
+            result += "-" ;
+        result += optionCon ;
+        return result  ;
+    }
+
+    /**
      * Define the command line options supported by AMIE.
      *
-     * @return
+     * @return Options for AMIE.
      */
     static Options DefineArgOptions() {
         // create the Options
@@ -235,6 +284,7 @@ public interface AMIEOptions {
         options.addOption(ADAPTATIVE_INSTANTIATIONS);
         options.addOption(MULTILINGUAL);
         options.addOption(DELIMITER);
+        options.addOption(INVALIDATE_CACHE);
         options.addOption(CACHE);
         options.addOption(CPOL);
         options.addOption(CSIZE);
@@ -248,9 +298,9 @@ public interface AMIEOptions {
         return options;
     }
 
-    public String AMIE_CMD_LINE_SYNTAX = "AMIE [OPTIONS] <TSV FILES>" ;
-    public String AMIE_PLUS_CMD_LINE_SYNTAX = "AMIE+ [OPTIONS] <.tsv INPUT FILES>" ;
-    public String AMIE_PLUS = "AMIE+" ;
+    String AMIE_CMD_LINE_SYNTAX = "AMIE [OPTIONS] <TSV FILES>" ;
+    String AMIE_PLUS_CMD_LINE_SYNTAX = "AMIE+ [OPTIONS] <.tsv INPUT FILES>" ;
+    String AMIE_PLUS = "AMIE+" ;
 
     static boolean isClientMode(CommandLine cli){
         return cli.hasOption(REMOTE_KB_MODE_CLIENT.getOpt()) || cli.hasOption(SERVER_ADDRESS.getOpt()) ;
@@ -276,8 +326,8 @@ public interface AMIEOptions {
             return false;
         }
 
-        if (cli.hasOption(CACHE.getOpt()) && !isClientMode(cli)) {
-            System.err.println("Query cache can only be enabled with remote KB client mode.");
+        if (cli.hasOption(CACHE.getOpt()) && !(isClientMode(cli) || isServerMode(cli))) {
+            System.err.println("Query cache can only be enabled with remote KB mode.");
             formatter.printHelp(AMIE_CMD_LINE_SYNTAX, commandLineOptions);
             return false;
         }

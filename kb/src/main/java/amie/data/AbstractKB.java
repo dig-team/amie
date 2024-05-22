@@ -529,14 +529,6 @@ public abstract class AbstractKB {
     /** returns number of instances of this triple */
     public abstract long count(int... triple) ;
 
-//    /**
-//     * It returns TRUE if the database contains this fact (no variables). If the fact
-//     * containst meta-relations (e.g. differentFrom, equals, exists), it returns TRUE
-//     * if the expression evaluates to TRUE.
-//     * @param fact A triple without variables, e.g., [Barack_Obama, wasBornIn, Hawaii]
-//     **/
-//    public abstract boolean contains(CharSequence... fact) ;
-
     /**
      * For each instantiation of variable, it returns the number of different
      * instances of projectionVariable that satisfy the query.

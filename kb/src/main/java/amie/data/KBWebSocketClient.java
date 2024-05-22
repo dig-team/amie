@@ -32,7 +32,7 @@ public class KBWebSocketClient extends AbstractKBClient {
 
     private void initClient(String clientConfig) {
         String serverConfig = this.getServerConfiguration() ;
-        String config = String.format("client-%s-server-%s", clientConfig, serverConfig) ;
+        String config = String.format("client(%s)-server(%s)", clientConfig, serverConfig) ;
         Caching.LoadCache(config);
         Runtime r = Runtime.getRuntime();
         r.addShutdownHook(new ShutdownSequenceThread());

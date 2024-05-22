@@ -14,6 +14,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import amie.data.*;
+import amie.data.remote.Cache;
 import amie.data.remote.Caching;
 import amie.mining.utils.AMIEOptions;
 import org.apache.commons.cli.*;
@@ -729,24 +730,15 @@ public class AMIE {
             AbstractKB.EnableLiveMetrics();
 
         // Formatting configuration identifier
-        String config = Arrays.toString(cli.getArgs());
-        config = config.replace("/","~")  ;
-        Option[] optionsArr = cli.getOptions();
-        String optionCon = "" ;
-        for(int k = 0 ; k < optionsArr.length ; k++) {
-            optionCon += optionsArr[k].getOpt() ;
-            String value = optionsArr[k].getValue() ;
-            if (value != null)
-                optionCon += "&"+value ;
-            if (k < optionsArr.length - 1)
-                optionCon += "+" ;
-        }
-        config = String.format("%s-options-%s",config, optionCon)  ;
+        String config = AMIEOptions.FormatConfigIndentifier(cli)  ;
+
+        if ( (AMIEOptions.isServerMode(cli) || AMIEOptions.isClientMode(cli))
+                && cli.hasOption(AMIEOptions.INVALIDATE_CACHE.getOpt()))
+            Caching.InvalidateCache() ;
 
         // Client
         if (AMIEOptions.isClientMode(cli)) {
 
-            Caching.InitClientDir();
             try {
 
                 if (cli.hasOption(AMIEOptions.SERVER_ADDRESS.getOpt()))

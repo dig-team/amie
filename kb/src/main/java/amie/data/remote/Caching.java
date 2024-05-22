@@ -82,14 +82,6 @@ public abstract class Caching {
     }
 
     /**
-     * Creates client cache directory if not found.
-     */
-    public static void InitClientDir() {
-        if (cache == null) {return;}
-        cache.InitClientDir();
-    }
-
-    /**
      * Scales cache.
      * @param scale: scale for the cache. Unit depends on policy. For LRU: number of queries.
      */
@@ -116,6 +108,14 @@ public abstract class Caching {
     public static void CacheResponse(String JSONResponse, String cacheKey) {
         if (cache == null) {return;}
         cache.CacheResponse(JSONResponse, cacheKey);
+    }
+
+    /**
+     * If it exists, locally saved cache content from a previous execution will be ignored and overwritten by a
+     * newer version.
+     */
+    public static void InvalidateCache() {
+        cache.InvalidateCache();
     }
 
     /**

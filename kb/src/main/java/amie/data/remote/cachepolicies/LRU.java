@@ -22,14 +22,17 @@ public class LRU implements Cache {
     // Cache saving
     private int maxIndex = 0;
     private final LinkedList<Pair<Integer, String>> CacheKeysBuffer = new LinkedList<Pair<Integer, String>>();
-    private String CACHE_DIRECTORY = "cache";
-    private String CACHE_DIRECTORY_PATH = CACHE_DIRECTORY + File.separator;
+    private final String CACHE_DIRECTORY = "cache";
+    private final String CACHE_DIRECTORY_PATH = CACHE_DIRECTORY + File.separator;
+    private String CACHE_SUBDIRECTORY ;
+    private String CACHE_SUBDIRECTORY_PATH ;
+
     private final String POSITION_KEY_SEP = "~";
     private final long MAX_FILE_SIZE_BYTES = 100_000;
 
-    public void InitClientDir() {
-        CACHE_DIRECTORY = String.format("client-%s", CACHE_DIRECTORY) ;
-    }
+    private boolean INVALIDATE_CACHE = false ;
+
+
 
     @Override
     public void SetScale(int size) {
@@ -80,12 +83,16 @@ public class LRU implements Cache {
                 String popped = CacheKeys.pop();
                 Cache.remove(popped);
             }
-            CacheKeys.remove(cacheKey); // Is CacheKeys.remove(cacheKey) necessary?
+            CacheKeys.remove(cacheKey);
             CacheKeys.add(cacheKey);
             Cache.put(cacheKey, JSONResponse);
-//            System.out.println("CacheResponse "+ cacheKey + " " + JSONResponse + " sizes ok? " + CacheKeys.size() + " " + Cache.size());
             lock.unlock();
         }
+    }
+
+    @Override
+    public void InvalidateCache() {
+        INVALIDATE_CACHE = true ;
     }
 
     /**
@@ -99,20 +106,26 @@ public class LRU implements Cache {
             System.out.printf("Empty cache, no saving.");
             return;
         }
-        System.out.printf("Saving cache (%s queries) ... ", CacheKeys.size());
+        System.out.printf("Saving cache (%s queries) \n", CacheKeys.size());
         try {
             // Creating cache dir if not exists
-            File dir = new File(CACHE_DIRECTORY_PATH);
-            if (!(dir.exists() && dir.isDirectory())) {
-                if (!(dir.mkdir()))
-                    throw new IOException("Couldn't create cache directory " + CACHE_DIRECTORY);
+            File cacheDir = new File(CACHE_DIRECTORY_PATH);
+            File subDir = new File(CACHE_SUBDIRECTORY_PATH);
+            if (!(cacheDir.exists() && cacheDir.isDirectory())) {
+                if (!(cacheDir.mkdir()))
+                    throw new IOException("Couldn't create cache directory " + CACHE_DIRECTORY_PATH);
+            }
+            // Creating cache subdir (config specific) if not exists
+            if (!(subDir.exists() && subDir.isDirectory())) {
+                if (!(subDir.mkdir()))
+                    throw new IOException("Couldn't create cache subdirectory " + CACHE_SUBDIRECTORY_PATH);
             } else {
                 // Deleting files with filename matching cache file pattern
-                dir.listFiles(
+                subDir.listFiles(
                         (file, filename) -> {
                             try {
                                 if (GetOptionalKeyString(filename).isPresent()) {
-                                    new File(CACHE_DIRECTORY_PATH + filename).delete();
+                                    new File(CACHE_SUBDIRECTORY_PATH + filename).delete();
                                 }
                             } catch (Exception e) {
                                 System.err.printf("Couldn't delete %s\n", filename);
@@ -127,7 +140,7 @@ public class LRU implements Cache {
             int i = 0;
             while (cacheKeyIterator.hasNext()) {
                 String key = cacheKeyIterator.next();
-                FileWriter fw = new FileWriter(CACHE_DIRECTORY_PATH + i + POSITION_KEY_SEP + key);
+                FileWriter fw = new FileWriter(CACHE_SUBDIRECTORY_PATH + i + POSITION_KEY_SEP + key);
                 BufferedWriter bufferedWriter = new BufferedWriter(fw);
                 bufferedWriter.write(Cache.get(key));
                 bufferedWriter.close();
@@ -138,7 +151,6 @@ public class LRU implements Cache {
             System.err.println("Couldn't save cache.");
             e.printStackTrace();
         }
-        System.out.println("done.");
         lock.unlock();
     }
 
@@ -163,7 +175,7 @@ public class LRU implements Cache {
             if (optionalKeyString.isEmpty())
                 return;
             String key = optionalKeyString.get().second;
-            File cacheFile = new File(CACHE_DIRECTORY_PATH + filename);
+            File cacheFile = new File(CACHE_SUBDIRECTORY_PATH + filename);
             if (cacheFile.length() > MAX_FILE_SIZE_BYTES) {
                 return;
             }
@@ -176,28 +188,31 @@ public class LRU implements Cache {
         }
     }
 
-    private void InvalidateCache() {
-        Cache.clear();
-        CacheKeys.clear();
-    }
-
     /**
      * Load saved cache from cache directory if it exists.
      */
     @Override
     public void LoadCache(String config) {
-        CACHE_DIRECTORY = String.format("%s-%s", CACHE_DIRECTORY, config) ;
-        CACHE_DIRECTORY_PATH = CACHE_DIRECTORY + File.separator;
+        CACHE_SUBDIRECTORY = String.format("%s-%s", CACHE_DIRECTORY, config) ;
+        CACHE_SUBDIRECTORY_PATH = CACHE_DIRECTORY_PATH + CACHE_SUBDIRECTORY + File.separator ;
 
         if (maxCacheSize == 0) return;
-        File dir = new File(CACHE_DIRECTORY);
-        if (!(dir.exists() && dir.isDirectory())) {
-            System.out.printf("Couldn't find cache content to load. Cache content will be saved to %s after " +
-                    "execution.\n", CACHE_DIRECTORY);
+
+        if (INVALIDATE_CACHE) {
+            System.out.printf("Ignoring saved cache. If it exists, current cache content found in %s will be " +
+                    "overwritten after execution.\n", CACHE_SUBDIRECTORY_PATH);
+            return ;
         }
 
-        System.out.format("Loading %s ... ", CACHE_DIRECTORY_PATH);
-        dir.listFiles((dir1, filename) -> {
+        File cacheDir = new File(CACHE_DIRECTORY_PATH);
+        File subDir = new File(CACHE_SUBDIRECTORY_PATH);
+        if (!(cacheDir.exists() && cacheDir.isDirectory() && subDir.exists() && subDir.isDirectory())) {
+            System.out.printf("Couldn't find cache content to load. Cache content will be saved to %s after " +
+                    "execution.\n", CACHE_SUBDIRECTORY_PATH);
+        }
+
+        System.out.format("Loading %s ... ", CACHE_SUBDIRECTORY_PATH);
+        subDir.listFiles((dir1, filename) -> {
             LoadIfValid(filename);
             return false;
         });
@@ -205,7 +220,7 @@ public class LRU implements Cache {
         try {
 
             if (CacheKeysBuffer.size() != maxIndex + 1) {
-                System.err.println("Inconsistent number of cache files. (Highest position does not match number of cache files.)");
+                System.err.println(" Cache save not found or inconsistent cache structure.");
                 throw new Exception();
             }
 
@@ -232,7 +247,6 @@ public class LRU implements Cache {
             InvalidateCache();
         } finally {
             CacheKeysBuffer.clear();
-            ;
         }
     }
 }

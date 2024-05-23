@@ -60,7 +60,7 @@ AMIE may run the same query more than once. It is therefore possible to enable q
 The cache can improve performance significantly by reducing the amount of queries sent over network or executed by the KB.
 Performances will vary depending on the knowledge graph and the user parameters. 
 
-The performance of the cache and the remote setting is sensitive to the data, as this defines the amount of queries that will be sent over the network. 
+The performance of the cache and the remote setting is sensitive to the data, as this defines the size of AMIE's search space as well as the amount of queries and query answers that will be sent over the network. 
 
 __NOTE__:
 - Cache uses Least Recently Used (LRU) policy. As of yet, only LRU cache policy has been implemented. 

@@ -6,7 +6,7 @@ import java.io.PrintWriter;
 import java.util.List;
 
 
-import javafx.util.Pair;
+import amie.data.javatools.datatypes.Pair;
 import amie.data.javatools.filehandlers.TSVFile;
 import amie.data.KB;
 import amie.rules.Rule;
@@ -33,9 +33,9 @@ public class Evaluator {
 
 		int returnVal = 3;
 		int[] head = new int[3];
-		head[0] = KB.map("?s");
+		head[0] = target.map("?s");
 		head[1] = triple[1];
-		head[2] = KB.map("?o");
+		head[2] = target.map("?o");
 
 		boolean relationIsFunctional = 
 				training.functionality(triple[1]) >= 0.9 
@@ -115,20 +115,21 @@ public class Evaluator {
 			if(ruleStr.equals(lastRuleStr)){
 				currentRule = lastRule;
 			}else{
-				Pair<List<int[]>, int[]> rulePair = KB.rule(ruleStr);
-				currentRule = new Rule();
-				currentRule.getTriples().add(rulePair.getValue());
-				currentRule.getTriples().addAll(rulePair.getKey());
+				Pair<List<int[]>, int[]> rulePair = targetDataset.rule(ruleStr);
+				currentRule = new Rule(targetDataset);
+				currentRule.getTriples().add(rulePair.second);
+				currentRule.getTriples().addAll(rulePair.first);
 			}
 			
 			for(int i = 0; i < 3; ++i){
-				triple[i] = KB.map(record.get(i + 1));
+				triple[i] = targetDataset.map(record.get(i + 1));
 			}
 			
 			int evalCode = evaluate(triple, trainingDataset, targetDataset);
 			if(evalCode == 3){
 				//Output it in the manual evaluation file
-				manualEvalPw.println(currentRule.getRuleString() + "\t" + KB.unmap(triple[0]) + "\t" + KB.unmap(triple[1]) + "\t" + KB.unmap(triple[2]) + "\tManualEvaluation");
+				manualEvalPw.println(currentRule.getRuleString() + "\t" + targetDataset.unmap(triple[0]) + "\t" +
+						targetDataset.unmap(triple[1]) + "\t" + targetDataset.unmap(triple[2]) + "\tManualEvaluation");
 			}else{
 				EvalResult evalResult = EvalResult.Unknown;
 				EvalSource evalSource = EvalSource.Undefined;
@@ -146,7 +147,9 @@ public class Evaluator {
 					evalSource = EvalSource.TargetSource;
 					break;
 				}
-				automaticEvalPw.println(currentRule.getRuleString() + "\t" + KB.unmap(triple[0]) + "\t" + KB.unmap(triple[1]) + "\t" + KB.unmap(triple[2]) + "\t" + evalSource + "\t" + evalResult);
+				automaticEvalPw.println(currentRule.getRuleString() + "\t" + targetDataset.unmap(triple[0]) + "\t" +
+						targetDataset.unmap(triple[1]) + "\t" + targetDataset.unmap(triple[2]) + "\t" + evalSource +
+						"\t" + evalResult);
 			}
 			
 			lastRule = currentRule;

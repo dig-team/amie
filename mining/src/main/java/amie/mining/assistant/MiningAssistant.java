@@ -6,6 +6,7 @@ import java.util.*;
 
 import java.io.PrintStream;
 
+import amie.data.AbstractKB;
 import amie.data.KB;
 import amie.data.Schema;
 import amie.data.tuple.IntPair;
@@ -46,13 +47,13 @@ public class MiningAssistant {
 	/**
 	 * Factory object to instantiate query components
 	 */
-	public KB kb;
+	public AbstractKB kb;
 
 	/**
 	 * Exclusively used for schema information, such as subclass and sub-property
 	 * relations or relation signatures.
 	 */
-	protected KB kbSchema;
+	protected AbstractKB kbSchema;
 
 	/**
 	 * Number of different objects in the underlying dataset
@@ -218,23 +219,24 @@ public class MiningAssistant {
 	/**
 	 * @param dataSource
 	 */
-	public MiningAssistant(KB dataSource) {
+	public MiningAssistant(AbstractKB dataSource) {
 		this.kb = dataSource;
 		this.minStdConfidence = 0.0;
 		this.minPcaConfidence = 0.0;
 		this.maxDepth = 3;
 		this.allowConstants = false;
-		int[] rootPattern = Rule.fullyUnboundTriplePattern1();
+		Rule rule = new Rule(kb) ;
+		int[] rootPattern = rule.fullyUnboundTriplePattern1();
 		List<int[]> triples = new ArrayList<int[]>();
 		triples.add(rootPattern);
 		this.totalSubjectCount = this.kb.countDistinct(rootPattern[0], triples);
 		this.totalObjectCount = this.kb.countDistinct(rootPattern[2], triples);
-		this.typeString = KB.map("rdf:type");
-		this.subPropertyString = KB.map("rdfs:subPropertyOf");
+		this.typeString = kb.map("rdf:type");
+		this.subPropertyString = kb.map("rdfs:subPropertyOf");
 		this.headCardinalities = new Int2DoubleOpenHashMap();
-		int[] subclassPattern = Rule.fullyUnboundTriplePattern1();
+		int[] subclassPattern = rule.fullyUnboundTriplePattern1();
+		this.subclassQuery = new Rule(subclassPattern, 0, kb);
 		subclassPattern[1] = subPropertyString;
-		this.subclassQuery = new Rule(subclassPattern, 0);
 		this.countAlwaysOnSubject = false;
 		this.verbose = false;
 		this.exploitMaxLengthOption = true;
@@ -343,7 +345,7 @@ public class MiningAssistant {
 	protected void buildRelationsDictionary() {
 		IntCollection relations = kb.getRelations();
 		for (int relation : relations) {
-			int[] query = KB.triple(KB.map("?x"), relation, KB.map("?y"));
+			int[] query = KB.triple(kb.map("?x"), relation, kb.map("?y"));
 			double relationSize = kb.count(query);
 			headCardinalities.put(relation, relationSize);
 		}
@@ -423,7 +425,7 @@ public class MiningAssistant {
 	 * It returns the training dataset from which rules atoms are added
 	 * @return
 	 */
-	public KB getKb() {
+	public AbstractKB getKb() {
 		return kb;
 	}
 
@@ -432,7 +434,7 @@ public class MiningAssistant {
 	 * domains and ranges for relation, etc.) about the training dataset.
 	 * @return
 	 */
-	public KB getKbSchema(){
+	public AbstractKB getKbSchema(){
 		return kbSchema;
 	}
 
@@ -453,7 +455,7 @@ public class MiningAssistant {
 	}
 
 	public boolean registerHeadRelation(Rule query){
-		return headCardinalities.put(KB.map(query.getHeadRelation()), query.getSupport()) == 0;
+		return headCardinalities.put(kb.map(query.getHeadRelation()), query.getSupport()) == 0;
 	}
 
 	public boolean registerHeadRelation(int relation, double cardinality){
@@ -461,11 +463,11 @@ public class MiningAssistant {
 	}
 
 	public long getHeadCardinality(Rule query){
-		return (long) headCardinalities.get(KB.map(query.getHeadRelation()));
+		return (long) headCardinalities.get(kb.map(query.getHeadRelation()));
 	}
 
 	public double getRelationCardinality(String relation) {
-		return headCardinalities.get(KB.map(relation));
+		return headCardinalities.get(kb.map(relation));
 	}
 
 	public double getRelationCardinality(int relation) {
@@ -498,7 +500,7 @@ public class MiningAssistant {
 	public Collection<Rule> getInitialAtomsFromSeeds(IntCollection relations,
 			double minSupportThreshold) {
 		Collection<Rule> output = new ArrayList<>();
-		Rule emptyQuery = new Rule();
+		Rule emptyQuery = new Rule(kb);
 
 		int[] newEdge = emptyQuery.fullyUnboundTriplePattern();
 		emptyQuery.getTriples().add(newEdge);
@@ -511,11 +513,11 @@ public class MiningAssistant {
 			long cardinality = kb.countDistinct(countingVariable, emptyQuery.getTriples());
 
 			int[] succedent = newEdge.clone();
-			Rule candidate = new Rule(succedent, cardinality);
+			Rule candidate = new Rule(succedent, cardinality, kb);
 			candidate.setFunctionalVariablePosition(countVarPos);
 			registerHeadRelation(candidate);
 
-			if(canAddInstantiatedAtoms() && (relation != KB.EQUALSbs)) {
+			if(canAddInstantiatedAtoms() && (relation != kb.EQUALSbs)) {
 				getInstantiatedAtoms(candidate, null, 0, countVarPos == 0 ? 2 : 0, minSupportThreshold, output);
 			}
 
@@ -534,7 +536,7 @@ public class MiningAssistant {
 	 */
 	public Collection<Rule> getInitialAtoms(double minSupportThreshold) {
 		List<int[]> newEdgeList = new ArrayList<int[]>(1);
-		int[] newEdge = new int[]{KB.map("?x"), KB.map("?y"), KB.map("?z")};
+		int[] newEdge = new int[]{kb.map("?x"), kb.map("?y"), kb.map("?z")};
 		newEdgeList.add(newEdge);
 		Int2IntMap relations = kb.frequentBindingsOf(newEdge[1], newEdge[0], newEdgeList);
 		return buildInitialQueries(relations, minSupportThreshold);
@@ -550,7 +552,7 @@ public class MiningAssistant {
 	 */
 	protected Collection<Rule> buildInitialQueries(Int2IntMap relations, double minSupportThreshold) {
 		Collection<Rule> output = new ArrayList<>();
-		Rule query = new Rule();
+		Rule query = new Rule(kb);
 		int[] newEdge = query.fullyUnboundTriplePattern();
 		for(int relation: relations.keySet()){
 			if (this.headExcludedRelations != null
@@ -563,11 +565,11 @@ public class MiningAssistant {
 				int[] succedent = newEdge.clone();
 				succedent[1] = relation;
 				int countVarPos = this.countAlwaysOnSubject ? 0 : findCountingVariable(succedent);
-				Rule candidate = new Rule(succedent, cardinality);
+				Rule candidate = new Rule(succedent, cardinality, kb);
 				candidate.setFunctionalVariablePosition(countVarPos);
 				registerHeadRelation(candidate);
 				if (canAddInstantiatedAtoms() &&
-						relation != KB.EQUALSbs){
+						relation != kb.EQUALSbs){
 					getInstantiatedAtoms(candidate, null, 0, countVarPos == 0 ? 2 : 0, minSupportThreshold, output);
 				}
 
@@ -831,14 +833,14 @@ public class MiningAssistant {
 			return;
 
 		int[] lastAtom = rule.getLastRealTriplePattern();
-		if (lastAtom[1] != Schema.typeRelationBS)
+		if (lastAtom[1] != kb.schema.typeRelationBS)
 			return;
 
 		if (KB.isVariable(lastAtom[2]))
 			return;
 
 		int typeToSpecialize = lastAtom[2];
-		IntSet subtypes = Schema.getSubTypes(this.kbSchema, typeToSpecialize);
+		IntSet subtypes = kb.schema.getSubTypes(this.kbSchema, typeToSpecialize);
 		for (int subtype : subtypes) {
 			lastAtom[2] = subtype;
 			long support = kb.countDistinct(rule.getFunctionalVariable(), rule.getTriples());
@@ -1179,7 +1181,7 @@ public class MiningAssistant {
 		if(remained != null){
 			if (remained[1] != rule.getHead()[1] || hardCaseInfo[1] != rule.getFunctionalVariablePosition()) {
 				int[] existentialTriple = rule.getHead().clone();
-				existentialTriple[freeVarPosition] = KB.map("?z");
+				existentialTriple[freeVarPosition] = kb.map("?z");
 				easyQuery.add(existentialTriple);
 			}
 		}
@@ -1197,16 +1199,16 @@ public class MiningAssistant {
 		int[] hardCaseInfo = kb.identifyHardQueryTypeI(rule.getAntecedent());
 		double denominator = 0.0;
 		int[] triple = new int[3];
-		triple[0] = KB.map("?x9");
+		triple[0] = kb.map("?x9");
 		triple[1] = rule.getAntecedent().get(0)[1];
-		triple[2] = KB.map("?y9");
+		triple[2] = kb.map("?y9");
 
 		if(hardCaseInfo[0] == 2){
 			// Case r(y, z) r(x, z)
-			denominator = kb.countDistinct(KB.map("?x9"), KB.triples(triple));
+			denominator = kb.countDistinct(kb.map("?x9"), KB.triples(triple));
 		}else{
 			// Case r(z, y) r(z, x)
-			denominator = kb.countDistinct(KB.map("?y9"), KB.triples(triple));
+			denominator = kb.countDistinct(kb.map("?y9"), KB.triples(triple));
 		}
 
 		return rule.getSupport() / denominator;
@@ -1299,7 +1301,7 @@ public class MiningAssistant {
 				freeVarPos = 0;
 		}
 
-		existentialTriple[freeVarPos] = KB.map("?x9");
+		existentialTriple[freeVarPos] = kb.map("?x9");
 		if (!antecedent.isEmpty()) {
 			//Improved confidence: Add an existential version of the head
 			antecedent.add(existentialTriple);

@@ -13,10 +13,10 @@ public class MultilingualKB extends KB {
 
     @Override
     protected boolean add(int subject, int relation, int object) {
-        String[] split = KB.unmap(object).split("@");
+        String[] split = unmap(object).split("@");
         if (split.length == 2) {
-            super.add(object, KB.map("<label>"), KB.map(split[0]));
-            super.add(object, KB.map("<lang>"), KB.map(split[1]));
+            super.add(object, map("<label>"), map(split[0]));
+            super.add(object, map("<lang>"), map(split[1]));
         }
         return super.add(subject, relation, object);
     }

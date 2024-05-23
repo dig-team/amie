@@ -15,14 +15,14 @@ public class ExistentialRulesMiningAssistant extends DefaultMiningAssistant {
 
 	public ExistentialRulesMiningAssistant(KB dataSource) {
 		super(dataSource);
-		headCardinalities.put(KB.EXISTSbs, -1.0);
-		headCardinalities.put(KB.EXISTSINVbs, -1.0);
+		headCardinalities.put(kb.EXISTSbs, -1.0);
+		headCardinalities.put(kb.EXISTSINVbs, -1.0);
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public long getHeadCardinality(Rule query){
-		if (query.getHeadRelationBS() == (KB.EXISTSbs) || query.getHeadRelationBS() == (KB.EXISTSINVbs)) {
+		if (query.getHeadRelationBS() == (kb.EXISTSbs) || query.getHeadRelationBS() == (kb.EXISTSINVbs)) {
 			return (long) headCardinalities.get(query.getHead()[0]);
 		} else {
 			return (long) headCardinalities.get(query.getHeadRelationBS());
@@ -54,11 +54,11 @@ public class ExistentialRulesMiningAssistant extends DefaultMiningAssistant {
 						return;
 					}
 					if (triple[0] == openVariable) {
-						triple = Rule.triple(triple[1], KB.EXISTSbs, triple[2]);
+						triple = Rule.triple(triple[1], kb.EXISTSbs, triple[2]);
 						break;
 					}
 					if (triple[2] == openVariable) {
-						triple = Rule.triple(triple[1], KB.EXISTSINVbs, triple[0]);
+						triple = Rule.triple(triple[1], kb.EXISTSINVbs, triple[0]);
 						break;
 					}
 				}
@@ -71,7 +71,7 @@ public class ExistentialRulesMiningAssistant extends DefaultMiningAssistant {
 			} else if (KB.numVariables(head) == 1) {
 				cardinality = kb.countDistinct(KB.isVariable(head[0]) ? head[0] : head[2], candidate);
 			}
-			Rule nRule = new Rule(candidate.get(0), candidate.subList(1, candidate.size()), cardinality);
+			Rule nRule = new Rule(candidate.get(0), candidate.subList(1, candidate.size()), cardinality, kb);
 			nRule.setHeadCoverage((double)cardinality / (double)getHeadCardinality(nRule));
 			nRule.setSupportRatio((double)cardinality / (double)this.kb.size());
 			nRule.addParent(rule);

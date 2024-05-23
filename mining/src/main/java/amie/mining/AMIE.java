@@ -13,20 +13,12 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-//import amie.mining.utils.initLogRecord;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
+import amie.data.*;
+import amie.data.remote.Cache;
+import amie.data.remote.Caching;
+import amie.mining.utils.AMIEOptions;
+import org.apache.commons.cli.*;
 
-import amie.data.KB;
-import amie.data.MultilingualKB;
-import amie.data.Schema;
-import amie.mining.assistant.DefaultMiningAssistant;
 import amie.mining.assistant.MiningAssistant;
 import amie.mining.assistant.RelationSignatureDefaultMiningAssistant;
 import amie.mining.assistant.LazyIteratorMiningAssistant;
@@ -44,6 +36,7 @@ import amie.data.javatools.administrative.Announce;
 
 import amie.data.javatools.datatypes.MultiMap;
 import org.apache.commons.lang.StringUtils;
+import org.apache.zookeeper.Op;
 
 /**
  * Main class that implements the AMIE algorithm for rule mining on ontologies.
@@ -51,14 +44,13 @@ import org.apache.commons.lang.StringUtils;
  * format SUBJECT&lt;TAB&gt;RELATION&lt;TAB&gt;OBJECT.
  *
  * @author lgalarra
- *
  */
 public class AMIE {
 
     /**
      * Default standard confidence threshold
      */
-    protected static final double DEFAULT_STD_CONFIDENCE = 0.0;
+    protected static final double DEFAULT_STD_CONFIDENCE = 0.1;
 
     /**
      * Default PCA confidence threshold
@@ -67,7 +59,6 @@ public class AMIE {
 
     /**
      * Default Head coverage threshold
-     *
      */
     protected static final double DEFAULT_HEAD_COVERAGE = 0.01;
 
@@ -117,7 +108,7 @@ public class AMIE {
      * List of target head relations.
      */
     protected IntCollection seeds;
-    protected  Set<String> rulePrefixes = new HashSet<>();
+    protected Set<String> rulePrefixes = new HashSet<>();
     /**
      * Column headers
      */
@@ -126,15 +117,14 @@ public class AMIE {
             "Functional variable", "Std. Lower Bound", "PCA Lower Bound", "PCA Conf estimation");
 
     /**
-     *
-     * @param assistant An object that implements the logic of the mining
-     * operators.
+     * @param assistant         An object that implements the logic of the mining
+     *                          operators.
      * @param minInitialSupport If head coverage is defined as pruning metric,
-     * it is the minimum size for a relation to be considered in the mining.
-     * @param threshold The minimum support threshold: it can be either a head
-     * coverage ratio threshold or an absolute number depending on the 'metric'
-     * argument.
-     * @param metric Head coverage or support.
+     *                          it is the minimum size for a relation to be considered in the mining.
+     * @param threshold         The minimum support threshold: it can be either a head
+     *                          coverage ratio threshold or an absolute number depending on the 'metric'
+     *                          argument.
+     * @param metric            Head coverage or support.
      */
     public AMIE(MiningAssistant assistant, int minInitialSupport, double threshold, Metric metric, int nThreads) {
         this.assistant = assistant;
@@ -159,7 +149,7 @@ public class AMIE {
     }
 
     public void setSeeds(IntCollection seeds) {
-    	this.seeds = seeds;
+        this.seeds = seeds;
     }
 
     /**
@@ -170,7 +160,6 @@ public class AMIE {
      * @throws Exception
      */
     public List<Rule> mine() throws Exception {
-//        initLogRecord.initLog();
         List<Rule> result = new ArrayList<>();
         MultiMap<Integer, Rule> indexedResult = new MultiMap<>();
         RuleConsumer consumerObj = null;
@@ -223,29 +212,27 @@ public class AMIE {
 
         for (Rule rule : result) {
             for (int[] triple : rule.getTriples()) {
-                String subject = KB.unmap(triple[0]);
+                String subject = rule.kb.unmap(triple[0]);
                 printRulePrefix(subject);
-                String predicate  = KB.unmap(triple[1]);
+                String predicate = rule.kb.unmap(triple[1]);
                 printRulePrefix(predicate);
-                String object = KB.unmap(triple[2]);
+                String object = rule.kb.unmap(triple[2]);
                 printRulePrefix(object);
             }
         }
         return result;
     }
 
-    private void printRulePrefix (String input) {
+    private void printRulePrefix(String input) {
         List<String> prefixList = Arrays.asList(input.split(":"));
         for (String s : prefixList) {
-            if (!rulePrefixes.contains(s) && StringUtils.isNotBlank(assistant.kb.prefixMap.get(s))) {
-                System.out.println(s +":" + assistant.kb.prefixMap.get(s));
+            if (!rulePrefixes.contains(s) && StringUtils.isNotBlank(assistant.kb.schema.prefixMap.get(s))) {
+                System.out.println(s + ":" + assistant.kb.schema.prefixMap.get(s));
 
                 synchronized (rulePrefixes) {
                     rulePrefixes.add(s);
                 }
-
             }
-
         }
     }
 
@@ -254,7 +241,6 @@ public class AMIE {
      * multiple threads).
      *
      * @author galarrag
-     *
      */
     protected class RuleConsumer implements Runnable {
 
@@ -330,21 +316,18 @@ public class AMIE {
         protected Condition resultsCondition;
 
         /**
-         *
          * @param seedsPool
          * @param outputSet
-         * @param resultsLock Lock associated to the output buffer were mined
-         * rules are added
+         * @param resultsLock      Lock associated to the output buffer were mined
+         *                         rules are added
          * @param resultsCondition Condition variable associated to the results
-         * lock
-         * @param sharedCounter Reference to a shared counter that keeps track
-         * of the number of threads that are running in the system.
+         *                         lock
          * @param indexedOutputSet
          */
         public RDFMinerJob(AMIEQueue seedsPool,
-                List<Rule> outputSet, Lock resultsLock,
-                Condition resultsCondition,
-                MultiMap<Integer, Rule> indexedOutputSet) {
+                           List<Rule> outputSet, Lock resultsLock,
+                           Condition resultsCondition,
+                           MultiMap<Integer, Rule> indexedOutputSet) {
             this.queryPool = seedsPool;
             this.outputSet = outputSet;
             this.resultsLock = resultsLock;
@@ -360,7 +343,6 @@ public class AMIE {
                 try {
                     currentRule = queryPool.dequeue();
                 } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
 
@@ -401,14 +383,7 @@ public class AMIE {
                         Map<String, Collection<Rule>> temporalOutputMap = null;
                         try {
                             temporalOutputMap = assistant.applyMiningOperators(currentRule, threshold);
-                        } catch (IllegalAccessException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        } catch (IllegalArgumentException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        } catch (InvocationTargetException e) {
-                            // TODO Auto-generated catch block
+                        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                             e.printStackTrace();
                         }
 
@@ -472,90 +447,39 @@ public class AMIE {
         }
     }
 
-    /**
-     * Returns an instance of AMIE that mines rules on the given KB using the
-     * vanilla setting of head coverage 1% and no confidence threshold.
-     *
-     * @param db
-     * @return
-     */
-    public static AMIE getVanillaSettingInstance(KB db) {
-        return new AMIE(new DefaultMiningAssistant(db),
-                100, // Do not look at relations smaller than 100 facts
-                0.01, // Head coverage 1%
-                Metric.HeadCoverage,
-                Runtime.getRuntime().availableProcessors());
+    private static class InitElements {
+        public HelpFormatter formatter = new HelpFormatter();
+        // Create the command line parser and define the supported options
+        public CommandLineParser parser = new PosixParser();
+        public Options commandLineOptions = AMIEOptions.DefineArgOptions();
+        public CommandLine cli = null;
+
+        public Schema schema = null;
     }
 
-//    /**
-//     * Factory methods. They return canned instances of AMIE. *
-//     */
-//    /**
-//     * Returns an instance of AMIE that mines rules on the given KB using the
-//     * vanilla setting of head coverage 1% and a given PCA confidence threshold
-//     *
-//     * @param db
-//     * @return
-//     */
-//    public static AMIE getVanillaSettingInstance(KB db, double minPCAConfidence) {
-//        DefaultMiningAssistant miningAssistant = new DefaultMiningAssistant(db);
-//        miningAssistant.setPcaConfidenceThreshold(minPCAConfidence);
-//        return new AMIE(miningAssistant,
-//                DEFAULT_INITIAL_SUPPORT, // Do not look at relations smaller than 100 facts
-//                DEFAULT_HEAD_COVERAGE, // Head coverage 1%
-//                Metric.HeadCoverage,
-//                Runtime.getRuntime().availableProcessors());
-//    }
+    private static InitElements initFromArgs(String[] args) {
 
-//    /**
-//     * Returns an (vanilla setting) instance of AMIE that enables the lossy
-//     * optimizations, i.e., optimizations that optimize for runtime but that
-//     * could in principle omit some rules that should be mined.
-//     *
-//     * @param db
-//     * @param minPCAConfidence
-//     * @param startSupport
-//     * @return
-//     */
-//    public static AMIE getLossyVanillaSettingInstance(KB db, double minPCAConfidence, int startSupport) {
-//        DefaultMiningAssistant miningAssistant = new DefaultMiningAssistant(db);
-//        miningAssistant.setPcaConfidenceThreshold(minPCAConfidence);
-//        miningAssistant.setEnabledConfidenceUpperBounds(true);
-//        miningAssistant.setEnabledFunctionalityHeuristic(true);
-//        return new AMIE(miningAssistant,
-//                startSupport, // Do not look at relations smaller than 100 facts
-//                DEFAULT_HEAD_COVERAGE, // Head coverage 1%
-//                Metric.HeadCoverage,
-//                Runtime.getRuntime().availableProcessors());
-//    }
-//
-//    /**
-//     * Returns an instance of AMIE that enables the lossy optimizations, i.e.,
-//     * optimizations that optimize for runtime but that could in principle omit
-//     * some rules that should be mined.
-//     *
-//     * @param db
-//     * @param minPCAConfidence
-//     * @param minSupport
-//     * @return
-//     */
-//    public static AMIE getLossyInstance(KB db, double minPCAConfidence, int minSupport) {
-//        DefaultMiningAssistant miningAssistant = new DefaultMiningAssistant(db);
-//        miningAssistant.setPcaConfidenceThreshold(minPCAConfidence);
-//        miningAssistant.setEnabledConfidenceUpperBounds(true);
-//        miningAssistant.setEnabledFunctionalityHeuristic(true);
-//        return new AMIE(miningAssistant,
-//                minSupport, // Do not look at relations smaller than the support threshold
-//                minSupport, // Head coverage 1%
-//                Metric.Support,
-//                Runtime.getRuntime().availableProcessors());
-//    }
+        InitElements initElements = new InitElements();
+
+        try {
+            initElements.cli = initElements.parser.parse(initElements.commandLineOptions, args);
+        } catch (ParseException e) {
+            System.out.println("Unexpected exception: " + e.getMessage());
+            initElements.formatter.printHelp(AMIEOptions.AMIE_CMD_LINE_SYNTAX, initElements.commandLineOptions);
+            System.exit(1);
+        }
+
+        if (!AMIEOptions.CheckForConflictingArguments(initElements.cli, initElements.commandLineOptions))
+            System.exit(1);
+
+        return initElements;
+    }
 
     /**
      * Gets an instance of AMIE configured according to the command line
      * arguments.
      *
-     * @param args
+     * @param initElement
      * @return
      * @throws IOException
      * @throws InvocationTargetException
@@ -563,15 +487,63 @@ public class AMIE {
      * @throws IllegalAccessException
      * @throws InstantiationException
      */
-    public static AMIE getInstance(String[] args)
+    public static AMIE getInstance(InitElements initElement)
             throws IOException, InstantiationException,
             IllegalAccessException, IllegalArgumentException,
             InvocationTargetException {
-        List<File> dataFiles = new ArrayList<File>();
-        List<File> targetFiles = new ArrayList<File>();
-        List<File> schemaFiles = new ArrayList<File>();
 
-        CommandLine cli = null;
+        // Setting up instance
+        HelpFormatter formatter = initElement.formatter;
+
+        // Create the command line parser and define the supported options
+        CommandLineParser parser = initElement.parser;
+        Options options = initElement.commandLineOptions;
+        CommandLine cli = initElement.cli;
+        Schema schema = initElement.schema;
+
+        KB schemaSource = null;
+
+        List<File> dataFiles = new ArrayList<>();
+        List<File> targetFiles = new ArrayList<>();
+        List<File> schemaFiles = new ArrayList<>();
+
+        AbstractKB dataSource = new KB();
+
+        // Caching
+        if (cli.hasOption(AMIEOptions.CPOL.getOpt())) {
+            Caching.EnableCache(cli.getOptionValue(AMIEOptions.CPOL.getOpt()));
+        } else
+        if (cli.hasOption(AMIEOptions.CSIZE.getOpt()) || cli.hasOption(AMIEOptions.CACHE.getOpt())) {
+            Caching.EnableDefaultCache();
+        }
+
+
+        if (cli.hasOption(AMIEOptions.CSIZE.getOpt())) {
+            Caching.SetScale(Integer.parseInt(cli.getOptionValue(AMIEOptions.CSIZE.getOpt())));
+        } else if (Caching.IsEnabled()) {
+            System.out.println("Unspecified cache scaling value. Using default: " + Caching.DEFAULT_CACHE_SIZE);
+        }
+
+        if (Caching.IsEnabled()) {
+            System.out.println("Note: Query caching is enabled, but make sure communication layer relies on it.");
+        }
+
+        if (cli.hasOption(AMIEOptions.MULTILINGUAL.getOpt())) {
+            dataSource = new MultilingualKB();
+        }
+
+        if (cli.hasOption(AMIEOptions.DELIMITER.getOpt())) {
+            dataSource.setDelimiter(cli.getOptionValue(AMIEOptions.DELIMITER.getOpt()));
+        }
+
+        if (cli.hasOption(AMIEOptions.NO_KB_REWRITE.getOpt())) {
+            dataSource.setOptimConnectedComponent(false);
+        }
+
+        if (cli.hasOption(AMIEOptions.NO_KB_EXISTS_DETECTION.getOpt())) {
+            dataSource.setOptimExistentialDetection(false);
+        }
+
         double minStdConf = DEFAULT_STD_CONFIDENCE;
         double minPCAConf = DEFAULT_PCA_CONFIDENCE;
         int minSup = DEFAULT_SUPPORT;
@@ -601,7 +573,7 @@ public class AMIE {
          * ******************************
          */
         int nProcessors = Runtime.getRuntime().availableProcessors();
-        String bias = "lazy"; // Counting support on the two head variables.
+        String bias = AMIEOptions.Bias.LAZY; // Counting support on the two head variables.
         Metric metric = Metric.HeadCoverage; // Metric used to prune the search space.
         VariableOrder variableOrder = new FunctionalOrder();
         MiningAssistant mineAssistant = null;
@@ -612,461 +584,109 @@ public class AMIE {
         IntCollection bodyTargetRelations = null;
         IntCollection instantiationTargetRelations = null;
 
-        KB targetSource = null;
-        KB schemaSource = null;
-        int nThreads = nProcessors; // By default use as many threads as processors.
-        HelpFormatter formatter = new HelpFormatter();
-
-        // create the command line parser
-        CommandLineParser parser = new PosixParser();
-        // create the Options
-        Options options = new Options();
-
-        Option supportOpt = OptionBuilder.withArgName("min-support")
-                .hasArg()
-                .withDescription("Minimum absolute support. Default: 100 positive examples")
-                .create("mins");
-
-        Option initialSupportOpt = OptionBuilder.withArgName("min-initial-support")
-                .hasArg()
-                .withDescription("Minimum size of the relations to be considered as head relations. "
-                        + "Default: 100 (facts or entities depending on the bias)")
-                .create("minis");
-
-        Option headCoverageOpt = OptionBuilder.withArgName("min-head-coverage")
-                .hasArg()
-                .withDescription("Minimum head coverage. Default: 0.01")
-                .create("minhc");
-
-        Option pruningMetricOpt = OptionBuilder.withArgName("pruning-metric")
-                .hasArg()
-                .withDescription("Metric used for pruning of intermediate queries: "
-                        + "support|headcoverage. Default: headcoverage")
-                .create("pm");
-
-        Option realTimeOpt = OptionBuilder.withArgName("output-at-end")
-                .withDescription("Print the rules at the end and not while they are discovered. "
-                        + "Default: false")
-                .create("oute");
-
-        Option datalogNotationOpt = OptionBuilder.withArgName("datalog-output")
-                .withDescription("Print rules using the datalog notation "
-                        + "Default: false")
-                .create("datalog");
-
-        Option bodyExcludedOpt = OptionBuilder.withArgName("body-excluded-relations")
-                .hasArg()
-                .withDescription("Do not use these relations as atoms in the body of rules."
-                        + " Example: <livesIn>,<bornIn>")
-                .create("bexr");
-
-        Option headExcludedOpt = OptionBuilder.withArgName("head-excluded-relations")
-                .hasArg()
-                .withDescription("Do not use these relations as atoms in the head of rules "
-                        + "(incompatible with head-target-relations). Example: <livesIn>,<bornIn>")
-                .create("hexr");
-
-        Option instantiationExcludedOpt = OptionBuilder.withArgName("instantiation-excluded-relations")
-                .hasArg()
-                .withDescription("Do not instantiate these relations. "
-                        + "Should be used with -fconst or -const "
-                        + "(incompatible with instantiation-target-relations). Example: <livesIn>,<bornIn>")
-                .create("iexr");
-
-        Option headTargetRelationsOpt = OptionBuilder.withArgName("head-target-relations")
-                .hasArg()
-                .withDescription("Mine only rules with these relations in the head. "
-                        + "Provide a list of relation names separated by commas "
-                        + "(incompatible with head-excluded-relations). "
-                        + "Example: <livesIn>,<bornIn>")
-                .create("htr");
-
-        Option bodyTargetRelationsOpt = OptionBuilder.withArgName("body-target-relations")
-                .hasArg()
-                .withDescription("Allow only these relations in the body. Provide a list of relation "
-                        + "names separated by commas (incompatible with body-excluded-relations). "
-                        + "Example: <livesIn>,<bornIn>")
-                .create("btr");
-
-        Option instantiationTargetOpt = OptionBuilder.withArgName("instantiation-target-relations")
-                .hasArg()
-                .withDescription("Allow only these relations to be instantiated. "
-                        + "Should be used with -fconst or -const. "
-                        + "Provide a list of relation names separated by commas "
-                        + "(incompatible with instantiation-excluded-relations). "
-                        + "Example: <livesIn>,<bornIn>")
-                .create("itr");
-
-        Option maxDepthOpt = OptionBuilder.withArgName("max-depth")
-                .hasArg()
-                .withDescription("Maximum number of atoms in the antecedent and succedent of rules. "
-                        + "Default: 3")
-                .create("maxad");
-
-        Option pcaConfThresholdOpt = OptionBuilder.withArgName("min-pca-confidence")
-                .hasArg()
-                .withDescription("Minimum PCA confidence threshold. "
-                        + "This value is not used for pruning, only for filtering of the results. "
-                        + "Default: 0.0")
-                .create("minpca");
-
-        Option allowConstantsOpt = OptionBuilder.withArgName("allow-constants")
-                .withDescription("Enable rules with constants. Default: false")
-                .create("const");
-
-        Option enforceConstantsOpt = OptionBuilder.withArgName("only-constants")
-                .withDescription("Enforce constants in all atoms. Default: false")
-                .create("fconst");
-
-        Option assistantOp = OptionBuilder.withArgName("e-name")
-                .hasArg()
-                .withDescription("Syntatic/semantic bias: oneVar|default|lazy|lazit|[Path to a subclass of amie.mining.assistant.MiningAssistant]"
-                        + "Default: default (defines support and confidence in terms of 2 head variables given an order, cf -vo)")
-                .create("bias");
-
-        Option countOnSubjectOpt = OptionBuilder.withArgName("count-always-on-subject")
-                .withDescription("If a single variable bias is used (oneVar), "
-                        + "force to count support always on the subject position.")
-                .create("caos");
-
-        Option coresOp = OptionBuilder.withArgName("n-threads")
-                .hasArg()
-                .withDescription("Preferred number of cores. Round down to the actual number of cores "
-                        + "in the system if a higher value is provided.")
-                .create("nc");
-
-        Option stdConfThresholdOpt = OptionBuilder.withArgName("min-std-confidence")
-                .hasArg()
-                .withDescription("Minimum standard confidence threshold. "
-                        + "This value is not used for pruning, only for filtering of the results. Default: 0.0")
-                .create("minc");
-
-        Option confidenceBoundsOp = OptionBuilder.withArgName("optim-confidence-bounds")
-                .withDescription("Enable the calculation of confidence upper bounds to prune rules.")
-                .create("optimcb");
-
-        Option funcHeuristicOp = OptionBuilder.withArgName("optim-func-heuristic")
-                .withDescription("Enable functionality heuristic to identify potential low confident rules for pruning.")
-                .create("optimfh");
-
-        Option verboseOp = OptionBuilder.withArgName("verbose")
-                .withDescription("Maximal verbosity")
-                .create("verbose");
-
-        Option recursivityLimitOpt = OptionBuilder.withArgName("recursivity-limit")
-                .withDescription("Recursivity limit")
-                .hasArg()
-                .create("rl");
-
-        Option avoidUnboundTypeAtomsOpt = OptionBuilder.withArgName("avoid-unbound-type-atoms")
-                .withDescription("Avoid unbound type atoms, e.g., type(x, y), i.e., bind always 'y' to a type")
-                .create("auta");
-
-        Option doNotExploitMaxLengthOp = OptionBuilder.withArgName("do-not-exploit-max-length")
-                .withDescription("Do not exploit max length for speedup "
-                        + "(requested by the reviewers of AMIE+). False by default.")
-                .create("deml");
-
-        Option disableQueryRewriteOp = OptionBuilder.withArgName("disable-query-rewriting")
-                .withDescription("Disable query rewriting and caching.")
-                .create("dqrw");
-
-        Option disablePerfectRulesOp = OptionBuilder.withArgName("disable-perfect-rules")
-                .withDescription("Disable perfect rules.")
-                .create("dpr");
-
-        Option onlyOutputEnhancementOp = OptionBuilder.withArgName("only-output")
-                .withDescription("If enabled, it activates only the output enhacements, that is, "
-                        + "the confidence approximation and upper bounds. "
-                        + " It overrides any other configuration that is incompatible.")
-                .create("oout");
-
-        Option fullOp = OptionBuilder.withArgName("full")
-                .withDescription("It enables all enhancements: "
-                        + "lossless heuristics and confidence approximation and upper bounds"
-                        + " It overrides any other configuration that is incompatible.")
-                .create("full");
-
-        Option noHeuristicsOp = OptionBuilder.withArgName("noHeuristics")
-                .withDescription("Disable functionality heuristic, should be used with the -full option")
-                .create("noHeuristics");
-
-        Option noKbRewrite = OptionBuilder.withArgName("noKbRewrite")
-                .withDescription("Prevent the KB to rewrite query when counting pairs")
-                .create("noKbRewrite");
-
-        Option noKbExistsDetection = OptionBuilder.withArgName("noKbExistsDetection")
-                .withDescription("Prevent the KB to detect existential variable on-the-fly "
-                        + "and to optimize the query")
-                .create("noKbExistsDetection");
-
-        Option noSkylineOp = OptionBuilder.withArgName("noSkyline")
-                .withDescription("Disable Skyline pruning of results")
-                .create("noSkyline");
-
-        Option variableOrderOp = OptionBuilder.withArgName("variableOrder")
-                .withDescription("Define the order of the variable in counting query among: app, fun (default), ifun")
-                .hasArg()
-                .create("vo");
-
-        Option extraFileOp = OptionBuilder.withArgName("extraFile")
-                .withDescription("An additional text file whose interpretation depends "
-                        + "on the selected mining assistant (bias)")
-                .hasArg()
-                .create("ef");
-
-        Option calculateStdConfidenceOp = OptionBuilder.withArgName("ommit-std-conf")
-                .withDescription("Do not calculate standard confidence")
-                .create("ostd");
-
-        Option optimAdaptiveInstantiations = OptionBuilder.withArgName("adaptive-instantiations")
-                .withDescription("Prune instantiated rules that decrease too much the support of their parent rule (ratio 0.2)")
-                .create("optimai");
-
-        Option multilingual = OptionBuilder.withArgName("multilingual")
-                .withDescription("Parse labels language as new facts")
-                .create("mlg");
-
-        Option delimOpt = OptionBuilder.withArgName("delimiter")
-                .withDescription("Separator in input files (default: TAB)")
-                .hasArg()
-                .create("d");
-
-        options.addOption(stdConfThresholdOpt);
-        options.addOption(supportOpt);
-        options.addOption(initialSupportOpt);
-        options.addOption(headCoverageOpt);
-        options.addOption(pruningMetricOpt);
-        options.addOption(realTimeOpt);
-        options.addOption(bodyExcludedOpt);
-        options.addOption(headExcludedOpt);
-        options.addOption(instantiationExcludedOpt);
-        options.addOption(maxDepthOpt);
-        options.addOption(pcaConfThresholdOpt);
-        options.addOption(headTargetRelationsOpt);
-        options.addOption(bodyTargetRelationsOpt);
-        options.addOption(instantiationTargetOpt);
-        options.addOption(allowConstantsOpt);
-        options.addOption(enforceConstantsOpt);
-        options.addOption(countOnSubjectOpt);
-        options.addOption(assistantOp);
-        options.addOption(coresOp);
-        options.addOption(confidenceBoundsOp);
-        options.addOption(verboseOp);
-        options.addOption(funcHeuristicOp);
-        options.addOption(recursivityLimitOpt);
-        options.addOption(avoidUnboundTypeAtomsOpt);
-        options.addOption(doNotExploitMaxLengthOp);
-        options.addOption(disableQueryRewriteOp);
-        options.addOption(disablePerfectRulesOp);
-        options.addOption(onlyOutputEnhancementOp);
-        options.addOption(fullOp);
-        options.addOption(noHeuristicsOp);
-        options.addOption(noKbRewrite);
-        options.addOption(noKbExistsDetection);
-        options.addOption(noSkylineOp);
-        options.addOption(variableOrderOp);
-        options.addOption(extraFileOp);
-        options.addOption(datalogNotationOpt);
-        options.addOption(calculateStdConfidenceOp);
-        options.addOption(optimAdaptiveInstantiations);
-        options.addOption(multilingual);
-        options.addOption(delimOpt);
-
-        try {
-            cli = parser.parse(options, args);
-        } catch (ParseException e) {
-            System.out.println("Unexpected exception: " + e.getMessage());
-            formatter.printHelp("AMIE [OPTIONS] <TSV FILES>", options);
-            System.exit(1);
-        }
+        int nThreads = nProcessors; // By default, use as many threads as processors.
 
         // These configurations override any other option
-        boolean onlyOutput = cli.hasOption("oout");
-        boolean full = cli.hasOption("full");
-        if (onlyOutput && full) {
-            System.err.println("The options only-output and full are incompatible. Pick either one.");
-            formatter.printHelp("AMIE [OPTIONS] <TSV FILES>", options);
-            System.exit(1);
-        }
+        boolean onlyOutput = cli.hasOption(AMIEOptions.ONLY_OUTPUT.getOpt());
+        boolean full = cli.hasOption(AMIEOptions.FULL.getOpt());
 
-        if (cli.hasOption("htr") && cli.hasOption("hexr")) {
-            System.err.println("The options head-target-relations and head-excluded-relations cannot appear at the same time");
-            System.err.println("AMIE+ [OPTIONS] <.tsv INPUT FILES>");
-            System.exit(1);
-        }
-
-        if (cli.hasOption("btr") && cli.hasOption("bexr")) {
-            System.err.println("The options body-target-relations and body-excluded-relations cannot appear at the same time");
-            formatter.printHelp("AMIE+", options);
-            System.exit(1);
-        }
-
-        if (cli.hasOption("itr") && cli.hasOption("iexr")) {
-            System.err.println("The options instantiation-target-relations and instantiation-excluded-relations cannot appear at the same time");
-            formatter.printHelp("AMIE+", options);
-            System.exit(1);
-        }
-
-        if (cli.hasOption("itr") && !(cli.hasOption("const") || cli.hasOption("fconst"))) {
-            System.err.println("The option instantiation-target-relations should be used  with -const or -fconst");
-            formatter.printHelp("AMIE+", options);
-            System.exit(1);
-        }
-
-        if (cli.hasOption("iexr") && !(cli.hasOption("const") || cli.hasOption("fconst"))) {
-            System.err.println("The option instantiation-excluded-relations should be used  with -const or -fconst");
-            formatter.printHelp("AMIE+", options);
-            System.exit(1);
-        }
-
-        if (cli.hasOption("mins") && cli.hasOption("minhc") && !cli.hasOption("pm")) {
-            System.out.println("Warning: Both -mins and -minhc are set but only the default pruning metric will be used");
-        }
-
-        if (cli.hasOption("mins")) {
-            String minSupportStr = cli.getOptionValue("mins");
+        if (cli.hasOption(AMIEOptions.MIN_SUPPORT.getOpt())) {
+            String minSupportStr = cli.getOptionValue(AMIEOptions.MIN_SUPPORT.getOpt());
             try {
                 minSup = Integer.parseInt(minSupportStr);
             } catch (NumberFormatException e) {
                 System.err.println("The option -mins (support threshold) requires an integer as argument");
-                System.err.println("AMIE+ [OPTIONS] <.tsv INPUT FILES>");
-                formatter.printHelp("AMIE+", options);
+                System.err.println(AMIEOptions.AMIE_PLUS_CMD_LINE_SYNTAX);
+                formatter.printHelp(AMIEOptions.AMIE_PLUS, options);
                 System.exit(1);
             }
         }
 
-        if (cli.hasOption("minis")) {
-            String minInitialSupportStr = cli.getOptionValue("minis");
+        if (cli.hasOption(AMIEOptions.MIN_INITIAL_SUPPORT.getOpt())) {
+            String minInitialSupportStr = cli.getOptionValue(AMIEOptions.MIN_INITIAL_SUPPORT.getOpt());
             try {
                 minInitialSup = Integer.parseInt(minInitialSupportStr);
             } catch (NumberFormatException e) {
                 System.err.println("The option -minis (initial support threshold) requires an integer as argument");
-                System.err.println("AMIE+ [OPTIONS] <.tsv INPUT FILES>");
-                formatter.printHelp("AMIE+", options);
+                System.err.println(AMIEOptions.AMIE_PLUS_CMD_LINE_SYNTAX);
+                formatter.printHelp(AMIEOptions.AMIE_PLUS, options);
                 System.exit(1);
             }
         }
 
-        if (cli.hasOption("minhc")) {
-            String minHeadCoverage = cli.getOptionValue("minhc");
+        if (cli.hasOption(AMIEOptions.MIN_HEAD_COVERAGE.getOpt())) {
+            String minHeadCoverage = cli.getOptionValue(AMIEOptions.MIN_HEAD_COVERAGE.getOpt());
             try {
                 minHeadCover = Double.parseDouble(minHeadCoverage);
             } catch (NumberFormatException e) {
                 System.err.println("The option -minhc (head coverage threshold) requires a real number as argument");
-                System.err.println("AMIE [OPTIONS] <.tsv INPUT FILES>");
-                System.err.println("AMIE+ [OPTIONS] <.tsv INPUT FILES>");
+                System.err.println(AMIEOptions.AMIE_CMD_LINE_SYNTAX);
+                System.err.println(AMIEOptions.AMIE_PLUS_CMD_LINE_SYNTAX);
                 System.exit(1);
             }
         }
 
         minMetricValue = minHeadCover;
 
-        if (cli.hasOption("minc")) {
-            String minConfidenceStr = cli.getOptionValue("minc");
+        if (cli.hasOption(AMIEOptions.MIN_STD_CONFIDENCE.getOpt())) {
+            String minConfidenceStr = cli.getOptionValue(AMIEOptions.MIN_STD_CONFIDENCE.getOpt());
             try {
                 minStdConf = Double.parseDouble(minConfidenceStr);
             } catch (NumberFormatException e) {
                 System.err.println("The option -minc (confidence threshold) requires a real number as argument");
-                System.err.println("AMIE [OPTIONS] <.tsv INPUT FILES>");
-                System.err.println("AMIE+ [OPTIONS] <.tsv INPUT FILES>");
+                System.err.println(AMIEOptions.AMIE_CMD_LINE_SYNTAX);
+                System.err.println(AMIEOptions.AMIE_PLUS_CMD_LINE_SYNTAX);
                 System.exit(1);
             }
         }
 
-        if (cli.hasOption("minpca")) {
-            String minicStr = cli.getOptionValue("minpca");
+        if (cli.hasOption(AMIEOptions.MIN_PCA_CONFIDENCE.getOpt())) {
+            String minicStr = cli.getOptionValue(AMIEOptions.MIN_PCA_CONFIDENCE.getOpt());
             try {
                 minPCAConf = Double.parseDouble(minicStr);
             } catch (NumberFormatException e) {
                 System.err.println("The argument for option -minpca (PCA confidence threshold) must be an integer greater than 2");
-                System.err.println("AMIE [OPTIONS] <.tsv INPUT FILES>");
-                System.err.println("AMIE+ [OPTIONS] <.tsv INPUT FILES>");
+                System.err.println(AMIEOptions.AMIE_CMD_LINE_SYNTAX);
+                System.err.println(AMIEOptions.AMIE_PLUS_CMD_LINE_SYNTAX);
                 System.exit(1);
             }
         }
 
-        if (cli.hasOption("bexr")) {
-            bodyExcludedRelations = new IntArrayList();
-            String excludedValuesStr = cli.getOptionValue("bexr");
-            String[] excludedValueArr = excludedValuesStr.split(",");
-            for (String excludedValue : excludedValueArr) {
-                bodyExcludedRelations.add(KB.map(excludedValue.trim()));
-            }
-        }
 
-        if (cli.hasOption("btr")) {
-            bodyTargetRelations = new IntArrayList();
-            String targetBodyValuesStr = cli.getOptionValue("btr");
-            String[] bodyTargetRelationsArr = targetBodyValuesStr.split(",");
-            for (String targetString : bodyTargetRelationsArr) {
-                bodyTargetRelations.add(KB.map(targetString.trim()));
-            }
-        }
+        bodyExcludedRelations = dataSource.MapOptionValues(cli, AMIEOptions.BODY_EXCLUDED.getOpt()) ;
+        bodyTargetRelations = dataSource.MapOptionValues(cli, AMIEOptions.BODY_TARGET_RELATIONS.getOpt()) ;
+        headTargetRelations = dataSource.MapOptionValues(cli, AMIEOptions.HEAD_TARGET_RELATIONS.getOpt()) ;
+        headExcludedRelations = dataSource.MapOptionValues(cli, AMIEOptions.HEAD_EXCLUDED.getOpt()) ;
+        instantiationTargetRelations = dataSource.MapOptionValues(cli, AMIEOptions.INSTANTIATION_TARGET_RELATIONS.getOpt()) ;
+        instantiationExcludedRelations = dataSource.MapOptionValues(cli, AMIEOptions.INSTANTIATION_EXCLUDED.getOpt()) ;
 
-        if (cli.hasOption("htr")) {
-            headTargetRelations = new IntArrayList();
-            String targetValuesStr = cli.getOptionValue("htr");
-            String[] targetValueArr = targetValuesStr.split(",");
-            for (String targetValue : targetValueArr) {
-                headTargetRelations.add(KB.map(targetValue.trim()));
-            }
-        }
-
-        if (cli.hasOption("hexr")) {
-            headExcludedRelations = new IntArrayList();
-            String excludedValuesStr = cli.getOptionValue("hexr");
-            String[] excludedValueArr = excludedValuesStr.split(",");
-            for (String excludedValue : excludedValueArr) {
-                headExcludedRelations.add(KB.map(excludedValue.trim()));
-            }
-        }
-
-        if (cli.hasOption("itr")) {
-            instantiationTargetRelations = new IntArrayList();
-            String targetValuesStr = cli.getOptionValue("itr");
-            String[] targetValueArr = targetValuesStr.split(",");
-            for (String targetValue : targetValueArr) {
-                instantiationTargetRelations.add(KB.map(targetValue.trim()));
-            }
-        }
-
-        if (cli.hasOption("iexr")) {
-            instantiationExcludedRelations = new IntArrayList();
-            String excludedValuesStr = cli.getOptionValue("iexr");
-            String[] excludedValueArr = excludedValuesStr.split(",");
-            for (String excludedValue : excludedValueArr) {
-                instantiationExcludedRelations.add(KB.map(excludedValue.trim()));
-            }
-        }
-
-        if (cli.hasOption("maxad")) {
-            String maxDepthStr = cli.getOptionValue("maxad");
+        if (cli.hasOption(AMIEOptions.MAX_DEPTH.getOpt())) {
+            String maxDepthStr = cli.getOptionValue(AMIEOptions.MAX_DEPTH.getOpt());
             try {
                 maxDepth = Integer.parseInt(maxDepthStr);
             } catch (NumberFormatException e) {
                 System.err.println("The argument for option -maxad (maximum depth) must be an integer greater than 2");
-                System.err.println("AMIE [OPTIONS] <.tsv INPUT FILES>");
-                formatter.printHelp("AMIE+", options);
+                System.err.println(AMIEOptions.AMIE_CMD_LINE_SYNTAX);
+                formatter.printHelp(AMIEOptions.AMIE_PLUS, options);
                 System.exit(1);
             }
 
             if (maxDepth < 2) {
                 System.err.println("The argument for option -maxad (maximum depth) must be greater or equal than 2");
-                System.err.println("AMIE [OPTIONS] <.tsv INPUT FILES>");
-                formatter.printHelp("AMIE+", options);
+                System.err.println(AMIEOptions.AMIE_CMD_LINE_SYNTAX);
+                formatter.printHelp(AMIEOptions.AMIE_PLUS, options);
                 System.exit(1);
             }
         }
 
-        if (cli.hasOption("nc")) {
-            String nCoresStr = cli.getOptionValue("nc");
+        if (cli.hasOption(AMIEOptions.N_THREADS.getOpt())) {
+            String nCoresStr = cli.getOptionValue(AMIEOptions.N_THREADS.getOpt());
             try {
                 nThreads = Integer.parseInt(nCoresStr);
             } catch (NumberFormatException e) {
                 System.err.println("The argument for option -nc (number of threads) must be an integer");
-                System.err.println("AMIE [OPTIONS] <.tsv INPUT FILES>");
-                System.err.println("AMIE+ [OPTIONS] <.tsv INPUT FILES>");
+                System.err.println(AMIEOptions.AMIE_CMD_LINE_SYNTAX);
+                System.err.println(AMIEOptions.AMIE_PLUS_CMD_LINE_SYNTAX);
                 System.exit(1);
             }
 
@@ -1075,8 +695,8 @@ public class AMIE {
             }
         }
 
-        if (cli.hasOption("vo")) {
-            switch (cli.getOptionValue("vo")) {
+        if (cli.hasOption(AMIEOptions.VARIABLE_ORDER.getOpt())) {
+            switch (cli.getOptionValue(AMIEOptions.VARIABLE_ORDER.getOpt())) {
                 case "app":
                     variableOrder = new AppearanceOrder();
                     break;
@@ -1092,74 +712,113 @@ public class AMIE {
             }
         }
 
-        avoidUnboundTypeAtoms = cli.hasOption("auta");
-        exploitMaxLengthForRuntime = !cli.hasOption("deml");
-        enableQueryRewriting = !cli.hasOption("dqrw");
-        enablePerfectRulesPruning = !cli.hasOption("dpr");
+        avoidUnboundTypeAtoms = cli.hasOption(AMIEOptions.AVOID_UNBOUND_TYPE_ATOMS.getOpt());
+        exploitMaxLengthForRuntime = !cli.hasOption(AMIEOptions.DO_NOT_EXPLOIT_MAX_LENGTH.getOpt());
+        enableQueryRewriting = !cli.hasOption(AMIEOptions.DISABLE_QUERY_REWRITING.getOpt());
+        enablePerfectRulesPruning = !cli.hasOption(AMIEOptions.DISABLE_PERFECT_RULES.getOpt());
         String[] leftOverArgs = cli.getArgs();
 
-        if (leftOverArgs.length < 1) {
+        if (leftOverArgs.length < 1 && !AMIEOptions.isClientMode(cli)) {
             System.err.println("No input file has been provided");
-            System.err.println("AMIE [OPTIONS] <.tsv INPUT FILES>");
-            System.err.println("AMIE+ [OPTIONS] <.tsv INPUT FILES>");
+            System.err.println(AMIEOptions.AMIE_CMD_LINE_SYNTAX);
+            System.err.println(AMIEOptions.AMIE_PLUS_CMD_LINE_SYNTAX);
             System.exit(1);
         }
 
-        //Load database
-        for (int i = 0; i < leftOverArgs.length; ++i) {
-            if (leftOverArgs[i].startsWith(":t")) {
-                targetFiles.add(new File(leftOverArgs[i].substring(2)));
-            } else if (leftOverArgs[i].startsWith(":s")) {
-                schemaFiles.add(new File(leftOverArgs[i].substring(2)));
-            } else {
-                dataFiles.add(new File(leftOverArgs[i]));
+        // Enabling live metrics
+        if (cli.hasOption(AMIEOptions.LIVE_METRICS.getOpt()) &&
+                (AMIEOptions.isClientMode(cli) || AMIEOptions.isServerMode(cli)) )
+            AbstractKB.EnableLiveMetrics();
+
+        // Formatting configuration identifier
+        String config = AMIEOptions.FormatConfigIndentifier(cli)  ;
+
+        if ( (AMIEOptions.isServerMode(cli) || AMIEOptions.isClientMode(cli))
+                && cli.hasOption(AMIEOptions.INVALIDATE_CACHE.getOpt()))
+            Caching.InvalidateCache() ;
+
+        // Client
+        if (AMIEOptions.isClientMode(cli)) {
+
+            try {
+
+                if (cli.hasOption(AMIEOptions.SERVER_ADDRESS.getOpt()))
+                    AbstractKB.SetServerAddress(cli.getOptionValue(AMIEOptions.SERVER_ADDRESS.getOpt()));
+                else
+                    System.out.println("Unspecified server address ; using default " +
+                            AbstractKB.DEFAULT_SERVER_ADDRESS);
+
+                // See AbstractKB.NewKBClient description
+                dataSource = AbstractKB.NewKBClient(config) ;
+            } catch (Exception e) {
+                System.err.println("Internal error while initiating KB client.");
+                e.printStackTrace();
+                System.exit(1);
+            }
+        } else {
+            //Load database
+            for (int i = 0; i < leftOverArgs.length; ++i) {
+                if (leftOverArgs[i].startsWith(":t")) {
+                    targetFiles.add(new File(leftOverArgs[i].substring(2)));
+                } else if (leftOverArgs[i].startsWith(":s")) {
+                    schemaFiles.add(new File(leftOverArgs[i].substring(2)));
+                } else {
+                    dataFiles.add(new File(leftOverArgs[i]));
+                }
+            }
+            if (AMIEOptions.isServerMode(cli)) {
+                if (cli.hasOption(AMIEOptions.PORT.getOpt()))
+                    AbstractKB.SetPort(Integer.parseInt(cli.getOptionValue(AMIEOptions.PORT.getOpt())));
+                else
+                    System.out.println("Unspecified port ; using default " +
+                            AbstractKB.DEFAULT_PORT);
+                try {
+                    // See AbstractKB.NewKBServer description
+                    dataSource = AbstractKB.NewKBServer(config) ;
+                } catch (Exception e) {
+                    System.err.println("Internal error while initiating KB server.");
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+            }
+            ((KB) dataSource).load(dataFiles);
+            KB targetSource;
+            if (!targetFiles.isEmpty()) {
+                targetSource = new KB();
+                targetSource.load(targetFiles);
+            }
+
+            if (!schemaFiles.isEmpty()) {
+                schemaSource = new KB();
+                schemaSource.load(schemaFiles);
+            }
+
+            if (AMIEOptions.isServerMode(cli)) {
+                return null ;
             }
         }
-        KB dataSource = new KB();
-        if (cli.hasOption("mlg")) {
-            dataSource = new MultilingualKB();
-        }
 
-        if (cli.hasOption("d")) {
-            dataSource.setDelimiter(cli.getOptionValue("d"));
-        }
-
-        if (cli.hasOption("noKbRewrite")) {
-            dataSource.setOptimConnectedComponent(false);
-        }
-
-        if (cli.hasOption("noKbExistsDetection")) {
-            dataSource.setOptimExistentialDetection(false);
-        }
-        dataSource.load(dataFiles);
-
-        if (!targetFiles.isEmpty()) {
-            targetSource = new KB();
-            targetSource.load(targetFiles);
-        }
-
-        if (!schemaFiles.isEmpty()) {
-            schemaSource = new KB();
-            schemaSource.load(schemaFiles);
-        }
-
-        if (cli.hasOption("mins") != cli.hasOption("minhc")) {
-            if (cli.hasOption("mins")) {
-                    metric = Metric.Support;
-                    minMetricValue = minSup;
-                    if (!cli.hasOption("minis")) { minInitialSup = minSup; }
+        if (cli.hasOption(AMIEOptions.MIN_SUPPORT.getOpt()) != cli.hasOption(AMIEOptions.MIN_HEAD_COVERAGE.getOpt())) {
+            if (cli.hasOption(AMIEOptions.MIN_SUPPORT.getOpt())) {
+                metric = Metric.Support;
+                minMetricValue = minSup;
+                if (!cli.hasOption(AMIEOptions.MIN_INITIAL_SUPPORT.getOpt())) {
+                    minInitialSup = minSup;
+                }
             } else {
-                    metric = Metric.HeadCoverage;
-                    minMetricValue = minHeadCover;
+                metric = Metric.HeadCoverage;
+                minMetricValue = minHeadCover;
             }
         }
 
-        if (cli.hasOption("pm")) {
-            switch (cli.getOptionValue("pm")) {
+        if (cli.hasOption(AMIEOptions.PRUNING_METRIC.getOpt())) {
+            switch (cli.getOptionValue(AMIEOptions.PRUNING_METRIC.getOpt())) {
                 case "support":
                     metric = Metric.Support;
                     minMetricValue = minSup;
-                    if (!cli.hasOption("minis")) { minInitialSup = minSup; }
+                    if (!cli.hasOption(AMIEOptions.MIN_INITIAL_SUPPORT.getOpt())) {
+                        minInitialSup = minSup;
+                    }
                     break;
                 default:
                     metric = Metric.HeadCoverage;
@@ -1169,46 +828,46 @@ public class AMIE {
         }
         System.out.println("Using " + metric + " as pruning metric with minimum threshold " + minMetricValue);
 
-        if (cli.hasOption("bias")) {
-            bias = cli.getOptionValue("bias");
+        if (cli.hasOption(AMIEOptions.BIAS.getOpt())) {
+            bias = cli.getOptionValue(AMIEOptions.BIAS.getOpt());
         }
 
-        verbose = cli.hasOption("verbose");
+        verbose = cli.hasOption(AMIEOptions.VERBOSE.getOpt());
 
-        if (cli.hasOption("rl")) {
+        if (cli.hasOption(AMIEOptions.RECURSIVITY_LIMIT.getOpt())) {
             try {
-                recursivityLimit = Integer.parseInt(cli.getOptionValue("rl"));
+                recursivityLimit = Integer.parseInt(cli.getOptionValue(AMIEOptions.RECURSIVITY_LIMIT.getOpt()));
             } catch (NumberFormatException e) {
                 System.err.println("The argument for option -rl (recursivity limit) must be an integer");
-                System.err.println("AMIE [OPTIONS] <.tsv INPUT FILES>");
-                System.err.println("AMIE+ [OPTIONS] <.tsv INPUT FILES>");
+                System.err.println(AMIEOptions.AMIE_CMD_LINE_SYNTAX);
+                System.err.println(AMIEOptions.AMIE_PLUS_CMD_LINE_SYNTAX);
                 System.exit(1);
             }
         }
         System.out.println("Using recursivity limit " + recursivityLimit);
 
-        enableConfidenceUpperBounds = cli.hasOption("optimcb");
+        enableConfidenceUpperBounds = cli.hasOption(AMIEOptions.OPTIM_CONFIDENCE_BOUNDS.getOpt());
         if (enableConfidenceUpperBounds) {
             System.out.println("Enabling standard and PCA confidences upper "
                     + "bounds for pruning");
         }
 
-        enableFunctionalityHeuristic = cli.hasOption("optimfh");
+        enableFunctionalityHeuristic = cli.hasOption(AMIEOptions.OPTIM_FUNC_HEURISTIC.getOpt());
 
         switch (bias) {
-            case "oneVar":
+            case AMIEOptions.Bias.ONE_VAR:
                 mineAssistant = new MiningAssistant(dataSource);
                 break;
-            case "default":
+            case AMIEOptions.Bias.DEFAULT:
                 mineAssistant = new DefaultMiningAssistantWithOrder(dataSource, variableOrder);
                 break;
-            case "signatured":
+            case AMIEOptions.Bias.SIGNATURED:
                 mineAssistant = new RelationSignatureDefaultMiningAssistant(dataSource);
                 break;
-            case "lazy":
+            case AMIEOptions.Bias.LAZY:
                 mineAssistant = new LazyMiningAssistant(dataSource, variableOrder);
                 break;
-            case "lazit":
+            case AMIEOptions.Bias.LAZIT:
                 mineAssistant = new LazyIteratorMiningAssistant(dataSource, variableOrder);
                 break;
             default:
@@ -1220,7 +879,7 @@ public class AMIE {
                 try {
                     assistantClass = Class.forName(bias);
                 } catch (Exception e) {
-                    System.err.println("AMIE+ [OPTIONS] <.tsv INPUT FILES>");
+                    System.err.println(AMIEOptions.AMIE_PLUS_CMD_LINE_SYNTAX);
                     e.printStackTrace();
                     System.exit(1);
                 }
@@ -1234,7 +893,7 @@ public class AMIE {
                     try {
                         // Constructor with additional input
                         constructor = assistantClass.getConstructor(new Class[]{KB.class, String.class});
-                        System.out.println(cli.getOptionValue("ef"));
+                        System.out.println(cli.getOptionValue(AMIEOptions.EXTRA_FILE.getOpt()));
                         mineAssistant = (MiningAssistant) constructor.newInstance(dataSource, cli.getOptionValue("ef"));
                     } catch (NoSuchMethodException ep) {
                         // Constructor with schema KB
@@ -1243,12 +902,12 @@ public class AMIE {
                             mineAssistant = (MiningAssistant) constructor.newInstance(dataSource, schemaSource);
                         } catch (Exception e2p) {
                             e.printStackTrace();
-                            System.err.println("AMIE+ [OPTIONS] <.tsv INPUT FILES>");
+                            System.err.println(AMIEOptions.AMIE_PLUS_CMD_LINE_SYNTAX);
                             e.printStackTrace();
                         }
                     }
                 } catch (SecurityException e) {
-                    System.err.println("AMIE+ [OPTIONS] <.tsv INPUT FILES>");
+                    System.err.println(AMIEOptions.AMIE_PLUS_CMD_LINE_SYNTAX);
                     e.printStackTrace();
                     System.exit(1);
                 }
@@ -1259,13 +918,13 @@ public class AMIE {
                 break;
         }
 
-        allowConstants = cli.hasOption("const");
-        countAlwaysOnSubject = cli.hasOption("caos");
-        realTime = !cli.hasOption("oute");
-        enforceConstants = cli.hasOption("fconst");
-        datalogOutput = cli.hasOption("datalog");
-        ommitStdConfidence = cli.hasOption("ostd");
-        adaptiveInstantiations = cli.hasOption("optimai");
+        allowConstants = cli.hasOption(AMIEOptions.ALLOW_CONSTANTS.getOpt());
+        countAlwaysOnSubject = cli.hasOption(AMIEOptions.COUNT_ALWAYS_ON_SUBJECT.getOpt());
+        realTime = !cli.hasOption(AMIEOptions.OUTPUT_AT_END.getOpt());
+        enforceConstants = cli.hasOption(AMIEOptions.ONLY_CONSTANTS.getOpt());
+        datalogOutput = cli.hasOption(AMIEOptions.DATALOG.getOpt());
+        ommitStdConfidence = cli.hasOption(AMIEOptions.OMMIT_STD_CONF.getOpt());
+        adaptiveInstantiations = cli.hasOption(AMIEOptions.ADAPTATIVE_INSTANTIATIONS.getOpt());
 
         // These configurations override others
         if (onlyOutput) {
@@ -1286,21 +945,21 @@ public class AMIE {
             enableFunctionalityHeuristic = true;
         }
 
-        if (cli.hasOption("noHeuristics")) {
+        if (cli.hasOption(AMIEOptions.NO_HEURISTICS.getOpt())) {
             enableFunctionalityHeuristic = false;
         }
 
         if (enableFunctionalityHeuristic) {
             System.out.println("Enabling functionality heuristic with ratio "
-                        + "for pruning of low confident rules");
+                    + "for pruning of low confident rules");
             Announce.doing("Building overlap tables for confidence approximation...");
             long time = System.currentTimeMillis();
-            dataSource.buildOverlapTables(nThreads);
-            Announce.done("Overlap tables computed in " + String.format("%d s", (System.currentTimeMillis() - time) / 1000)
-                            + " using " + Integer.toString(nThreads) + " threads.");
+            ((KB) dataSource).buildOverlapTables(nThreads);
+            Announce.done("Overlap tables computed in " + formatDuration(System.currentTimeMillis() - time)
+                    + " using " + nThreads + " threads.");
         }
 
-        mineAssistant.setKbSchema(schemaSource);
+        // Setup Mining assistant
         mineAssistant.setEnabledConfidenceUpperBounds(enableConfidenceUpperBounds);
         mineAssistant.setEnabledFunctionalityHeuristic(enableFunctionalityHeuristic);
         mineAssistant.setMaxDepth(maxDepth);
@@ -1323,7 +982,7 @@ public class AMIE {
         mineAssistant.setOmmitStdConfidence(ommitStdConfidence);
         mineAssistant.setDatalogNotation(datalogOutput);
         mineAssistant.setOptimAdaptiveInstantiations(adaptiveInstantiations);
-        mineAssistant.setUseSkylinePruning(!cli.hasOption("noSkyline"));
+        mineAssistant.setUseSkylinePruning(!cli.hasOption(AMIEOptions.NO_SKYLINE.getOpt()));
 
         System.out.println(mineAssistant.getDescription());
 
@@ -1343,12 +1002,13 @@ public class AMIE {
             System.out.println("No minimum threshold on PCA confidence");
         }
 
+        String constantsStateMessage = "Constants in the arguments of relations are " ;
         if (enforceConstants) {
-            System.out.println("Constants in the arguments of relations are enforced");
+            System.out.println(constantsStateMessage + "enforced");
         } else if (allowConstants) {
-            System.out.println("Constants in the arguments of relations are enabled");
+            System.out.println(constantsStateMessage + "enabled");
         } else {
-            System.out.println("Constants in the arguments of relations are disabled");
+            System.out.println(constantsStateMessage + "disabled");
         }
 
         if (exploitMaxLengthForRuntime && enableQueryRewriting && enablePerfectRulesPruning) {
@@ -1368,13 +1028,13 @@ public class AMIE {
         }
 
         if (verbose) {
-        	mineAssistant.outputOperatorHierarchy(System.err);
+            mineAssistant.outputOperatorHierarchy(System.err);
         }
 
         return miner;
     }
 
-    protected static void printRuleHeaders(MiningAssistant assistant) {
+    private static void printRuleHeaders(MiningAssistant assistant) {
         List<String> finalHeaders = new ArrayList<>(headers);
         if (assistant.isOmmitStdConfidence()) {
             finalHeaders.removeAll(Arrays.asList("Std Confidence", "Body size"));
@@ -1387,6 +1047,42 @@ public class AMIE {
         System.out.println(String.join("\t", finalHeaders));
     }
 
+    private static String formatDuration(long durationInMillis) {
+        final long millisInSecond = 1000;
+        final long millisInMinute = millisInSecond * 60;
+        final long millisInHour = millisInMinute * 60;
+        final long millisInDay = millisInHour * 24;
+
+        long days = durationInMillis / millisInDay;
+        long remainingMillisAfterDays = durationInMillis % millisInDay;
+
+        long hours = remainingMillisAfterDays / millisInHour;
+        long remainingMillisAfterHours = remainingMillisAfterDays % millisInHour;
+
+        long minutes = remainingMillisAfterHours / millisInMinute;
+        long remainingMillisAfterMinutes = remainingMillisAfterHours % millisInMinute;
+
+        long seconds = remainingMillisAfterMinutes / millisInSecond;
+        long milliseconds = remainingMillisAfterMinutes % millisInSecond;
+
+        StringBuilder formattedDuration = new StringBuilder();
+
+        if (days > 0) {
+            formattedDuration.append(days).append(" days ");
+        }
+        if (hours > 0 || formattedDuration.length() > 0) {
+            formattedDuration.append(hours).append(" h ");
+        }
+        if (minutes > 0 || formattedDuration.length() > 0) {
+            formattedDuration.append(minutes).append(" min ");
+        }
+        if (milliseconds > 0 || seconds > 0 || formattedDuration.length() > 0) {
+            formattedDuration.append(String.format("%d.%03d s ", seconds, milliseconds));
+        }
+
+        return formattedDuration.toString().trim();
+    }
+
     /**
      * AMIE's main program
      *
@@ -1394,14 +1090,34 @@ public class AMIE {
      * @throws Exception
      */
     public static void main(String[] args) throws Exception {
-        Schema.loadSchemaConf();
-        System.out.println("Assuming " + KB.unmap(Schema.typeRelationBS) + " as type relation");
+        InitElements initElements = initFromArgs(args);
+
+        if (initElements.cli.getArgs().length < 1 && !(
+                initElements.cli.hasOption(AMIEOptions.REMOTE_KB_MODE_CLIENT.getOpt())
+                        || initElements.cli.hasOption(AMIEOptions.SERVER_ADDRESS.getOpt()))) {
+            System.err.println("No input file has been provided");
+            System.err.println(AMIEOptions.AMIE_CMD_LINE_SYNTAX);
+            System.err.println(AMIEOptions.AMIE_PLUS_CMD_LINE_SYNTAX);
+            System.exit(1);
+        }
+
+        Schema schema = new Schema();
+        schema.loadSchemaConf();
+        initElements.schema = schema;
+
+        System.out.println("Assuming " + schema.unmap(schema.typeRelationBS) + " as type relation");
         long loadingStartTime = System.currentTimeMillis();
-        AMIE miner = AMIE.getInstance(args);
+
+
+
+        AMIE miner = AMIE.getInstance(initElements);
+        if (miner == null)
+            return ;
+
         long loadingTime = System.currentTimeMillis() - loadingStartTime;
         MiningAssistant assistant = miner.getAssistant();
 
-        System.out.println("MRT calls: " + String.valueOf(KB.STAT_NUMBER_OF_CALL_TO_MRT.get()));
+        System.out.println("MRT calls: " + KB.STAT_NUMBER_OF_CALL_TO_MRT.get());
         Announce.doing("Starting the mining phase");
 
         long time = System.currentTimeMillis();
@@ -1415,16 +1131,9 @@ public class AMIE {
         }
 
         long miningTime = System.currentTimeMillis() - time;
-        System.out.println("Mining done in " + String.format("%.3f", (double)miningTime / 1000)+"s");
-        Announce.done("Total time " + String.format("%.3f", (double)(miningTime + loadingTime)/ 1000)+"s");
+        System.out.println("Mining done in " + formatDuration(miningTime));
+        Announce.done("Total time " + formatDuration(miningTime + loadingTime)) ;
         System.out.println(rules.size() + " rules mined.");
-
-//	    if (assistant.kb.countCacheEnabled) {
-//                System.out.println("MRT calls: " + String.valueOf(KB.STAT_NUMBER_OF_CALL_TO_MRT.get()));
-//	    	System.out.println("Queries: " + String.valueOf(KB.queryCache.queryCount.get()));
-//	        System.out.println("Matches: " + String.valueOf(KB.countCacheMatch.get()));
-//	    	System.out.println("Collisions: " + String.valueOf(KB.queryCache.collisionCount.get()));
-//          }
     }
 
 }

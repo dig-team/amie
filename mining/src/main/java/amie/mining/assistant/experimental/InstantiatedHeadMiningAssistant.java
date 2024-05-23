@@ -27,7 +27,7 @@ public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 	@Override
 	public Collection<Rule> getInitialAtomsFromSeeds(IntCollection relations, double minCardinality) {
 		Collection<Rule> output = new ArrayList<>();
-		Rule query = new Rule();
+		Rule query = new Rule(kb);
 		//The query must be empty
 		if(!query.isEmpty()) {
 			throw new IllegalArgumentException("Expected an empty query");
@@ -44,7 +44,7 @@ public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 			long cardinality = kb.countProjection(query.getHead(), emptyList);
 			
 			int[] succedent = newEdge.clone();
-			Rule candidate = new Rule(succedent, cardinality);
+			Rule candidate = new Rule(succedent, cardinality, kb);
 			candidate.setFunctionalVariablePosition(countVarPos);
 			registerHeadRelation(candidate);
 			ArrayList<Rule> tmpOutput = new ArrayList<>();
@@ -59,7 +59,7 @@ public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 	@Override
 	public Collection<Rule> getInitialAtoms(double minSupportThreshold) {
 		Collection<Rule> output = new ArrayList<>();
-		Rule query = new Rule();
+		Rule query = new Rule(kb);
 		int[] newEdge = query.fullyUnboundTriplePattern();
 		
 		if(query.isEmpty()) {
@@ -76,7 +76,7 @@ public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 					int[] succedent = newEdge.clone();
 					succedent[1] = relation;
 					int countVarPos = countAlwaysOnSubject ? 0 : findCountingVariable(succedent);
-					Rule candidate = new Rule(succedent, cardinality);
+					Rule candidate = new Rule(succedent, cardinality, kb);
 					candidate.setFunctionalVariablePosition(countVarPos);
 					registerHeadRelation(candidate);
 					getInstantiatedAtoms(candidate, null, 0, countVarPos == 0 ? 2 : 0, minSupportThreshold, output);
@@ -107,7 +107,7 @@ public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 					int[] succedent = newEdge.clone();
 					succedent[1] = relation;
 					int countVarPos = countAlwaysOnSubject ? 0 : findCountingVariable(succedent);
-					Rule candidate = new Rule(succedent, cardinality);
+					Rule candidate = new Rule(succedent, cardinality, kb);
 					candidate.setFunctionalVariablePosition(countVarPos);
 					registerHeadRelation(candidate);
 					getInstantiatedAtoms(candidate, null, 0, countVarPos == 0 ? 2 : 0, minCardinality, output);

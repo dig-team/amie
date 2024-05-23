@@ -5,6 +5,7 @@
  */
 package amie.mining.assistant;
 
+import amie.data.AbstractKB;
 import amie.mining.assistant.variableorder.VariableOrder;
 import amie.data.KB;
 import amie.rules.Rule;
@@ -16,11 +17,11 @@ import java.util.List;
  */
 public class LazyMiningAssistant extends DefaultMiningAssistantWithOrder {
 
-    public LazyMiningAssistant(KB dataSource) {
+    public LazyMiningAssistant(AbstractKB dataSource) {
         super(dataSource);
     }
 
-    public LazyMiningAssistant(KB dataSource, VariableOrder order) {
+    public LazyMiningAssistant(AbstractKB dataSource, VariableOrder order) {
         super(dataSource, order);
     }
 
@@ -80,8 +81,8 @@ public class LazyMiningAssistant extends DefaultMiningAssistantWithOrder {
         long t2 = System.currentTimeMillis();
         query.setPcaConfidenceRunningTime(t2 - t1);
         if ((t2 - t1) > 20000 && this.verbose) {
-            System.err.println("countPairs vars " + KB.unmap(var1) + ", " + KB.unmap(var2) + " in "
-                    + KB.toString(antecedent) + " has taken " + (t2 - t1) + " ms");
+            System.err.println("countPairs vars " + kb.unmap(var1) + ", " + kb.unmap(var2) + " in "
+                    + kb.toString(antecedent) + " has taken " + (t2 - t1) + " ms");
         }
         return result;
     }
@@ -108,8 +109,8 @@ public class LazyMiningAssistant extends DefaultMiningAssistantWithOrder {
         long t2 = System.currentTimeMillis();
         query.setConfidenceRunningTime(t2 - t1);
         if ((t2 - t1) > 20000 && this.verbose) {
-            System.err.println("countPairs vars " + KB.unmap(var1) + ", " + KB.unmap(var2) + " in "
-                    + KB.toString(query.getAntecedent()) + " has taken " + (t2 - t1) + " ms");
+            System.err.println("countPairs vars " + kb.unmap(var1) + ", " + kb.unmap(var2) + " in "
+                    + kb.toString(query.getAntecedent()) + " has taken " + (t2 - t1) + " ms");
         }
         return result;
     }

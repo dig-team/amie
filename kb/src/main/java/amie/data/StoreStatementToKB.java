@@ -5,25 +5,23 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
-public class StoreStatementToKb extends AbstractRDFHandler {
+public class StoreStatementToKB extends AbstractRDFHandler {
 
     private static int counter = 0;
-    private KB kb;
+    private AbstractKB kb;
     private static Map<String,String> prefixes=new HashMap<>();
 
 
-    StoreStatementToKb(KB kb){
+    StoreStatementToKB(AbstractKB kb){
         this.kb = kb;
     }
     public void handleStatement(Statement st) {
         String subject = getFormattedValue(String.valueOf(st.getSubject()));
         String object = getFormattedValue(String.valueOf(st.getObject()));
         String predict = getFormattedValue(String.valueOf(st.getPredicate()));
-        kb.add(subject, predict, object);
+        ((KB) kb).add(subject, predict, object);
     }
 
     public String getFormattedValue(String value) {
@@ -57,7 +55,7 @@ public class StoreStatementToKb extends AbstractRDFHandler {
         if (!prefix.isEmpty() && !prefixes.containsKey(prefix)) {
             int x = counter++;
             prefixes.put(prefix, "p" +x);
-            kb.prefixMap.put( "p" + x, prefix);
+            kb.schema.prefixMap.put( "p" + x, prefix);
         }
 
         if(StringUtils.isBlank(literal)){

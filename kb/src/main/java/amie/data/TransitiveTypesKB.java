@@ -25,13 +25,18 @@ public class TransitiveTypesKB extends KB {
 	
 	public static final String TRANSITIVETYPEstr = "transitiveType";
 	
-	public static final int TRANSITIVETYPEbs = KB.map(TRANSITIVETYPEstr);
+	public static int TRANSITIVETYPEbs ;
+
+	public TransitiveTypesKB() {
+		super() ;
+		TRANSITIVETYPEbs = map(TRANSITIVETYPEstr) ;
+	}
 	
 	@Override
 	protected boolean contains(int... fact) {
 		if (fact[1] == TRANSITIVETYPEbs) {
-			for (int type : get(this.subject2relation2object, fact[0], Schema.typeRelationBS)) {
-				if (Schema.isTransitiveSuperType(this, fact[2], type)) {
+			for (int type : get(this.subject2relation2object, fact[0], schema.typeRelationBS)) {
+				if (schema.isTransitiveSuperType(this, fact[2], type)) {
 					return true;
 				}
 			}
@@ -64,15 +69,15 @@ public class TransitiveTypesKB extends KB {
 				 * Return all the entities in subclasses of triple[2]
 				 */
 				IntSet result = new IntOpenHashSet();
-				for (int subtype : Schema.getAllSubTypes(this, triple[2])) {
-					result.addAll(get(relation2object2subject, Schema.typeRelationBS, subtype));
+				for (int subtype : schema.getAllSubTypes(this, triple[2])) {
+					result.addAll(get(relation2object2subject, schema.typeRelationBS, subtype));
 				}
 				return result;
 			} else { // assert(isVariable(triple[2]));
 				/*
 				 * Return all the super-classes of an entity
 				 */
-				return Schema.getAllTypesForEntity(this, triple[0]);
+				return schema.getAllTypesForEntity(this, triple[0]);
 			}
 		}
 		else {
@@ -90,16 +95,16 @@ public class TransitiveTypesKB extends KB {
 				/*
 				 * Return a map from all entities to all super-classes
 				 */
-				for (int entity : get(relation2subject2object, Schema.typeRelationBS).keySet()) {
-					result.put(entity, Schema.getAllTypesForEntity(this, entity));
+				for (int entity : get(relation2subject2object, schema.typeRelationBS).keySet()) {
+					result.put(entity, schema.getAllTypesForEntity(this, entity));
 				}
 				return result;
 			case 2:
 				/*
 				 * Return a map from all types to all entities of sub-classes
 				 */
-				for (int type : get(relation2object2subject, Schema.typeRelationBS).keySet()) {
-					result.put(type, resultsOneVariable(triple(KB.map("?s"), TRANSITIVETYPEbs, type)));
+				for (int type : get(relation2object2subject, schema.typeRelationBS).keySet()) {
+					result.put(type, resultsOneVariable(triple(map("?s"), TRANSITIVETYPEbs, type)));
 				}
 				return result;
 			case 1:
@@ -120,22 +125,21 @@ public class TransitiveTypesKB extends KB {
 		try {
 			kb.load(files);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		if (kb.contains(KB.map("<John_Ford_(musician)>"), Schema.typeRelationBS, KB.map("<wordnet_person_100007846>"))) {
+		if (kb.contains(kb.map("<John_Ford_(musician)>"), kb.schema.typeRelationBS, kb.map("<wordnet_person_100007846>"))) {
 			System.err.println("Check failed: contains rdf:type not valid.");
 		} else {
 			System.out.println("Check passed: contains rdf:type.");
 		}
-		if (!kb.contains(KB.map("<John_Ford_(musician)>"), TRANSITIVETYPEbs, KB.map("<wordnet_person_100007846>"))) {
+		if (!kb.contains(kb.map("<John_Ford_(musician)>"), TRANSITIVETYPEbs, kb.map("<wordnet_person_100007846>"))) {
 			System.err.println("Check failed: contains transitiveType not valid.");
 		} else {
 			System.out.println("Check passed: contains transitiveType.");
 		}
-		System.out.println(String.valueOf(kb.countOneVariable(KB.map("?s"), Schema.typeRelationBS, KB.map("<wordnet_person_100007846>"))) + " persons");
-		System.out.println(String.valueOf(kb.countOneVariable(KB.map("?s"), TRANSITIVETYPEbs, KB.map("<wordnet_person_100007846>"))) + " transitive persons");
+		System.out.println(String.valueOf(kb.countOneVariable(kb.map("?s"), kb.schema.typeRelationBS, kb.map("<wordnet_person_100007846>"))) + " persons");
+		System.out.println(String.valueOf(kb.countOneVariable(kb.map("?s"), TRANSITIVETYPEbs, kb.map("<wordnet_person_100007846>"))) + " transitive persons");
 		 
-		System.out.println(kb.countTwoVariables(KB.map("?x"), TRANSITIVETYPEbs, KB.map("?y")));
+		System.out.println(kb.countTwoVariables(kb.map("?x"), TRANSITIVETYPEbs, kb.map("?y")));
 	}	
 }

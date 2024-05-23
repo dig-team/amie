@@ -7,3 +7,8 @@
 .idea/
 bin/
 kb/nb-configuration.xml
+.log
+query-logs/
+*cache/
+*.log
+*.xml

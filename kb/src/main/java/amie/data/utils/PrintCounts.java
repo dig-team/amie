@@ -50,11 +50,11 @@ public class PrintCounts {
         SimpleTypingKB kb = new SimpleTypingKB();
         kb.setDelimiter(" ");
         Schema.typeRelation = "<P106>";
-        Schema.typeRelationBS = KB.map(Schema.typeRelation);
+        kb.schema.typeRelationBS = kb.map(Schema.typeRelation);
         Schema.subClassRelation = "<P279>";
-        Schema.subClassRelationBS = KB.map(Schema.subClassRelation);
+        kb.schema.subClassRelationBS = kb.map(Schema.subClassRelation);
         Schema.top = "<Q35120>";
-        Schema.topBS = KB.map(Schema.top);
+        kb.schema.topBS = kb.map(Schema.top);
         kb.load(dataFiles);
 
         FileOutputStream fstream1 = new FileOutputStream("countsClass.tsv");
@@ -65,13 +65,13 @@ public class PrintCounts {
 
         for (int t : kb.classes.keySet()) {
             if ((s = kb.classes.get(t).size()) >= threshold) {
-                out1.append(KB.unmap(t) + "\t" + Integer.toString(s) + "\n");
+                out1.append(kb.unmap(t) + "\t" + Integer.toString(s) + "\n");
             }
         }
         for (int t1 : kb.classes.keySet()) {
             for (int t2 : kb.classes.keySet()) {
                 if ((s = (int) SetU.countIntersection(kb.classes.get(t1), kb.classes.get(t2))) >= threshold) {
-                    out2.append(KB.unmap(t1) + "\t" + KB.unmap(t2) + "\t" + s + "\n");
+                    out2.append(kb.unmap(t1) + "\t" + kb.unmap(t2) + "\t" + s + "\n");
                 }
             }
         }

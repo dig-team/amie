@@ -21,17 +21,18 @@ public class ComputeTypeDeductiveClosure {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException {
-		// It loads the properties from the file ../conf/schema_properties
-		amie.data.Schema.loadSchemaConf();
-		System.out.println("Assuming " + amie.data.Schema.typeRelation + " as type relation");
 		KB kb = U.loadFiles(args);
-		Int2ObjectMap<IntSet> allEntitiesAndTypes = 
+
+		// It loads the properties from the file ../conf/schema_properties
+		kb.schema.loadSchemaConf();
+		System.out.println("Assuming " + amie.data.Schema.typeRelation + " as type relation");
+		Int2ObjectMap<IntSet> allEntitiesAndTypes =
 				kb.resultsTwoVariables("?s", "?o", new String[]{"?s", amie.data.Schema.typeRelation, "?o"});
 		PrintWriter pw = new PrintWriter(new File("inferredTypes.tsv"));
 		for (int entity : allEntitiesAndTypes.keySet()) {
 			IntSet superTypes = new IntOpenHashSet();
 			for (int type : allEntitiesAndTypes.get(entity)) {
-				superTypes.addAll(amie.data.Schema.getAllSuperTypes(kb, type));	
+				superTypes.addAll(kb.schema.getAllSuperTypes(kb, type));
 			}
 			// And be sure we add only the new ones
 			superTypes.removeAll(allEntitiesAndTypes.get(entity));

@@ -6,7 +6,7 @@ AMIE is a system to mine Horn rules on knowledge bases. A knowledge base is a co
 AMIE can find rules in such knowledge bases, such as for example
 > wasBornIn(x, y) & isLocatedIn(y, z) => hasNationality(x, z)
 
-These rules are accompanied by various confidence scores. “AMIE” stands for “Association Rule Mining under Incomplete Evidence”. This repository contains the latest version of AMIE, called AMIE 3. The previous version of AMIE can be found [here](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/amie/). 
+These rules are accompanied by various confidence scores. “AMIE” stands for “Association Rule Mining under Incomplete Evidence”. This repository contains the latest version of AMIE, called AMIE 3.5. The versions of AMIE prior to 3.x can be found [here](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/amie/). The code of version 3.0 can be found [here](https://github.com/dig-team/amie/tree/v3.0).
 
 ## Input files
 
@@ -24,38 +24,28 @@ In the near future, AMIE will be able to parse the W3C Turtle format as well.
 
 Make sure that you have the latest version of [Java](https://java.com/en/download/) installed. Download the jar file, and type:
 
-```java -jar amie3.jar [TSV file]```
+```java -jar amie3_5.jar [TSV file]```
 
 In case of memory issues, try to increase the virtual machine's memory resources using the arguments `-XX:-UseGCOverheadLimit -Xmx [MAX_HEAP_SPACE]`, e.g:
 
-```java -XX:-UseGCOverheadLimit -Xmx2G -jar amie3.jar [TSV file]```
+```java -XX:-UseGCOverheadLimit -Xmx2G -jar amie3_5.jar [TSV file]```
 
-`MAX_HEAP_SPACE` depends on your input size and the system's available memory. The package also contains the utilities to generate and evaluate predictions from the rules mined by AMIE. Without additional arguments AMIE thresholds using PCA confidence 0.1 and head coverage 0.01. You can change these default settings. Run `java -jar amie3.jar -h` (without an input file) to see a detailed description of the available options.
-
-### Reproducing our experiments
-
-The executables can be found in the milestone directory or in the "releases" github onglet. Option names and default options are subject to change compared these milestones. To reproduce experiments, use by default:
-
-```java -jar amie-milestone-intKB.jar -bias lazy -full -noHeuristics -ostd [TSV file]```
-
-Experimental implementation of the GPro and GRank measures can be found in the "gpro" branch. After recompiling the sources ot this branch, use:
-
-```java -jar amie3.jar -bias amie.mining.assistant.experimental.[GPro|GRank] [TSVFile]```
+`MAX_HEAP_SPACE` depends on your input size and the system's available memory. The package also contains the utilities to generate and evaluate predictions from the rules mined by AMIE. Without additional arguments AMIE thresholds with PCA confidence 0.1 and head coverage 0.01. You can change these default settings. Run `java -jar amie3_5.jar -h` (without an input file) to see a detailed description of the available options.
 
 ### Use with remote knowledge base server
 
-Since loading knowledge graphs can take a significant amount of memory space and loading time, it is possible to run 
-AMIE with a remote autonomous knowledge base, slicing the architecture into two parts communicating over network.
+Since loading knowledge graphs can take a significant amount of memory space and loading time, AMIE 3.5 makes it possible to run 
+AMIE on a remote knowledge base, slicing the architecture into two parts communicating over network.
 
-Bellow is a basic setup example to use AMIE with a remote knowledge base.
+Below is a basic setup example to use AMIE with a remote knowledge base.
 
 #### Server-side
 
-```java -jar amie3.jar -server [TSVFile] -port <Server Port (default: 9092)>```
+```java -jar amie3_5.jar -server [TSVFile] -port <Server Port (default: 9092)>```
 
 #### Client-side
 
-```java -jar amie3.jar -client -serverAddress <Server Address (default: localhost:9092)>```
+```java -jar amie3_5.jar -client -serverAddress <Server Address (default: localhost:9092)>```
 
 __NOTE__:
 - Client and Server communicate using the WebSocket protocol. 
@@ -99,6 +89,18 @@ AMIE is managed with [Maven](https://maven.apache.org/), therefore to deploy you
  * IDEs such as Eclipse offer the option to create a project from an existing Maven project. The IDE will call Maven to compile the code.
 3. Maven will generate an executable jar named amie3.jar in a new "bin/" directory. This executable accepts RDF files in TSV format [like this one](http://resources.mpi-inf.mpg.de/yago-naga/amie/data/yago2_sample/yago2core.10kseedsSample.compressed.notypes.tsv) as input, but also other format described below. To run it, just write in your comand line: 
 
+### Reproducing our experiments (AMIE 3)
+
+Our [2020 ESWC publication](https://luisgalarraga.de/docs/amie3.pdf) introduced a handful of algorithmic optimizations that gave birth to [AMIE3](https://github.com/dig-team/amie/tree/v3.0). Besides an extensive code refactoring, the lastest version of AMIE includes novel features, optimizations, and several bug fixes. You may therefore not obtain the exact same runtime results as AMIE3. 
+
+If you want nevertheless reproduce the experiments published in 2020, you can find the executables used for the experiments in the milestone directory or in the "releases" github tab. Option names and default options are subject to change compared these milestones. To reproduce experiments, use by default:
+
+```java -jar amie-milestone-intKB.jar -bias lazy -full -noHeuristics -ostd [TSV file]```
+
+Experimental implementation of the GPro and GRank measures can be found in the "gpro" branch. After recompiling the sources ot this branch, use:
+
+```java -jar amie3.jar -bias amie.mining.assistant.experimental.[GPro|GRank] [TSVFile]```
+
 ## Publications 
 
 > Jonathan Lajus, Luis Galárraga, Fabian M. Suchanek:  
@@ -112,16 +114,6 @@ AMIE is managed with [Maven](https://maven.apache.org/), therefore to deploy you
 > Luis Galárraga, Christina Teflioudi, Katja Hose, Fabian M. Suchanek:  
 > [“AMIE: Association Rule Mining under Incomplete Evidence in Ontological Knowledge Bases”](https://suchanek.name/work/publications/www2013.pdf)  
 > Full paper at the International World Wide Web Conference  (WWW), 2013  
-
-### Determining Obligatory Attributes in Knowledge Bases
-
-The present repository also contains the code for the following paper:
-
-> Jonathan Lajus, Fabian M. Suchanek:  
-> [“Are All People Married? Determining Obligatory Attributes in Knowledge Bases”](https://suchanek.name/work/publications/www-2018.pdf)  
-> Full paper at the Web Conference  (WWW) , 2018  
-
-The code resides in: typing/
 
 ## Licensing
 

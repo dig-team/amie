@@ -57,6 +57,9 @@ Bellow is a basic setup example to use AMIE with a remote knowledge base.
 
 ```java -jar amie3.jar -client -serverAddress <Server Address (default: localhost:9092)>```
 
+__NOTE__:
+- Client and Server communicate using the WebSocket protocol. 
+
 #### Optional: Enabling cache
 
 It is possible to enable query caching for either server or client side with the ```-cache``` option.

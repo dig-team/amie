@@ -24,7 +24,7 @@ In the near future, AMIE will be able to parse the W3C Turtle format as well.
 
 Make sure that you have the latest version of [Java](https://java.com/en/download/) installed. Download the jar file, and type:
 
-```java -jar amie3_5.jar [TSV file]```
+```java -jar amie3.5.jar [TSV file]```
 
 In case of memory issues, try to increase the virtual machine's memory resources using the arguments `-XX:-UseGCOverheadLimit -Xmx [MAX_HEAP_SPACE]`, e.g:
 
@@ -34,37 +34,33 @@ In case of memory issues, try to increase the virtual machine's memory resources
 
 ### Use with remote knowledge base server
 
-Since loading knowledge graphs can take a significant amount of memory space and loading time, AMIE 3.5 makes it possible to run 
-AMIE on a remote knowledge base, slicing the architecture into two parts communicating over network.
+Since loading and storing knowledge graphs can take a significant amount of memory space and time, AMIE 3.5 makes it possible to run the mining routine against a remote knowledge base, splitting the architecture into two parts communicating over network.
 
 Below is a basic setup example to use AMIE with a remote knowledge base.
 
 #### Server-side
 
-```java -jar amie3_5.jar -server [TSVFile] -port <Server Port (default: 9092)>```
+```java -jar amie3.5.jar -server [TSVFile] -port <Server Port (default: 9092)>```
+
+This will load the data into the memory of the server. 
 
 #### Client-side
 
-```java -jar amie3_5.jar -client -serverAddress <Server Address (default: localhost:9092)>```
+```java -jar amie3.5.jar -client -serverAddress <Server Address (default: localhost:9092)>```
+
+In this case the client will mine the rules on the server deployed at the provided answer.
 
 __NOTE__:
 - Client and Server communicate using the WebSocket protocol. 
 
 #### Optional: Enabling cache
 
-It is possible to enable query caching for either server or client side with the ```-cache``` option.
+AMIE may run the same query more than once. It is therefore possible to enable query caching for either server or client side with the ```-cache``` option. This option is available only for remote mining. The cache option can be set either on the client or on the server side. The cache is automatically saved upon shutdown. If a corresponding cache is found, cache save is loaded, unless `-invalidateCache` is passed as argument.
 
-Cache can be used for remote KB mode, either by client or server depending on user passed parameters.
+The cache can improve performance significantly by reducing the amount of queries sent over network or executed by the KB.
+Performances will vary depending on the knowledge graph and the user parameters. 
 
-Cache can significantly improve performances by reducing the amount of queries sent over network or executed by the KB.
-Performances will vary based knowledge graph or other AMIE user parameters. 
-
-Knowledge graph quality can severely impact performances. We have noticed a significant
-performance gap between dbpedia version 3.8 and previous versions, thanks to a lower amount of queries sent to the server 
-greatly reducing communication overhead.
-
-Cache is automatically saved upon shutdown. If a corresponding cache is found, cache save is loaded, unless 
-`-invalidateCache` is passed as argument.
+The performance of the cache and the remote setting is sensitive to the data, as this defines the amount of queries that will be sent over the network. 
 
 __NOTE__:
 - Cache uses Least Recently Used (LRU) policy. As of yet, only LRU cache policy has been implemented. 
@@ -87,11 +83,11 @@ AMIE is managed with [Maven](https://maven.apache.org/), therefore to deploy you
 2. Import and compile the project
  * It is usually done by executing the following command in the amie directory: `$ mvn install`
  * IDEs such as Eclipse offer the option to create a project from an existing Maven project. The IDE will call Maven to compile the code.
-3. Maven will generate an executable jar named amie3.jar in a new "bin/" directory. This executable accepts RDF files in TSV format [like this one](http://resources.mpi-inf.mpg.de/yago-naga/amie/data/yago2_sample/yago2core.10kseedsSample.compressed.notypes.tsv) as input, but also other format described below. To run it, just write in your comand line: 
+3. Maven will generate an executable jar named amie3.5.jar in a new "bin/" directory. This executable accepts RDF files in TSV format [like this one](http://resources.mpi-inf.mpg.de/yago-naga/amie/data/yago2_sample/yago2core.10kseedsSample.compressed.notypes.tsv) as input, but also other format described below. To run it, just write in your comand line: 
 
 ### Reproducing our experiments (AMIE 3)
 
-Our [2020 ESWC publication](https://luisgalarraga.de/docs/amie3.pdf) introduced a handful of algorithmic optimizations that gave birth to [AMIE3](https://github.com/dig-team/amie/tree/v3.0). Besides an extensive code refactoring, the lastest version of AMIE includes novel features, optimizations, and several bug fixes. You may therefore not obtain the exact same runtime results as AMIE3. 
+Our [2020 ESWC publication](https://luisgalarraga.de/docs/amie3.pdf) introduced a handful of algorithmic optimizations that gave birth to [AMIE3](https://github.com/dig-team/amie/tree/v3.0). Besides an extensive code refactoring, the lastest version of AMIE includes novel features, optimizations, and several bug fixes. You might therefore not obtain the exact same runtime results as AMIE3. 
 
 If you want nevertheless reproduce the experiments published in 2020, you can find the executables used for the experiments in the milestone directory or in the "releases" github tab. Option names and default options are subject to change compared these milestones. To reproduce experiments, use by default:
 
@@ -113,7 +109,7 @@ Experimental implementation of the GPro and GRank measures can be found in the "
 
 > Luis Galárraga, Christina Teflioudi, Katja Hose, Fabian M. Suchanek:  
 > [“AMIE: Association Rule Mining under Incomplete Evidence in Ontological Knowledge Bases”](https://suchanek.name/work/publications/www2013.pdf)  
-> Full paper at the International World Wide Web Conference  (WWW), 2013  
+> Full paper at the International World Wide Web Conference (WWW), 2013  
 
 ## Licensing
 

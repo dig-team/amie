@@ -286,7 +286,8 @@ public interface AMIEOptions {
         options.addOption(DELIMITER);
         options.addOption(INVALIDATE_CACHE);
         options.addOption(CACHE);
-        options.addOption(CPOL);
+        /** To enable custom cache policies using this option, uncomment the line below **/
+//        options.addOption(CPOL);
         options.addOption(CSIZE);
         options.addOption(REMOTE_KB_MODE_CLIENT);
         options.addOption(REMOTE_KB_MODE_SERVER);

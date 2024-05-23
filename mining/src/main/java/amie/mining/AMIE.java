@@ -512,7 +512,8 @@ public class AMIE {
         // Caching
         if (cli.hasOption(AMIEOptions.CPOL.getOpt())) {
             Caching.EnableCache(cli.getOptionValue(AMIEOptions.CPOL.getOpt()));
-        } else if (cli.hasOption(AMIEOptions.CSIZE.getOpt()) || cli.hasOption(AMIEOptions.CACHE.getOpt())) {
+        } else
+        if (cli.hasOption(AMIEOptions.CSIZE.getOpt()) || cli.hasOption(AMIEOptions.CACHE.getOpt())) {
             Caching.EnableDefaultCache();
         }
 

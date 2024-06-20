@@ -26,8 +26,8 @@
                     <excludes>
                         <exclude>**/WikidataCleaner.java</exclude>
                     </excludes>
-                    <source>11</source>
-                    <target>11</target>
+                    <source>17</source>
+                    <target>17</target>
                 </configuration>
             </plugin>
         </plugins>
@@ -53,8 +53,20 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-rio-turtle</artifactId>
+            <version>5.0.0-M3</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-rio-n3</artifactId>
+            <version>5.0.0-M3</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.rdf4j</groupId>
             <artifactId>rdf4j-storage</artifactId>
-            <version>4.3.2</version>
+            <version>5.0.0-M3</version>
             <type>pom</type>
         </dependency>
         <dependency>

@@ -3,7 +3,7 @@ package amie.data;
 import static amie.data.U.decrease;
 import static amie.data.U.decreasingKeys;
 import static amie.data.U.increase;
-import static com.hp.hpl.jena.sparql.engine.optimizer.reorder.ReorderTransformationBase.log;
+//import static com.hp.hpl.jena.sparql.engine.optimizer.reorder.ReorderTransformationBase.log;
 
 import amie.data.starpattern.SignedPredicate;
 import amie.data.tuple.IntArrays;
@@ -33,6 +33,10 @@ import amie.data.javatools.filehandlers.FileLines;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParser;
 import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.rio.helpers.AbstractRDFParser;
+import org.eclipse.rdf4j.rio.turtle.TurtleParser;
+import org.eclipse.rdf4j.rio.n3.N3Parser;
+
 
 /**
  * Class KB
@@ -221,25 +225,25 @@ public class KB extends AbstractKB {
 					+ String.format("%d s", (System.currentTimeMillis()
 					- time) / 1000));
 		}
-		if (f.getPath().endsWith(".ttl") || f.getPath().endsWith(".nt")) {
+		if (f.getPath().endsWith(RDFFormat.TURTLE.getDefaultFileExtension()) ||
+				f.getPath().endsWith(RDFFormat.N3.getDefaultFileExtension())) {
+			InputStream in = null;
 			try {
-				InputStream in = Files.newInputStream(Paths.get(f.getPath()));
-
-				if (f.getPath().endsWith(".ttl")){
-					StoreStatementToKB abstractRDFHandler = new StoreStatementToKB(this);
-					RDFParser rdfParser = Rio.createParser(RDFFormat.TURTLE);
-					rdfParser.setRDFHandler(abstractRDFHandler);
-					rdfParser.parse(in);
-				}
-				else{
-					StoreStatementToKB abstractRDFHandler = new StoreStatementToKB(this);
-					RDFParser rdfParser = Rio.createParser(RDFFormat.N3);
-					rdfParser.setRDFHandler(abstractRDFHandler);
-					rdfParser.parse(in);
-				}
+				in = Files.newInputStream(Paths.get(f.getPath()));
+				StoreStatementToKB abstractRDFHandler = new StoreStatementToKB(this);
+			AbstractRDFParser rdfParser ;
+			if (f.getPath().endsWith(RDFFormat.TURTLE.getDefaultFileExtension())){
+				rdfParser = new TurtleParser();
+			}	else{
+				rdfParser = new N3Parser();
+			}
+			rdfParser.setRDFHandler(abstractRDFHandler);
+			rdfParser.parse(in);
 			} catch (Exception e) {
-				log.error("ParseInputFiles.parseTTLOrNTFileInLine parse TTL or NT error, filePath:{}", f.getPath(),e );
 				throw e ;
+			} finally {
+                if (in != null)
+                	in.close() ;
 			}
 		} else {
 			for (String line : new FileLines(f, "UTF-8", message)) {

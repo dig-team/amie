@@ -36,8 +36,6 @@ import amie.data.javatools.administrative.Announce;
 
 import amie.data.javatools.datatypes.MultiMap;
 import org.apache.commons.lang.StringUtils;
-import org.apache.zookeeper.Op;
-
 /**
  * Main class that implements the AMIE algorithm for rule mining on ontologies.
  * The ontology must be provided as a list of TSV files where each line has the

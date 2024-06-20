@@ -10,18 +10,18 @@ import java.util.Map;
 public class StoreStatementToKB extends AbstractRDFHandler {
 
     private static int counter = 0;
-    private AbstractKB kb;
+    private KB kb;
     private static Map<String,String> prefixes=new HashMap<>();
 
 
-    StoreStatementToKB(AbstractKB kb){
+    StoreStatementToKB(KB kb){
         this.kb = kb;
     }
     public void handleStatement(Statement st) {
         String subject = getFormattedValue(String.valueOf(st.getSubject()));
         String object = getFormattedValue(String.valueOf(st.getObject()));
         String predict = getFormattedValue(String.valueOf(st.getPredicate()));
-        ((KB) kb).add(subject, predict, object);
+        kb.add(subject, predict, object);
     }
 
     public String getFormattedValue(String value) {

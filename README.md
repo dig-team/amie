@@ -10,15 +10,13 @@ These rules are accompanied by various confidence scores. “AMIE” stands for 
 
 ## Input files
 
-AMIE takes as input a file that contains a knowledge base. This file must have one of the following formats:
+AMIE takes as input a file that contains a knowledge base. The knowledge base can be in format TTL, N3, or CSV. AMIE supports two CSV variants:
  1. `subject DELIM predicate DELIM object [whitespace/tabulation .] NEWLINE`
  2. `factid DELIM subject DELIM predicate DELIM object [whitespace/tabulation .] NEWLINE`
 
 The default delimiter `DELIM` is the tabulation (.tsv files) but can be changed using the `-d` option. Any trailing whitespaces followed by a point are ignored. This allows parsing most NT files using the option: `-d" "`. 
 
 However make sure the factid, subject, predicate nor the object contains the delimiter used (particularly in literal facts files). Otherwise the parsing may fail or facts may be wrongfully recognized as the second format.
-
-In the near future, AMIE will be able to parse the W3C Turtle format as well.
 
 ## Running AMIE
 

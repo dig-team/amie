@@ -845,6 +845,17 @@ public class AMIE {
             }
         }
 
+        // Mini-AMIE
+        if (cli.hasOption(AMIEOptions.MINI_AMIE.getOpt())) {
+            System.out.println("Running mini-AMIE! Have fun.");
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            }
+            return null ;
+        }
+
         if (cli.hasOption(AMIEOptions.MIN_SUPPORT.getOpt()) != cli.hasOption(AMIEOptions.MIN_HEAD_COVERAGE.getOpt())) {
             if (cli.hasOption(AMIEOptions.MIN_SUPPORT.getOpt())) {
                 metric = PruningMetric.Support;

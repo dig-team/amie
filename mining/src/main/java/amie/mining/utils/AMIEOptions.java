@@ -2,6 +2,7 @@ package amie.mining.utils;
 
 import amie.data.remote.Caching;
 import amie.data.AbstractKB;
+import com.hp.hpl.jena.sparql.algebra.Op;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
@@ -14,6 +15,8 @@ import java.util.List;
  * Every possible options for AMIE.
  */
 public interface AMIEOptions {
+
+    Option MINI_AMIE = new Option("mini", "Runs mini-AMIE.") ;
 
     Option INVALIDATE_CACHE = new Option("invalidateCache", false, "Ignores previously saved cache.");
     Option CACHE = new Option("cache", false, "Enables query caching.");
@@ -244,6 +247,7 @@ public interface AMIEOptions {
         // create the Options
         Options options = new Options();
 
+        options.addOption(MINI_AMIE) ;
         options.addOption(MIN_STD_CONFIDENCE);
         options.addOption(MIN_SUPPORT);
         options.addOption(MIN_INITIAL_SUPPORT);

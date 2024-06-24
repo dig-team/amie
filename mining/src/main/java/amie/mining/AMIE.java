@@ -22,6 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import amie.data.*;
 import amie.data.remote.Caching;
+import amie.mining.miniAmie.miniAMIE;
 import amie.mining.utils.AMIEOptions;
 import org.apache.commons.cli.*;
 
@@ -840,6 +841,8 @@ public class AMIE {
         // Mini-AMIE
         if (cli.hasOption(AMIEOptions.MINI_AMIE.getOpt())) {
             System.out.println("Running mini-AMIE! Have fun.");
+            miniAMIE.MaxRuleSize = maxDepth ;
+            miniAMIE.MinSup = minSup ;
             try {
                 Thread.sleep(3000);
             } catch (InterruptedException ie) {

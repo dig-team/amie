@@ -15,23 +15,23 @@ import java.util.List;
  */
 public interface AMIEOptions {
 
-        Option INVALIDATE_CACHE = new Option("invalidateCache", false, "Ignores previously saved cache.");
-        Option CACHE = new Option("cache", false, "Enables query caching.");
-        Option CSIZE = new Option("csize", true,
-                        String.format("Enables cache and set cache size ; default %s queries",
-                                        Caching.DEFAULT_CACHE_SIZE));
-        Option CPOL = new Option("cpol", true,
-                        String.format("Enables cache and set cache policy ; default %s policy",
-                                        Caching.DEFAULT_POLICY));
-        Option REMOTE_KB_MODE_SERVER = new Option("server", "Enables server mode.");
-        Option REMOTE_KB_MODE_CLIENT = new Option("client", "Enables client mode.");
-        Option SERVER_ADDRESS = new Option("serverAddress", true,
-                        String.format("Enables client mode and sets server address (default is %s)",
-                                        AbstractKB.DEFAULT_SERVER_ADDRESS));
-        Option PORT = new Option("port", true,
-                        String.format("Enables server mode with default layer type (%s) and sets port (default is %s)",
-                                        AbstractKB.GetDefaultCommunicationLayerType(),
-                                        AbstractKB.DEFAULT_PORT));
+    Option MINI_AMIE = new Option("mini", "Runs mini-AMIE.") ;
+
+    Option INVALIDATE_CACHE = new Option("invalidateCache", false, "Ignores previously saved cache.");
+    Option CACHE = new Option("cache", false, "Enables query caching.");
+    Option CSIZE = new Option("csize", true,
+            String.format("Enables cache and set cache size ; default %s queries", Caching.DEFAULT_CACHE_SIZE));
+    Option CPOL = new Option("cpol", true,
+            String.format("Enables cache and set cache policy ; default %s policy", Caching.DEFAULT_POLICY));
+    Option REMOTE_KB_MODE_SERVER = new Option("server", "Enables server mode.") ;
+    Option REMOTE_KB_MODE_CLIENT = new Option("client", "Enables client mode.") ;
+    Option SERVER_ADDRESS = new Option("serverAddress", true,
+            String.format("Enables client mode and sets server address (default is %s)",
+                    AbstractKB.DEFAULT_SERVER_ADDRESS));
+    Option PORT = new Option("port", true,
+            String.format("Enables server mode with default layer type (%s) and sets port (default is %s)",
+                    AbstractKB.GetDefaultCommunicationLayerType(),
+                    AbstractKB.DEFAULT_PORT));
 
         Option LIVE_METRICS = new Option("liveMetrics", "Enable live metrics.");
 

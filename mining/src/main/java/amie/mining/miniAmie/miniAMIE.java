@@ -1,63 +1,38 @@
 package amie.mining.miniAmie;
 
 import amie.data.AbstractKB;
+import amie.mining.assistant.MiningAssistant;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import amie.mining.miniAmie.utils;
+
+import static amie.mining.miniAmie.utils.*;
+
 
 public class miniAMIE {
     public static AbstractKB kb;
-    public static int MaxRuleSize ;
-    public static int MinSup ;
-    private static class ReturnType {
-        int sumExploredRules = 0 ;
-        List<Rule> finalRules;
 
-        public ReturnType(int sumExploredRules, List<Rule> finalRules) {
-            this.sumExploredRules = sumExploredRules;
-            this.finalRules = finalRules;
-        }
-    }
+    public static int MaxRuleSize;
+    public static int MinSup;
+    private static final int CORRECTION_FACTOR_CLOSURE = 2;
+    private static final int CORRECTION_FACTOR_OPENNING = 4;
 
-    // TODO
-    private Rule AddClosure(Rule rule) {
-        return rule ;
-    }
+    public static void Run() {
+        // Init mining assistant (temp solution)
+        miningAssistant = new MiningAssistant(kb) ;
 
-    // TODO
-    private Rule AddObjectSubjectDanglingAtom(Rule rule) {
-        return rule ;
-    }
-
-    // TODO
-    private Rule AddObjectObjectDanglingAtom(Rule rule) {
-        return rule ;
-    }
-
-    // TODO
-    private double ApproximateSupportClosedRule(Rule rule) {
-        return 0 ;
-    }
-
-    // TODO
-    private double ApproximateSupportOpenRule(Rule rule) {
-        return 0 ;
-    }
-
-    // TODO
-    private List<Rule> GetInitRules() {
-        return null ;
-    }
-
-    private void Run() {
-        List<Rule> initRules = GetInitRules();
+        Collection<Rule> initRules = GetInitRules(MinSup);
         int totalSumExploredRules = 0;
         List<Rule> finalRules = new ArrayList<>();
         for (Rule rule : initRules) {
             double supp = rule.getSupport();
             if (supp >= MinSup) {
-                ReturnType exploreChildrenResult = InitExploreChildren(rule);
+                ExplorationResult exploreChildrenResult = InitExploreChildren(rule);
                 totalSumExploredRules += exploreChildrenResult.sumExploredRules;
                 finalRules.addAll(exploreChildrenResult.finalRules);
             }
@@ -66,60 +41,79 @@ public class miniAMIE {
 
         // Displaying result
         System.out.println("Search space approximation: " + totalSumExploredRules + " explored rules.");
-        System.out.println("Approximate mining: ") ;
+        System.out.println("Approximate mining: ");
         for (Rule rule : finalRules) {
-            System.out.println(rule.toString()) ;
+            System.out.println(rule.toString());
         }
         System.out.println("Thank you for using mini-Amie. See you next time");
     }
 
-    private ReturnType InitExploreChildren(Rule rule) {
-        int totalSumExploredRules = 0 ;
+    private static ExplorationResult InitExploreChildren(Rule rule) {
+        int totalSumExploredRules = 0;
         List<Rule> finalRules = new ArrayList<>();
-        Rule closedChild = AddClosure(rule) ;
+        AddOperationResult addClosureOperationResult = AddClosure(rule);
+
+        Rule closedChild = addClosureOperationResult.chosenRule;
+        int nbPossibleClosurePredicate = addClosureOperationResult.nbPossibleRules;
 
         if (ApproximateSupportClosedRule(closedChild) < MinSup) {
-            totalSumExploredRules = 1 ;
-            finalRules.add(closedChild) ;
+            totalSumExploredRules = nbPossibleClosurePredicate * CORRECTION_FACTOR_CLOSURE;
+            // Note: Correcting factor due to 2 possible permutations for closing atom object/subject
+            finalRules.add(closedChild);
         }
 
-        Rule openChild = AddObjectObjectDanglingAtom(rule) ;
+        AddOperationResult addOpenOperationResult = AddObjectSubjectDanglingAtom(rule);
+
+        Rule openChild = addOpenOperationResult.chosenRule;
+        int nbPossibleOpenPredicate = addOpenOperationResult.nbPossibleRules;
+
         if (ApproximateSupportOpenRule(openChild) < MinSup) {
-            return new ReturnType(totalSumExploredRules, finalRules);
+            return new ExplorationResult(totalSumExploredRules, finalRules);
         }
 
-        ReturnType exploreOpenChildResult = ExploreChildren(openChild);
-        finalRules.addAll(exploreOpenChildResult.finalRules) ;
-        totalSumExploredRules += exploreOpenChildResult.sumExploredRules * 2  ;
-        return new ReturnType(totalSumExploredRules, finalRules);
+        ExplorationResult exploreOpenChildResult = ExploreChildren(openChild);
+        finalRules.addAll(exploreOpenChildResult.finalRules);
+        totalSumExploredRules += nbPossibleOpenPredicate * exploreOpenChildResult.sumExploredRules
+                * CORRECTION_FACTOR_OPENNING;
+        // Note: Correcting factor due to 4 possible permutations for closing atom object/subject
+        return new ExplorationResult(totalSumExploredRules, finalRules);
     }
 
-    private ReturnType ExploreChildren(Rule rule)
-    {
-      if (rule.getBodySize() + 1 > MaxRuleSize) {
-          return new ReturnType(0, new ArrayList<Rule>());
-      }
-      int totalSumExploredRules = 0 ;
-      List<Rule> finalRules = new ArrayList<>();
-      Rule closedChild = AddClosure(rule) ;
+    private static ExplorationResult ExploreChildren(Rule rule) {
+        if (rule.getBodySize() + 1 > MaxRuleSize) {
+            return new ExplorationResult(0, new ArrayList<Rule>());
+        }
+        int totalSumExploredRules = 0;
+        List<Rule> finalRules = new ArrayList<>();
+        AddOperationResult addClosureOperationResult = AddClosure(rule);
 
-      if (ApproximateSupportClosedRule(closedChild) < MinSup) {
-          totalSumExploredRules = 1 ;
-          finalRules.add(closedChild) ;
-      }
+        Rule closedChild = addClosureOperationResult.chosenRule;
+        int nbPossibleClosurePredicate = addClosureOperationResult.nbPossibleRules;
 
-      if (rule.getBodySize() + 2 > MaxRuleSize) {
-          return new ReturnType(totalSumExploredRules, finalRules);
-      }
+        if (ApproximateSupportClosedRule(closedChild) < MinSup) {
+            totalSumExploredRules = nbPossibleClosurePredicate * CORRECTION_FACTOR_CLOSURE;
+            // Note: Correcting factor due to 2 possible permutations for closing atom object/subject
+            finalRules.add(closedChild);
+        }
 
-      Rule openChild = AddObjectSubjectDanglingAtom(rule) ;
-      if (ApproximateSupportOpenRule(openChild) < MinSup) {
-          return new ReturnType(totalSumExploredRules, finalRules);
-      }
+        if (rule.getBodySize() + 2 > MaxRuleSize) {
+            return new ExplorationResult(totalSumExploredRules, finalRules);
+        }
 
-      ReturnType exploreOpenChildResult = ExploreChildren(openChild);
-      finalRules.addAll(exploreOpenChildResult.finalRules) ;
-      totalSumExploredRules += exploreOpenChildResult.sumExploredRules * 2 ;
-      return new ReturnType(totalSumExploredRules, finalRules);
+        AddOperationResult addOpenOperationResult = AddObjectObjectDanglingAtom(rule);
+
+        Rule openChild = addOpenOperationResult.chosenRule;
+        int nbPossibleOpenPredicate = addOpenOperationResult.nbPossibleRules;
+
+        if (ApproximateSupportOpenRule(openChild) < MinSup) {
+            return new ExplorationResult(totalSumExploredRules, finalRules);
+        }
+
+        ExplorationResult exploreOpenChildResult = ExploreChildren(openChild);
+        finalRules.addAll(exploreOpenChildResult.finalRules);
+        totalSumExploredRules += nbPossibleOpenPredicate * exploreOpenChildResult.sumExploredRules
+                * CORRECTION_FACTOR_OPENNING;
+        // Note: Correcting factor due to 4 possible permutations for closing atom object/subject
+        return new ExplorationResult(totalSumExploredRules, finalRules);
     }
 }

@@ -851,11 +851,8 @@ public class AMIE {
             System.out.println("Running mini-AMIE! Have fun.");
             miniAMIE.MaxRuleSize = maxDepth ;
             miniAMIE.MinSup = minSup ;
-            try {
-                Thread.sleep(3000);
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
-            }
+            miniAMIE.kb = dataSource ;
+            miniAMIE.Run() ;
             return null ;
         }
 

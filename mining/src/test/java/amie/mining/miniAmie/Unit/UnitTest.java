@@ -7,6 +7,5 @@ public abstract class UnitTest extends TestCase {
 
     protected void setUp() throws Exception {
         super.setUp() ;
-
     }
 }

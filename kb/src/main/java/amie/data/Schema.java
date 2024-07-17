@@ -432,6 +432,7 @@ public class Schema {
 		List<int[]> query = KB.triples(KB.triple(relation, rangeRelationBS, map("?x")));
 		IntSet ranges = source.selectDistinct(map("?x"), query);
 		if(!ranges.isEmpty()){
+			System.err.println("not empty " + relation);
 			return ranges.iterator().nextInt();
 		}
 
@@ -441,9 +442,10 @@ public class Schema {
 
 		ranges = source.selectDistinct(map("?x"), query2);
 		if(!ranges.isEmpty()){
+			System.err.println("not empty 2 " + relation);
 			return ranges.iterator().nextInt();
 		}
-
+		System.err.println(relation);
 		return 0;
 	}
 

@@ -1,15 +1,14 @@
 package amie.mining.miniAmie;
 
 import amie.data.AbstractKB;
-import amie.mining.assistant.MiningAssistant;
+import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.Rule;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import org.eclipse.rdf4j.query.algebra.Min;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import amie.mining.miniAmie.utils;
+import java.util.concurrent.TimeUnit;
 
 import static amie.mining.miniAmie.utils.*;
 
@@ -24,7 +23,7 @@ public class miniAMIE {
 
     public static void Run() {
         // Init mining assistant (temp solution)
-        miningAssistant = new MiningAssistant(kb) ;
+        miningAssistant = new DefaultMiningAssistant(kb);
 
         Collection<Rule> initRules = GetInitRules(MinSup);
         int totalSumExploredRules = 0;
@@ -32,7 +31,14 @@ public class miniAMIE {
         for (Rule rule : initRules) {
             double supp = rule.getSupport();
             if (supp >= MinSup) {
+
                 ExplorationResult exploreChildrenResult = InitExploreChildren(rule);
+                try {
+                    TimeUnit.MILLISECONDS.sleep(500);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
                 totalSumExploredRules += exploreChildrenResult.sumExploredRules;
                 finalRules.addAll(exploreChildrenResult.finalRules);
             }
@@ -40,7 +46,7 @@ public class miniAMIE {
         }
 
         // Displaying result
-        System.out.println("Search space approximation: " + totalSumExploredRules + " explored rules.");
+        System.out.println("Search space approximation: " + totalSumExploredRules + " possibilities.");
         System.out.println("Approximate mining: ");
         for (Rule rule : finalRules) {
             System.out.println(rule.toString());
@@ -48,71 +54,99 @@ public class miniAMIE {
         System.out.println("Thank you for using mini-Amie. See you next time");
     }
 
-    private static ExplorationResult InitExploreChildren(Rule rule) {
-        int totalSumExploredRules = 0;
+    private static ExplorationResult InitExploreChildren(final Rule rule) {
+
+        System.err.println("INIT Exploring rule: " + rule.toString());
+        int totalSumExploredRules;
         List<Rule> finalRules = new ArrayList<>();
-        AddOperationResult addClosureOperationResult = AddClosure(rule);
+        AddOperationResult addClosureOperationResult = AddClosure_EmptyBody(rule);
+        int nbPossibleClosurePredicate = 0;
 
-        Rule closedChild = addClosureOperationResult.chosenRule;
-        int nbPossibleClosurePredicate = addClosureOperationResult.nbPossibleRules;
-
-        if (ApproximateSupportClosedRule(closedChild) < MinSup) {
-            totalSumExploredRules = nbPossibleClosurePredicate * CORRECTION_FACTOR_CLOSURE;
-            // Note: Correcting factor due to 2 possible permutations for closing atom object/subject
-            finalRules.add(closedChild);
+        // Note: Correcting factor due to 2 possible permutations for closing atom object/subject
+        if (addClosureOperationResult != null) {
+            Rule closedChild = addClosureOperationResult.chosenRule;
+            nbPossibleClosurePredicate = addClosureOperationResult.nbPossibleRules;
+            System.out.println("Closure: " + closedChild
+                    + " nbPossibleClosurePredicate: " + nbPossibleClosurePredicate);
+            double appSupp = ApproximateSupportClosedRule(closedChild) ;
+//            System.out.println("approximation: " + appSupp);
+            if (appSupp < MinSup) {
+                finalRules.add(closedChild);
+            }
         }
+        totalSumExploredRules = nbPossibleClosurePredicate * CORRECTION_FACTOR_CLOSURE;
 
-        AddOperationResult addOpenOperationResult = AddObjectSubjectDanglingAtom(rule);
+        AddOperationResult addOpenOperationResult = AddObjectObjectDanglingAtom(rule);
 
-        Rule openChild = addOpenOperationResult.chosenRule;
-        int nbPossibleOpenPredicate = addOpenOperationResult.nbPossibleRules;
 
-        if (ApproximateSupportOpenRule(openChild) < MinSup) {
-            return new ExplorationResult(totalSumExploredRules, finalRules);
-        }
+        if (addOpenOperationResult != null) {
+            Rule openChild = addOpenOperationResult.chosenRule;
+            int nbPossibleOpenPredicate = addOpenOperationResult.nbPossibleRules;
+            System.out.println("Opening: " + openChild
+                    + " nbPossibleClosurePredicate: " + nbPossibleOpenPredicate);
 
-        ExplorationResult exploreOpenChildResult = ExploreChildren(openChild);
+            double appSupp = ApproximateSupportOpenRule(openChild) ;
+            if (appSupp > MinSup) {
+            ExplorationResult exploreOpenChildResult = ExploreChildren(openChild);
         finalRules.addAll(exploreOpenChildResult.finalRules);
         totalSumExploredRules += nbPossibleOpenPredicate * exploreOpenChildResult.sumExploredRules
                 * CORRECTION_FACTOR_OPENNING;
-        // Note: Correcting factor due to 4 possible permutations for closing atom object/subject
+                totalSumExploredRules += nbPossibleOpenPredicate * CORRECTION_FACTOR_OPENNING;
+// Note: Correcting factor due to 4 possible permutations for closing atom object/subject
+            } else {
+                System.out.println("Reached insufficient support : "+appSupp+ " < " + MinSup);
+            }
+        }
         return new ExplorationResult(totalSumExploredRules, finalRules);
     }
 
     private static ExplorationResult ExploreChildren(Rule rule) {
+        System.err.println("Exploring rule: " + rule.toString());
         if (rule.getBodySize() + 1 > MaxRuleSize) {
             return new ExplorationResult(0, new ArrayList<Rule>());
         }
-        int totalSumExploredRules = 0;
+        int totalSumExploredRules;
         List<Rule> finalRules = new ArrayList<>();
         AddOperationResult addClosureOperationResult = AddClosure(rule);
+        int nbPossibleClosurePredicate = 0;
 
-        Rule closedChild = addClosureOperationResult.chosenRule;
-        int nbPossibleClosurePredicate = addClosureOperationResult.nbPossibleRules;
-
-        if (ApproximateSupportClosedRule(closedChild) < MinSup) {
-            totalSumExploredRules = nbPossibleClosurePredicate * CORRECTION_FACTOR_CLOSURE;
-            // Note: Correcting factor due to 2 possible permutations for closing atom object/subject
-            finalRules.add(closedChild);
+        // Note: Correcting factor due to 2 possible permutations for closing atom object/subject
+        if (addClosureOperationResult != null) {
+            Rule closedChild = addClosureOperationResult.chosenRule;
+            nbPossibleClosurePredicate = addClosureOperationResult.nbPossibleRules;
+            System.out.println("Closure: " + closedChild
+                    + " nbPossibleClosurePredicate: " + nbPossibleClosurePredicate);
+            double appSupp = ApproximateSupportClosedRule(closedChild) ;
+//            System.out.println("approximation: " + appSupp);
+            if (appSupp < MinSup) {
+                finalRules.add(closedChild);
+            }
         }
+        totalSumExploredRules = nbPossibleClosurePredicate * CORRECTION_FACTOR_CLOSURE;
 
         if (rule.getBodySize() + 2 > MaxRuleSize) {
             return new ExplorationResult(totalSumExploredRules, finalRules);
         }
 
-        AddOperationResult addOpenOperationResult = AddObjectObjectDanglingAtom(rule);
+        AddOperationResult addOpenOperationResult = AddObjectSubjectDanglingAtom(rule);
 
-        Rule openChild = addOpenOperationResult.chosenRule;
-        int nbPossibleOpenPredicate = addOpenOperationResult.nbPossibleRules;
 
-        if (ApproximateSupportOpenRule(openChild) < MinSup) {
-            return new ExplorationResult(totalSumExploredRules, finalRules);
-        }
+        if (addOpenOperationResult != null) {
+            Rule openChild = addOpenOperationResult.chosenRule;
+            int nbPossibleOpenPredicate = addOpenOperationResult.nbPossibleRules;
+            System.out.println("Opening: " + openChild
+                    + " nbPossibleClosurePredicate: " + nbPossibleOpenPredicate);
 
-        ExplorationResult exploreOpenChildResult = ExploreChildren(openChild);
+            double appSupp = ApproximateSupportOpenRule(openChild) ;
+            if (appSupp > MinSup) {
+            ExplorationResult exploreOpenChildResult = ExploreChildren(openChild);
         finalRules.addAll(exploreOpenChildResult.finalRules);
         totalSumExploredRules += nbPossibleOpenPredicate * exploreOpenChildResult.sumExploredRules
                 * CORRECTION_FACTOR_OPENNING;
+                totalSumExploredRules += nbPossibleOpenPredicate * CORRECTION_FACTOR_OPENNING;
+// Note: Correcting factor due to 4 possible permutations for closing atom object/subject
+            }
+        }
         // Note: Correcting factor due to 4 possible permutations for closing atom object/subject
         return new ExplorationResult(totalSumExploredRules, finalRules);
     }

@@ -2664,8 +2664,9 @@ public class KB extends AbstractKB {
 						for (int val1 : instantiations.keySet()) {
 							insty1.instantiate(val1);
 							for (int val2 : instantiations.get(val1)) {
-								increase(result, selectDistinct(variable,
-										insty2.instantiate(val2)));
+								IntSet selected = selectDistinct(variable,
+										insty2.instantiate(val2));
+								increase(result, selected);
 							}
 						}
 					}

@@ -14,7 +14,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import amie.data.*;
-import amie.data.remote.Cache;
 import amie.data.remote.Caching;
 import amie.mining.miniAmie.miniAMIE;
 import amie.mining.utils.AMIEOptions;
@@ -31,7 +30,6 @@ import amie.mining.assistant.variableorder.InverseOrder;
 import amie.mining.assistant.variableorder.VariableOrder;
 import amie.rules.Metric;
 import amie.rules.Rule;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntCollection;
 import amie.data.javatools.administrative.Announce;
 

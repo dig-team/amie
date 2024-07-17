@@ -21,6 +21,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import amie.data.javatools.datatypes.IntHashMap;
@@ -29,34 +30,34 @@ import amie.data.javatools.filehandlers.FileLines;
 public class Schema {
 
 	public static String top = "owl:Thing";
-	public int topBS;
+	public int topBS ;
 
 	/** X rdf:type Class **/
 	public static String typeRelation = "rdf:type";
 
-	public int typeRelationBS;
+	public int typeRelationBS ;
 
 	/** Class1 rdfs:subClassOf Class2 **/
 	public static String subClassRelation = "rdfs:subClassOf";
 
-	public int subClassRelationBS;
+	public int subClassRelationBS ;
 
 	/** relation1 rdfs:subPropertyOf relation2 **/
 	public static String subPropertyRelation = "rdfs:subPropertyOf";
 
-	public int subPropertyRelationBS;
+	public int subPropertyRelationBS ;
 
 	/** Class rdfs:domain relation **/
 	public static String domainRelation = "rdfs:domain";
 
-	public int domainRelationBS;
+	public int domainRelationBS ;
 
 	/** Class rdfs:domain range **/
 	public static String rangeRelation = "rdfs:range";
 
-	public int rangeRelationBS;
+	public int rangeRelationBS ;
 
-	public IntList schemaRelationsBS;
+	public IntList schemaRelationsBS ;
 
 	public static List<String> schemaRelations = Arrays.asList(typeRelation, subClassRelation,
 			subPropertyRelation, domainRelation, rangeRelation);
@@ -76,7 +77,7 @@ public class Schema {
 	protected Object2IntMap<String> entityToId = new Object2IntOpenHashMap<String>();
 	protected Object2IntMap<String> compositeToId = new Object2IntOpenHashMap<String>();
 
-	public final Map<String, String> prefixMap = new HashMap<>();
+	public final Map<String,String> prefixMap=new HashMap<>();
 
 	/** Variable sign (as defined in SPARQL) **/
 	public static final char VariableSign = '?';
@@ -94,15 +95,15 @@ public class Schema {
 		entityToId = new Object2IntOpenHashMap<String>();
 		compositeToId = new Object2IntOpenHashMap<String>();
 
-		topBS = map(top);
-		typeRelationBS = map(typeRelation);
-		subClassRelationBS = map(subClassRelation);
-		subPropertyRelationBS = map(subPropertyRelation);
-		domainRelationBS = map(domainRelation);
-		rangeRelationBS = map(rangeRelation);
+		topBS = map(top) ;
+		typeRelationBS = map(typeRelation) ;
+		subClassRelationBS = map(subClassRelation) ;
+		subPropertyRelationBS = map(subPropertyRelation) ;
+		domainRelationBS = map(domainRelation) ;
+		rangeRelationBS = map(rangeRelation) ;
 
 		schemaRelationsBS = IntArrays.asList(typeRelationBS, subClassRelationBS,
-				subPropertyRelationBS, domainRelationBS, rangeRelationBS);
+				subPropertyRelationBS, domainRelationBS, rangeRelationBS) ;
 	}
 
 	public static boolean isComposite(int id) {
@@ -120,8 +121,8 @@ public class Schema {
 			r = compositeToId.getInt(b);
 		} else {
 			compositeEntity.add(b);
-			compositeToId.put(b, -2047 - compositeEntity.size());
-			r = -2047 - compositeEntity.size();
+			compositeToId.put(b, -2047-compositeEntity.size());
+			r = -2047-compositeEntity.size();
 		}
 		mappingLock.unlock();
 		return r;
@@ -160,7 +161,8 @@ public class Schema {
 			hasNumberOfValuesEqualsInv + "|" + hasNumberOfValuesGreaterThanInv + "|" + hasNumberOfValuesSmallerThanInv +
 			")([0-9]+)";
 
-	private static final Pattern cardinalityRelationsRegexPattern = Pattern.compile(cardinalityRelationsRegex);
+	private static final Pattern cardinalityRelationsRegexPattern =
+			Pattern.compile(cardinalityRelationsRegex);
 
 	public static final int COMPOSE_SIZE = 15;
 
@@ -169,9 +171,7 @@ public class Schema {
 	}
 
 	public static IntPair uncompose(int c) {
-		if (!isComposite(c)) {
-			return null;
-		}
+		if (!isComposite(c)) { return null; }
 		return new IntPair(-((-c) % ((1 << COMPOSE_SIZE))), (-c) >> COMPOSE_SIZE);
 	}
 
@@ -186,27 +186,21 @@ public class Schema {
 		}
 		return 0;
 	}
-
 	/**
 	 * Determines whether the relation has
-	 * 
 	 * @param composite
 	 * @return
 	 */
 	public IntPair parseCardinalityRelation(int composite) {
 		IntPair r = uncompose(composite);
-		if (r == null) {
-			return null;
-		}
-		if (!cardinalityRelations.contains(r.first)) {
-			return null;
-		}
+		if (r == null) { return null; }
+		if (!cardinalityRelations.contains(r.first)) { return null; }
 		return r;
 	}
 
 	public String unmapComposite(int composite) {
 		IntPair p = uncompose(composite);
-		return compositeEntity.get(-p.first - 2048).toString() + Integer.toString(p.second);
+		return compositeEntity.get(-p.first-2048).toString() + Integer.toString(p.second);
 	}
 
 	/** TRUE if the int is a SPARQL variable */
@@ -228,7 +222,6 @@ public class Schema {
 
 	/**
 	 * Map a variable of the form [a-z][0-9]{1-2} to an integer between 1 and 1023.
-	 * 
 	 * @param letter
 	 * @param num1
 	 * @param num2
@@ -240,9 +233,9 @@ public class Schema {
 			return r;
 		} else {
 			if (num2 < 0) {
-				return ((r - 1) * 10) + num1 + 27;
+				return ((r-1) * 10) + num1 + 27;
 			} else {
-				return Math.min(((r - 1) * 100) + num1 * 10 + num2 + 287, 1023);
+				return Math.min(((r-1) * 100) + num1*10 + num2 + 287, 1023);
 			}
 		}
 	}
@@ -254,9 +247,8 @@ public class Schema {
 				return -mapVariable(m.group(2).charAt(0), (m.group(3) == null) ? -1 : Integer.parseInt(m.group(3)),
 						(m.group(4) == null) ? -1 : Integer.parseInt(m.group(4)));
 			} else {
-				return -1023
-						- mapVariable(m.group(2).charAt(0), (m.group(3).isEmpty()) ? -1 : Integer.parseInt(m.group(3)),
-								(m.group(4) == null) ? -1 : Integer.parseInt(m.group(4)));
+				return -1023-mapVariable(m.group(2).charAt(0), (m.group(3).isEmpty()) ? -1 : Integer.parseInt(m.group(3)),
+						(m.group(4) == null) ? -1 : Integer.parseInt(m.group(4)));
 			}
 		}
 		throw new IllegalArgumentException("Variable " + cs.toString() + " DO NOT MATCH \"\\?(_?)[a-z][0-9]{1,2}\"");
@@ -326,6 +318,7 @@ public class Schema {
 		return r;
 	}
 
+
 	/** Compresses a string to an internal string */
 	private static String _compress(CharSequence s) {
 		if (s instanceof String) {
@@ -337,6 +330,7 @@ public class Schema {
 			str = str.substring(0, pos + 1);
 		return str;
 	}
+
 
 	public void materializeTaxonomy(AbstractKB source) {
 		List<int[]> query = KB.triples(source.triple("?x", subClassRelation, "?y"));
@@ -373,7 +367,7 @@ public class Schema {
 					amie.data.U.class.getField(lineParts[0]).set(null, lineParts[1]);
 					amie.data.U.class.getField(lineParts[0] + "BS").set(null, map(lineParts[1]));
 				} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException
-						| SecurityException e) {
+						 | SecurityException e) {
 					e.printStackTrace();
 				}
 			}
@@ -386,7 +380,6 @@ public class Schema {
 	/**
 	 * True if the relation is a special RDF/RDFS relation such as
 	 * rdf:type
-	 * 
 	 * @param relation
 	 * @return
 	 */
@@ -397,7 +390,6 @@ public class Schema {
 	/**
 	 * True if the relation is a special RDF/RDFS relation such as
 	 * rdf:type
-	 * 
 	 * @param relation
 	 * @return
 	 */
@@ -407,24 +399,23 @@ public class Schema {
 
 	/**
 	 * Returns the domain of a given relation in a knowledge base
-	 * 
 	 * @param source
 	 * @param relation
 	 * @return
 	 */
-	public int getRelationDomain(AbstractKB source, int relation) {
+	public int getRelationDomain(AbstractKB source, int relation){
 		List<int[]> query = KB.triples(KB.triple(relation, domainRelationBS, map("?x")));
 		IntSet domains = source.selectDistinct(map("?x"), query);
-		if (!domains.isEmpty()) {
+		if(!domains.isEmpty()){
 			return domains.iterator().nextInt();
 		}
 
-		// Try looking for the superproperty
+		//Try looking for the superproperty
 		List<int[]> query2 = KB.triples(KB.triple(relation, subPropertyRelationBS, map("?y")),
 				source.triple("?y", "rdfs:domain", "?x"));
 
 		domains = source.selectDistinct(map("?x"), query2);
-		if (!domains.isEmpty()) {
+		if(!domains.isEmpty()){
 			return domains.iterator().nextInt();
 		}
 
@@ -433,19 +424,18 @@ public class Schema {
 
 	/**
 	 * Returns the range of a given relation in a knowledge base.
-	 * 
 	 * @param source
 	 * @param relation
 	 * @return
 	 */
-	public int getRelationRange(AbstractKB source, int relation) {
+	public int getRelationRange(AbstractKB source, int relation){
 		List<int[]> query = KB.triples(KB.triple(relation, rangeRelationBS, map("?x")));
 		IntSet ranges = source.selectDistinct(map("?x"), query);
 		if (!ranges.isEmpty()) {
 			return ranges.iterator().nextInt();
 		}
 
-		// Try looking for the superproperty
+		//Try looking for the superproperty
 		List<int[]> query2 = KB.triples(KB.triple(relation, subPropertyRelationBS, map("?y")),
 				source.triple("?y", "rdfs:range", "?x"));
 
@@ -453,31 +443,28 @@ public class Schema {
 		if (!ranges.isEmpty()) {
 			return ranges.iterator().nextInt();
 		}
-
+		System.err.println(relation);
 		return 0;
 	}
 
 	/**
 	 * It returns all the materialized types of an entity in a knowledge base.
-	 * 
 	 * @param source
 	 * @param entity
 	 * @return
 	 */
-	public IntSet getMaterializedTypesForEntity(AbstractKB source, int entity) {
+	public IntSet getMaterializedTypesForEntity(AbstractKB source, int entity){
 		List<int[]> query = KB.triples(KB.triple(entity, typeRelationBS, map("?x")));
 		return source.selectDistinct(map("?x"), query);
 	}
 
 	/**
-	 * Determines whether a given type is specific, that is, it does not have
-	 * subclasses.
-	 * 
+	 * Determines whether a given type is specific, that is, it does not have subclasses.
 	 * @param source
 	 * @param type
 	 * @return
 	 */
-	public boolean isLeafDatatype(AbstractKB source, int type) {
+	public boolean isLeafDatatype(AbstractKB source, int type){
 		if (taxonomyMaterialized) {
 			IntSet subTypes = subClassMaterialized.get(type);
 			return subTypes == null || subTypes.isEmpty();
@@ -487,20 +474,18 @@ public class Schema {
 	}
 
 	/**
-	 * It returns the most specific types of an entity according to the type
-	 * hierarchy
+	 * It returns the most specific types of an entity according to the type hierarchy
 	 * of the knowledge base.
-	 * 
 	 * @param source
 	 * @param entity
 	 * @return
 	 */
-	public IntSet getLeafTypesForEntity(AbstractKB source, int entity) {
+	public IntSet getLeafTypesForEntity(AbstractKB source, int entity){
 		IntSet tmpTypes = getMaterializedTypesForEntity(source, entity);
 		IntSet resultTypes = new IntOpenHashSet();
 
-		for (int type : tmpTypes) {
-			if (isLeafDatatype(source, type)) {
+		for(int type: tmpTypes){
+			if(isLeafDatatype(source, type)){
 				resultTypes.add(type);
 			}
 		}
@@ -510,15 +495,14 @@ public class Schema {
 
 	/**
 	 * It returns all the types of a given entity.
-	 * 
 	 * @param source
 	 * @param entity
 	 * @return
 	 */
-	public IntSet getAllTypesForEntity(AbstractKB source, int entity) {
+	public IntSet getAllTypesForEntity(AbstractKB source, int entity){
 		IntSet leafTypes = getMaterializedTypesForEntity(source, entity);
 		IntSet resultTypes = new IntOpenHashSet(leafTypes);
-		for (int leafType : leafTypes) {
+		for (int leafType: leafTypes) {
 			resultTypes.addAll(getAllSuperTypes(source, leafType));
 		}
 		return resultTypes;
@@ -526,19 +510,17 @@ public class Schema {
 
 	/**
 	 * It returns all the immediate super-types of a given type.
-	 * 
 	 * @param source
 	 * @param type
 	 * @return
 	 */
-	public IntSet getSuperTypes(AbstractKB source, int type) {
+	public IntSet getSuperTypes(AbstractKB source, int type){
 		List<int[]> query = KB.triples(KB.triple(type, subClassRelationBS, map("?x")));
 		return source.selectDistinct(map("?x"), query);
 	}
 
 	/**
 	 * It returns all the supertypes of a given type.
-	 * 
 	 * @param source
 	 * @param type
 	 * @return
@@ -573,7 +555,6 @@ public class Schema {
 
 	/**
 	 * It returns all the instances of a given type.
-	 * 
 	 * @param source
 	 * @param type
 	 * @return
@@ -585,7 +566,6 @@ public class Schema {
 
 	/**
 	 * Returns the number of instances of the given class in a KB
-	 * 
 	 * @param kb
 	 * @param type
 	 * @return
@@ -596,7 +576,6 @@ public class Schema {
 
 	/**
 	 * Returns all present data types in the given KB.
-	 * 
 	 * @param kb
 	 */
 	public IntSet getAllTypes(AbstractKB kb) {
@@ -606,7 +585,6 @@ public class Schema {
 
 	/**
 	 * Gets all the entities of the type of the given relation's domain.
-	 * 
 	 * @param source
 	 * @param relation
 	 * @return
@@ -621,15 +599,13 @@ public class Schema {
 	}
 
 	/**
-	 * Gets all the entities of the given type that occur as subjects in the
-	 * relation.
-	 * 
+	 * Gets all the entities of the given type that occur as subjects in the relation.
 	 * @param source
 	 * @param relation
 	 * @return
 	 */
 	public IntSet getDomainSet(AbstractKB source, int relation,
-			int domainType) {
+							   int domainType) {
 		List<int[]> query = null;
 		String queryVar = "?s";
 		query = KB.triples(KB.triple(map("?s"), relation, map("?o")),
@@ -639,9 +615,9 @@ public class Schema {
 		return source.selectDistinct(map(queryVar), query);
 	}
 
+
 	/**
 	 * Get all the immediate subtypes of a given type.
-	 * 
 	 * @param source
 	 * @param type
 	 * @return
@@ -657,7 +633,6 @@ public class Schema {
 
 	/**
 	 * Get all subtypes of a given type.
-	 * 
 	 * @param source
 	 * @param type
 	 * @return
@@ -692,7 +667,6 @@ public class Schema {
 
 	/**
 	 * Gets all the entities of the type of the given relation's range.
-	 * 
 	 * @param source
 	 * @param relation
 	 * @return
@@ -706,16 +680,15 @@ public class Schema {
 		return result;
 	}
 
+
 	/**
-	 * Gets all the entities of the given type that occur as objects in the
-	 * relation.
-	 * 
+	 * Gets all the entities of the given type that occur as objects in the relation.
 	 * @param source
 	 * @param relation
 	 * @return
 	 */
 	public IntSet getRangeSet(AbstractKB source, int relation,
-			int rangeType) {
+							  int rangeType) {
 		List<int[]> query = null;
 		String queryVar = "?o";
 		query = KB.triples(KB.triple(map("?s"), relation, map("?o")),
@@ -726,15 +699,10 @@ public class Schema {
 	}
 
 	/**
-	 * Compute a histogram on the theorethical domain of the relation (all the
-	 * instances
-	 * of the type defined as domain of the relation). This function looks at the
-	 * most functional
-	 * side, that is, if the relation is more inverse functional than functional it
-	 * will calculate
-	 * the histogram on the inverse relation (meaning it will provide a histogram of
-	 * the range).
-	 * 
+	 * Compute a histogram on the theorethical domain of the relation (all the instances
+	 * of the type defined as domain of the relation). This function looks at the most functional
+	 * side, that is, if the relation is more inverse functional than functional it will calculate
+	 * the histogram on the inverse relation (meaning it will provide a histogram of the range).
 	 * @param kb
 	 * @param relation
 	 * @return
@@ -772,7 +740,7 @@ public class Schema {
 			} else {
 				val = kb.count(KB.triple(map(queryVar), relation, entity));
 			}
-			hist.increase((int) val);
+			hist.increase((int)val);
 		}
 		kb.selectDistinct(map(existVar), query);
 
@@ -781,20 +749,16 @@ public class Schema {
 
 	/**
 	 * Computes a histogram for relation on a given type (all the instances
-	 * of the provided type). The type must be a subclass of the domain of the
-	 * relation.
-	 * This function looks at the most functional side of the relation, that is, if
-	 * the relation
-	 * is more inverse functional than functional it will calculate the histogram on
-	 * the
+	 * of the provided type). The type must be a subclass of the domain of the relation.
+	 * This function looks at the most functional side of the relation, that is, if the relation
+	 * is more inverse functional than functional it will calculate the histogram on the
 	 * inverse relation (meaning it will provide a histogram of the range).
-	 * 
 	 * @param kb
 	 * @param relation
 	 * @return
 	 */
 	public IntHashMap<Integer> getHistogramOnDomain(AbstractKB kb,
-			int relation, int domainType) {
+													int relation, int domainType) {
 		IntHashMap<Integer> hist = new IntHashMap<>();
 		List<int[]> query = null;
 		String queryVar = null;
@@ -822,7 +786,7 @@ public class Schema {
 			} else {
 				val = kb.count(KB.triple(map(queryVar), relation, entity));
 			}
-			hist.increase((int) val);
+			hist.increase((int)val);
 		}
 		kb.selectDistinct(map(existVar), query);
 
@@ -831,7 +795,6 @@ public class Schema {
 
 	/**
 	 * It returns a map containing the number of instances of each class in the KB.
-	 * 
 	 * @param kb
 	 * @return
 	 */
@@ -849,7 +812,8 @@ public class Schema {
 		} else {
 			List<int[]> query = KB.triples(kb.triple("?s", typeRelation, "?o"));
 			types2Instances = new Int2ObjectOpenHashMap<>();
-			Int2ObjectMap<IntSet> ts = kb.selectDistinct(map("?o"), map("?s"), query);
+			Int2ObjectMap<IntSet> ts =
+					kb.selectDistinct(map("?o"), map("?s"), query);
 			Int2IntMap result = new Int2IntOpenHashMap();
 			for (int type : ts.keySet()) {
 				result.put(type, ts.get(type).size());
@@ -859,9 +823,7 @@ public class Schema {
 	}
 
 	/**
-	 * It returns a map of map containing the number of instances in the
-	 * intersection of every two classes in the KB.
-	 * 
+	 * It returns a map of map containing the number of instances in the intersection of every two classes in the KB.
 	 * @param kb
 	 * @return
 	 */
@@ -883,8 +845,8 @@ public class Schema {
 			return result;
 		}
 		List<int[]> query = KB.triples(kb.triple("?s", typeRelation, "?o1"), kb.triple("?s", typeRelation, "?o2"));
-		Int2ObjectMap<Int2ObjectMap<IntSet>> types2types2Instances = kb.selectDistinct(map("?o1"), map("?o2"),
-				map("?s"), query);
+		Int2ObjectMap<Int2ObjectMap<IntSet>> types2types2Instances =
+				kb.selectDistinct(map("?o1"), map("?o2"), map("?s"), query);
 
 		for (int type1 : types2types2Instances.keySet()) {
 			Int2IntMap result2 = new Int2IntOpenHashMap();
@@ -902,8 +864,7 @@ public class Schema {
 			if (split.length == 2) {
 				try {
 					typesCount.put(map(split[0]), Integer.parseInt(split[1]));
-				} catch (NumberFormatException e) {
-				}
+				} catch (NumberFormatException e) {}
 			}
 		}
 		System.out.println("Loaded " + typesCount.size() + " classes");
@@ -922,8 +883,7 @@ public class Schema {
 						typesIntersectionCount.put(map(split[0]), tc = new Int2IntOpenHashMap());
 					}
 					tc.put(map(split[1]), i);
-				} catch (NumberFormatException e) {
-				}
+				} catch (NumberFormatException e) {}
 			}
 		}
 		System.out.println("Loaded " + typesIntersectionCount.size() + " intersection sizes.");
@@ -932,7 +892,6 @@ public class Schema {
 
 	/**
 	 * Determines if the first class is a superclass of the second.
-	 * 
 	 * @param parentType
 	 * @param childType
 	 * @return
@@ -947,15 +906,16 @@ public class Schema {
 		return st1.contains(parentType);
 	}
 
+
 	public void main(String args[]) throws IOException {
 		KB d = new KB(new Schema());
 		ArrayList<File> files = new ArrayList<File>();
-		for (String file : args)
+		for(String file: args)
 			files.add(new File(file));
 
 		d.load(files);
 
-		for (int relation : d.relationSize.keySet()) {
+		for(int relation: d.relationSize.keySet()){
 			System.out.println(relation + "\t" + getRelationDomain(d, relation)
 					+ "\t" + getRelationRange(d, relation));
 		}

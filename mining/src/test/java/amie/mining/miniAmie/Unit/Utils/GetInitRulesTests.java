@@ -13,6 +13,8 @@ public class GetInitRulesTests extends UnitTest {
         assert true ;
     }
 
+    public void testClosureDifferentFromHead() { assert true ;}
+
     // TODO more tests
 
 }

@@ -7,6 +7,7 @@ import amie.rules.Rule;
 import it.unimi.dsi.fastutil.ints.*;
 import javafx.beans.binding.ObjectExpression;
 
+import java.io.Console;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -19,18 +20,11 @@ public class utils {
     // TODO define this in KB module
     private static final int ATOM_SIZE = 3;
 
-    private static final String X_QUERY = "?x";
-    private static final String Y_QUERY = "?y";
-    private static final String Z_QUERY = "?z";
-
     private static final int SUBJECT_POSITION = 0;
     private static final int RELATION_POSITION = 1;
     private static final int OBJECT_POSITION = 2;
 
-    private static final int SUBJECT_SUBJECT_OVERLAP = 0;
-    private static final int SUBJECT_OBJECT_OVERLAP = 2;
-    private static final int OBJECT_OBJECT_OVERLAP = 4;
-
+    private static final int NO_OVERLAP_VALUE = -1 ;
 
     /**
      * ExplorationResult is instantiated to return the result of an exploration.
@@ -335,41 +329,74 @@ public class utils {
         return factSet.size();
     }
 
+    private static int overlap(int r1, int r2,
+                               Int2ObjectMap<Int2IntMap> overlapTable, Int2ObjectMap<Int2ObjectMap<IntSet>> triples) {
+        Int2IntMap factSet = overlapTable.get(r1);
+        int overlap ;
+        if (factSet == null) {
+            IntSet r1_set = triples.get(r1).keySet();
+            IntSet r2_set = triples.get(r2).keySet();
+            overlap = KB.computeOverlap(r1_set, r2_set) ;
+
+//            System.out.println("Adding " + r1 + " " + r2 + " overlap "+overlap);
+            Int2IntMap overlaps1 = new Int2IntOpenHashMap();
+            overlaps1.put(r2, overlap) ;
+            overlapTable.put(r1, overlaps1);
+
+            Int2IntMap overlaps2 = new Int2IntOpenHashMap();
+            overlaps2.put(r1, overlap) ;
+            overlapTable.put(r2, overlaps2);
+
+        } else {
+            overlap = factSet.getOrDefault(r1, NO_OVERLAP_VALUE);
+            if (overlap == NO_OVERLAP_VALUE) {
+                IntSet r1_set = triples.get(r1).keySet();
+                IntSet r2_set = triples.get(r2).keySet();
+                overlap = KB.computeOverlap(r1_set, r2_set) ;
+
+//                System.out.println("Adding " + r1 + " " + r2 + " overlap "+ overlap);
+                factSet.put(r1, overlap) ;
+                factSet.put(r2, overlap) ;
+            } else {
+//                System.out.println("Found " + r1 + " " + r2 + " overlap "+ overlap);
+            }
+        }
+
+        return overlap;
+    }
+
     private static int objectToObjectOverlap(int r1, int r2) {
         KB kb = (KB) miniAMIE.kb ;
-        Int2IntMap factSet = kb.object2objectOverlap.get(r1);
-        if (factSet == null || factSet.isEmpty()) {
-            factSet = kb.object2objectOverlap.get(r2);
-        }
-        if (factSet == null ) {
-            return 0 ;
-        }
-        return factSet.size();
+        Int2ObjectMap<Int2IntMap> overlapTable = kb.object2objectOverlap;
+        Int2ObjectMap<Int2ObjectMap<IntSet>> triples = kb.relation2object2subject;
+
+        System.out.println("Size of overlap table "+ overlapTable.size() + " vs " + kb.relationSize.size());
+
+        int overlap = overlap(r1, r2, overlapTable, triples);
+        return overlap;
     }
 
     private static int subjectToObjectOverlap(int r1, int r2) {
         KB kb = (KB) miniAMIE.kb ;
-        Int2IntMap factSet = kb.subject2objectOverlap.get(r1);
-        if (factSet == null || factSet.isEmpty()) {
-            factSet = kb.subject2objectOverlap.get(r2);
-        }
-        if (factSet == null ) {
-            return 0 ;
-        }
-        return factSet.size();
+        Int2ObjectMap<Int2IntMap> overlapTable = kb.subject2objectOverlap;
+        Int2ObjectMap<Int2ObjectMap<IntSet>> triples = kb.relation2object2subject;
+
+        System.out.println("Size of overlap table "+ overlapTable.size() + " vs " + kb.relationSize.size());
+
+        int overlap = overlap(r1, r2, overlapTable, triples);
+        return overlap;
     }
 
 
     private static int subjectToSubjectOverlap(int r1, int r2) {
         KB kb = (KB) miniAMIE.kb ;
-        Int2IntMap factSet = kb.subject2subjectOverlap.get(r1);
-        if (factSet == null || factSet.isEmpty()) {
-            factSet = kb.subject2subjectOverlap.get(r2);
-        }
-        if (factSet == null ) {
-            return 0 ;
-        }
-        return factSet.size();
+        Int2ObjectMap<Int2IntMap> overlapTable = kb.subject2subjectOverlap;
+        Int2ObjectMap<Int2ObjectMap<IntSet>> triples = kb.relation2object2subject;
+
+        System.out.println("Size of overlap table "+ overlapTable.size() + " vs " + kb.relationSize.size());
+
+        int overlap = overlap(r1, r2, overlapTable, triples);
+        return overlap;
     }
 
 
@@ -412,20 +439,28 @@ public class utils {
         int rLastBodyAtom = body.get(body.size() - 1)[RELATION_POSITION];
 
         int headSize = miniAMIE.kb.relationSize(rHead);
-        int overlap = objectToObjectOverlap(rHead, rFirstBodyAtom);
+        int objectToObjectOverlap = objectToObjectOverlap(rHead, rFirstBodyAtom);
         int domainHead = domain(rHead);
 
         int rangeHead = range(rHead);
         
         double survivalRate = 0;
-        if (rangeHead > 0)
-            survivalRate = (double) subjectToSubjectOverlap(rHead, rLastBodyAtom) / rangeHead;
-
+        if (rangeHead > 0) {
+            int subjectToSubjectOverlap = subjectToSubjectOverlap(rHead, rLastBodyAtom);
+            survivalRate =  (double) subjectToSubjectOverlap / rangeHead;
+        }
         double bodyEstimate = bodyEstimate(rule);
 
         double result = 0 ;
         if (domainHead > 0 && rangeHead > 0)
-            result = headSize * headSize * overlap * survivalRate * bodyEstimate / domainHead * rangeHead ;
+            result = (double) headSize * (double) headSize * (double) objectToObjectOverlap * (double) survivalRate * (double) bodyEstimate
+                    / (double) domainHead * (double) rangeHead ;
+
+        double real = rule.getSupport() ;
+        System.out.println("ApproximateSupportClosedRule result " + result + " real " + real);
+        if (result < 0) {
+            System.out.println("neg " + result);
+        }
         return result;
     }
 
@@ -445,6 +480,11 @@ public class utils {
         double result = 0 ;
         if (fun > 0)
             result = overlap * bodyEstimate / fun;
+        double real = rule.getSupport() ;
+        System.out.println("ApproximateSupportOpenRule result " + result + " real " + real);
+        if (result < 0) {
+            System.out.println("neg " + result);
+        }
         return result ;
     }
 

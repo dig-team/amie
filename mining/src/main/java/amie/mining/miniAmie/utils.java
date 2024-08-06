@@ -18,13 +18,13 @@ public class utils {
     public static MiningAssistant miningAssistant;
 
     // TODO define this in KB module
-    private static final int ATOM_SIZE = 3;
+    public static final int ATOM_SIZE = 3;
 
-    private static final int SUBJECT_POSITION = 0;
-    private static final int RELATION_POSITION = 1;
-    private static final int OBJECT_POSITION = 2;
+    public static final int SUBJECT_POSITION = 0;
+    public static final int RELATION_POSITION = 1;
+    public static final int OBJECT_POSITION = 2;
 
-    private static final int NO_OVERLAP_VALUE = -1 ;
+    public static final int NO_OVERLAP_VALUE = -1 ;
 
     /**
      * ExplorationResult is instantiated to return the result of an exploration.
@@ -72,6 +72,11 @@ public class utils {
         }
     }
 
+    /**
+     * ChooseRelation will select the best (highest support) available relation out of a set of promising relations.
+     * @param promisingRelations
+     * @return Selected relation and number of promising relations
+     */
     private static FindRelationResult ChooseRelation(Int2IntMap promisingRelations) {
         if (promisingRelations.isEmpty()) {
 //            System.out.println("[ChooseClosureRelation] no relations found ! \n");
@@ -119,6 +124,13 @@ public class utils {
         return new FindRelationResult(nbPossibilities, chosenRelation) ;
     }
 
+    /**
+     * ChooseClosureRelation will try to find a relation to closes an open rule.
+     * @param rule
+     * @param openVariable
+     * @param closureVariable
+     * @return
+     */
     private static FindRelationResult ChooseClosureRelation(final Rule rule, int openVariable, int closureVariable) {
         int[] unboundPattern = rule.fullyUnboundTriplePattern();
         unboundPattern[OBJECT_POSITION] = openVariable;
@@ -133,41 +145,7 @@ public class utils {
 
         Int2IntMap promisingRelations = miniAMIE.kb.countProjectionBindings
                 (childHead, childBody, projectionVariable);
-//        String childBodyStr = "";
-//        for (int[] atom: childBody) {
-//            childBodyStr += Arrays.toString(atom) + ", " ;
-//        }
-//        childBodyStr = "{"+childBodyStr+"}";
-//        System.out.printf("[ChooseClosureRelation] promisingRelations: %s <- childHead: %s, childBody: %s, projectionVariable: %d\n",
-//                promisingRelations, Arrays.toString(childHead), childBodyStr, projectionVariable);
-//        if (promisingRelations.isEmpty()) {
-////            System.out.println("[ChooseClosureRelation] no relations found ! \n");
-//            return null;
-//        }
 
-//        IntIterator iterator = promisingRelations.keySet().iterator();
-//        int first = iterator.nextInt();
-//
-//        int nbPossibilities = promisingRelations.size() - 1 ; // Removing head duplicate
-//        int chosen ;
-//        // Checking if first relation is head relation
-////        String childBodyStr = "";
-////        for (int[] atom: rule.getBody()) {
-////            childBodyStr += Arrays.toString(atom) + ", " ;
-////        }
-////        childBodyStr = "{"+childBodyStr+"}";
-////        System.err.println((first == childHead[RELATION_POSITION] )+ " " + rule.getBody().isEmpty());
-//        if (rule.getBody().isEmpty() && first == childHead[RELATION_POSITION]) {
-//            if (!iterator.hasNext()) {
-////                System.out.printf("[ChooseClosureRelation] first %d childHeadR %d \n",first ,
-////                        childHead[RELATION_POSITION]);
-//                return null;
-//            }
-//            // Choosing a relation for closure
-//            chosen = iterator.nextInt();
-//        } else {
-//            chosen = first ;
-//        }
         FindRelationResult result ;
         if (rule.getBody().isEmpty())
             result = ChooseRelationHeadExcluded(promisingRelations, childHead[RELATION_POSITION]);
@@ -494,7 +472,7 @@ public class utils {
      * @param minSup
      * @return Collection of single atom rules
      */
-    public static Collection<Rule> GetInitRules(int minSup) {
+    public static Collection<Rule> GetInitRules(double minSup) {
         return miningAssistant.getInitialAtoms(minSup);
     }
 }

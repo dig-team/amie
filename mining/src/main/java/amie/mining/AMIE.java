@@ -474,7 +474,7 @@ public class AMIE {
         }
     }
 
-    private static class InitElements {
+    public static class InitElements {
         public HelpFormatter formatter = new HelpFormatter();
         // Create the command line parser and define the supported options
         public CommandLineParser parser = new PosixParser();
@@ -484,7 +484,8 @@ public class AMIE {
         public Schema schema = null;
     }
 
-    private static InitElements initFromArgs(String[] args) {
+    public static InitElements initFromArgs(String[] args) {
+
 
         InitElements initElements = new InitElements();
 

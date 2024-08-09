@@ -6,7 +6,7 @@ AMIE is a system to mine Horn rules on knowledge bases. A knowledge base is a co
 AMIE can find rules in such knowledge bases, such as for example
 > wasBornIn(x, y) & isLocatedIn(y, z) => hasNationality(x, z)
 
-These rules are accompanied by various confidence scores. “AMIE” stands for “Association Rule Mining under Incomplete Evidence”. This repository contains the latest version of AMIE, called AMIE 3.5. The versions of AMIE prior to 3.x can be found [here](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/amie/). The code of version 3.0 can be found [here](https://github.com/dig-team/amie/tree/v3.0).
+These rules are accompanied by various confidence scores. “AMIE” stands for “Association Rule Mining under Incomplete Evidence”. This repository contains the latest version of AMIE, called AMIE 3.5. The versions of AMIE prior to 3.x can be found [here](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/amie/). The code of version 3.0 (used for our [2020 ESWC publication](https://luisgalarraga.de/docs/amie3.pdf)) can be found [here](https://github.com/dig-team/amie/tree/v3.0).
 
 ## Input files
 
@@ -14,37 +14,35 @@ AMIE takes as input a file that contains a knowledge base. The knowledge base ca
  1. `subject DELIM predicate DELIM object [whitespace/tabulation .] NEWLINE`
  2. `factid DELIM subject DELIM predicate DELIM object [whitespace/tabulation .] NEWLINE`
 
-The default delimiter `DELIM` is the tabulation (.tsv files) but can be changed using the `-d` option. Any trailing whitespaces followed by a point are ignored. This allows parsing most NT files using the option: `-d" "`. 
-
-However make sure the factid, subject, predicate nor the object contains the delimiter used (particularly in literal facts files). Otherwise the parsing may fail or facts may be wrongfully recognized as the second format.
+The default delimiter `DELIM` is the tabulation (.tsv files) but can be changed using the `-d` option. Any trailing whitespaces followed by a point are ignored.
 
 ## Running AMIE
 
-Make sure that you have the latest version of [Java](https://java.com/en/download/) installed. Download the jar file, and type:
+Make sure that you have the latest version of [Java](https://java.com/en/download/) installed. Download an AMIE executable jar file [AMIE-JAR], and type:
 
-```java -jar amie3.5.jar [TSV file]```
+```java -jar [AMIE-JAR] [TSV file]```
 
 In case of memory issues, try to increase the virtual machine's memory resources using the arguments `-XX:-UseGCOverheadLimit -Xmx [MAX_HEAP_SPACE]`, e.g:
 
-```java -XX:-UseGCOverheadLimit -Xmx2G -jar amie3_5.jar [TSV file]```
+```java -XX:-UseGCOverheadLimit -Xmx2G -jar [AMIE-JAR] [TSV file]```
 
-`MAX_HEAP_SPACE` depends on your input size and the system's available memory. The package also contains the utilities to generate and evaluate predictions from the rules mined by AMIE. Without additional arguments AMIE thresholds with PCA confidence 0.1 and head coverage 0.01. You can change these default settings. Run `java -jar amie3_5.jar -h` (without an input file) to see a detailed description of the available options.
+`MAX_HEAP_SPACE` depends on your input size and the system's available memory. The package also contains the utilities to generate and evaluate predictions from the rules mined by AMIE. Without additional arguments AMIE thresholds with PCA confidence 0.1 and head coverage 0.01. You can change these default settings. Run `java -jar [AMIE-JAR] -h` (without an input file) to see a detailed description of the available options.
 
 ### Use with remote knowledge base server
 
-Since loading and storing knowledge graphs can take a significant amount of memory space and time, AMIE 3.5 makes it possible to run the mining routine against a remote knowledge base, splitting the architecture into two parts communicating over network.
+Since loading and storing knowledge graphs can take a significant amount of memory space and time, the latest version of AMIE makes it possible to run the mining routine against a remote knowledge base, splitting the architecture into two parts communicating over network.
 
 Below is a basic setup example to use AMIE with a remote knowledge base.
 
 #### Server-side
 
-```java -jar amie3.5.jar -server [TSVFile] -port <Server Port (default: 9092)>```
+```java -jar [AMIE-JAR] -server [TSVFile] -port <Server Port (default: 9092)>```
 
 This will load the data into the memory of the server. 
 
 #### Client-side
 
-```java -jar amie3.5.jar -client -serverAddress <Server Address (default: localhost:9092)>```
+```java -jar [AMIE-JAR] -client -serverAddress <Server Address (default: localhost:9092)>```
 
 In this case the client will mine the rules on the server deployed at the provided answer.
 
@@ -79,19 +77,7 @@ AMIE is managed with [Maven](https://maven.apache.org/), therefore to deploy you
 2. Import and compile the project
  * It is usually done by executing the following command in the amie directory: `$ mvn install`
  * IDEs such as Eclipse offer the option to create a project from an existing Maven project. The IDE will call Maven to compile the code.
-3. Maven will generate an executable jar named amie3.5.jar in a new "bin/" directory. This executable accepts RDF files in TSV format [like this one](http://resources.mpi-inf.mpg.de/yago-naga/amie/data/yago2_sample/yago2core.10kseedsSample.compressed.notypes.tsv) as input, but also other format described below. To run it, just write in your comand line: 
-
-### Reproducing our experiments (AMIE 3)
-
-Our [2020 ESWC publication](https://luisgalarraga.de/docs/amie3.pdf) introduced a handful of algorithmic optimizations that gave birth to [AMIE3](https://github.com/dig-team/amie/tree/v3.0). Besides an extensive code refactoring, the lastest version of AMIE includes novel features, optimizations, and several bug fixes. You might therefore not obtain the exact same runtime results as AMIE3. 
-
-If you want nevertheless reproduce the experiments published in 2020, you can find the executables used for the experiments in the milestone directory or in the "releases" github tab. Option names and default options are subject to change compared these milestones. To reproduce experiments, use by default:
-
-```java -jar amie-milestone-intKB.jar -bias lazy -full -noHeuristics -ostd [TSV file]```
-
-Experimental implementation of the GPro and GRank measures can be found in the "gpro" branch. After recompiling the sources ot this branch, use:
-
-```java -jar amie3.jar -bias amie.mining.assistant.experimental.[GPro|GRank] [TSVFile]```
+3. Maven will generate an executable jar named amie[LATEST-VERSION].jar in a new "bin/" directory. 
 
 ## Publications 
 

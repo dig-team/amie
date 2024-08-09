@@ -72,11 +72,9 @@ If you want to modify the code of AMIE, you need
 * Apache Maven >= 3.6.0
 * Java >= 8
 * Apache Commons >= 1.3.1
-* [Javatools](https://www.mpi-inf.mpg.de/departments/databases-and-information-systems/research/yago-naga/amie.data.javatools/). This package can be found as Maven projects here: https://github.com/lajus/amie-utils. As this artifact is not yet uploaded into a central repository, please follow the installation procedure described in the previous link before trying to compile this project.
 
 AMIE is managed with [Maven](https://maven.apache.org/), therefore to deploy you need:
 
-0. (Provisional) Install Javatools dependency as explained in https://github.com/lajus/amie-utils (you can omit telecom-util).
 1. Clone this repository: `$ git clone https://github.com/lajus/amie/`
 2. Import and compile the project
  * It is usually done by executing the following command in the amie directory: `$ mvn install`

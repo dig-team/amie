@@ -34,7 +34,7 @@ import java.util.HashSet;
  * conjunction of binary atoms
  * of the form r(x, y). Each atom is represented as a triple [x, r, y] (subject,
  * relation, object).
- * 
+ *
  * @author lgalarra
  *
  */
@@ -182,7 +182,7 @@ public class Rule {
      * and an undefined property, i.e., ?s[n] ?p ?o[n]. n is optional and is always
      * greater
      * than 1.
-     * 
+     *
      * @return
      */
     public int[] fullyUnboundTriplePattern() {
@@ -249,7 +249,7 @@ public class Rule {
     /**
      * Instantiates a rule of the form [] =&gt; r(?a, ?b) with empty body
      * and the given pattern as rule.
-     * 
+     *
      * @param headAtom    The head atom as an array of the form [?a, r, ?b].
      * @param cardinality
      */
@@ -276,7 +276,7 @@ public class Rule {
     /**
      * Creates a new query as a clone of the query sent as argument with the given
      * support.
-     * 
+     *
      * @param otherQuery
      * @param support
      */
@@ -349,7 +349,7 @@ public class Rule {
 
     /**
      * It returns a new fresh variable for the rule.
-     * 
+     *
      * @return
      */
     private int newVariable() {
@@ -372,7 +372,7 @@ public class Rule {
     /**
      * Return the list of triples of the query. Modifications to this
      * list alter the query.
-     * 
+     *
      * @return
      */
     public List<int[]> getTriples() {
@@ -388,7 +388,7 @@ public class Rule {
      * constraints. Modifications to this list do not alter the query. However,
      * modifications
      * to the atoms do alter the query.
-     * 
+     *
      * @return
      */
     public List<int[]> getTriplesWithoutSpecialRelations() {
@@ -404,7 +404,7 @@ public class Rule {
 
     /**
      * Returns the head of a query B =&gt; r(a, b) as a triple [?a, r, ?b].
-     * 
+     *
      * @return
      */
     public int[] getHead() {
@@ -413,7 +413,7 @@ public class Rule {
 
     /**
      * Returns the list of triples in the body of the rule.
-     * 
+     *
      * @return Non-modifiable list of atoms.
      */
     public List<int[]> getBody() {
@@ -423,7 +423,7 @@ public class Rule {
     /**
      * Returns the list of triples in the body of the rule. It is an alias
      * for the method getBody()
-     * 
+     *
      * @return Non-modifiable list of atoms.
      */
     public List<int[]> getAntecedent() {
@@ -613,7 +613,7 @@ public class Rule {
 
     /**
      * Checks whether the last atom in the query is redundant.
-     * 
+     *
      * @return
      */
     public List<int[]> getRedundantAtoms() {
@@ -856,7 +856,7 @@ public class Rule {
 
     /**
      * Returns a histogram with the number of different atoms variables occur in.
-     * 
+     *
      * @param ignoreSpecialAtoms discards pseudo-atoms containing the keyword
      *                           DIFFERENTFROM.
      * @return
@@ -1068,7 +1068,7 @@ public class Rule {
     /**
      * Constructs a new rule identical to the calling one except that
      * the last atom is replaced by the argument.
-     * 
+     *
      * @param newAtom
      * @return
      */
@@ -1082,7 +1082,7 @@ public class Rule {
     /**
      * It returns a new rule where the last atom is replaced by a
      * type constraint with the given subtype.
-     * 
+     *
      * @param subtype
      * @param cardinality
      * @return
@@ -1110,7 +1110,7 @@ public class Rule {
 
     /**
      * Returns a hash code that depends on the given arguments.
-     * 
+     *
      * @param headKey
      * @param generation
      * @return
@@ -1125,7 +1125,7 @@ public class Rule {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -1146,7 +1146,7 @@ public class Rule {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
@@ -1212,9 +1212,10 @@ public class Rule {
         return strBuilder.toString();
     }
 
+    /** sortBody guarantees that atoms in rules are output in the same order across runs of the program
+     */
     public Collection<int[]> sortBody() {
-        // Guarantee that atoms in rules are output in the same order across runs of the
-        // program
+
         class TripleComparator implements Comparator<int[]> {
 
             public int compare(int[] t1, int[] t2) {
@@ -1571,7 +1572,7 @@ public class Rule {
     /**
      * If returns true if the list of triples contains an atom
      * using the given relation.
-     * 
+     *
      * @param triples
      * @param relation
      * @return
@@ -1583,7 +1584,7 @@ public class Rule {
 
     /**
      * It returns the index of the first atom using the relation.
-     * 
+     *
      * @param triples
      * @param relation
      * @return the index of the atom containing the relation or -1 if such atom
@@ -1646,7 +1647,7 @@ public class Rule {
     /**
      * Returns true if the given expression (variable or constant) occurs in
      * the rule's head.
-     * 
+     *
      * @param expression
      * @return
      */
@@ -1758,7 +1759,7 @@ public class Rule {
     /**
      * It returns true if the atoms of the current are a superset for the
      * atoms of the rule sent as argument.
-     * 
+     *
      * @param someRule
      * @return
      */
@@ -1789,7 +1790,7 @@ public class Rule {
      * Return an equivalent rule (body atoms rotation) with no parent.
      *
      * Useful for debugging.
-     * 
+     *
      * @return
      */
     public Rule getAlternativeEquivalent() {

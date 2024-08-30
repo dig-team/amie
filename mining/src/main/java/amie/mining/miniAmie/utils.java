@@ -1,30 +1,23 @@
 package amie.mining.miniAmie;
 
 import amie.data.KB;
-import amie.data.tuple.IntPair;
 import amie.mining.assistant.MiningAssistant;
 import amie.rules.Rule;
 import it.unimi.dsi.fastutil.ints.*;
-import javafx.beans.binding.ObjectExpression;
 
-import java.io.Console;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 public class utils {
 
     public static MiningAssistant miningAssistant;
 
-    // TODO define this in KB module
     public static final int ATOM_SIZE = 3;
 
     public static final int SUBJECT_POSITION = 0;
     public static final int RELATION_POSITION = 1;
     public static final int OBJECT_POSITION = 2;
 
-    public static final int NO_OVERLAP_VALUE = -1 ;
+    public static final int NO_OVERLAP_VALUE = -1;
 
     /**
      * ExplorationResult is instantiated to return the result of an exploration.
@@ -42,257 +35,173 @@ public class utils {
 
     }
 
-    /**
-     * AddOperationResult is instantiated upon adding a new atom to a rule.
-     * - nbPossibleRules is the total amount of adding operations that could be performed on a given rule.
-     * - chosenRule is the result of the operation after selecting an atom and adding it to a given rule.
-     */
-    public static class AddOperationResult {
-        int nbPossibleRules;
-        Rule chosenRule;
+    protected static List<Integer> SelectRelations() {
+        List<Integer> relations = new ArrayList<>();
 
-        public AddOperationResult(int nbPossibleRules, Rule chosenRule) {
-            this.nbPossibleRules = nbPossibleRules;
-            this.chosenRule = chosenRule;
+        for (int relation : miniAMIE.kb.getRelations()) {
+
+            if (miniAMIE.kb.relationSize(relation) >= miniAMIE.MinSup)
+                relations.add(relation);
         }
+        return relations;
+    }
+
+    private static boolean RuleDoesNotContainsRelation(Rule rule, int relation) {
+
+        if (relation == rule.getHead()[RELATION_POSITION])
+            return false;
+
+        // Seeking unwanted duplicates
+        for (int[] atom : rule.getBody()) {
+            if (relation == atom[RELATION_POSITION])
+                return false;
+        }
+        return true;
+    }
+
+    private static List<Integer> PromisingRelations(Rule rule) {
+        List<Integer> relations = new ArrayList<>();
+
+        for (int relation : miniAMIE.SelectedRelations) {
+            if (RuleDoesNotContainsRelation(rule, relation))
+                relations.add(relation);
+        }
+        return relations;
     }
 
     /**
-     * AddOperationResult is instantiated when seeking a new relation for a rule.
-     * - nbPossibleRelations is the total amount of relations that could be used to create new atoms
-     * - chosenRelation is the result of the operation after selecting a relation
-     */
-    public static class FindRelationResult {
-        int nbPossibleRelations;
-        int chosenRelation;
-
-        public FindRelationResult(int nbPossibleRelations, int chosenRelation) {
-            this.nbPossibleRelations = nbPossibleRelations;
-            this.chosenRelation = chosenRelation;
-        }
-    }
-
-    /**
-     * ChooseRelation will select the best (highest support) available relation out of a set of promising relations.
-     * @param promisingRelations
-     * @return Selected relation and number of promising relations
-     */
-    private static FindRelationResult ChooseRelation(Int2IntMap promisingRelations) {
-        if (promisingRelations.isEmpty()) {
-//            System.out.println("[ChooseClosureRelation] no relations found ! \n");
-            return null;
-        }
-        IntIterator iterator = promisingRelations.keySet().iterator();
-
-        int nbPossibilities = promisingRelations.size() - 1 ; // Removing head duplicate
-        int chosenRelation = 0;
-        int maxSupport = 0 ;
-        while (iterator.hasNext()) {
-            int relation = iterator.nextInt() ;
-            int support = promisingRelations.get(relation);
-            if (support > maxSupport) {
-                chosenRelation = relation ;
-                maxSupport = support ;
-            }
-        }
-
-        return new FindRelationResult(nbPossibilities, chosenRelation) ;
-    }
-
-    private static FindRelationResult ChooseRelationHeadExcluded(Int2IntMap promisingRelations, int headRelation) {
-        if (promisingRelations.isEmpty()) {
-//            System.out.println("[ChooseClosureRelation] no relations found ! \n");
-            return null;
-        }
-        IntIterator iterator = promisingRelations.keySet().iterator();
-
-        int nbPossibilities = promisingRelations.size() - 1 ; // Removing head duplicate
-        int chosenRelation = 0;
-        int maxSupport = 0 ;
-        while (iterator.hasNext()) {
-            int relation = iterator.nextInt() ;
-            int support = promisingRelations.get(relation);
-            if (support > maxSupport && relation != headRelation) {
-                chosenRelation = relation ;
-                maxSupport = support ;
-            }
-        }
-
-        if (chosenRelation == 0)
-            return null;
-
-        return new FindRelationResult(nbPossibilities, chosenRelation) ;
-    }
-
-    /**
-     * ChooseClosureRelation will try to find a relation to closes an open rule.
-     * @param rule
-     * @param openVariable
-     * @param closureVariable
-     * @return
-     */
-    private static FindRelationResult ChooseClosureRelation(final Rule rule, int openVariable, int closureVariable) {
-        int[] unboundPattern = rule.fullyUnboundTriplePattern();
-        unboundPattern[OBJECT_POSITION] = openVariable;
-        unboundPattern[SUBJECT_POSITION] = closureVariable;
-        int projectionVariable = unboundPattern[RELATION_POSITION];
-
-        Rule child = new Rule(rule, rule.getSupport(), miniAMIE.kb) ;
-
-        child.getBody().add(unboundPattern);
-        int[] childHead = child.getHead();
-        List<int[]> childBody = child.getBody() ;
-
-        Int2IntMap promisingRelations = miniAMIE.kb.countProjectionBindings
-                (childHead, childBody, projectionVariable);
-
-        FindRelationResult result ;
-        if (rule.getBody().isEmpty())
-            result = ChooseRelationHeadExcluded(promisingRelations, childHead[RELATION_POSITION]);
-        else
-            result = ChooseRelation(promisingRelations) ;
-
-        return result;
-
-    }
-
-    public static AddOperationResult AddClosure_EmptyBody(final Rule rule) {
-        Rule chosenClosedRule;
-        int closedRuleCount;
-        int[] headAtom = rule.getHead();
-        int openVariable;
-        openVariable = headAtom[OBJECT_POSITION];
-        FindRelationResult findRelationResult = ChooseClosureRelation
-                (rule, openVariable, headAtom[SUBJECT_POSITION]);
-
-        if (findRelationResult == null) {
-            return null;
-        }
-
-        closedRuleCount = findRelationResult.nbPossibleRelations;
-        int relation = findRelationResult.chosenRelation;
-        chosenClosedRule = new Rule(rule, rule.getSupport(), miniAMIE.kb) ;
-        int[] newAtom = headAtom.clone();
-        newAtom[RELATION_POSITION] = relation;
-        chosenClosedRule.getBody().add(newAtom);
-        return new AddOperationResult(closedRuleCount, chosenClosedRule);
-
-    }
-
-    /**
-     * AddClosure selects a predicate and arguments so that at each variable in the rule are present at least
-     * twice.
+     * AddClosureToEmptyBody adds a closure atom to an empty body rule, with respect to perfect path pattern
+     * (i.e. Head subject is closure subject, Head object is closure object)
      *
-     * @param rule open rule to extend and close.
-     * @return Result of selective closure and the total amount of adding operation that could be performed on the
-     * given rule.
+     * @param rule to be closed
+     * @return A set of possible closed rules.
      */
-    public static AddOperationResult AddClosure(Rule rule) {
-        Rule chosenClosedRule = null ;
-        int closedRuleCount ;
+    public static ArrayList<Rule> AddClosureToEmptyBody(final Rule rule) {
+        ArrayList<Rule> closedRules = new ArrayList<>();
         int[] headAtom = rule.getHead();
-        int openVariable;
 
-        // openVariables should be only of length 1
-        IntList openVariables = rule.getOpenVariables();
-        openVariable = openVariables.iterator().next();
+        List<Integer> relations = PromisingRelations(rule);
 
-        FindRelationResult findRelationResult = ChooseClosureRelation(rule, openVariable, headAtom[SUBJECT_POSITION]);
-
-        if (findRelationResult == null) {
+        if (relations.isEmpty()) {
             return null;
         }
-        closedRuleCount = findRelationResult.nbPossibleRelations;
-        int relation = findRelationResult.chosenRelation;
 
-        int[] newAtom = new int[ATOM_SIZE];
-        newAtom[1] = relation;
-        chosenClosedRule.getBody().add(newAtom);
+        for (int relation : relations) {
+            Rule closedRule = new Rule(rule, -1, miniAMIE.kb);
 
-        // TODO Subject or object ?
-        newAtom[OBJECT_POSITION] = openVariable;
-        newAtom[SUBJECT_POSITION] = headAtom[SUBJECT_POSITION];
+            int[] newAtom = new int[ATOM_SIZE];
+            closedRule.getBody().add(newAtom);
 
-        return new AddOperationResult(closedRuleCount, chosenClosedRule);
+            newAtom[SUBJECT_POSITION] = headAtom[SUBJECT_POSITION];
+            newAtom[RELATION_POSITION] = relation;
+            newAtom[OBJECT_POSITION] = headAtom[OBJECT_POSITION];
+            closedRules.add(closedRule);
+        }
+
+        return closedRules;
     }
 
     /**
-     * AddObjectSubjectDanglingAtom selects a predicate and arguments so that one the object variable is already present
-     * in the rule as a subject and the subject variable is unique.
+     * AddClosure adds a closure atom to a non-empty body rule, with respect to perfect path pattern
+     * (i.e. Head subject is closure subject, dangling's subject is closure object)
      *
-     * @param rule open rule to extend
-     * @return Result of selective open atom and the total amount of adding operation that could be performed on the
-     * given rule.
+     * @param rule to be closed
+     * @return A set of possible closed rules.
      */
-    public static AddOperationResult AddObjectSubjectDanglingAtom(Rule rule) {
-
+    public static ArrayList<Rule> AddClosure(final Rule rule) {
+        ArrayList<Rule> closedRules = new ArrayList<>();
+        int[] headAtom = rule.getHead();
         int[] lastBodyAtom = rule.getLastTriplePattern();
-        int[] dangling = rule.fullyUnboundTriplePattern();
 
-        // Dangling object (first body atom) is last body atom subject
-        dangling[OBJECT_POSITION] = lastBodyAtom[SUBJECT_POSITION];
-        Rule child = new Rule(rule, rule.getSupport(), miniAMIE.kb);
-        List<int[]> chosenOpenRuleTriples = child.getTriples();
-        chosenOpenRuleTriples.add(dangling);
+        List<Integer> relations = PromisingRelations(rule);
 
-        int[] childHead = child.getHead();
-        List<int[]> childBody = child.getBody();
-        int projectionVariable = dangling[RELATION_POSITION];
-        Int2IntMap promisingRelations = miniAMIE.kb.countProjectionBindings
-                (childHead, childBody, projectionVariable);
-        FindRelationResult chooseRelationResult = ChooseRelation(promisingRelations);
-        if (chooseRelationResult == null) {
+        if (relations.isEmpty()) {
             return null;
         }
-        dangling[RELATION_POSITION] = chooseRelationResult.chosenRelation;
-        child.getBody().add(dangling) ;
-        return new AddOperationResult(promisingRelations.size(), child);
+
+        for (int relation : relations) {
+            Rule closedRule = new Rule(rule, -1, miniAMIE.kb);
+
+            int[] newAtom = new int[ATOM_SIZE];
+            closedRule.getBody().add(newAtom);
+
+            newAtom[SUBJECT_POSITION] = headAtom[SUBJECT_POSITION];
+            newAtom[RELATION_POSITION] = relation;
+            newAtom[OBJECT_POSITION] = lastBodyAtom[SUBJECT_POSITION];
+            closedRules.add(closedRule);
+        }
+
+        return closedRules;
+    }
+
+
+    /**
+     * AddDanglingToEmptyBody adds a dangling atom to an empty body rule, with respect to the perfect path pattern
+     * (i.e. Only open variable is dangling's subject, Head object is dangling's object )
+     *
+     * @param rule parent
+     * @return A set of possible open rules
+     */
+    public static ArrayList<Rule> AddDanglingToEmptyBody(Rule rule) {
+        ArrayList<Rule> openRules = new ArrayList<>();
+        int[] headAtom = rule.getHead();
+
+        List<Integer> relations = PromisingRelations(rule);
+
+        if (relations.isEmpty()) {
+            return null;
+        }
+
+        for (int relation : relations) {
+            Rule closedRule = new Rule(rule, -1, miniAMIE.kb);
+
+            int[] newAtom = new int[ATOM_SIZE];
+            closedRule.getBody().add(newAtom);
+
+            newAtom[SUBJECT_POSITION] = closedRule.fullyUnboundTriplePattern()[SUBJECT_POSITION];
+            newAtom[RELATION_POSITION] = relation;
+            newAtom[OBJECT_POSITION] = headAtom[OBJECT_POSITION];
+            openRules.add(closedRule);
+        }
+
+        return openRules;
     }
 
     /**
-     * AddObjectObjectDanglingAtom selects a predicate and arguments so that one the object variable is already present
-     * in the rule as an object and the subject variable is unique.
+     * AddDangling adds a dangling atom to an empty body rule, with respect to the perfect path pattern
+     * (i.e. Only open variable is dangling's subject, Head object is dangling's object )
      *
-     * @param rule open rule to extend
-     * @return Result of selective open atom and the total amount of adding operation that could be performed on the
-     * given rule.
+     * @param rule parent
+     * @return A set of possible open rules
      */
-    public static AddOperationResult AddObjectObjectDanglingAtom(Rule rule) {
-        int[] lastBodyAtom = rule.getHead();
-        int[] dangling = rule.fullyUnboundTriplePattern();
-        // Dangling object (first body atom) is last body atom subject
-        dangling[OBJECT_POSITION] = lastBodyAtom[OBJECT_POSITION];
-        Rule child = new Rule(rule, rule.getSupport(), miniAMIE.kb);
-        List<int[]> chosenOpenRuleTriples = child.getTriples();
-        chosenOpenRuleTriples.add(dangling);
+    public static ArrayList<Rule> AddDangling(Rule rule) {
+        ArrayList<Rule> openRules = new ArrayList<>();
+        int[] lastBodyAtom = rule.getLastTriplePattern();
 
-        int[] childHead = child.getHead();
-        List<int[]> childBody = child.getBody();
-        int projectionVariable = dangling[RELATION_POSITION];
-        Int2IntMap promisingRelations = miniAMIE.kb.countProjectionBindings
-                (childHead, childBody, projectionVariable);
-//        String childBodyStr = "";
-//        for (int[] atom: childBody) {
-//            childBodyStr += Arrays.toString(atom) + ", " ;
-//        }
-//        childBodyStr = "{"+childBodyStr+"}";
-//        System.out.printf("[AddObjectObjectDanglingAtom] promisingRelations: %s <- childHead: %s, childBody: %s, projectionVariable: %d\n",
-//                promisingRelations, Arrays.toString(childHead), childBodyStr, projectionVariable);
-//        IntIterator iterator = promisingRelations.keySet().iterator();
-//        int first = iterator.nextInt();
-        FindRelationResult chooseRelationResult = ChooseRelation(promisingRelations);
-        if (chooseRelationResult == null) {
+        List<Integer> closureRelations = PromisingRelations(rule);
+
+        if (closureRelations.isEmpty()) {
             return null;
         }
-        dangling[RELATION_POSITION] = chooseRelationResult.chosenRelation;
-//        int nbPossibilities = promisingRelations.size() - 1 ; // Removing head duplicate
 
-        child.getBody().add(dangling) ;
-        return new AddOperationResult(chooseRelationResult.nbPossibleRelations, child);
+        for (int relation : closureRelations) {
+            Rule closedRule = new Rule(rule, -1, miniAMIE.kb);
+
+            int[] newAtom = new int[ATOM_SIZE];
+            closedRule.getBody().add(newAtom);
+
+            newAtom[SUBJECT_POSITION] = closedRule.fullyUnboundTriplePattern()[SUBJECT_POSITION];
+            newAtom[RELATION_POSITION] = relation;
+            newAtom[OBJECT_POSITION] = lastBodyAtom[SUBJECT_POSITION];
+            openRules.add(closedRule);
+        }
+
+        return openRules;
     }
+
 
     private static int range(int r) {
-        KB kb = (KB) miniAMIE.kb ;
+        KB kb = (KB) miniAMIE.kb;
         Int2ObjectMap<IntSet> factSet = kb.relation2object2subject.get(r);
         if (factSet == null)
             return 0;
@@ -300,7 +209,7 @@ public class utils {
     }
 
     private static int domain(int r) {
-        KB kb = (KB) miniAMIE.kb ;
+        KB kb = (KB) miniAMIE.kb;
         Int2ObjectMap<IntSet> factSet = kb.relation2subject2object.get(r);
         if (factSet == null)
             return 0;
@@ -308,75 +217,133 @@ public class utils {
     }
 
     private static int overlap(int r1, int r2,
-                               Int2ObjectMap<Int2IntMap> overlapTable, Int2ObjectMap<Int2ObjectMap<IntSet>> triples) {
+                               Int2ObjectMap<Int2IntMap> overlapTable,
+                               Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet1,
+                               Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet2) {
         Int2IntMap factSet = overlapTable.get(r1);
-        int overlap ;
+        int overlap;
         if (factSet == null) {
-            IntSet r1_set = triples.get(r1).keySet();
-            IntSet r2_set = triples.get(r2).keySet();
-            overlap = KB.computeOverlap(r1_set, r2_set) ;
+            IntSet r1_set = triplesKeySet1.get(r1).keySet();
+            IntSet r2_set = triplesKeySet2.get(r2).keySet();
+            overlap = KB.computeOverlap(r1_set, r2_set);
+            List<Integer> overlapValues = KB.computeOverlapValues(r1_set, r2_set);
+//            System.out.print("Overlap: ") ;
+//            for (int value : overlapValues) {
+//                System.out.print(" " + miniAMIE.kb.unmap(value));
+//            }
+//            System.out.println(" ") ;
 
-//            System.out.println("Adding " + r1 + " " + r2 + " overlap "+overlap);
+//            System.out.println("Adding " + miniAMIE.kb.unmap(r1) + " " + miniAMIE.kb.unmap(r2) + " overlap "+overlap);
             Int2IntMap overlaps1 = new Int2IntOpenHashMap();
-            overlaps1.put(r2, overlap) ;
+            overlaps1.put(r2, overlap);
             overlapTable.put(r1, overlaps1);
 
             Int2IntMap overlaps2 = new Int2IntOpenHashMap();
-            overlaps2.put(r1, overlap) ;
+            overlaps2.put(r1, overlap);
             overlapTable.put(r2, overlaps2);
 
         } else {
-            overlap = factSet.getOrDefault(r1, NO_OVERLAP_VALUE);
+            overlap = factSet.getOrDefault(r2, NO_OVERLAP_VALUE);
+//            System.out.println("factSet " + factSet + " r1 " + r1 + " overlap " + overlap) ;
             if (overlap == NO_OVERLAP_VALUE) {
-                IntSet r1_set = triples.get(r1).keySet();
-                IntSet r2_set = triples.get(r2).keySet();
-                overlap = KB.computeOverlap(r1_set, r2_set) ;
+                IntSet r1_set = triplesKeySet1.get(r1).keySet();
+                IntSet r2_set = triplesKeySet2.get(r2).keySet();
+//                System.out.println(" r1_sets " + r1_set + " r2_sets " + r2_set);
+                overlap = KB.computeOverlap(r1_set, r2_set);
 
-//                System.out.println("Adding " + r1 + " " + r2 + " overlap "+ overlap);
-                factSet.put(r1, overlap) ;
-                factSet.put(r2, overlap) ;
-            } else {
-//                System.out.println("Found " + r1 + " " + r2 + " overlap "+ overlap);
+                List<Integer> overlapValues = KB.computeOverlapValues(r1_set, r2_set);
+//                System.out.print("Overlap: ") ;
+//                for (int value : overlapValues) {
+//                    System.out.print(" " + miniAMIE.kb.unmap(value));
+//                }
+//                System.out.println(" ") ;
+
+//                System.out.println("Adding "+ r1 + " = "+ miniAMIE.kb.unmap(r1) +
+//                        " " + r2 + " = "+ miniAMIE.kb.unmap(r2) + " overlap "+ overlap);
+                factSet.put(r1, overlap);
+                factSet.put(r2, overlap);
+//            } else {
+//                System.out.println("Found " + r1 + " = "+ miniAMIE.kb.unmap(r1) +
+//                        " " + r2 + " = "+ miniAMIE.kb.unmap(r2) + " overlap "+ overlap);
             }
         }
-
+        IntSet r1_set = triplesKeySet1.get(r1).keySet();
+        IntSet r2_set = triplesKeySet2.get(r2).keySet();
+        int real_overlap = KB.computeOverlap(r1_set, r2_set);
+//        System.out.println(overlap + " real " + real_overlap);
         return overlap;
     }
 
     private static int objectToObjectOverlap(int r1, int r2) {
-        KB kb = (KB) miniAMIE.kb ;
+        KB kb = (KB) miniAMIE.kb;
         Int2ObjectMap<Int2IntMap> overlapTable = kb.object2objectOverlap;
-        Int2ObjectMap<Int2ObjectMap<IntSet>> triples = kb.relation2object2subject;
-
-        System.out.println("Size of overlap table "+ overlapTable.size() + " vs " + kb.relationSize.size());
-
-        int overlap = overlap(r1, r2, overlapTable, triples);
+        Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet1 = kb.relation2object2subject;
+        Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet2 = kb.relation2object2subject;
+        int overlap = overlap(r1, r2, overlapTable, triplesKeySet1, triplesKeySet2);
         return overlap;
     }
 
     private static int subjectToObjectOverlap(int r1, int r2) {
-        KB kb = (KB) miniAMIE.kb ;
+        KB kb = (KB) miniAMIE.kb;
         Int2ObjectMap<Int2IntMap> overlapTable = kb.subject2objectOverlap;
-        Int2ObjectMap<Int2ObjectMap<IntSet>> triples = kb.relation2object2subject;
-
-        System.out.println("Size of overlap table "+ overlapTable.size() + " vs " + kb.relationSize.size());
-
-        int overlap = overlap(r1, r2, overlapTable, triples);
+        Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet1 = kb.relation2subject2object;
+        Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet2 = kb.relation2object2subject;
+        int overlap = overlap(r1, r2, overlapTable, triplesKeySet1, triplesKeySet2);
         return overlap;
     }
 
 
     private static int subjectToSubjectOverlap(int r1, int r2) {
-        KB kb = (KB) miniAMIE.kb ;
+        KB kb = (KB) miniAMIE.kb;
         Int2ObjectMap<Int2IntMap> overlapTable = kb.subject2subjectOverlap;
-        Int2ObjectMap<Int2ObjectMap<IntSet>> triples = kb.relation2object2subject;
-
-        System.out.println("Size of overlap table "+ overlapTable.size() + " vs " + kb.relationSize.size());
-
-        int overlap = overlap(r1, r2, overlapTable, triples);
+        Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet1 = kb.relation2subject2object;
+        Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet2 = kb.relation2subject2object;
+        int overlap = overlap(r1, r2, overlapTable, triplesKeySet1, triplesKeySet2);
         return overlap;
     }
 
+    private static List<int[]> sortPerfectPathBody(Rule rule) {
+        int bodySize = rule.getBody().size();
+        rule.setBodySize(rule.getBody().size());
+        List<int[]> body = rule.getBody();
+        List<int[]> sortedBody = new ArrayList<>();
+        int[] head = rule.getHead();
+        int var = head[SUBJECT_POSITION];
+        for (int i = 0; i < bodySize + 1; i++) {
+//            System.err.println("Looking for atom with object " + miniAMIE.kb.unmap(var)) ;
+            for (int[] atom : body)
+                if (atom[SUBJECT_POSITION] == var) {
+//                    System.err.println("Found " + miniAMIE.kb.unmap(atom[RELATION_POSITION])) ;
+                    sortedBody.add(atom);
+                    var = atom[OBJECT_POSITION];
+                    break;
+                }
+        }
+        return sortedBody;
+    }
+
+    private static void printBodyAsPerfectPath(List<int[]> body) {
+        for (int[] triple : body) {
+            System.out.print(
+                    miniAMIE.kb.unmap(triple[SUBJECT_POSITION]) + " " +
+                            miniAMIE.kb.unmap(triple[RELATION_POSITION]) + " " +
+                            miniAMIE.kb.unmap(triple[OBJECT_POSITION]) + " "
+            );
+        }
+    }
+
+    protected static void printRuleAsPerfectPath(Rule rule) {
+        rule.setBodySize(rule.getBody().size());
+        List<int[]> body = sortPerfectPathBody(rule);
+        printBodyAsPerfectPath(body);
+        int[] head = rule.getHead();
+        System.out.print("=> ") ;
+        System.out.print(
+                miniAMIE.kb.unmap(head[SUBJECT_POSITION]) + " " +
+                        miniAMIE.kb.unmap(head[RELATION_POSITION]) + " " +
+                        miniAMIE.kb.unmap(head[OBJECT_POSITION])
+        );
+    }
 
     /**
      * bodyEstimate computes the total product operation for estimating support of a rule
@@ -386,22 +353,69 @@ public class utils {
      */
     private static double bodyEstimate(Rule rule) {
         double product = 1;
-        List<int[]> body = rule.getBody();
-        for (int id = 2; id < rule.getBodySize() + 1; id++) {
+        rule.setBodySize(rule.getBody().size());
+//        List<int[]> body = rule.getBody();
+        List<int[]> body = sortPerfectPathBody(rule);
+        if (miniAMIE.Verbose) {
+            System.out.print("Body: ");
+            for (int[] triple : body) {
+                System.out.print(
+                        miniAMIE.kb.unmap(triple[SUBJECT_POSITION]) + " " +
+                                miniAMIE.kb.unmap(triple[RELATION_POSITION]) + " " +
+                                miniAMIE.kb.unmap(triple[OBJECT_POSITION])
+                );
+            }
+
+            System.out.print("\nBody estimate: (size: " + rule.getBodySize() + ") ");
+        }
+        for (int id = 0; id < rule.getBodySize() - 1; id++) {
             int r = body.get(id)[RELATION_POSITION];
             int r_next = body.get(id + 1)[RELATION_POSITION];
-
+            // Computing SO Survival rate
             double survivalRate = 1;
-            int rRange = range(r) ;
-            if (rRange > 0)
-                survivalRate = (double) subjectToObjectOverlap(r, r_next) / rRange;
+            int dom = domain(r);
+            double soOV = subjectToObjectOverlap(r_next, r);
+            if (dom > 0) {
+                survivalRate = soOV / dom;
+            }
 
-            double inverseFunctionality = miniAMIE.kb.inverseFunctionality(r_next) ;
+            double inverseFunctionality = miniAMIE.kb.inverseFunctionality(r);
 
-            if (inverseFunctionality > 0)
-                product *= survivalRate / inverseFunctionality ;
+            if (inverseFunctionality > 0) {
+                product *= survivalRate / inverseFunctionality;
+            }
+            if (miniAMIE.Verbose)
+                System.out.print(
+                        " { r: " + miniAMIE.kb.unmap(r) + " to " + " r_next: " + miniAMIE.kb.unmap(r_next)
+                                + " } survival " + survivalRate
+                                + " | r_next domain " + dom
+                                + " | soOV " + soOV
+                                + " | inverseFunctionality " + inverseFunctionality
+                                + " | product " + product);
         }
+        if (miniAMIE.Verbose)
+            System.out.print("\n");
         return product;
+    }
+
+    public static long RealSupport(Rule rule) {
+        return miniAMIE.kb.countProjection(rule.getHead(), rule.getTriples());
+    }
+
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_BLACK = "\u001B[30m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_YELLOW = "\u001B[33m";
+    public static final String ANSI_BLUE = "\u001B[34m";
+    public static final String ANSI_PURPLE = "\u001B[35m";
+    public static final String ANSI_CYAN = "\u001B[36m";
+    public static final String ANSI_WHITE = "\u001B[37m";
+
+    protected static double ErrorRate(double real, double estimate) {
+        double delta = estimate - real;
+        double total = estimate + real;
+        return delta / total;
     }
 
     /**
@@ -410,34 +424,68 @@ public class utils {
      * @param rule Closed rule
      * @return Support approximation
      */
-    public static double ApproximateSupportClosedRule(Rule rule) {
+    public static long ApproximateSupportClosedRule(Rule rule) {
+        String ruleStr = rule.toString();
+        if (miniAMIE.Verbose)
+            System.out.println(ANSI_GREEN
+                    + "ApproximateSupportClosedRule " + ruleStr);
         int rHead = rule.getHeadRelationBS();
         List<int[]> body = rule.getBody();
         int rFirstBodyAtom = body.get(0)[RELATION_POSITION];
         int rLastBodyAtom = body.get(body.size() - 1)[RELATION_POSITION];
 
+
         int headSize = miniAMIE.kb.relationSize(rHead);
+//        System.out.println("Object to Object : ");
         int objectToObjectOverlap = objectToObjectOverlap(rHead, rFirstBodyAtom);
         int domainHead = domain(rHead);
+        int domainLast = domain(rLastBodyAtom);
 
         int rangeHead = range(rHead);
-        
+
         double survivalRate = 0;
+        int subjectToSubjectOverlap = 0;
         if (rangeHead > 0) {
-            int subjectToSubjectOverlap = subjectToSubjectOverlap(rHead, rLastBodyAtom);
-            survivalRate =  (double) subjectToSubjectOverlap / rangeHead;
+//            System.out.print("Subject to Subject : ");
+            subjectToSubjectOverlap = subjectToSubjectOverlap(rLastBodyAtom, rHead);
+//            survivalRate = (double) subjectToSubjectOverlap / rangeHead;
+            survivalRate = (double) subjectToSubjectOverlap / domainLast;
         }
         double bodyEstimate = bodyEstimate(rule);
+        long result = 0;
 
-        double result = 0 ;
-        if (domainHead > 0 && rangeHead > 0)
-            result = (double) headSize * (double) headSize * (double) objectToObjectOverlap * (double) survivalRate * (double) bodyEstimate
-                    / (double) domainHead * (double) rangeHead ;
+        double headSizeMulOv = (double) headSize * (double) headSize * (double) objectToObjectOverlap;
+        double survMulBod = survivalRate * bodyEstimate;
+        double nom = headSizeMulOv * survMulBod;
+        double denom = (double) domainHead * (double) rangeHead;
 
-        double real = rule.getSupport() ;
-        System.out.println("ApproximateSupportClosedRule result " + result + " real " + real);
-        if (result < 0) {
-            System.out.println("neg " + result);
+        if (domainHead > 0 && rangeHead > 0) {
+            result = (long) (nom / denom);
+        }
+        if (miniAMIE.Verbose) {
+            double realS = RealSupport(rule);
+            double errorRate = ErrorRate(realS, result);
+            if (errorRate > 0.5)
+                System.out.print(ANSI_YELLOW);
+            else if (errorRate < -0.5)
+                System.out.print(ANSI_CYAN);
+
+            System.out.println(" s~ " + result
+                    + " | s " + RealSupport(rule)
+                    + " | err " + errorRate
+                    + " | head -> last ooOv " + objectToObjectOverlap
+                    + " | first -> head ssOv " + subjectToSubjectOverlap
+                    + " | survival " + survivalRate
+                    + " | body " + bodyEstimate
+                    + " | headSize " + headSize
+                    + " | domainHead " + domainHead
+                    + " | rangeHead " + rangeHead
+                    + " | survMulBod " + survMulBod
+                    + " | headSizeMulOv " + headSizeMulOv
+                    + " | nom " + nom
+                    + " | denom " + denom
+                    + ANSI_RESET
+            );
         }
         return result;
     }
@@ -448,22 +496,32 @@ public class utils {
      * @param rule Open rule
      * @return Support approximation
      */
-    public static double ApproximateSupportOpenRule(Rule rule) {
+    public static long ApproximateSupportOpenRule(Rule rule) {
+        String ruleStr = rule.toString();
         int rHead = rule.getHeadRelationBS();
         int rFirstBodyAtom = rule.getBody().get(0)[RELATION_POSITION];
 
         int overlap = objectToObjectOverlap(rHead, rFirstBodyAtom);
         double bodyEstimate = bodyEstimate(rule);
         double fun = miniAMIE.kb.functionality(rHead);
-        double result = 0 ;
+        double result = 0;
         if (fun > 0)
             result = overlap * bodyEstimate / fun;
-        double real = rule.getSupport() ;
-        System.out.println("ApproximateSupportOpenRule result " + result + " real " + real);
-        if (result < 0) {
-            System.out.println("neg " + result);
+
+        if (miniAMIE.Verbose) {
+            double realS = RealSupport(rule);
+            double errorRate = ErrorRate(realS, result);
+            System.out.println(ANSI_BLUE
+                    + "ApproximateSupportOpenRule " + ruleStr
+                    + " : s~ " + result
+                    + " | s " + realS
+                    + " | err " + errorRate
+                    + " | ooOv " + overlap
+                    + " | fun " + fun
+                    + ANSI_RESET) ;
         }
-        return result ;
+
+        return (long) result;
     }
 
     /**

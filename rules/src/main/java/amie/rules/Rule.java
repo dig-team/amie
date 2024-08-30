@@ -1197,8 +1197,10 @@ public class Rule {
         return strBuilder.toString();
     }
 
+    /** sortBody guarantees that atoms in rules are output in the same order across runs of the program
+     */
     public Collection<int[]> sortBody() {
-    	   //Guarantee that atoms in rules are output in the same order across runs of the program
+
         class TripleComparator implements Comparator<int[]> {
 
             public int compare(int[] t1, int[] t2) {

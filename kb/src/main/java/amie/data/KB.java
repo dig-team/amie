@@ -631,8 +631,19 @@ public class KB extends AbstractKB {
 	public static int computeOverlap(IntSet s1, IntSet s2) {
 		int overlap = 0;
 		for (int r : s1) {
-			if (s2.contains(r))
+			if (s2.contains(r)) {
 				++overlap;
+			}
+		}
+		return overlap;
+	}
+
+	public static List<Integer> computeOverlapValues(IntSet s1, IntSet s2) {
+		ArrayList<Integer> overlap = new ArrayList<>();
+		for (int r : s1) {
+			if (s2.contains(r)) {
+				overlap.add(r);
+			}
 		}
 		return overlap;
 	}

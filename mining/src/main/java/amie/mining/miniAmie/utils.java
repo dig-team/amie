@@ -5,7 +5,14 @@ import amie.mining.assistant.MiningAssistant;
 import amie.rules.Rule;
 import it.unimi.dsi.fastutil.ints.*;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
+
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class utils {
 
@@ -335,14 +342,17 @@ public class utils {
     protected static void printRuleAsPerfectPath(Rule rule) {
         rule.setBodySize(rule.getBody().size());
         List<int[]> body = sortPerfectPathBody(rule);
-        printBodyAsPerfectPath(body);
+//        printBodyAsPerfectPath(body);
+
+
         int[] head = rule.getHead();
-        System.out.print("=> ") ;
-        System.out.print(
-                miniAMIE.kb.unmap(head[SUBJECT_POSITION]) + " " +
-                        miniAMIE.kb.unmap(head[RELATION_POSITION]) + " " +
-                        miniAMIE.kb.unmap(head[OBJECT_POSITION])
-        );
+//        System.out.print("=> ");
+//        System.out.print(
+//                miniAMIE.kb.unmap(head[SUBJECT_POSITION]) + " " +
+//                        miniAMIE.kb.unmap(head[RELATION_POSITION]) + " " +
+//                        miniAMIE.kb.unmap(head[OBJECT_POSITION])
+//        );
+        System.out.print(new Rule(head, body, -1, miniAMIE.kb));
     }
 
     /**
@@ -412,10 +422,22 @@ public class utils {
     public static final String ANSI_CYAN = "\u001B[36m";
     public static final String ANSI_WHITE = "\u001B[37m";
 
-    protected static double ErrorRate(double real, double estimate) {
+    protected static double ErrorContrastRatio(double real, double estimate) {
         double delta = estimate - real;
         double total = estimate + real;
         return delta / total;
+    }
+
+    protected static double ErrorRate(double real, double estimate) {
+        double delta = estimate - real;
+        double total = real + 1;
+        return delta / total;
+    }
+
+    protected static double ErrorRateLog(double real, double estimate) {
+        double logReal = Math.log10(real + 1);
+        double logEstimate = Math.log10(estimate + 1);
+        return logReal - logEstimate;
     }
 
     /**
@@ -442,6 +464,8 @@ public class utils {
         int domainLast = domain(rLastBodyAtom);
 
         int rangeHead = range(rHead);
+        int rangeLast = range(rLastBodyAtom);
+
 
         double survivalRate = 0;
         int subjectToSubjectOverlap = 0;
@@ -457,7 +481,9 @@ public class utils {
         double headSizeMulOv = (double) headSize * (double) headSize * (double) objectToObjectOverlap;
         double survMulBod = survivalRate * bodyEstimate;
         double nom = headSizeMulOv * survMulBod;
+//        double denom = (double) domainHead * (double) rangeHead * (double) rangeLast;
         double denom = (double) domainHead * (double) rangeHead;
+
 
         if (domainHead > 0 && rangeHead > 0) {
             result = (long) (nom / denom);
@@ -465,6 +491,9 @@ public class utils {
         if (miniAMIE.Verbose) {
             double realS = RealSupport(rule);
             double errorRate = ErrorRate(realS, result);
+            double errorContrastRatio = ErrorContrastRatio(realS, result);
+            double errorLog = ErrorRateLog(realS, result);
+
             if (errorRate > 0.5)
                 System.out.print(ANSI_YELLOW);
             else if (errorRate < -0.5)
@@ -472,7 +501,7 @@ public class utils {
 
             System.out.println(" s~ " + result
                     + " | s " + RealSupport(rule)
-                    + " | err " + errorRate
+                    + " | err (rate, contrast, log)  " + errorRate + " " + errorContrastRatio + " " + errorLog
                     + " | head -> last ooOv " + objectToObjectOverlap
                     + " | first -> head ssOv " + subjectToSubjectOverlap
                     + " | survival " + survivalRate
@@ -503,25 +532,177 @@ public class utils {
 
         int overlap = objectToObjectOverlap(rHead, rFirstBodyAtom);
         double bodyEstimate = bodyEstimate(rule);
-        double fun = miniAMIE.kb.functionality(rHead);
+//        double fun = miniAMIE.kb.inverseFunctionality(rHead);
+        int headSize = miniAMIE.kb.relationSize(rHead);
+        double rangeHead = range(rHead);
+        double denom = rangeHead * rangeHead;
+        double nom = overlap * headSize;
         double result = 0;
-        if (fun > 0)
-            result = overlap * bodyEstimate / fun;
+        if (denom > 0)
+            result = nom / denom;
 
         if (miniAMIE.Verbose) {
             double realS = RealSupport(rule);
             double errorRate = ErrorRate(realS, result);
+            double errorContrastRatio = ErrorContrastRatio(realS, result);
+            double errorLog = ErrorRateLog(realS, result);
             System.out.println(ANSI_BLUE
                     + "ApproximateSupportOpenRule " + ruleStr
                     + " : s~ " + result
                     + " | s " + realS
-                    + " | err " + errorRate
+                    + " | err (rate, contrast, log)  " + errorRate + " " + errorContrastRatio + " " + errorLog
                     + " | ooOv " + overlap
-                    + " | fun " + fun
-                    + ANSI_RESET) ;
+                    + " | rangeHead " + rangeHead
+                    + " | headSize " + headSize
+                    + " | nom " + nom
+                    + " | denom " + denom
+                    + ANSI_RESET);
         }
 
         return (long) result;
+    }
+
+    public enum RuleStateComparison {
+        CORRECT,
+        FALSE,
+        MISSING
+    }
+
+    /**
+     * CompareRules will return true if two rules are equivalent (considering atom positions and variable naming)
+     * (ex: ?a  < worksAt >  ?c ?c  < isLocatedIn >  ?b => ?a  < isCitizenOf >  ?b
+     *  and ?d  < isLocatedIn >  ?b ?a  < worksAt >  ?d => ?a  < isCitizenOf >  ?b are equivalent)
+     * @param groundTruthRule
+     * @param rule
+     * @return
+     */
+    public static boolean CompareRules(Rule groundTruthRule, Rule rule) {
+        int[] groundTruthRuleHead = groundTruthRule.getHead();
+        int[] ruleHead = rule.getHead();
+
+        if (ruleHead[RELATION_POSITION] != groundTruthRuleHead[RELATION_POSITION])
+            return false;
+        List<int[]> groundTruthRuleBody = groundTruthRule.getBody();
+        List<int[]> ruleBody = rule.getBody();
+        int groundBodySize = groundTruthRuleBody.size();
+        int bodySize = ruleBody.size();
+        if (bodySize != groundBodySize)
+            return false;
+
+        HashSet<Integer> groundBodyRelations = new HashSet<>();
+        HashSet<Integer> bodyRelations = new HashSet<>();
+        HashMap<Integer, HashSet<Integer>> objectToRelationsGround = new HashMap<>();
+        HashMap<Integer, HashSet<Integer>> subjectToRelationsGround = new HashMap<>();
+        HashMap<Integer, HashSet<Integer>> objectToRelations = new HashMap<>();
+        HashMap<Integer, HashSet<Integer>> subjectToRelations = new HashMap<>();
+
+        for (int i = 0; i < bodySize; i++) {
+            groundBodyRelations.add(groundTruthRuleBody.get(i)[RELATION_POSITION]);
+            bodyRelations.add(ruleBody.get(i)[RELATION_POSITION]);
+        }
+
+        // Comparing relation lists
+        if (!(groundBodyRelations.containsAll(bodyRelations)) ||
+                !(bodyRelations.containsAll(groundBodyRelations)))
+            return false;
+
+        // Filling the variable-relation hashmaps
+        for (int i = 0; i < bodySize; i++) {
+            int groundObject = groundTruthRuleBody.get(i)[OBJECT_POSITION];
+            int object = ruleBody.get(i)[OBJECT_POSITION];
+            List<Integer> groundRelationsWithObject = new ArrayList<>();
+            List<Integer> relationsWithObject = new ArrayList<>();
+            for (int k = 0; k < bodySize; k++) {
+                if (groundTruthRuleBody.get(i)[OBJECT_POSITION] == groundObject)
+                    groundRelationsWithObject.add(groundTruthRuleBody.get(i)[RELATION_POSITION]);
+                if (ruleBody.get(i)[OBJECT_POSITION] == object)
+                    relationsWithObject.add(ruleBody.get(i)[RELATION_POSITION]);
+            }
+
+            int groundSubject = groundTruthRuleBody.get(i)[SUBJECT_POSITION];
+            int subject = ruleBody.get(i)[SUBJECT_POSITION];
+            List<Integer> groundRelationsWithSubject = new ArrayList<>();
+            List<Integer> relationsWithSubject = new ArrayList<>();
+            for (int k = 0; k < bodySize; k++) {
+                if (groundTruthRuleBody.get(i)[SUBJECT_POSITION] == groundSubject)
+                    groundRelationsWithSubject.add(groundTruthRuleBody.get(i)[RELATION_POSITION]);
+                if (ruleBody.get(i)[SUBJECT_POSITION] == subject)
+                    relationsWithSubject.add(ruleBody.get(i)[RELATION_POSITION]);
+            }
+        }
+
+        // Checking head variable object
+        int groundHeadObject = groundTruthRuleHead[OBJECT_POSITION];
+        int headObject = ruleHead[OBJECT_POSITION];
+        HashSet<Integer> headObjectRelationsGround = objectToRelationsGround.get(groundHeadObject);
+        HashSet<Integer> headObjectRelations = objectToRelations.get(headObject);
+
+        if ((headObjectRelations == null && headObjectRelationsGround != null)
+                || (headObjectRelationsGround == null && headObjectRelations != null))
+            return false;
+
+        if (headObjectRelations != null &&
+                (!headObjectRelations.containsAll(headObjectRelationsGround)
+                        || !headObjectRelationsGround.containsAll(headObjectRelations)))
+            return false;
+
+        // Checking head variable subject
+        int groundHeadSubject = groundTruthRuleHead[SUBJECT_POSITION];
+        int headSubject = ruleHead[SUBJECT_POSITION];
+        HashSet<Integer> headSubjectRelationsGround = subjectToRelationsGround.get(groundHeadSubject);
+        HashSet<Integer> headSubjectRelations = subjectToRelations.get(headSubject);
+
+        if ((headSubjectRelations == null && headSubjectRelationsGround != null)
+                || (headSubjectRelationsGround == null && headSubjectRelations != null))
+            return false;
+
+
+        if (headSubjectRelations != null &&
+                (!headSubjectRelations.containsAll(headSubjectRelationsGround)
+                        || !headSubjectRelations.containsAll(headSubjectRelations)))
+            return false;
+
+
+        // Comparing body
+        for (int i = 0; i < bodySize; i++) {
+            int groundObject = groundTruthRuleBody.get(i)[OBJECT_POSITION];
+            HashSet<Integer> objectRelationsGround = objectToRelationsGround.get(groundObject);
+
+            boolean objectFound = false;
+            // Comparing object variable relation set
+            for (int j = 0; j < bodySize; j++) {
+                HashSet<Integer> objectRelations = objectToRelations.get(groundObject);
+
+                if ( (objectRelations == null && objectRelationsGround == null) ||
+                        (objectRelations.containsAll(objectRelationsGround) &&
+                        bodyRelations.containsAll(groundBodyRelations))) {
+                    objectFound = true;
+                    break;
+                }
+            }
+            if (!objectFound)
+                return false;
+
+            // Checking subject
+            int groundSubject = groundTruthRuleBody.get(i)[SUBJECT_POSITION];
+            HashSet<Integer> subjectRelationsGround = subjectToRelationsGround.get(groundSubject);
+
+            boolean subjectFound = false;
+            // Comparing subject variable relation set
+            for (int j = 0; j < bodySize; j++) {
+                HashSet<Integer> subjectRelations = subjectToRelations.get(groundSubject);
+
+                if ((subjectRelations == null && subjectRelationsGround == null) ||
+                        (subjectRelations.containsAll(subjectRelationsGround) &&
+                        bodyRelations.containsAll(groundBodyRelations))) {
+                    subjectFound = true;
+                    break;
+                }
+            }
+            if (!subjectFound)
+                return false;
+        }
+        return true;
     }
 
     /**
@@ -532,5 +713,64 @@ public class utils {
      */
     public static Collection<Rule> GetInitRules(double minSup) {
         return miningAssistant.getInitialAtoms(minSup);
+    }
+
+
+    public static List<Rule> LoadGroundTruthRules() {
+        List<Rule> groundTruthRules = new ArrayList<>();
+        BufferedReader reader;
+
+        try {
+            reader = new BufferedReader(new FileReader(miniAMIE.pathToGroundTruthRules));
+            String line = reader.readLine();
+
+            while (line != null) {
+                List<int[]> bodyAtoms = new ArrayList<>();
+                int[] headAtom;
+//                System.out.println(line);
+
+                String regexSpace = "[(\\ )|(\t)]+";
+                String regexAtom = "(\\?[a-z]" + regexSpace + "<[a-zA-Z]+>" + regexSpace + "\\?[a-z]" + regexSpace + ")";
+                String regexBody = "(" + regexAtom + "+)";
+                String regexRule = "(" + regexBody + "=> [(\\ )|(\t)]*" + regexAtom + ")";
+                Pattern pat = Pattern.compile(regexRule);
+                Matcher matcher = pat.matcher(line);
+                if (matcher.find()) {
+                    String bodyString = matcher.group(2);
+                    String[] bodyParts = bodyString.split(regexSpace);
+                    for (int i = 0; i < bodyParts.length; i += 3) {
+                        String subjectString = bodyParts[i];
+                        String relationString = bodyParts[i + 1];
+                        String objectString = bodyParts[i + 2];
+
+                        int subject = miniAMIE.kb.map(subjectString);
+                        int relation = miniAMIE.kb.map(relationString);
+                        int object = miniAMIE.kb.map(objectString);
+
+                        bodyAtoms.add(new int[]{subject, relation, object});
+                    }
+                    String headString = matcher.group(4);
+                    String[] headParts = headString.split(regexSpace);
+                    String subjectString = headParts[0];
+                    String relationString = headParts[1];
+                    String objectString = headParts[2];
+
+                    int subject = miniAMIE.kb.map(subjectString);
+                    int relation = miniAMIE.kb.map(relationString);
+                    int object = miniAMIE.kb.map(objectString);
+                    headAtom = new int[]{subject, relation, object};
+
+                    Rule groundTruthRule = new Rule(headAtom, bodyAtoms, -1, miniAMIE.kb);
+                    groundTruthRules.add(groundTruthRule);
+                    line = reader.readLine();
+                }
+
+            }
+
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return groundTruthRules;
     }
 }

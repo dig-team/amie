@@ -20,6 +20,9 @@ public class miniAMIE {
     public static boolean Verbose = false ;
     public static double ErrorRateThreshold = 0.5 ;
 
+    public static boolean CompareToGroundTruth = true ;
+    public static String pathToGroundTruthRules = "mining/src/test/resources/yago2s-rules" ;
+
 
     private static final int CORRECTION_FACTOR_CLOSURE = 2;
     private static final int CORRECTION_FACTOR_OPENNING = 4;
@@ -51,16 +54,54 @@ public class miniAMIE {
         // Displaying result
         System.out.println("Search space approximation: " + totalSumExploredRules + " possibilities.");
 
-
         System.out.println("Approximate mining: ");
+        if (CompareToGroundTruth) {
+
+            // Generating comparison map
+            List<Rule> groundTruthRules = utils.LoadGroundTruthRules() ;
+            HashMap<Rule, utils.RuleStateComparison> comparisonMap = new HashMap<>();
+            for(Rule rule : finalRules)
+                comparisonMap.put(rule, RuleStateComparison.FALSE) ;
+            for(Rule groundTruthRule : groundTruthRules) {
+                boolean found = false;
+                for(Rule rule : finalRules) {
+                    if (utils.CompareRules(rule, groundTruthRule)) {
+                        found = true;
+                        comparisonMap.put(rule, RuleStateComparison.CORRECT) ;
+                        break;
+                    }
+                }
+                if (!found) {
+                    comparisonMap.put(groundTruthRule, RuleStateComparison.MISSING) ;
+                }
+            }
+
+            // Displaying comparison map
+            System.out.println(" Comparison to ground truth: ") ;
+            for(Rule rule: comparisonMap.keySet()) {
+                String comparisonCharacter ;
+                if(comparisonMap.get(rule) == RuleStateComparison.FALSE) {
+                    comparisonCharacter = ANSI_YELLOW+"F";
+                } else if (comparisonMap.get(rule) == RuleStateComparison.CORRECT) {
+                    comparisonCharacter = ANSI_GREEN+"C";
+                } else if (comparisonMap.get(rule) == RuleStateComparison.MISSING){
+                    comparisonCharacter = ANSI_RED+"A";
+                } else {
+                    throw new RuntimeException("Unknown comparison rule " + rule);
+                }
+                System.out.println(comparisonCharacter+  " " + rule + ANSI_RESET);
+            }
+        }
         for (Rule rule : finalRules) {
             if (ShowRealSupport) {
                 double real = RealSupport(rule) ;
                 double app = ApproximateSupportClosedRule(rule) ;
-                double err = utils.ErrorRate(real, app);
-                if (err >= ErrorRateThreshold) {
+                double errorRate = utils.ErrorRate(real, app);
+                double errorContrastRatio = ErrorContrastRatio(real, app);
+                double errorLog = ErrorRateLog(real, app);
+                if (errorRate >= ErrorRateThreshold) {
                     System.out.print(ANSI_YELLOW) ;
-                } else if (err < -ErrorRateThreshold) {
+                } else if (errorRate < -ErrorRateThreshold) {
                     System.out.print(ANSI_CYAN) ;
                 } else {
                     System.out.print(ANSI_WHITE) ;
@@ -68,7 +109,7 @@ public class miniAMIE {
                 utils.printRuleAsPerfectPath(rule) ;
                 System.out.println(" : s~ " + app +
                         " | s " + real +
-                        " | err " + err + ANSI_RESET);
+                        " | err (rate, contrast, log) " + errorRate + " " + errorContrastRatio + " " + errorLog + ANSI_RESET);
             }
             else
                 System.out.println(rule.toString() + " : s~ " + ApproximateSupportClosedRule(rule) );

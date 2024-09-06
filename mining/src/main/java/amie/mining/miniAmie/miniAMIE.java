@@ -16,11 +16,12 @@ public class miniAMIE {
     public static int MaxRuleSize;
     public static int MinSup;
     public static boolean ShowRealSupport = true ;
-    public static boolean ShowExplorationLayers = false ;
-    public static boolean Verbose = false ;
+    public static boolean ShowExplorationLayers = true ;
+    public static boolean Verbose = true ;
     public static double ErrorRateThreshold = 0.5 ;
 
     public static boolean CompareToGroundTruth = true ;
+    public static String RestrainedHead = "graduatedFrom" ;
     public static String pathToGroundTruthRules = "mining/src/test/resources/yago2s-rules" ;
 
 
@@ -43,11 +44,11 @@ public class miniAMIE {
         List<Rule> finalRules = new ArrayList<>();
 
         for (Rule rule : initRules) {
-//                if (rule.toString().contains("isCitizenOf")) {
+                if (rule.toString().contains(RestrainedHead)) {
                     ExplorationResult exploreChildrenResult = InitExploreChildren(rule);
                     totalSumExploredRules += exploreChildrenResult.sumExploredRules;
                     finalRules.addAll(exploreChildrenResult.finalRules);
-//                }
+                }
             totalSumExploredRules += 1;
         }
 
@@ -72,7 +73,10 @@ public class miniAMIE {
                     }
                 }
                 if (!found) {
-                    comparisonMap.put(groundTruthRule, RuleStateComparison.MISSING) ;
+                    if(utils.ShouldHaveBeenFound(groundTruthRule))
+                        comparisonMap.put(groundTruthRule, RuleStateComparison.MISSING_FAILURE) ;
+                    else
+                        comparisonMap.put(groundTruthRule, RuleStateComparison.MISSING_OK) ;
                 }
             }
 
@@ -84,8 +88,11 @@ public class miniAMIE {
                     comparisonCharacter = ANSI_YELLOW+"F";
                 } else if (comparisonMap.get(rule) == RuleStateComparison.CORRECT) {
                     comparisonCharacter = ANSI_GREEN+"C";
-                } else if (comparisonMap.get(rule) == RuleStateComparison.MISSING){
-                    comparisonCharacter = ANSI_RED+"A";
+                } else if (comparisonMap.get(rule) == RuleStateComparison.MISSING_FAILURE){
+                    comparisonCharacter = ANSI_RED+"M FA";
+                } else if (comparisonMap.get(rule) == RuleStateComparison.MISSING_OK){
+                    comparisonCharacter = ANSI_PURPLE+"M OK";
+
                 } else {
                     throw new RuntimeException("Unknown comparison rule " + rule);
                 }

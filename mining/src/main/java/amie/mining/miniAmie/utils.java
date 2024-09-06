@@ -4,6 +4,7 @@ import amie.data.KB;
 import amie.mining.assistant.MiningAssistant;
 import amie.rules.Rule;
 import it.unimi.dsi.fastutil.ints.*;
+import org.eclipse.rdf4j.sparqlbuilder.constraint.In;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -312,6 +313,9 @@ public class utils {
     private static List<int[]> sortPerfectPathBody(Rule rule) {
         int bodySize = rule.getBody().size();
         rule.setBodySize(rule.getBody().size());
+        if(bodySize < 2 )
+            return rule.getBody() ;
+
         List<int[]> body = rule.getBody();
         List<int[]> sortedBody = new ArrayList<>();
         int[] head = rule.getHead();
@@ -368,8 +372,9 @@ public class utils {
         List<int[]> body = sortPerfectPathBody(rule);
         if (miniAMIE.Verbose) {
             System.out.print("Body: ");
-            for (int[] triple : body) {
-                System.out.print(
+            for (int k = 0 ; k < body.size() ; k++) {
+                int[] triple = body.get(k);
+                System.out.print("["+k+"] "+
                         miniAMIE.kb.unmap(triple[SUBJECT_POSITION]) + " " +
                                 miniAMIE.kb.unmap(triple[RELATION_POSITION]) + " " +
                                 miniAMIE.kb.unmap(triple[OBJECT_POSITION])
@@ -379,33 +384,162 @@ public class utils {
             System.out.print("\nBody estimate: (size: " + rule.getBodySize() + ") ");
         }
         for (int id = 0; id < rule.getBodySize() - 1; id++) {
-            int r = body.get(id)[RELATION_POSITION];
-            int r_next = body.get(id + 1)[RELATION_POSITION];
+            int last_id = (int) rule.getBodySize() - 1 ;
+            int r = body.get(last_id - id)[RELATION_POSITION];
+            int r_next = body.get(last_id - id - 1)[RELATION_POSITION];
             // Computing SO Survival rate
-            double survivalRate = 1;
-            int dom = domain(r);
-            double soOV = subjectToObjectOverlap(r_next, r);
-            if (dom > 0) {
-                survivalRate = soOV / dom;
-            }
+            int rDom = domain(r);
+            int r_nextRng = range(r_next);
+            int r_nextSize = miniAMIE.kb.relationSize(r_next);
+            double soOV = subjectToObjectOverlap(r, r_next);
+            double denom = rDom * r_nextRng;
+            double nom = soOV * r_nextSize;
 
-            double inverseFunctionality = miniAMIE.kb.inverseFunctionality(r);
-
-            if (inverseFunctionality > 0) {
-                product *= survivalRate / inverseFunctionality;
+            double factor = 0 ;
+            if (denom > 0) {
+                factor = nom/denom;
+            } else {
+                product = 0;
+                break ;
             }
+            product *= factor;
+
             if (miniAMIE.Verbose)
                 System.out.print(
-                        " { r: " + miniAMIE.kb.unmap(r) + " to " + " r_next: " + miniAMIE.kb.unmap(r_next)
-                                + " } survival " + survivalRate
-                                + " | r_next domain " + dom
+                        " { r["+(last_id - id)+"]: " + miniAMIE.kb.unmap(r) + " to " + " r["+(last_id - id - 1)+"] (r_next)" + miniAMIE.kb.unmap(r_next)
+                                + " } "
+                                + " factor: " + factor
+                                + " product : " + product
+                                + " | nom " + nom
+                                + " | denom " + denom
                                 + " | soOV " + soOV
-                                + " | inverseFunctionality " + inverseFunctionality
-                                + " | product " + product);
+                                + " | r_nextRng " + r_nextRng
+                                + " | r_nextSize " + r_nextSize);
         }
         if (miniAMIE.Verbose)
             System.out.print("\n");
         return product;
+    }
+
+
+
+    /**
+     * Support approximation for a closed rule
+     *
+     * @param rule Closed rule
+     * @return Support approximation
+     */
+    public static long ApproximateSupportClosedRule(Rule rule) {
+        String ruleStr = rule.toString();
+        if (miniAMIE.Verbose)
+            System.out.println(ANSI_GREEN
+                    + "ApproximateSupportClosedRule " + ruleStr);
+        int rHead = rule.getHeadRelationBS();
+        List<int[]> body = sortPerfectPathBody(rule);
+        int bodySize = body.size();
+        int idFirst = bodySize - 1 ;
+        int idLast = 0 ;
+        int rFirstBodyAtom = body.get(idFirst)[RELATION_POSITION];
+        int rLastBodyAtom = body.get(idLast)[RELATION_POSITION];
+
+
+        int objectToObjectOverlap = objectToObjectOverlap(rHead, rFirstBodyAtom);
+        int subjectToSubjectOverlap = subjectToSubjectOverlap(rLastBodyAtom, rHead);
+        double rFirstSize = miniAMIE.kb.relationSize(rFirstBodyAtom);
+        double rHeadSize = miniAMIE.kb.relationSize(rHead);
+
+
+        int domainHead = domain(rHead);
+        int domainLast = domain(rLastBodyAtom);
+        int rangeFirst = range(rFirstBodyAtom);
+
+        double bodyEstimate = bodyEstimate(rule);
+
+        long result = 0;
+
+        double nom = objectToObjectOverlap * subjectToSubjectOverlap * rFirstSize * rHeadSize;
+        double denom = rangeFirst * domainHead * domainLast;
+
+        if (denom > 0) {
+            result = (long) (nom * bodyEstimate / denom);
+        }
+
+        if (miniAMIE.Verbose) {
+            double realS = RealSupport(rule);
+            double errorRate = ErrorRate(realS, result);
+            double errorContrastRatio = ErrorContrastRatio(realS, result);
+            double errorLog = ErrorRateLog(realS, result);
+
+            if (errorRate > 0.5)
+                System.out.print(ANSI_YELLOW);
+            else if (errorRate < -0.5)
+                System.out.print(ANSI_CYAN);
+
+            System.out.println(" s~ " + result
+                    + " | s " + RealSupport(rule)
+                    + " | err (rate, contrast, log)  " + errorRate + " " + errorContrastRatio + " " + errorLog
+                    + " | bodyEstimate " + bodyEstimate
+                    + " | nom " + nom
+                    + " | denom " + denom
+                    + " | objectToObjectOverlap " + objectToObjectOverlap
+                    + " | subjectToSubjectOverlap " + subjectToSubjectOverlap
+                    + " | rFirstSize " + rFirstSize
+                    + " | rHeadSize " + rHeadSize
+                    + " | rangeFirst " + rangeFirst
+                    + " | domainHead " + domainHead
+                    + " | domainLast " + domainLast
+                    + ANSI_RESET
+            );
+        }
+        return result;
+    }
+
+    /**
+     * Support approximation for an open rule
+     *
+     * @param rule Open rule
+     * @return Support approximation
+     */
+    public static long ApproximateSupportOpenRule(Rule rule) {
+        String ruleStr = rule.toString();
+        int rHead = rule.getHeadRelationBS();
+
+        List<int[]> body = sortPerfectPathBody(rule);
+        int bodySize = body.size();
+        int idFirst = bodySize - 1 ;
+        System.out.println("HERE " + body);
+        int rFirstBodyAtom = body.get(idFirst)[RELATION_POSITION];
+
+
+        double bodyEstimate = bodyEstimate(rule);
+        int overlap = objectToObjectOverlap(rHead, rFirstBodyAtom);
+        int firstSize = miniAMIE.kb.relationSize(rFirstBodyAtom);
+        double rangeFirst = range(rFirstBodyAtom);
+        double nom = overlap * firstSize;
+        double denom = rangeFirst ;
+        double result = 0;
+        if (denom > 0)
+            result = (nom * bodyEstimate)/ denom;
+
+        if (miniAMIE.Verbose) {
+            double realS = RealSupport(rule);
+            double errorRate = ErrorRate(realS, result);
+            double errorContrastRatio = ErrorContrastRatio(realS, result);
+            double errorLog = ErrorRateLog(realS, result);
+            System.out.println(ANSI_BLUE
+                    + "ApproximateSupportOpenRule " + ruleStr
+                    + " : s~ " + result
+                    + " | s " + realS
+                    + " | err (rate, contrast, log)  " + errorRate + " " + errorContrastRatio + " " + errorLog
+                    + " | ooOv " + overlap
+                    + " | rangeHead " + rangeFirst
+                    + " | headSize " + firstSize
+                    + " | nom " + nom
+                    + " | denom " + denom
+                    + ANSI_RESET);
+        }
+
+        return (long) result;
     }
 
     public static long RealSupport(Rule rule) {
@@ -440,132 +574,30 @@ public class utils {
         return logReal - logEstimate;
     }
 
-    /**
-     * Support approximation for a closed rule
-     *
-     * @param rule Closed rule
-     * @return Support approximation
-     */
-    public static long ApproximateSupportClosedRule(Rule rule) {
-        String ruleStr = rule.toString();
-        if (miniAMIE.Verbose)
-            System.out.println(ANSI_GREEN
-                    + "ApproximateSupportClosedRule " + ruleStr);
-        int rHead = rule.getHeadRelationBS();
-        List<int[]> body = rule.getBody();
-        int rFirstBodyAtom = body.get(0)[RELATION_POSITION];
-        int rLastBodyAtom = body.get(body.size() - 1)[RELATION_POSITION];
-
-
-        int headSize = miniAMIE.kb.relationSize(rHead);
-//        System.out.println("Object to Object : ");
-        int objectToObjectOverlap = objectToObjectOverlap(rHead, rFirstBodyAtom);
-        int domainHead = domain(rHead);
-        int domainLast = domain(rLastBodyAtom);
-
-        int rangeHead = range(rHead);
-        int rangeLast = range(rLastBodyAtom);
-
-
-        double survivalRate = 0;
-        int subjectToSubjectOverlap = 0;
-        if (rangeHead > 0) {
-//            System.out.print("Subject to Subject : ");
-            subjectToSubjectOverlap = subjectToSubjectOverlap(rLastBodyAtom, rHead);
-//            survivalRate = (double) subjectToSubjectOverlap / rangeHead;
-            survivalRate = (double) subjectToSubjectOverlap / domainLast;
-        }
-        double bodyEstimate = bodyEstimate(rule);
-        long result = 0;
-
-        double headSizeMulOv = (double) headSize * (double) headSize * (double) objectToObjectOverlap;
-        double survMulBod = survivalRate * bodyEstimate;
-        double nom = headSizeMulOv * survMulBod;
-//        double denom = (double) domainHead * (double) rangeHead * (double) rangeLast;
-        double denom = (double) domainHead * (double) rangeHead;
-
-
-        if (domainHead > 0 && rangeHead > 0) {
-            result = (long) (nom / denom);
-        }
-        if (miniAMIE.Verbose) {
-            double realS = RealSupport(rule);
-            double errorRate = ErrorRate(realS, result);
-            double errorContrastRatio = ErrorContrastRatio(realS, result);
-            double errorLog = ErrorRateLog(realS, result);
-
-            if (errorRate > 0.5)
-                System.out.print(ANSI_YELLOW);
-            else if (errorRate < -0.5)
-                System.out.print(ANSI_CYAN);
-
-            System.out.println(" s~ " + result
-                    + " | s " + RealSupport(rule)
-                    + " | err (rate, contrast, log)  " + errorRate + " " + errorContrastRatio + " " + errorLog
-                    + " | head -> last ooOv " + objectToObjectOverlap
-                    + " | first -> head ssOv " + subjectToSubjectOverlap
-                    + " | survival " + survivalRate
-                    + " | body " + bodyEstimate
-                    + " | headSize " + headSize
-                    + " | domainHead " + domainHead
-                    + " | rangeHead " + rangeHead
-                    + " | survMulBod " + survMulBod
-                    + " | headSizeMulOv " + headSizeMulOv
-                    + " | nom " + nom
-                    + " | denom " + denom
-                    + ANSI_RESET
-            );
-        }
-        return result;
-    }
-
-    /**
-     * Support approximation for an open rule
-     *
-     * @param rule Open rule
-     * @return Support approximation
-     */
-    public static long ApproximateSupportOpenRule(Rule rule) {
-        String ruleStr = rule.toString();
-        int rHead = rule.getHeadRelationBS();
-        int rFirstBodyAtom = rule.getBody().get(0)[RELATION_POSITION];
-
-        int overlap = objectToObjectOverlap(rHead, rFirstBodyAtom);
-        double bodyEstimate = bodyEstimate(rule);
-//        double fun = miniAMIE.kb.inverseFunctionality(rHead);
-        int headSize = miniAMIE.kb.relationSize(rHead);
-        double rangeHead = range(rHead);
-        double denom = rangeHead * rangeHead;
-        double nom = overlap * headSize;
-        double result = 0;
-        if (denom > 0)
-            result = nom / denom;
-
-        if (miniAMIE.Verbose) {
-            double realS = RealSupport(rule);
-            double errorRate = ErrorRate(realS, result);
-            double errorContrastRatio = ErrorContrastRatio(realS, result);
-            double errorLog = ErrorRateLog(realS, result);
-            System.out.println(ANSI_BLUE
-                    + "ApproximateSupportOpenRule " + ruleStr
-                    + " : s~ " + result
-                    + " | s " + realS
-                    + " | err (rate, contrast, log)  " + errorRate + " " + errorContrastRatio + " " + errorLog
-                    + " | ooOv " + overlap
-                    + " | rangeHead " + rangeHead
-                    + " | headSize " + headSize
-                    + " | nom " + nom
-                    + " | denom " + denom
-                    + ANSI_RESET);
-        }
-
-        return (long) result;
-    }
-
     public enum RuleStateComparison {
+        /** Rule has been found by mini-Amie and is in ground truth rule set */
         CORRECT,
+        /** Rule has been found by mini-Amie but is not in ground truth rule set */
         FALSE,
-        MISSING
+        /** Rule has not been found by mini-Amie and is in ground truth rule set
+        * BUT should not be found by mini-Amie (ex: rule is not a perfect path, rule has redundant relations) */
+        MISSING_OK,
+        /** Rule has not been found by mini_Amie and is in ground truth rule set
+        * BUT should have been found by mini-Amie */
+        MISSING_FAILURE
+    }
+
+    public static boolean ShouldHaveBeenFound(Rule rule) {
+        HashSet<Integer> relations = new HashSet<>();
+        relations.add(rule.getHead()[RELATION_POSITION]);
+        for(int[] atom: rule.getBody()) {
+            int relation = atom[RELATION_POSITION];
+            if(relations.contains(relation)) {
+                return false ;
+            }
+            relations.add(relation);
+        }
+        return rule.containsSinglePath();
     }
 
     /**
@@ -755,11 +787,12 @@ public class utils {
                     String relationString = headParts[1];
                     String objectString = headParts[2];
 
+                    if(!Objects.equals(relationString, miniAMIE.RestrainedHead))
+                        break ;
                     int subject = miniAMIE.kb.map(subjectString);
                     int relation = miniAMIE.kb.map(relationString);
                     int object = miniAMIE.kb.map(objectString);
                     headAtom = new int[]{subject, relation, object};
-
                     Rule groundTruthRule = new Rule(headAtom, bodyAtoms, -1, miniAMIE.kb);
                     groundTruthRules.add(groundTruthRule);
                     line = reader.readLine();

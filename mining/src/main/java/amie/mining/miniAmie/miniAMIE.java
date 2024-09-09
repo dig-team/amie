@@ -15,13 +15,13 @@ public class miniAMIE {
 
     public static int MaxRuleSize;
     public static int MinSup;
-    public static boolean ShowRealSupport = true ;
-    public static boolean ShowExplorationLayers = true ;
-    public static boolean Verbose = true ;
+    public static boolean ShowRealSupport = false ;
+    public static boolean ShowExplorationLayers = false ;
+    public static boolean Verbose = false ;
     public static double ErrorRateThreshold = 0.5 ;
 
     public static boolean CompareToGroundTruth = true ;
-    public static String RestrainedHead = "graduatedFrom" ;
+    public static String RestrainedHead = "" ;
     public static String pathToGroundTruthRules = "mining/src/test/resources/yago2s-rules" ;
 
 

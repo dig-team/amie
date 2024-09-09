@@ -346,17 +346,17 @@ public class utils {
     protected static void printRuleAsPerfectPath(Rule rule) {
         rule.setBodySize(rule.getBody().size());
         List<int[]> body = sortPerfectPathBody(rule);
-//        printBodyAsPerfectPath(body);
+        printBodyAsPerfectPath(body);
 
 
         int[] head = rule.getHead();
-//        System.out.print("=> ");
-//        System.out.print(
-//                miniAMIE.kb.unmap(head[SUBJECT_POSITION]) + " " +
-//                        miniAMIE.kb.unmap(head[RELATION_POSITION]) + " " +
-//                        miniAMIE.kb.unmap(head[OBJECT_POSITION])
-//        );
-        System.out.print(new Rule(head, body, -1, miniAMIE.kb));
+        System.out.print("=> ");
+        System.out.print(
+                miniAMIE.kb.unmap(head[SUBJECT_POSITION]) + " " +
+                        miniAMIE.kb.unmap(head[RELATION_POSITION]) + " " +
+                        miniAMIE.kb.unmap(head[OBJECT_POSITION])
+        );
+//        System.out.print(new Rule(head, body, -1, miniAMIE.kb));
     }
 
     /**
@@ -384,37 +384,51 @@ public class utils {
             System.out.print("\nBody estimate: (size: " + rule.getBodySize() + ") ");
         }
         for (int id = 0; id < rule.getBodySize() - 1; id++) {
+
             int last_id = (int) rule.getBodySize() - 1 ;
-            int r = body.get(last_id - id)[RELATION_POSITION];
-            int r_next = body.get(last_id - id - 1)[RELATION_POSITION];
+            int r_id =  last_id - id ;
+            int r_next_id = last_id - id - 1 ;
+            int r = body.get(r_id)[RELATION_POSITION];
+            int r_next = body.get(r_next_id)[RELATION_POSITION];
             // Computing SO Survival rate
             int rDom = domain(r);
             int r_nextRng = range(r_next);
             int r_nextSize = miniAMIE.kb.relationSize(r_next);
-            double soOV = subjectToObjectOverlap(r, r_next);
-            double denom = rDom * r_nextRng;
-            double nom = soOV * r_nextSize;
+
+            double soOV = subjectToObjectOverlap(r_next, r);
+//            double denom = rDom * r_nextRng;
+//            double nom = soOV * r_nextSize;
 
             double factor = 0 ;
-            if (denom > 0) {
-                factor = nom/denom;
-            } else {
-                product = 0;
-                break ;
+//            if (denom > 0) {
+//                factor = nom/denom;
+//            } else {
+//                factor = 0;
+//            }
+
+            /////// ALTERNATIVE METHOD
+            double ifun_next = (double) r_nextRng / r_nextSize;
+            double soSurv = soOV / rDom ;
+            if (ifun_next > 0) {
+                factor = soSurv / ifun_next;
             }
+
             product *= factor;
 
             if (miniAMIE.Verbose)
                 System.out.print(
-                        " { r["+(last_id - id)+"]: " + miniAMIE.kb.unmap(r) + " to " + " r["+(last_id - id - 1)+"] (r_next)" + miniAMIE.kb.unmap(r_next)
+                        " { r["+(r_id)+"]: " + miniAMIE.kb.unmap(r) + " to " + " r["+(r_next_id)+"] (r_next)" + miniAMIE.kb.unmap(r_next)
                                 + " } "
                                 + " factor: " + factor
                                 + " product : " + product
-                                + " | nom " + nom
-                                + " | denom " + denom
+                                + " | soSurv " + soSurv
+                                + " | rDom " + rDom
                                 + " | soOV " + soOV
                                 + " | r_nextRng " + r_nextRng
                                 + " | r_nextSize " + r_nextSize);
+
+            if (product == 0)
+                break ;
         }
         if (miniAMIE.Verbose)
             System.out.print("\n");
@@ -460,9 +474,18 @@ public class utils {
         double nom = objectToObjectOverlap * subjectToSubjectOverlap * rFirstSize * rHeadSize;
         double denom = rangeFirst * domainHead * domainLast;
 
-        if (denom > 0) {
-            result = (long) (nom * bodyEstimate / denom);
-        }
+//        if (denom > 0) {
+//            result = (long) (nom * bodyEstimate / denom);
+//        }
+
+        // ALTERNATIVE
+        double inv_ifun_r1 =  rFirstSize / rangeFirst ;
+        double inv_fun_rh = rHeadSize / domainHead ;
+        double ssSurv = (double) subjectToSubjectOverlap / domainLast ;
+        double factor1 = objectToObjectOverlap * inv_ifun_r1 ;
+        double factor2 = ssSurv * inv_fun_rh ;
+        double product = factor1 + factor2;
+        result = (long) (product * bodyEstimate) ;
 
         if (miniAMIE.Verbose) {
             double realS = RealSupport(rule);
@@ -481,6 +504,8 @@ public class utils {
                     + " | bodyEstimate " + bodyEstimate
                     + " | nom " + nom
                     + " | denom " + denom
+                    + " | rHead " + miniAMIE.kb.unmap(rHead)
+                    + " | rLastBodyAtom " + miniAMIE.kb.unmap(rLastBodyAtom)
                     + " | objectToObjectOverlap " + objectToObjectOverlap
                     + " | subjectToSubjectOverlap " + subjectToSubjectOverlap
                     + " | rFirstSize " + rFirstSize
@@ -488,6 +513,11 @@ public class utils {
                     + " | rangeFirst " + rangeFirst
                     + " | domainHead " + domainHead
                     + " | domainLast " + domainLast
+                    + " | inv_ifun_r1 " + inv_ifun_r1
+                    + " | inv_fun_rh " + inv_fun_rh
+                    + " | ssSurv " + ssSurv
+                    + " | factor1 " + factor1
+                    + " | factor2 " + factor2
                     + ANSI_RESET
             );
         }
@@ -507,19 +537,22 @@ public class utils {
         List<int[]> body = sortPerfectPathBody(rule);
         int bodySize = body.size();
         int idFirst = bodySize - 1 ;
-        System.out.println("HERE " + body);
         int rFirstBodyAtom = body.get(idFirst)[RELATION_POSITION];
 
 
         double bodyEstimate = bodyEstimate(rule);
-        int overlap = objectToObjectOverlap(rHead, rFirstBodyAtom);
-        int firstSize = miniAMIE.kb.relationSize(rFirstBodyAtom);
+        int objectToObjectOverlap = objectToObjectOverlap(rHead, rFirstBodyAtom);
+        int rFirstSize = miniAMIE.kb.relationSize(rFirstBodyAtom);
         double rangeFirst = range(rFirstBodyAtom);
-        double nom = overlap * firstSize;
+        double nom = objectToObjectOverlap * rFirstSize;
         double denom = rangeFirst ;
         double result = 0;
-        if (denom > 0)
-            result = (nom * bodyEstimate)/ denom;
+//        if (denom > 0)
+//            result = (nom * bodyEstimate)/ denom;
+
+        // ALTERNATIVE
+        double inv_ifun_r1 =  rFirstSize / rangeFirst ;
+        result = objectToObjectOverlap * inv_ifun_r1 ;
 
         if (miniAMIE.Verbose) {
             double realS = RealSupport(rule);
@@ -531,11 +564,11 @@ public class utils {
                     + " : s~ " + result
                     + " | s " + realS
                     + " | err (rate, contrast, log)  " + errorRate + " " + errorContrastRatio + " " + errorLog
-                    + " | ooOv " + overlap
+                    + " | ooOv " + objectToObjectOverlap
                     + " | rangeHead " + rangeFirst
-                    + " | headSize " + firstSize
-                    + " | nom " + nom
-                    + " | denom " + denom
+                    + " | headSize " + rFirstSize
+                    + " | inv_ifun_r1 " + inv_ifun_r1
+                    + " | rHead " + miniAMIE.kb.unmap(rHead)
                     + ANSI_RESET);
         }
 

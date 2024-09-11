@@ -100,7 +100,7 @@ public class AMIE {
      * If true, print the rules as they are discovered.
      */
     protected boolean realTime;
-
+    static int SearchSpaceSize = 0 ;
     /**
      * List of target head relations.
      */
@@ -200,6 +200,8 @@ public class AMIE {
             job.join();
         }
 
+        System.out.println("Search space size: "+ SearchSpaceSize);
+
         if (realTime) {
             consumerObj.terminate();
             consumerThread.join();
@@ -293,6 +295,8 @@ public class AMIE {
             consumeLock.unlock();
         }
     }
+
+
 
     /**
      * This class implements the AMIE algorithm in a single thread.
@@ -389,6 +393,7 @@ public class AMIE {
                             Collection<Rule> items = entry.getValue();
                             if (!operator.equals("dangling")) {
                                 queryPool.queueAll(items);
+                                SearchSpaceSize += items.size();
                             }
                         }
 
@@ -398,6 +403,7 @@ public class AMIE {
                                 < assistant.getMaxDepth() - 1) {
                             if (temporalOutputMap.containsKey("dangling")) {
                                 queryPool.queueAll(temporalOutputMap.get("dangling"));
+                                SearchSpaceSize += temporalOutputMap.get("dangling").size();
                             }
                         }
                     }

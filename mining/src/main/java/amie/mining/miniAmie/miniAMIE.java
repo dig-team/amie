@@ -15,20 +15,21 @@ public class miniAMIE {
 
     public static int MaxRuleSize;
     public static int MinSup;
-    public static boolean ShowRealSupport = false ;
-    public static boolean ShowExplorationLayers = false ;
-    public static boolean Verbose = false ;
-    public static double ErrorRateThreshold = 0.5 ;
+    public static boolean ShowRealSupport = false;
+    public static boolean ShowExplorationLayers = false;
+    public static boolean Verbose = false;
+    public static double ErrorRateThreshold = 0.5;
 
-    public static boolean CompareToGroundTruth = true ;
-    public static String RestrainedHead = "" ;
-    public static String pathToGroundTruthRules = "mining/src/test/resources/yago2s-rules" ;
+    public static boolean CompareToGroundTruth = true;
+    public static String RestrainedHead = "";
+    public static String pathToGroundTruthRules = "mining/src/test/resources/yago2s-rules2";
 
+    public static boolean printOutputToCsv = true;
 
     private static final int CORRECTION_FACTOR_CLOSURE = 2;
     private static final int CORRECTION_FACTOR_OPENNING = 4;
 
-    protected static List<Integer> SelectedRelations = new ArrayList<>() ;
+    protected static List<Integer> SelectedRelations = new ArrayList<>();
 
     public static void Run() {
         // Init mining assistant (temp solution)
@@ -37,18 +38,18 @@ public class miniAMIE {
 
         miningAssistant = new DefaultMiningAssistant(kb);
 
-        SelectedRelations = SelectRelations() ;
+        SelectedRelations = SelectRelations();
 
         Collection<Rule> initRules = GetInitRules(MinSup);
         int totalSumExploredRules = 0;
         List<Rule> finalRules = new ArrayList<>();
 
         for (Rule rule : initRules) {
-                if (rule.toString().contains(RestrainedHead)) {
-                    ExplorationResult exploreChildrenResult = InitExploreChildren(rule);
-                    totalSumExploredRules += exploreChildrenResult.sumExploredRules;
-                    finalRules.addAll(exploreChildrenResult.finalRules);
-                }
+            if (rule.toString().contains(RestrainedHead)) {
+                ExplorationResult exploreChildrenResult = InitExploreChildren(rule);
+                totalSumExploredRules += exploreChildrenResult.sumExploredRules;
+                finalRules.addAll(exploreChildrenResult.finalRules);
+            }
             totalSumExploredRules += 1;
         }
 
@@ -59,83 +60,130 @@ public class miniAMIE {
         if (CompareToGroundTruth) {
 
             // Generating comparison map
-            List<Rule> groundTruthRules = utils.LoadGroundTruthRules() ;
+            List<Rule> groundTruthRules = utils.LoadGroundTruthRules();
             HashMap<Rule, utils.RuleStateComparison> comparisonMap = new HashMap<>();
-            for(Rule rule : finalRules)
-                comparisonMap.put(rule, RuleStateComparison.FALSE) ;
-            for(Rule groundTruthRule : groundTruthRules) {
+            for (Rule rule : finalRules)
+                comparisonMap.put(rule, RuleStateComparison.FALSE);
+            for (Rule groundTruthRule : groundTruthRules) {
                 boolean found = false;
-                for(Rule rule : finalRules) {
+                for (Rule rule : finalRules) {
                     if (utils.CompareRules(rule, groundTruthRule)) {
                         found = true;
-                        comparisonMap.put(rule, RuleStateComparison.CORRECT) ;
+                        comparisonMap.put(rule, RuleStateComparison.CORRECT);
                         break;
                     }
                 }
                 if (!found) {
-                    if(utils.ShouldHaveBeenFound(groundTruthRule))
-                        comparisonMap.put(groundTruthRule, RuleStateComparison.MISSING_FAILURE) ;
+                    if (utils.ShouldHaveBeenFound(groundTruthRule))
+                        comparisonMap.put(groundTruthRule, RuleStateComparison.MISSING_FAILURE);
                     else
-                        comparisonMap.put(groundTruthRule, RuleStateComparison.MISSING_OK) ;
+                        comparisonMap.put(groundTruthRule, RuleStateComparison.MISSING_OK);
                 }
             }
 
             // Displaying comparison map
-            System.out.println(" Comparison to ground truth: ") ;
-            for(Rule rule: comparisonMap.keySet()) {
-                String comparisonCharacter ;
-                if(comparisonMap.get(rule) == RuleStateComparison.FALSE) {
-                    comparisonCharacter = ANSI_YELLOW+"F";
-                } else if (comparisonMap.get(rule) == RuleStateComparison.CORRECT) {
-                    comparisonCharacter = ANSI_GREEN+"C";
-                } else if (comparisonMap.get(rule) == RuleStateComparison.MISSING_FAILURE){
-                    comparisonCharacter = ANSI_RED+"M FA";
-                } else if (comparisonMap.get(rule) == RuleStateComparison.MISSING_OK){
-                    comparisonCharacter = ANSI_PURPLE+"M OK";
+            System.out.println(" Comparison to ground truth: ");
+            String sep = ",";
+            String csvColumnLine = String.format(
+                    "rule" + sep // RULE
+                            + "headRelation" + sep
+                            + "size" + sep
+                            + "isFalse" + sep // FALSE
+                            + "isCorrect" + sep // CORRECT
+                            + "isMissingFailure" + sep // MISSING_FAILURE
+                            + "isMissingOK" + sep // MISSING_OK
+                            + "isPerfectPath" + sep
+                            + "hasRedundancies" + sep
+                            + "appSupport" + sep // APP SUPPORT
+//                            + "altAppSupport" + sep
+                            + "realSupport"
+                            + "\n"
+            );
+//            String csvText = csvColumnLine ;
+            System.out.print(csvColumnLine);
+            for (Rule rule : comparisonMap.keySet()) {
+                String comparisonCharacter;
+                RuleStateComparison compRule = comparisonMap.get(rule);
+                switch (compRule) {
+                    case FALSE -> comparisonCharacter = ANSI_YELLOW;
+                    case CORRECT -> comparisonCharacter = ANSI_GREEN;
+                    case MISSING_FAILURE -> comparisonCharacter = ANSI_RED;
+                    case MISSING_OK -> comparisonCharacter = ANSI_PURPLE;
+                    default -> throw new RuntimeException("Unknown comparison rule " + rule);
+                }
 
-                } else {
-                    throw new RuntimeException("Unknown comparison rule " + rule);
+
+                // Printing to csv file
+                double real = RealSupport(rule);
+                double app = -1;
+//                double altApp = -1;
+                if (utils.ShouldHaveBeenFound(rule)) {
+                    app = ApproximateSupportClosedRule(rule);
+//                    altApp = ApproximateSupportClosedRule2(rule);
                 }
-                System.out.println(comparisonCharacter+  " " + rule + ANSI_RESET);
+
+                String csvLine = String.format(
+                        rule + sep + // RULE
+                                kb.unmap(rule.getHead()[RELATION_POSITION]) + sep // HEAD RELATION
+                                + (rule.getBody().size() + 1) + sep // RULE SIZE
+                                + (compRule == RuleStateComparison.FALSE ? 1 : 0) + sep // FALSE
+                                + (compRule == RuleStateComparison.CORRECT ? 1 : 0) + sep // CORRECT
+                                + (compRule == RuleStateComparison.MISSING_FAILURE ? 1 : 0) + sep // MISSING_FAILURE
+                                + (compRule == RuleStateComparison.MISSING_OK ? 1 : 0) + sep // MISSING_OK
+                                + (utils.IsRealPerfectPath(rule) ? 1 : 0) + sep
+                                + (utils.HasNoRedundancies(rule) ? 0 : 1) + sep
+                                + app + sep // APP SUPPORT
+//                                + altApp + sep // ALT APP
+                                + real
+                                + "\n"
+                );
+                // Printing comparison to console
+                System.out.print(comparisonCharacter + csvLine + ANSI_RESET);
+//                csvText += csvLine ;
             }
+//            System.out.println(" --- ---- CSV BELLOW (copy/paste result to file)") ;
+//            System.out.println(csvText) ;
+//            System.out.println(" --- ---- ") ;
+
         }
-        for (Rule rule : finalRules) {
-            if (ShowRealSupport) {
-                double real = RealSupport(rule) ;
-                double app = ApproximateSupportClosedRule(rule) ;
-                double errorRate = utils.ErrorRate(real, app);
-                double errorContrastRatio = ErrorContrastRatio(real, app);
-                double errorLog = ErrorRateLog(real, app);
-                if (errorRate >= ErrorRateThreshold) {
-                    System.out.print(ANSI_YELLOW) ;
-                } else if (errorRate < -ErrorRateThreshold) {
-                    System.out.print(ANSI_CYAN) ;
-                } else {
-                    System.out.print(ANSI_WHITE) ;
-                }
-                utils.printRuleAsPerfectPath(rule) ;
-                System.out.println(" : s~ " + app +
-                        " | s " + real +
-                        " | err (rate, contrast, log) " + errorRate + " " + errorContrastRatio + " " + errorLog + ANSI_RESET);
-            }
-            else
-                System.out.println(rule.toString() + " : s~ " + ApproximateSupportClosedRule(rule) );
-        }
+//        for (Rule rule : finalRules) {
+//            if (ShowRealSupport) {
+//                double real = RealSupport(rule) ;
+//                double app = ApproximateSupportClosedRule(rule) ;
+//                double errorRate = utils.ErrorRate(real, app);
+//                double errorContrastRatio = ErrorContrastRatio(real, app);
+//                double errorLog = ErrorRateLog(real, app);
+//                if (errorRate >= ErrorRateThreshold) {
+//                    System.out.print(ANSI_YELLOW) ;
+//                } else if (errorRate < -ErrorRateThreshold) {
+//                    System.out.print(ANSI_CYAN) ;
+//                } else {
+//                    System.out.print(ANSI_WHITE) ;
+//                }
+//                utils.printRuleAsPerfectPath(rule) ;
+//                System.out.println(" : s~ " + app +
+//                        " | s " + real +
+//                        " | err (rate, contrast, log) " + errorRate + " " + errorContrastRatio + " " + errorLog + ANSI_RESET);
+//            }
+//            else
+//                System.out.println(rule.toString() + " : s~ " + ApproximateSupportClosedRule(rule) );
+//        }
 
         System.out.println("Thank you for using mini-Amie. See you next time");
+
     }
 
 
     private static ExplorationResult InitExploreChildren(final Rule rule) {
 
-        ArrayList<Rule> finalRules = new ArrayList<>() ;
+        ArrayList<Rule> finalRules = new ArrayList<>();
         if (ShowExplorationLayers)
             System.err.println("INIT Exploring rule: " + rule);
         int searchSpaceEstimatedSize = 0;
-        ArrayList<Rule> closedChildren = AddClosureToEmptyBody(rule) ;
+        ArrayList<Rule> closedChildren = AddClosureToEmptyBody(rule);
 
         if (closedChildren != null) {
-            searchSpaceEstimatedSize += closedChildren.size() * CORRECTION_FACTOR_CLOSURE ;
+            searchSpaceEstimatedSize += closedChildren.size() * CORRECTION_FACTOR_CLOSURE;
 
             for (Rule closedChild : closedChildren) {
                 long appSupp = ApproximateSupportClosedRule(closedChild);
@@ -148,7 +196,7 @@ public class miniAMIE {
 
         ArrayList<Rule> openChildren = AddDanglingToEmptyBody(rule);
         if (openChildren != null) {
-            searchSpaceEstimatedSize += openChildren.size() * CORRECTION_FACTOR_OPENNING ;
+            searchSpaceEstimatedSize += openChildren.size() * CORRECTION_FACTOR_OPENNING;
 
             for (Rule openChild : openChildren) {
                 long appSupp = ApproximateSupportOpenRule(openChild);
@@ -168,14 +216,14 @@ public class miniAMIE {
         if (rule.getBody().size() + 2 > miniAMIE.MaxRuleSize)
             return new ExplorationResult(0, Collections.emptyList());
 
-        ArrayList<Rule> finalRules = new ArrayList<>() ;
+        ArrayList<Rule> finalRules = new ArrayList<>();
         if (ShowExplorationLayers)
             System.err.println("Exploring rule: " + rule);
         int searchSpaceEstimatedSize = 0;
-        ArrayList<Rule> closedChildren = AddClosure(rule) ;
+        ArrayList<Rule> closedChildren = AddClosure(rule);
 
         if (closedChildren != null) {
-            searchSpaceEstimatedSize += closedChildren.size() * CORRECTION_FACTOR_CLOSURE ;
+            searchSpaceEstimatedSize += closedChildren.size() * CORRECTION_FACTOR_CLOSURE;
 
             for (Rule closedChild : closedChildren) {
                 long appSupp = ApproximateSupportClosedRule(closedChild);
@@ -192,7 +240,7 @@ public class miniAMIE {
         ArrayList<Rule> openChildren = AddDangling(rule);
 
         if (openChildren != null) {
-            searchSpaceEstimatedSize += openChildren.size() * CORRECTION_FACTOR_OPENNING ;
+            searchSpaceEstimatedSize += openChildren.size() * CORRECTION_FACTOR_OPENNING;
 
             for (Rule openChild : openChildren) {
                 long appSupp = ApproximateSupportOpenRule(openChild);
@@ -202,6 +250,7 @@ public class miniAMIE {
                     searchSpaceEstimatedSize += exploreOpenChildResult.sumExploredRules;
                 }
             }
+
         }
 
         return new ExplorationResult(searchSpaceEstimatedSize, finalRules);

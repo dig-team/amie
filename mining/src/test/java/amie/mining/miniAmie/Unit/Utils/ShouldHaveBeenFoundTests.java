@@ -1,8 +1,9 @@
 package amie.mining.miniAmie.Unit.Utils;
 
-import amie.mining.miniAmie.CompareToGT;
 import amie.mining.miniAmie.Unit.UnitTest;
+import amie.mining.miniAmie.utils;
 import amie.rules.Rule;
+import junit.framework.TestCase;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,7 @@ public class ShouldHaveBeenFoundTests extends UnitTest {
         int[] headAtom = new int[]{1,2,3} ;
 
         Rule rule = new Rule(headAtom, -1, kb) ;
-        assert !CompareToGT.ShouldHaveBeenFound(rule) ;
+        assert !utils.ShouldHaveBeenFound(rule) ;
     }
 
     public void testPerfectPath() {
@@ -33,7 +34,7 @@ public class ShouldHaveBeenFoundTests extends UnitTest {
 
         Rule rule = new Rule(headAtom, body, -1, kb) ;
 
-        assert CompareToGT.ShouldHaveBeenFound(rule) ;
+        assert utils.ShouldHaveBeenFound(rule) ;
     }
 
 
@@ -48,7 +49,7 @@ public class ShouldHaveBeenFoundTests extends UnitTest {
 
         Rule rule = new Rule(headAtom, body, -1, kb) ;
 
-        assert !CompareToGT.ShouldHaveBeenFound(rule) ;
+        assert !utils.ShouldHaveBeenFound(rule) ;
     }
 
     public void testNonPerfectPath2() {
@@ -62,7 +63,7 @@ public class ShouldHaveBeenFoundTests extends UnitTest {
 
         Rule rule = new Rule(headAtom, body, -1, kb) ;
 
-        assert !CompareToGT.ShouldHaveBeenFound(rule) ;
+        assert !utils.ShouldHaveBeenFound(rule) ;
     }
 
     public void testNonPerfectPath3() {
@@ -79,7 +80,7 @@ public class ShouldHaveBeenFoundTests extends UnitTest {
 
         Rule rule = new Rule(headAtom, body, -1, kb) ;
 
-        assert !CompareToGT.ShouldHaveBeenFound(rule) ;
+        assert !utils.ShouldHaveBeenFound(rule) ;
     }
 
     public void testRedundant() {
@@ -93,6 +94,6 @@ public class ShouldHaveBeenFoundTests extends UnitTest {
 
         Rule rule = new Rule(headAtom, body, -1, kb) ;
 
-        assert !CompareToGT.ShouldHaveBeenFound(rule) ;
+        assert !utils.ShouldHaveBeenFound(rule) ;
     }
 }

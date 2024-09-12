@@ -1,10 +1,11 @@
 package amie.mining.miniAmie;
 
 import amie.data.KB;
+import amie.data.javatools.datatypes.Pair;
 import amie.mining.assistant.MiningAssistant;
 import amie.rules.Rule;
 import it.unimi.dsi.fastutil.ints.*;
-import org.eclipse.rdf4j.sparqlbuilder.constraint.In;
+import org.eclipse.rdf4j.query.algebra.In;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -34,10 +35,13 @@ public class utils {
      */
     public static class ExplorationResult {
         int sumExploredRules;
+        int sumExploredRulesAdjustedWithBidirectionality;
         List<Rule> finalRules;
 
-        public ExplorationResult(int sumExploredRules, List<Rule> finalRules) {
+        public ExplorationResult(int sumExploredRules, int sumExploredRulesAdjustedWithBidirectionality,
+                                 List<Rule> finalRules) {
             this.sumExploredRules = sumExploredRules;
+            this.sumExploredRulesAdjustedWithBidirectionality = sumExploredRulesAdjustedWithBidirectionality;
             this.finalRules = finalRules;
         }
 
@@ -77,6 +81,44 @@ public class utils {
         return relations;
     }
 
+    // bidirectionalityMap stores function result to avoid computing the same unions multiple times
+    public static HashMap<Integer, Boolean> bidirectionalityMap = new HashMap<>();
+
+    public static final double BidirectionalityJaccardThreshold = 0.95;
+    private static boolean isBidirectional(int relation) {
+        if (bidirectionalityMap.containsKey(relation)) {
+            return bidirectionalityMap.get(relation);
+        }
+        IntSet range = range(relation) ;
+        IntSet domain = domain(relation) ;
+        IntSet rangeDomainUnion = new IntOpenHashSet(domain);
+        rangeDomainUnion.addAll(range);
+//        rangeDomainUnion.addAll(domain(relation));
+        double bidirectionalityJaccard = (double) subjectToObjectOverlapSize(relation, relation)
+                / rangeDomainUnion.size() ;
+        if (bidirectionalityJaccard >= BidirectionalityJaccardThreshold) {
+            bidirectionalityMap.put(relation, true);
+            return true;
+        }
+        bidirectionalityMap.put(relation, false);
+        return false;
+    }
+
+    static final int DEFAULT_CORRECTION_CLOSED = 2 ;
+    static final int REDUCED_CORRECTION_CLOSED = 1 ;
+
+    public static int ClosedCorrectingFactor(int lastAddedRelation) {
+        return isBidirectional(lastAddedRelation) ? DEFAULT_CORRECTION_CLOSED : REDUCED_CORRECTION_CLOSED ;
+    }
+
+
+    static final int DEFAULT_CORRECTION_OPEN = 4 ;
+    static final int REDUCED_CORRECTION_OPEN = 2 ;
+
+    public static int OpenCorrectingFactor(int lastAddedRelation) {
+        return isBidirectional(lastAddedRelation) ? DEFAULT_CORRECTION_OPEN : REDUCED_CORRECTION_OPEN ;
+    }
+
     /**
      * AddClosureToEmptyBody adds a closure atom to an empty body rule, with respect to perfect path pattern
      * (i.e. Head subject is closure subject, Head object is closure object)
@@ -84,8 +126,8 @@ public class utils {
      * @param rule to be closed
      * @return A set of possible closed rules.
      */
-    public static ArrayList<Rule> AddClosureToEmptyBody(final Rule rule) {
-        ArrayList<Rule> closedRules = new ArrayList<>();
+    public static ArrayList<Pair<Rule, Integer>> AddClosureToEmptyBody(final Rule rule) {
+        ArrayList<Pair<Rule, Integer>> closedRules = new ArrayList<>();
         int[] headAtom = rule.getHead();
 
         List<Integer> relations = PromisingRelations(rule);
@@ -103,7 +145,10 @@ public class utils {
             newAtom[SUBJECT_POSITION] = headAtom[SUBJECT_POSITION];
             newAtom[RELATION_POSITION] = relation;
             newAtom[OBJECT_POSITION] = headAtom[OBJECT_POSITION];
-            closedRules.add(closedRule);
+
+            int searchSpaceCorrectingFactor = ClosedCorrectingFactor(relation) ;
+            closedRules.add(new Pair<>(closedRule, searchSpaceCorrectingFactor));
+
         }
 
         return closedRules;
@@ -114,10 +159,10 @@ public class utils {
      * (i.e. Head subject is closure subject, dangling's subject is closure object)
      *
      * @param rule to be closed
-     * @return A set of possible closed rules.
+     * @return A set of possible closed rules paired with their correcting factor for search space size.
      */
-    public static ArrayList<Rule> AddClosure(final Rule rule) {
-        ArrayList<Rule> closedRules = new ArrayList<>();
+    public static ArrayList<Pair<Rule, Integer>> AddClosure(final Rule rule) {
+        ArrayList<Pair<Rule, Integer>> closedRules = new ArrayList<>();
         int[] headAtom = rule.getHead();
         int[] lastBodyAtom = rule.getLastTriplePattern();
 
@@ -136,7 +181,9 @@ public class utils {
             newAtom[SUBJECT_POSITION] = headAtom[SUBJECT_POSITION];
             newAtom[RELATION_POSITION] = relation;
             newAtom[OBJECT_POSITION] = lastBodyAtom[SUBJECT_POSITION];
-            closedRules.add(closedRule);
+
+            int searchSpaceCorrectingFactor = ClosedCorrectingFactor(relation) ;
+            closedRules.add(new Pair<>(closedRule, searchSpaceCorrectingFactor));
         }
 
         return closedRules;
@@ -150,8 +197,8 @@ public class utils {
      * @param rule parent
      * @return A set of possible open rules
      */
-    public static ArrayList<Rule> AddDanglingToEmptyBody(Rule rule) {
-        ArrayList<Rule> openRules = new ArrayList<>();
+    public static ArrayList<Pair<Rule, Integer>> AddDanglingToEmptyBody(Rule rule) {
+        ArrayList<Pair<Rule, Integer>> openRules = new ArrayList<>();
         int[] headAtom = rule.getHead();
 
         List<Integer> relations = PromisingRelations(rule);
@@ -169,7 +216,9 @@ public class utils {
             newAtom[SUBJECT_POSITION] = closedRule.fullyUnboundTriplePattern()[SUBJECT_POSITION];
             newAtom[RELATION_POSITION] = relation;
             newAtom[OBJECT_POSITION] = headAtom[OBJECT_POSITION];
-            openRules.add(closedRule);
+
+            int searchSpaceCorrectingFactor = OpenCorrectingFactor(relation) ;
+            openRules.add(new Pair<>(closedRule, searchSpaceCorrectingFactor));
         }
 
         return openRules;
@@ -182,8 +231,8 @@ public class utils {
      * @param rule parent
      * @return A set of possible open rules
      */
-    public static ArrayList<Rule> AddDangling(Rule rule) {
-        ArrayList<Rule> openRules = new ArrayList<>();
+    public static ArrayList<Pair<Rule, Integer>> AddDangling(Rule rule) {
+        ArrayList<Pair<Rule, Integer>> openRules = new ArrayList<>();
         int[] lastBodyAtom = rule.getLastTriplePattern();
 
         List<Integer> closureRelations = PromisingRelations(rule);
@@ -201,14 +250,31 @@ public class utils {
             newAtom[SUBJECT_POSITION] = closedRule.fullyUnboundTriplePattern()[SUBJECT_POSITION];
             newAtom[RELATION_POSITION] = relation;
             newAtom[OBJECT_POSITION] = lastBodyAtom[SUBJECT_POSITION];
-            openRules.add(closedRule);
+
+            int searchSpaceCorrectingFactor = OpenCorrectingFactor(relation) ;
+            openRules.add(new Pair<>(closedRule, searchSpaceCorrectingFactor));
         }
 
         return openRules;
     }
 
+    private static IntSet range(int r) {
+        KB kb = (KB) miniAMIE.kb;
+        Int2ObjectMap<IntSet> objectsToSubjects = kb.relation2object2subject.get(r);
+        if (objectsToSubjects == null)
+            return null;
+        return objectsToSubjects.keySet() ;
+    }
 
-    private static int range(int r) {
+    private static IntSet domain(int r) {
+        KB kb = (KB) miniAMIE.kb;
+        Int2ObjectMap<IntSet> subjectsToObjects = kb.relation2subject2object.get(r);
+        if (subjectsToObjects == null)
+            return null;
+        return subjectsToObjects.keySet() ;
+    }
+
+    private static int rangeSize(int r) {
         KB kb = (KB) miniAMIE.kb;
         Int2ObjectMap<IntSet> factSet = kb.relation2object2subject.get(r);
         if (factSet == null)
@@ -216,7 +282,7 @@ public class utils {
         return factSet.size();
     }
 
-    private static int domain(int r) {
+    private static int domainSize(int r) {
         KB kb = (KB) miniAMIE.kb;
         Int2ObjectMap<IntSet> factSet = kb.relation2subject2object.get(r);
         if (factSet == null)
@@ -224,10 +290,10 @@ public class utils {
         return factSet.size();
     }
 
-    private static int overlap(int r1, int r2,
-                               Int2ObjectMap<Int2IntMap> overlapTable,
-                               Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet1,
-                               Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet2) {
+    private static int overlapSize(int r1, int r2,
+                                   Int2ObjectMap<Int2IntMap> overlapTable,
+                                   Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet1,
+                                   Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet2) {
         Int2IntMap factSet = overlapTable.get(r1);
         int overlap;
         if (factSet == null) {
@@ -282,31 +348,31 @@ public class utils {
         return overlap;
     }
 
-    private static int objectToObjectOverlap(int r1, int r2) {
+    private static int objectToObjectOverlapSize(int r1, int r2) {
         KB kb = (KB) miniAMIE.kb;
         Int2ObjectMap<Int2IntMap> overlapTable = kb.object2objectOverlap;
         Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet1 = kb.relation2object2subject;
         Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet2 = kb.relation2object2subject;
-        int overlap = overlap(r1, r2, overlapTable, triplesKeySet1, triplesKeySet2);
+        int overlap = overlapSize(r1, r2, overlapTable, triplesKeySet1, triplesKeySet2);
         return overlap;
     }
 
-    private static int subjectToObjectOverlap(int r1, int r2) {
+    private static int subjectToObjectOverlapSize(int r1, int r2) {
         KB kb = (KB) miniAMIE.kb;
         Int2ObjectMap<Int2IntMap> overlapTable = kb.subject2objectOverlap;
         Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet1 = kb.relation2subject2object;
         Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet2 = kb.relation2object2subject;
-        int overlap = overlap(r1, r2, overlapTable, triplesKeySet1, triplesKeySet2);
+        int overlap = overlapSize(r1, r2, overlapTable, triplesKeySet1, triplesKeySet2);
         return overlap;
     }
 
 
-    private static int subjectToSubjectOverlap(int r1, int r2) {
+    private static int subjectToSubjectOverlapSize(int r1, int r2) {
         KB kb = (KB) miniAMIE.kb;
         Int2ObjectMap<Int2IntMap> overlapTable = kb.subject2subjectOverlap;
         Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet1 = kb.relation2subject2object;
         Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet2 = kb.relation2subject2object;
-        int overlap = overlap(r1, r2, overlapTable, triplesKeySet1, triplesKeySet2);
+        int overlap = overlapSize(r1, r2, overlapTable, triplesKeySet1, triplesKeySet2);
         return overlap;
     }
 
@@ -393,13 +459,13 @@ public class utils {
             int r = body.get(r_id)[RELATION_POSITION];
             int r_next = body.get(r_next_id)[RELATION_POSITION];
             // Computing SO Survival rate
-            int rDom = domain(r);
-            int r_nextRng = range(r_next);
+            int rDom = domainSize(r);
+            int r_nextRng = rangeSize(r_next);
             int r_nextSize = miniAMIE.kb.relationSize(r_next);
 
 //            if(r == miniAMIE.kb.map("<created>") && r_next == miniAMIE.kb.map("<hasGender>"))
 //                System.err.println(rule+ ": " +miniAMIE.kb.unmap(r) + " -> " + miniAMIE.kb.unmap(r_next));
-            double soOV = subjectToObjectOverlap(r, r_next);
+            double soOV = subjectToObjectOverlapSize(r, r_next);
 //            double denom = rDom * r_nextRng;
 //            double nom = soOV * r_nextSize;
 
@@ -463,15 +529,15 @@ public class utils {
         int rLastBodyAtom = body.get(idLast)[RELATION_POSITION];
 
 
-        int objectToObjectOverlap = objectToObjectOverlap(rHead, rFirstBodyAtom);
-        int subjectToSubjectOverlap = subjectToSubjectOverlap(rLastBodyAtom, rHead);
+        int objectToObjectOverlap = objectToObjectOverlapSize(rHead, rFirstBodyAtom);
+        int subjectToSubjectOverlap = subjectToSubjectOverlapSize(rLastBodyAtom, rHead);
         double rFirstSize = miniAMIE.kb.relationSize(rFirstBodyAtom);
         double rHeadSize = miniAMIE.kb.relationSize(rHead);
 
 
-        int domainHead = domain(rHead);
-        int domainLast = domain(rLastBodyAtom);
-        int rangeFirst = range(rFirstBodyAtom);
+        int domainHead = domainSize(rHead);
+        int domainLast = domainSize(rLastBodyAtom);
+        int rangeFirst = rangeSize(rFirstBodyAtom);
 
         double bodyEstimate = bodyEstimate(rule);
 
@@ -534,9 +600,9 @@ public class utils {
 
 
         double bodyEstimate = bodyEstimate(rule);
-        int objectToObjectOverlap = objectToObjectOverlap(rHead, rFirstBodyAtom);
+        int objectToObjectOverlap = objectToObjectOverlapSize(rHead, rFirstBodyAtom);
         int rFirstSize = miniAMIE.kb.relationSize(rFirstBodyAtom);
-        double rangeFirst = range(rFirstBodyAtom);
+        double rangeFirst = rangeSize(rFirstBodyAtom);
         double nom = objectToObjectOverlap * rFirstSize;
         double denom = rangeFirst ;
         double result = 0;
@@ -580,11 +646,11 @@ public class utils {
             int r = body.get(r_id)[RELATION_POSITION];
             int r_next = body.get(r_next_id)[RELATION_POSITION];
             // Computing SO Survival rate
-            int rDom = domain(r);
-            int r_nextRng = range(r_next);
+            int rDom = domainSize(r);
+            int r_nextRng = rangeSize(r_next);
             int r_nextSize = miniAMIE.kb.relationSize(r_next);
 
-            double soOV = subjectToObjectOverlap(r, r_next);
+            double soOV = subjectToObjectOverlapSize(r, r_next);
             double denom = rDom * r_nextRng;
             double nom = soOV * r_nextSize;
 
@@ -618,15 +684,15 @@ public class utils {
         int rLastBodyAtom = body.get(idLast)[RELATION_POSITION];
 
 
-        int objectToObjectOverlap = objectToObjectOverlap(rHead, rFirstBodyAtom);
-        int subjectToSubjectOverlap = subjectToSubjectOverlap(rLastBodyAtom, rHead);
+        int objectToObjectOverlap = objectToObjectOverlapSize(rHead, rFirstBodyAtom);
+        int subjectToSubjectOverlap = subjectToSubjectOverlapSize(rLastBodyAtom, rHead);
         double rFirstSize = miniAMIE.kb.relationSize(rFirstBodyAtom);
         double rHeadSize = miniAMIE.kb.relationSize(rHead);
 
 
-        int domainHead = domain(rHead);
-        int domainLast = domain(rLastBodyAtom);
-        int rangeFirst = range(rFirstBodyAtom);
+        int domainHead = domainSize(rHead);
+        int domainLast = domainSize(rLastBodyAtom);
+        int rangeFirst = rangeSize(rFirstBodyAtom);
 
         double bodyEstimate = bodyEstimate2(rule);
 
@@ -947,7 +1013,9 @@ public class utils {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("groundTruthRules "+ groundTruthRules);
+//        System.out.println("groundTruthRules "+ groundTruthRules);
         return groundTruthRules;
     }
+
+
 }

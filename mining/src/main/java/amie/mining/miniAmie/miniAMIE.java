@@ -1,6 +1,7 @@
 package amie.mining.miniAmie;
 
 import amie.data.AbstractKB;
+import amie.data.javatools.datatypes.Pair;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.rules.Rule;
 
@@ -42,19 +43,31 @@ public class miniAMIE {
 
         Collection<Rule> initRules = GetInitRules(MinSup);
         int totalSumExploredRules = 0;
+        int totalSumExploredRulesAdjustedWithBidirectionality = 0 ;
         List<Rule> finalRules = new ArrayList<>();
 
         for (Rule rule : initRules) {
             if (rule.toString().contains(RestrainedHead)) {
                 ExplorationResult exploreChildrenResult = InitExploreChildren(rule);
                 totalSumExploredRules += exploreChildrenResult.sumExploredRules;
+                totalSumExploredRulesAdjustedWithBidirectionality +=
+                        exploreChildrenResult.sumExploredRulesAdjustedWithBidirectionality;
                 finalRules.addAll(exploreChildrenResult.finalRules);
             }
             totalSumExploredRules += 1;
+            totalSumExploredRulesAdjustedWithBidirectionality += 1 ;
         }
 
         // Displaying result
         System.out.println("Search space approximation: " + totalSumExploredRules + " possibilities.");
+        System.out.println("Search space approximation (adjusted with bidirectionality): " +
+                totalSumExploredRulesAdjustedWithBidirectionality + " possibilities.");
+
+        System.out.println("Bidirectional relations (range-dom jaccard >= "+ BidirectionalityJaccardThreshold+"):");
+        for(int relation : bidirectionalityMap.keySet())
+            if(bidirectionalityMap.get(relation))
+                System.out.print(kb.unmap(relation)+" ");
+        System.out.println("");
 
         System.out.println("Approximate mining: ");
         if (CompareToGroundTruth) {
@@ -180,12 +193,19 @@ public class miniAMIE {
         if (ShowExplorationLayers)
             System.err.println("INIT Exploring rule: " + rule);
         int searchSpaceEstimatedSize = 0;
-        ArrayList<Rule> closedChildren = AddClosureToEmptyBody(rule);
+        int searchSpaceEstimatedAdjustedWithBidirectionalitySize = 0;
+
+        ArrayList<Pair<Rule, Integer>> closedChildren = AddClosureToEmptyBody(rule);
 
         if (closedChildren != null) {
             searchSpaceEstimatedSize += closedChildren.size() * CORRECTION_FACTOR_CLOSURE;
 
-            for (Rule closedChild : closedChildren) {
+            for (Pair<Rule, Integer> closedChildCorrectionPair : closedChildren) {
+                Rule closedChild = closedChildCorrectionPair.first ;
+
+                int correction = closedChildCorrectionPair.second;
+                searchSpaceEstimatedAdjustedWithBidirectionalitySize += correction;
+
                 long appSupp = ApproximateSupportClosedRule(closedChild);
 //            System.out.println("approximation: " + appSupp);
                 if (appSupp >= MinSup) {
@@ -194,38 +214,52 @@ public class miniAMIE {
             }
         }
 
-        ArrayList<Rule> openChildren = AddDanglingToEmptyBody(rule);
+        ArrayList<Pair<Rule, Integer>> openChildren = AddDanglingToEmptyBody(rule);
         if (openChildren != null) {
             searchSpaceEstimatedSize += openChildren.size() * CORRECTION_FACTOR_OPENNING;
 
-            for (Rule openChild : openChildren) {
+            for (Pair<Rule, Integer> openChildCorrectionPair : openChildren) {
+                Rule openChild = openChildCorrectionPair.first;
+
+                int correction = openChildCorrectionPair.second;
+                searchSpaceEstimatedAdjustedWithBidirectionalitySize += correction;
+
                 long appSupp = ApproximateSupportOpenRule(openChild);
                 if (appSupp >= MinSup) {
                     ExplorationResult exploreOpenChildResult = ExploreChildren(openChild);
                     finalRules.addAll(exploreOpenChildResult.finalRules);
                     searchSpaceEstimatedSize += exploreOpenChildResult.sumExploredRules;
+                    searchSpaceEstimatedAdjustedWithBidirectionalitySize +=
+                            exploreOpenChildResult.sumExploredRulesAdjustedWithBidirectionality ;
                 }
             }
         }
 
-        return new ExplorationResult(searchSpaceEstimatedSize, finalRules);
+        return new ExplorationResult(searchSpaceEstimatedSize,
+                searchSpaceEstimatedAdjustedWithBidirectionalitySize, finalRules);
     }
 
     private static ExplorationResult ExploreChildren(Rule rule) {
 
         if (rule.getBody().size() + 2 > miniAMIE.MaxRuleSize)
-            return new ExplorationResult(0, Collections.emptyList());
+            return new ExplorationResult(0, 0,
+                    Collections.emptyList());
 
         ArrayList<Rule> finalRules = new ArrayList<>();
         if (ShowExplorationLayers)
             System.err.println("Exploring rule: " + rule);
         int searchSpaceEstimatedSize = 0;
-        ArrayList<Rule> closedChildren = AddClosure(rule);
+        int searchSpaceEstimatedAdjustedWithBidirectionalitySize = 0;
+        ArrayList<Pair<Rule, Integer>> closedChildren = AddClosure(rule);
 
         if (closedChildren != null) {
             searchSpaceEstimatedSize += closedChildren.size() * CORRECTION_FACTOR_CLOSURE;
 
-            for (Rule closedChild : closedChildren) {
+            for (Pair<Rule, Integer> closedChildCorrectionPair : closedChildren) {
+                Rule closedChild = closedChildCorrectionPair.first;
+                int correction = closedChildCorrectionPair.second;
+                searchSpaceEstimatedAdjustedWithBidirectionalitySize += correction;
+
                 long appSupp = ApproximateSupportClosedRule(closedChild);
 //            System.out.println("approximation: " + appSupp);
                 if (appSupp >= MinSup) {
@@ -235,24 +269,32 @@ public class miniAMIE {
         }
 
         if (rule.getBody().size() + 3 > miniAMIE.MaxRuleSize)
-            return new ExplorationResult(searchSpaceEstimatedSize, finalRules);
+            return new ExplorationResult(searchSpaceEstimatedSize, searchSpaceEstimatedAdjustedWithBidirectionalitySize,
+                    finalRules);
 
-        ArrayList<Rule> openChildren = AddDangling(rule);
+        ArrayList<Pair<Rule, Integer>> openChildren = AddDangling(rule);
 
         if (openChildren != null) {
             searchSpaceEstimatedSize += openChildren.size() * CORRECTION_FACTOR_OPENNING;
 
-            for (Rule openChild : openChildren) {
+            for (Pair<Rule, Integer> openChildCorrectionPair : openChildren) {
+                Rule openChild = openChildCorrectionPair.first;
+                int correction = openChildCorrectionPair.second;
+                searchSpaceEstimatedAdjustedWithBidirectionalitySize += correction;
+
                 long appSupp = ApproximateSupportOpenRule(openChild);
                 if (appSupp >= MinSup) {
                     ExplorationResult exploreOpenChildResult = ExploreChildren(openChild);
                     finalRules.addAll(exploreOpenChildResult.finalRules);
                     searchSpaceEstimatedSize += exploreOpenChildResult.sumExploredRules;
+                    searchSpaceEstimatedAdjustedWithBidirectionalitySize +=
+                            exploreOpenChildResult.sumExploredRulesAdjustedWithBidirectionality ;
                 }
             }
 
         }
 
-        return new ExplorationResult(searchSpaceEstimatedSize, finalRules);
+        return new ExplorationResult(searchSpaceEstimatedSize, searchSpaceEstimatedAdjustedWithBidirectionalitySize,
+                finalRules);
     }
 }

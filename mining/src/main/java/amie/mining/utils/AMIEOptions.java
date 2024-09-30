@@ -17,6 +17,10 @@ import java.util.List;
 public interface AMIEOptions {
 
     Option MINI_AMIE = new Option("mini", "Runs mini-AMIE.") ;
+    Option MINI_AMIE_COMPARE_TO_GROUND_TRUTH = new Option("compareToGT", true ,
+            "Compares mini-AMIE rule set to a list of rules (path as parameter).") ;
+    Option MINI_AMIE_VERBOSE = new Option("miniVerbose", "Shows more information during the mining " +
+            "process.") ;
 
     Option INVALIDATE_CACHE = new Option("invalidateCache", false, "Ignores previously saved cache.");
     Option CACHE = new Option("cache", false, "Enables query caching.");
@@ -248,6 +252,8 @@ public interface AMIEOptions {
         Options options = new Options();
 
         options.addOption(MINI_AMIE) ;
+        options.addOption(MINI_AMIE_COMPARE_TO_GROUND_TRUTH) ;
+        options.addOption(MINI_AMIE_VERBOSE) ;
         options.addOption(MIN_STD_CONFIDENCE);
         options.addOption(MIN_SUPPORT);
         options.addOption(MIN_INITIAL_SUPPORT);

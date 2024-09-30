@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import amie.rules.Metric;
 import amie.rules.Rule;
 
 public class AnyBurlFormatter extends RuleFormatter {
@@ -19,7 +18,7 @@ public class AnyBurlFormatter extends RuleFormatter {
 	}
 
 	@Override
-	public String format(Rule rule) {		
+	public String format(Rule rule) {
 		String ruleString = rule.getDatalogString(false);
 		ruleString = ruleString.replace("?a", "X").replace("?b", "Y");
 		Matcher m = Pattern.compile("(\\?[a-z])").matcher(ruleString);
@@ -37,8 +36,9 @@ public class AnyBurlFormatter extends RuleFormatter {
 	}
 
 	@Override
-	public Metric[] columns() {
-		return new Metric[]{Metric.PcaBodySize, Metric.PositiveExamples, Metric.PcaConfidence, Metric.None};
+	public OutputColumn[] columns() {
+		return new OutputColumn[] { OutputColumn.PCABodySize, OutputColumn.Support,
+				OutputColumn.PCAConfidence, OutputColumn.Rule };
 	}
-	
+
 }

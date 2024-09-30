@@ -68,7 +68,7 @@ public class TypedDefaultMiningAssistant extends DefaultMiningAssistant {
 				for(int type: subjectTypes.keySet()){
 					int cardinality = subjectTypes.get(type);
 					if(cardinality >= minSupportThreshold){
-						Rule newCandidate = new Rule(query, cardinality);
+						Rule newCandidate = new Rule(query, cardinality, kb);
 						newCandidate.getLastTriplePattern()[2] = type;
 						tmpCandidates.add(newCandidate);
 					}
@@ -90,7 +90,7 @@ public class TypedDefaultMiningAssistant extends DefaultMiningAssistant {
 					for(int type: objectTypes.keySet()){
 						int cardinality = objectTypes.get(type);
 						if(cardinality >= minSupportThreshold){
-							Rule newCandidate = new Rule(candidate, cardinality);
+							Rule newCandidate = new Rule(candidate, cardinality, kb);
 							newCandidate.getLastTriplePattern()[2] = type;
 							newCandidate.addParent(query);
 							output.add(newCandidate);

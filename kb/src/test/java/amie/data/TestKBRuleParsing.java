@@ -1,6 +1,6 @@
 package amie.data;
 
-import javatools.datatypes.Pair;
+import amie.data.javatools.datatypes.Pair ; 
 import junit.framework.TestCase;
 
 import java.util.ArrayList;
@@ -10,6 +10,7 @@ import java.util.List;
 public class TestKBRuleParsing extends TestCase {
 
     List<Pair<List<int[]>, int[]>> cases;
+    KB kb = new KB() ; 
 
     public void setUp() throws Exception {
         super.setUp();
@@ -17,64 +18,64 @@ public class TestKBRuleParsing extends TestCase {
 
         // 2 triples pattern
         Pair<List<int[]>, int[]> q0 = new Pair<>(
-                KB.triples(KB.triple("bob", "loves", "?x2")),
-                KB.triple("?x2", "livesIn", "?x3")
+                kb.triples(kb.triple("bob", "loves", "?x2")),
+                kb.triple("?x2", "livesIn", "?x3")
         );
         cases.add(q0);
 
         // Multiple triples pattern with < >
         Pair<List<int[]>, int[]> q1 = new Pair<>(
-                KB.triples(
-                        KB.triple("?a", "<hasZ>", "?b"), KB.triple("?g", "<connectsTo>", "?a"),
-                        KB.triple("?n", "<hasZ>", "?b"), KB.triple("?g", "<relatesTo>", "?a")
+                kb.triples(
+                        kb.triple("?a", "<hasZ>", "?b"), kb.triple("?g", "<connectsTo>", "?a"),
+                        kb.triple("?n", "<hasZ>", "?b"), kb.triple("?g", "<relatesTo>", "?a")
                 ),
-                KB.triple("?g", "<relatesTo>", "?n")
+                kb.triple("?g", "<relatesTo>", "?n")
         );
         cases.add(q1);
 
         // 2-triple pattern with / and number
         Pair<List<int[]>, int[]> q2 = new Pair<>(
-                KB.triples(KB.triple("?a", "/film/actor/film./film/performance/film", "/m/0340hj")),
-                KB.triple("?a", "neg_/award/award_nominee/award_nominations./award/award_nomination/award", "/m/02x8n1n")
+                kb.triples(kb.triple("?a", "/film/actor/film./film/performance/film", "/m/0340hj")),
+                kb.triple("?a", "neg_/award/award_nominee/award_nominations./award/award_nomination/award", "/m/02x8n1n")
         );
         cases.add(q2);
 
         // 2-triple pattern with _
         Pair<List<int[]>, int[]> q3 = new Pair<>(
-                KB.triples(KB.triple("bob", "really_loves", "?x2")),
-                KB.triple("?x2", "lives_in", "?x3")
+                kb.triples(kb.triple("bob", "really_loves", "?x2")),
+                kb.triple("?x2", "lives_in", "?x3")
         );
         cases.add(q3);
 
         // 2-triple pattern with multiple _
         Pair<List<int[]>, int[]> q4 = new Pair<>(
-                KB.triples(KB.triple("bob", "loves_very_much", "?x2")),
-                KB.triple("?x2", "currently_lives_in", "?x3")
+                kb.triples(kb.triple("bob", "loves_very_much", "?x2")),
+                kb.triple("?x2", "currently_lives_in", "?x3")
         );
         cases.add(q4);
 
         // 2-triple pattern with /
         Pair<List<int[]>, int[]> q5 = new Pair<>(
-                KB.triples(KB.triple("?a", "/film/actor/film./film/performance/film", "/m/abc")),
-                KB.triple("?a", "neg_/award/award_nominee/award_nominations./award/award_nomination/award", "/m/dfg")
+                kb.triples(kb.triple("?a", "/film/actor/film./film/performance/film", "/m/abc")),
+                kb.triple("?a", "neg_/award/award_nominee/award_nominations./award/award_nomination/award", "/m/dfg")
         );
         cases.add(q5);
 
         // 2-triple pattern with number
         Pair<List<int[]>, int[]> q6 = new Pair<>(
-                KB.triples(KB.triple("bob", "s2", "?x2")),
-                KB.triple("?x2", "lives_in", "?x3")
+                kb.triples(kb.triple("bob", "s2", "?x2")),
+                kb.triple("?x2", "lives_in", "?x3")
         );
         cases.add(q6);
     }
 
     private void runTestCaseId(int case_id) {
         Pair<List<int[]>, int[]> c = cases.get(case_id);
-        String expected = KB.toString(c.first) + " => " + KB.toString(c.second);
-        Pair<List<int[]>, int[]> result = KB.rule(expected);
+        String expected = kb.toString(c.first) + " => " + kb.toString(c.second);
+        Pair<List<int[]>, int[]> result = kb.rule(expected);
 
         assertNotNull("expected:<" + expected + ">", result);
-        String actual = KB.toString(result.first) + " => " + KB.toString(result.second);
+        String actual = kb.toString(result.first) + " => " + kb.toString(result.second);
         System.out.println(expected + "\n" + actual);
         assertEquals(expected, actual);
     }

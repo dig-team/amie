@@ -1,6 +1,6 @@
 package amie.data;
 
-import javatools.datatypes.Pair;
+import amie.data.javatools.datatypes.Pair;
 import junit.framework.TestCase;
 
 import java.util.ArrayList;
@@ -11,6 +11,7 @@ import java.util.List;
 public class TestKBTripleParsing extends TestCase {
 
     List<Pair<int[], int[]>> cases;
+    KB kb = new KB() ; 
 
     public void setUp() throws Exception {
         super.setUp();
@@ -32,16 +33,16 @@ public class TestKBTripleParsing extends TestCase {
         );
 
         for (String[] triple : triples) {
-            Pair<int[], int[]> p = new Pair<>(KB.triple(triple), KB.triple(String.join(" ", triple)));
+            Pair<int[], int[]> p = new Pair<>(kb.triple(triple), kb.triple(String.join(" ", triple)));
             cases.add(p);
         }
     }
 
     private void runTestCaseId(int case_id) {
-        String q1 = KB.toString(cases.get(case_id).first);
+        String q1 = kb.toString(cases.get(case_id).first);
         int[] q2 = cases.get(case_id).second;
         assertNotNull("expected:<" + q1 + ">", q2);
-        assertEquals(q1, KB.toString(q2));
+        assertEquals(q1, kb.toString(q2));
     }
 
     public void test0() {

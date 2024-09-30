@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import amie.rules.Metric;
 import amie.rules.Rule;
 import it.unimi.dsi.fastutil.Hash;
 
@@ -16,32 +15,34 @@ public abstract class RuleFormatter {
 	protected boolean verbose;
 
 	/**
-     * Column headers
-     */
-    public static final List<Metric> headers = Arrays.asList(Metric.None, Metric.HeadCoverage, Metric.StdConfidence,
-            Metric.PcaConfidence, Metric.PositiveExamples, Metric.BodySize, Metric.PcaBodySize,
-            Metric.FunctionalVariable, Metric.StdUpperBound, Metric.PcaUpperBound, Metric.PcaConfEstimation);
+	 * Column headers
+	 */
+	public static final List<OutputColumn> headers = Arrays.asList(OutputColumn.Rule, OutputColumn.HeadCoverage,
+			OutputColumn.StandardConfidence,
+			OutputColumn.PCAConfidence, OutputColumn.Support, OutputColumn.BodySize, OutputColumn.PCABodySize,
+			OutputColumn.FunctionalVariable, OutputColumn.StdConfUpperBound, OutputColumn.PCAConfUpperBound,
+			OutputColumn.PCAConfEstimation);
 
-	protected static final HashMap<Metric, String> formatMappings = new HashMap<>();
+	protected static final HashMap<OutputColumn, String> formatMappings = new HashMap<>();
 
 	static {
-		formatMappings.put(Metric.None, "%s");
-		formatMappings.put(Metric.HeadCoverage, "%f");		
-		formatMappings.put(Metric.StdConfidence, "%f");
-		formatMappings.put(Metric.PcaConfidence, "%f");
-		formatMappings.put(Metric.PositiveExamples, "%.0f");		
-		formatMappings.put(Metric.BodySize, "%d");
-		formatMappings.put(Metric.PcaBodySize, "%.0f");
-		formatMappings.put(Metric.FunctionalVariable, "%d");
-		formatMappings.put(Metric.StdUpperBound, "%f");
-		formatMappings.put(Metric.PcaUpperBound, "%f");
-		formatMappings.put(Metric.PcaConfEstimation, "%f");											
+		formatMappings.put(OutputColumn.Rule, "%s");
+		formatMappings.put(OutputColumn.HeadCoverage, "%f");
+		formatMappings.put(OutputColumn.StandardConfidence, "%f");
+		formatMappings.put(OutputColumn.PCAConfidence, "%f");
+		formatMappings.put(OutputColumn.Support, "%.0f");
+		formatMappings.put(OutputColumn.BodySize, "%d");
+		formatMappings.put(OutputColumn.PCABodySize, "%.0f");
+		formatMappings.put(OutputColumn.FunctionalVariable, "%d");
+		formatMappings.put(OutputColumn.StdConfUpperBound, "%f");
+		formatMappings.put(OutputColumn.PCAConfUpperBound, "%f");
+		formatMappings.put(OutputColumn.PCAConfEstimation, "%f");
 	}
 
-
 	public abstract String format(Rule rule);
-	public abstract Metric[] columns();
-	
+
+	public abstract OutputColumn[] columns();
+
 	protected RuleFormatter(boolean verbose) {
 		this.verbose = verbose;
 	}
@@ -49,15 +50,16 @@ public abstract class RuleFormatter {
 	public boolean isVerbose() {
 		return verbose;
 	}
+
 	public void setVerbose(boolean verbose) {
 		this.verbose = verbose;
 	}
-	
+
 	public String header() {
-		Metric[] columns = columns();
+		OutputColumn[] columns = columns();
 		List<String> strs = new ArrayList<>();
-		for (Metric col: columns) {
-			if (col == Metric.None) {
+		for (OutputColumn col : columns) {
+			if (col == OutputColumn.Rule) {
 				strs.add("Rule");
 			} else {
 				strs.add(col.toString().replaceAll("(.)([A-Z])", "$1 $2"));
@@ -74,14 +76,14 @@ public abstract class RuleFormatter {
 	public String fullFormat(Rule rule) {
 		StringBuilder strBuilder = new StringBuilder();
 		ArrayList<String> selectedCols = new ArrayList<>();
-		for (Metric col: this.columns()) {
-			if (col == Metric.None){
+		for (OutputColumn col : this.columns()) {
+			if (col == OutputColumn.Rule) {
 				selectedCols.add(format(rule));
 			} else {
-				selectedCols.add(String.format(formatMappings.get(col), 
-												rule.getMetric(col)));
+				selectedCols.add(String.format(formatMappings.get(col),
+						rule.getOutputColumn(col)));
 			}
-		} 
+		}
 		strBuilder.append(String.join(getSeparator(), selectedCols));
 		return strBuilder.toString();
 	}

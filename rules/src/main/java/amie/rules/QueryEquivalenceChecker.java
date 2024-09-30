@@ -54,8 +54,11 @@ public class QueryEquivalenceChecker {
     
     /** TRUE if two bodies are equal. Bodies must have same length. A rule may not have two equivalent body atoms. */
     public static boolean bodiesEqual(List<int[]> body1, List<int[]> body2, int index, Int2IntMap map1to2, IntSet mapped2, long mask2) {
-        if (body1.size() <= index) return (true);
-        for (int i = 0; i < body2.size(); i++) {
+        int body1Size = body1.size();
+        int body2Size = body2.size();
+        if (body1Size != body2Size) return (false);
+        if (body1Size <= index) return (true);
+        for (int i = 0; i < body2Size; i++) {
             if (getBit(i, mask2)) continue;
             Int2IntMap oldMap = new Int2IntOpenHashMap(map1to2);
             IntSet oldMapped2 = new IntOpenHashSet(mapped2);

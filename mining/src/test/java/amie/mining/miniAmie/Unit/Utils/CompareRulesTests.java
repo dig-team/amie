@@ -16,6 +16,7 @@ public class CompareRulesTests extends UnitTest {
     }
 
     public void testCompareEmptyBody() {
+        System.out.println("Running testCompareEmptyBody");
         int[] headAtom = new int[]{1,2,3} ;
 
         Rule rule = new Rule(headAtom, -1, kb) ;
@@ -28,6 +29,7 @@ public class CompareRulesTests extends UnitTest {
     }
 
     public void testCompareLength2() {
+        System.out.println("Running testCompareLength2");
         int[] headAtom = new int[]{-1,1,-2} ;
         int[] bodyAtom1 = new int[]{-3,2,-2} ;
         int[] bodyAtom2 = new int[]{-1,3,-2} ;
@@ -50,6 +52,7 @@ public class CompareRulesTests extends UnitTest {
     }
 
     public void testCompareDifferentLength() {
+        System.out.println("Running testCompareDifferentLength");
         int[] headAtom = new int[]{-1,1,-2} ;
         int[] bodyAtom1 = new int[]{-3,2,-2} ;
         int[] bodyAtom2 = new int[]{-1,3,-2} ;
@@ -70,6 +73,7 @@ public class CompareRulesTests extends UnitTest {
     }
 
     public void testCompareDifferentLength2() {
+        System.out.println("Running testCompareDifferentLength2");
         int[] headAtom = new int[]{-1,1,-2} ;
         int[] bodyAtom1 = new int[]{-3,2,-2} ;
         int[] bodyAtom2 = new int[]{-10,10,-20} ;
@@ -90,6 +94,7 @@ public class CompareRulesTests extends UnitTest {
     }
 
     public void testCompareDifferentVariableNames() {
+        System.out.println("Running testCompareDifferentVariableNames");
         int[] headAtom = new int[]{-1,1,-2} ;
         int[] bodyAtom1 = new int[]{-3,2,-2} ;
         int[] bodyAtom2 = new int[]{-1,3,-2} ;
@@ -108,6 +113,29 @@ public class CompareRulesTests extends UnitTest {
 
         assert utils.CompareRules(ruleOther, rule) ;
         assert utils.CompareRules(rule, ruleOther) ;
+    }
+
+    public void testVariablePosition() {
+        System.out.println("Running testVariablePosition");
+        int[] headAtom = new int[]{-1,1,-2} ;
+        int[] bodyAtom1 = new int[]{-3,2,-2} ;
+        int[] bodyAtom2 = new int[]{-1,3,-3} ;
+        List<int[]> body = new ArrayList<>();
+        body.add(bodyAtom1);
+        body.add(bodyAtom2);
+        Rule rule = new Rule(headAtom, body, -1, kb) ;
+
+        int[] headAtomOther = new int[]{-1,1,-2} ;
+        int[] bodyAtomOther1 = new int[]{-2,2,-3} ;
+        int[] bodyAtomOther2 = new int[]{-3,3,-1} ;
+        List<int[]> bodyOther = new ArrayList<>();
+        bodyOther.add(bodyAtomOther1);
+        bodyOther.add(bodyAtomOther2);
+        Rule ruleOther = new Rule(headAtomOther, bodyOther, -1, kb) ;
+
+        assert !utils.CompareRules(ruleOther, rule) ;
+        assert !utils.CompareRules(rule, ruleOther) ;
+
     }
 
 }

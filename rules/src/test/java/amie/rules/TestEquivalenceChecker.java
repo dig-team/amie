@@ -239,121 +239,132 @@ public class TestEquivalenceChecker extends TestCase {
 		cases.add(p34);
 		
 	}
-	
+
+	public void assertTrueSymmetric(List<int[]> r1, List<int[]> r2) {
+		assertTrue(QueryEquivalenceChecker.areEquivalent(r1, r2));
+		assertTrue(QueryEquivalenceChecker.areEquivalent(r2, r1));
+	}
+
+	public void assertFalseSymmetric(List<int[]> r1, List<int[]> r2) {
+		assertFalse(QueryEquivalenceChecker.areEquivalent(r1, r2)) ;
+		assertFalse(QueryEquivalenceChecker.areEquivalent(r2, r1)) ;
+	}
+
+
 	public void test0(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(0).first, cases.get(0).second));
+		assertTrueSymmetric(cases.get(0).first, cases.get(0).second);
 	}
 	
 	public void test1(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(1).first, cases.get(1).second));
+		assertTrueSymmetric(cases.get(1).first, cases.get(1).second);
 	}
 	
 	public void test2(){
-		assertTrue(!QueryEquivalenceChecker.areEquivalent(cases.get(2).first, cases.get(2).second));
+		assertFalseSymmetric(cases.get(2).first, cases.get(2).second);
 	}
 	
 	public void test3(){
-		assertTrue(!QueryEquivalenceChecker.areEquivalent(cases.get(3).first, cases.get(3).second));
+		assertFalseSymmetric(cases.get(3).first, cases.get(3).second);
 	}
 	
 	public void test4(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(4).first, cases.get(4).second));
+		assertFalseSymmetric(cases.get(4).first, cases.get(4).second);
 	}
 	
 	public void test5(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(5).first, cases.get(5).second));
+		assertFalseSymmetric(cases.get(5).first, cases.get(5).second);
 	}
 	
 	public void test6(){
-		assertTrue(!QueryEquivalenceChecker.areEquivalent(cases.get(6).first, cases.get(6).second));
+		assertFalseSymmetric(cases.get(6).first, cases.get(6).second);
 	}
 	
 	public void test7(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(7).first, cases.get(7).second));
+		assertTrueSymmetric(cases.get(7).first, cases.get(7).second);
 	}
 	
 	public void test8(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(8).first, cases.get(8).second));
+		assertTrueSymmetric(cases.get(8).first, cases.get(8).second);
 	}
 	
 	public void test9(){
-		assertTrue(!QueryEquivalenceChecker.areEquivalent(cases.get(9).first, cases.get(9).second));
+		assertFalseSymmetric(cases.get(9).first, cases.get(9).second);
 	}
 	
 	public void test10(){
-		assertTrue(!QueryEquivalenceChecker.areEquivalent(cases.get(10).first, cases.get(10).second));
+		assertFalseSymmetric(cases.get(10).first, cases.get(10).second);
 	}
 	
 	public void test11(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(11).first, cases.get(11).second));
+		assertTrueSymmetric(cases.get(11).first, cases.get(11).second);
 	}
 	
 	public void test12(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(12).first, cases.get(12).second));
+		assertFalseSymmetric(cases.get(12).first, cases.get(12).second);
 	}
 	
 	public void test13(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(13).first, cases.get(13).second));
+		assertTrueSymmetric(cases.get(13).first, cases.get(13).second);
 	}
 	
 	public void test14(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(14).first, cases.get(14).second));
+		assertTrueSymmetric(cases.get(14).first, cases.get(14).second);
 	}
 	
 	public void test15(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(15).first, cases.get(15).second));
+		assertFalseSymmetric(cases.get(15).first, cases.get(15).second);
 	}
 	
 	public void test16(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(16).first, cases.get(16).second));
+		assertFalseSymmetric(cases.get(16).first, cases.get(16).second);
 	}
 	
 	public void test17(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(17).first, cases.get(17).second));
+		assertTrueSymmetric(cases.get(17).first, cases.get(17).second);
 	}
 	
 	public void test18(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(18).first, cases.get(18).second));
+		assertFalseSymmetric(cases.get(18).first, cases.get(18).second);
 	}
 	
 	public void test19(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(19).first, cases.get(19).second));
+		assertFalseSymmetric(cases.get(19).first, cases.get(19).second);
 	}
 
 	public void test20(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(20).first, cases.get(20).second));
+		assertTrueSymmetric(cases.get(20).first, cases.get(20).second);
 	}
 	
 	public void test21(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(21).first, cases.get(21).second));
+		assertTrueSymmetric(cases.get(21).first, cases.get(21).second);
 	}
 
 	public void test22(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(22).first, cases.get(22).second));
+		assertFalseSymmetric(cases.get(22).first, cases.get(22).second);
 	}
 	
 	public void test23(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(23).first, cases.get(23).second));
+		assertFalseSymmetric(cases.get(23).first, cases.get(23).second);
 	}
 
 	public void test24(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(24).first, cases.get(24).second));
+		assertTrueSymmetric(cases.get(24).first, cases.get(24).second);
 	}
 	
 	public void test25(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(25).first, cases.get(25).second));
+		assertTrueSymmetric(cases.get(25).first, cases.get(25).second);
 	}
 	
 	public void test26(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(26).first, cases.get(26).second));
+		assertFalseSymmetric(cases.get(26).first, cases.get(26).second);
 	}
 	
 	public void test27(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(27).first, cases.get(27).second));
+		assertTrueSymmetric(cases.get(27).first, cases.get(27).second);
 	}
 	
 	public void test28(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(28).first, cases.get(28).second));
+		assertFalseSymmetric(cases.get(28).first, cases.get(28).second);
 	}
 	
 	public void test29(){
@@ -375,23 +386,23 @@ public class TestEquivalenceChecker extends TestCase {
 	}
 	
 	public void test30(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(29).first, cases.get(29).second));
+		assertTrueSymmetric(cases.get(29).first, cases.get(29).second);
 	}
 	
 	public void test31(){
-		assertFalse(QueryEquivalenceChecker.areEquivalent(cases.get(30).first, cases.get(30).second));
+		assertFalseSymmetric(cases.get(30).first, cases.get(30).second);
 	}
 	
 	public void test32(){
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(31).first, cases.get(31).second));
+		assertTrueSymmetric(cases.get(31).first, cases.get(31).second);
 	}
 	
 	public void test33() {
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(32).first, cases.get(32).second));
+		assertTrueSymmetric(cases.get(32).first, cases.get(32).second);
 	}
 	
 	public void test34() {
-		assertTrue(QueryEquivalenceChecker.areEquivalent(cases.get(33).first, cases.get(33).second));
+		assertTrueSymmetric(cases.get(33).first, cases.get(33).second);
 	}
         
         public void test35() {
@@ -403,7 +414,7 @@ public class TestEquivalenceChecker extends TestCase {
                                         kb.triple("?a", "g", "?b"),
                                         kb.triple("?z", "h", "?a"),
                                         kb.triple("?b", "g", "?z"));
-            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+            assertFalseSymmetric(q1, q2);
         }
         
         public void test36() {
@@ -415,7 +426,7 @@ public class TestEquivalenceChecker extends TestCase {
                                         kb.triple("?a", "h", "?b"),
                                         kb.triple("?b", "l", "?z"),
                                         kb.triple("?z", "g", "?a"));
-            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+            assertFalseSymmetric(q1, q2);
         }
         
         public void test37() {
@@ -425,7 +436,7 @@ public class TestEquivalenceChecker extends TestCase {
             List<int[]> q2 = kb.triples(
                                         kb.triple("?a", "h", "?b"),
                                         kb.triple("?z", "l", "?b"));
-            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+            assertFalseSymmetric(q1, q2);
         }
         
         public void test38() {
@@ -435,7 +446,7 @@ public class TestEquivalenceChecker extends TestCase {
             List<int[]> q2 = kb.triples(
                                         kb.triple("?a", "h", "?b"),
                                         kb.triple("?z", "g", "?b"));
-            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+            assertFalseSymmetric(q1, q2);
         }
         
         public void test39() {
@@ -445,7 +456,7 @@ public class TestEquivalenceChecker extends TestCase {
             List<int[]> q2 = kb.triples(
                                         kb.triple("?a", "h", "?b"),
                                         kb.triple("?z", "g", "?a"));
-            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+            assertFalseSymmetric(q1, q2);
         }
         
         public void test40() {
@@ -455,7 +466,7 @@ public class TestEquivalenceChecker extends TestCase {
             List<int[]> q2 = kb.triples(
                                         kb.triple("?z", "l", "?a"),
                                         kb.triple("?a", "h", "?b"));
-            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+            assertFalseSymmetric(q1, q2);
         }
         
         
@@ -466,7 +477,7 @@ public class TestEquivalenceChecker extends TestCase {
             List<int[]> q2 = kb.triples(
                                         kb.triple("?a", "h", "?b"),
                                         kb.triple("?a", "l", "?z"));
-            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+            assertFalseSymmetric(q1, q2);
         }
         
         public void test42() {
@@ -476,7 +487,7 @@ public class TestEquivalenceChecker extends TestCase {
             List<int[]> q2 = kb.triples(
                                         kb.triple("?a", "h", "?b"),
                                         kb.triple("?b", "l", "?z"));
-            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+            assertFalseSymmetric(q1, q2);
         }
         
         public void test43() {
@@ -486,7 +497,7 @@ public class TestEquivalenceChecker extends TestCase {
             List<int[]> q2 = kb.triples(
                                         kb.triple("?a", "h", "?b"),
                                         kb.triple("?b", "h", "?z"));
-            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+            assertFalseSymmetric(q1, q2);
         }
         
         public void test44() {
@@ -496,7 +507,7 @@ public class TestEquivalenceChecker extends TestCase {
             List<int[]> q2 = kb.triples(
                                         kb.triple("?a", "h", "?b"),
                                         kb.triple("?z", "h", "?a"));
-            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+            assertFalseSymmetric(q1, q2);
         }
         
         public void test45() {
@@ -506,7 +517,7 @@ public class TestEquivalenceChecker extends TestCase {
             List<int[]> q2 = kb.triples(
                                         kb.triple("?a", "h", "?b"),
                                         kb.triple("?z", "h", "?b"));
-            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+            assertFalseSymmetric(q1, q2);
         }
         
         public void test46() {
@@ -522,7 +533,7 @@ public class TestEquivalenceChecker extends TestCase {
                     kb.triple("?a", "<directed>", "?p"),
                     kb.triple("?a", "<directed>", "?b"),
                     kb.triple("?a", "<created>", "?p"));
-            assertTrue(QueryEquivalenceChecker.areEquivalent(q1, q2));
+            assertTrueSymmetric(q1, q2);
         }
         
         public void test47() {
@@ -538,7 +549,7 @@ public class TestEquivalenceChecker extends TestCase {
                     kb.triple("?a", "<directed>", "?b"),
                     kb.triple("?a", "<directed>", "?b"),
                     kb.triple("?a", "<created>", "?p"));
-            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+            assertFalseSymmetric(q1, q2);
         }
         
         public void test48() {
@@ -554,8 +565,21 @@ public class TestEquivalenceChecker extends TestCase {
                     kb.triple("?a", "<directed>", "?b"),
                     kb.triple("?a", "<directed>", "?p"),
                     kb.triple("?a", "<created>", "?p"));
-            assertFalse(QueryEquivalenceChecker.areEquivalent(q1, q2));
+            assertFalseSymmetric(q1, q2);
         }
+		
+		public void test49() {
+			List<int[]> q1 = kb.triples(
+					kb.triple("?a", "<produced>", "?b"),
+					kb.triple("?a", "<directed>", "?b"),
+					kb.triple("?a", "<directed>", "?p"),
+					kb.triple("?a", "<created>", "?p"));
+			List<int[]> q2 = kb.triples(
+					kb.triple("?a", "<produced>", "?p"),
+					kb.triple("?a", "<directed>", "?b"),
+					kb.triple("?a", "<directed>", "?p"));
+			assertFalseSymmetric(q1, q2);
+		}
         
 	protected void tearDown() throws Exception {
 		super.tearDown();

@@ -1,3 +1,8 @@
+sdfds
+sdfsdf
+sfsdfsdfsdf
+sdfsdfsdf
+sdfsdfsdfsdfsdf
 ?b  <isLocatedIn>  ?a   => ?a  <hasCapital>  ?b	0,318331504	0,000491285	0,001478815	580	1180578	392206	?a
 ?a  <graduatedFrom>  ?b   => ?a  <worksAt>  ?b	0,114086147	0,018645358	0,172961525	490	26280	2833	?a
 ?a  <livesIn>  ?b   => ?a  <isPoliticianOf>  ?b	0,027473993	0,003442974	0,237327189	103	29916	434	?a
@@ -400,3 +405,12 @@
 ?a  <hasGender>  ?f  ?b  <hasGender>  ?f   => ?a  <hasAcademicAdvisor>  ?b	0,922970639	0,000000004	0,000001274	2672	629956439930	2096816082	?a
 ?a  <hasGender>  ?f  ?b  <hasGender>  ?f   => ?a  <isMarriedTo>  ?b	0,030053035	0,000000001	0,000000074	714	629956439930	9603384586	?b
 ?a  <hasGender>  ?f  ?b  <hasGender>  ?f   => ?a  <isAffiliatedTo>  ?b	0,003360692	0,000000002	0,000000016	1411	629956439930	88247634158	?a
+sfdsdfsdf
+sdfs
+dfsdf
+
+sdf
+s
+df
+sdf
+sdf

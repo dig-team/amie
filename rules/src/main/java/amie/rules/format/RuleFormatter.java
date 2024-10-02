@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import amie.rules.Rule;
-import it.unimi.dsi.fastutil.Hash;
 
 /**
  * Abstract class designed to format rules in different ways

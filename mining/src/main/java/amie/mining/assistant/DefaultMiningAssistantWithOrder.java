@@ -107,7 +107,7 @@ public class DefaultMiningAssistantWithOrder extends DefaultMiningAssistant {
         if (candidate.isEmpty()) {
             return candidate.getStdConfidence();
         }
-        // TODO Auto-generated method stub
+
         List<int[]> antecedent = candidate.getAntecedentClone();
         double denominator = 0.0;
         int[] head = candidate.getHead();

@@ -26,35 +26,6 @@ public class LazyMiningAssistant extends DefaultMiningAssistantWithOrder {
     }
 
     /**
-     * It computes the standard and the PCA confidence of a given rule. It
-     * assumes the rule's cardinality (absolute support) is known.
-     *
-     * @param candidate
-     */
-    public void calculateConfidenceMetrics(Rule candidate) {
-        if (this.minPcaConfidence == 0) {
-            if (this.ommitStdConfidence) {
-                candidate.setBodySize((long) candidate.getSupport() * 2);
-                computePCAConfidence(candidate);
-            } else {
-                computeStandardConfidence(candidate);
-                if (candidate.getStdConfidence() >= this.minStdConfidence) {
-                    computePCAConfidence(candidate);
-                }
-            }
-        } else {
-            computePCAConfidence(candidate);
-            if (candidate.getPcaConfidence() >= this.minPcaConfidence) {
-                if (this.ommitStdConfidence) {
-                    candidate.setBodySize((long) candidate.getSupport() * 2);
-                } else {
-                    computeStandardConfidence(candidate);
-                }
-            }
-        }
-    }
-
-    /**
      * Returns the denominator of the PCA confidence expression for the
      * antecedent of a rule.
      *

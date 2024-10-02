@@ -10,8 +10,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.function.DoubleUnaryOperator;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static amie.mining.miniAmie.utils.*;
 
@@ -21,68 +21,85 @@ public class miniAMIE {
 
     public static int MaxRuleSize;
     public static int MinSup;
+    public static int NThreads = 1;
     public static boolean ShowRealSupport = false;
     public static boolean ShowExplorationLayers = false;
     public static boolean Verbose = false;
     public static double ErrorRateThreshold = 0.5;
-
     public static boolean CompareToGroundTruth = false;
-    public static String RestrainedHead = "";
-    public static String pathToGroundTruthRules = "";
-    public static String outputComparisonCsvPath = "./comparison"+
-            Instant.now().toString().replace(" ","_")+".csv";
+    public static String RestrainedHead;
+    public static String pathToGroundTruthRules;
+    static String suffix = Instant.now().toString().replace(" ", "_") + ".csv";
+    public static String outputComparisonCsvPath = "./comparison-" + suffix;
+    public static String outputConfigurationCsvPath = "./run-" + suffix;
 
     private static final int CORRECTION_FACTOR_CLOSURE = 2;
     private static final int CORRECTION_FACTOR_OPENING = 4;
 
     protected static List<Integer> SelectedRelations = new ArrayList<>();
+    protected static ThreadPoolExecutor executor;
 
     public static void Run() {
-        long startTime = System.currentTimeMillis();
+
         List<Rule> groundTruthRules = new ArrayList<>();
         if (CompareToGroundTruth) {
             // Generating comparison map
             groundTruthRules = LoadGroundTruthRules();
         }
+        long startTime = System.currentTimeMillis();
 
         // Init mining assistant (temp solution)
-        System.out.println("MaxRuleSize " + MaxRuleSize + " atoms.");
-        System.out.println("MinSup " + MinSup + ".");
-        System.out.println("ShowRealSupport " + ShowRealSupport + ".");
-        System.out.println("ShowExplorationLayers " + ShowExplorationLayers + ".");
-        System.out.println("Verbose " + Verbose + ".");
-        System.out.println("ErrorRateThreshold " + ErrorRateThreshold + ".");
-        System.out.println("CompareToGroundTruth " + CompareToGroundTruth + ".");
-        System.out.println("RestrainedHead " + (RestrainedHead.isEmpty() ? "None" : RestrainedHead) + ".");
-        System.out.println("pathToGroundTruthRules " + pathToGroundTruthRules + ".");
-        System.out.println("Correction factor closure " + CORRECTION_FACTOR_CLOSURE + ".");
-        System.out.println("Correction factor opening " + CORRECTION_FACTOR_OPENING + ".");
-
-
         miningAssistant = new DefaultMiningAssistant(kb);
 
         SelectedRelations = SelectRelations();
 
         Collection<Rule> initRules = GetInitRules(MinSup);
-        int totalSumExploredRules = 0;
-        int totalSumExploredRulesAdjustedWithBidirectionality = 0;
+        AtomicInteger totalSumExploredRules = new AtomicInteger();
+        AtomicInteger totalSumExploredRulesAdjustedWithBidirectionality = new AtomicInteger();
         List<Rule> finalRules = new ArrayList<>();
 
-        for (Rule rule : initRules) {
-            if (rule.toString().contains(RestrainedHead)) {
-                ExplorationResult exploreChildrenResult = InitExploreChildren(rule);
-                totalSumExploredRules += exploreChildrenResult.sumExploredRules;
-                totalSumExploredRulesAdjustedWithBidirectionality +=
-                        exploreChildrenResult.sumExploredRulesAdjustedWithBidirectionality;
-                finalRules.addAll(exploreChildrenResult.finalRules);
+        // Multicore execution
+        System.out.println("Running mini-AMIE with " + NThreads + " threads.");
+        if (NThreads == 1) {
+            for (Rule rule : initRules) {
+                if (RestrainedHead == null || rule.toString().contains(RestrainedHead)) {
+                    ExplorationResult exploreChildrenResult = InitExploreChildren(rule);
+                    totalSumExploredRules.addAndGet(exploreChildrenResult.sumExploredRules);
+                    totalSumExploredRulesAdjustedWithBidirectionality.addAndGet(exploreChildrenResult.sumExploredRulesAdjustedWithBidirectionality);
+                    finalRules.addAll(exploreChildrenResult.finalRules);
+                }
             }
-            totalSumExploredRules += 1;
-            totalSumExploredRulesAdjustedWithBidirectionality += 1;
+        } else {
+            try {
+                CountDownLatch headLatch = new CountDownLatch(NThreads);
+                executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(NThreads);
+                for (Rule rule : initRules) {
+                    if (RestrainedHead == null || rule.toString().contains(RestrainedHead)) {
+                        executor.submit(() -> {
+                            ExplorationResult exploreChildrenResult = InitExploreChildren(rule);
+                            totalSumExploredRules.addAndGet(exploreChildrenResult.sumExploredRules);
+                            totalSumExploredRulesAdjustedWithBidirectionality.addAndGet
+                                    (exploreChildrenResult.sumExploredRulesAdjustedWithBidirectionality);
+                            finalRules.addAll(exploreChildrenResult.finalRules);
+                            headLatch.countDown();
+                            return null;
+                        });
+                    }
+                }
+                headLatch.await();
+            } catch (Exception e) {
+                System.err.println("Mini-AMIE multicore error: " + e.getMessage());
+                System.exit(1);
+            }
+
+        }
+        for (Rule _rule : initRules) {
+            totalSumExploredRules.addAndGet(1);
+            totalSumExploredRulesAdjustedWithBidirectionality.addAndGet(1);
         }
 
         // Displaying result
         long duration = System.currentTimeMillis() - startTime;
-
         long days = TimeUnit.MILLISECONDS.toDays(duration);
         long hours = TimeUnit.MILLISECONDS.toHours(duration) - 24 * days;
         long minutes = TimeUnit.MILLISECONDS.toMinutes(duration) - 60 * hours;
@@ -110,8 +127,7 @@ public class miniAMIE {
         if (CompareToGroundTruth) {
 
             // Generating comparison map
-//            List<Rule> groundTruthRules = utils.LoadGroundTruthRules();
-            HashMap<Rule, RuleStateComparison> comparisonMap = new HashMap<>();
+            ConcurrentHashMap<Rule, RuleStateComparison> comparisonMap = new ConcurrentHashMap<>();
             for (Rule rule : finalRules)
                 comparisonMap.put(rule, RuleStateComparison.FALSE);
             for (Rule groundTruthRule : groundTruthRules) {
@@ -138,14 +154,16 @@ public class miniAMIE {
             try {
                 File outputComparisonCsvFile = new File(outputComparisonCsvPath);
                 if (outputComparisonCsvFile.createNewFile()) {
-                    System.out.println("Created CSV output: " +outputComparisonCsvPath);
+                    System.out.println("Created CSV comparison to ground rules output: " + outputComparisonCsvPath);
+                } else {
+                    System.err.println("Could not create CSV output: " + outputComparisonCsvPath +
+                            ". Maybe name already exists?");
                 }
 
-                FileWriter writer = new FileWriter(outputComparisonCsvPath);
+                FileWriter outputComparisonCsvWriter = new FileWriter(outputComparisonCsvPath);
 
                 String csvColumnLine = String.format(
                         "rule" + sep // RULE
-//                                + "example" + sep
                                 + "headRelation" + sep
                                 + "size" + sep
                                 + "isFalse" + sep // FALSE
@@ -155,8 +173,7 @@ public class miniAMIE {
                                 + "isPerfectPath" + sep
                                 + "hasRedundancies" + sep
                                 + "appSupport" + sep // APP SUPPORT
-//                            + "altAppSupport" + sep
-                                + "realSupport"+ sep
+                                + "realSupport" + sep
                                 + "appSupportNano" + sep
                                 + "realSupportNano" + sep
                                 + "relationHeadAtom" + sep
@@ -175,10 +192,28 @@ public class miniAMIE {
                                 + "bodyProductElements"
                                 + "\n"
                 );
-                writer.write(csvColumnLine) ;
+                outputComparisonCsvWriter.write(csvColumnLine);
                 System.out.print(csvColumnLine);
 
-                for (Rule rule : comparisonMap.keySet()) {
+                // Computing real support using available cores
+                Set<Rule> totalRules = comparisonMap.keySet();
+                if (NThreads == 1) {
+                    for (Rule rule : totalRules)
+                            rule.setSupport(RealSupport(rule));
+                } else {
+                    CountDownLatch totalRulesLatch = new CountDownLatch(totalRules.size());
+                    for (Rule rule : totalRules) {
+                        executor.submit(() -> {
+                            rule.setSupport(RealSupport(rule));
+                            totalRulesLatch.countDown();
+                            return null;
+                        });
+                    }
+                    totalRulesLatch.await();
+                    executor.shutdown();
+                }
+
+                for (Rule rule : totalRules) {
                     String comparisonCharacter;
                     RuleStateComparison compRule = comparisonMap.get(rule);
                     switch (compRule) {
@@ -189,22 +224,18 @@ public class miniAMIE {
                         default -> throw new RuntimeException("Unknown comparison rule " + rule);
                     }
 
-
                     // Printing to csv file
-                    int NanoToMillisFactor = 1000000;
                     long startReal = System.nanoTime();
-                    double real = RealSupport(rule);
+                    double real = rule.getSupport();
                     long realNano = System.nanoTime() - startReal;
                     double app = -1;
-//                double altApp = -1;
                     long appNano = -1;
                     FactorsOfApproximateSupportClosedRule factors = new FactorsOfApproximateSupportClosedRule();
                     if (comparisonMap.get(rule) == RuleStateComparison.CORRECT || ShouldHaveBeenFound(rule)) {
                         long startApp = System.nanoTime();
                         app = ApproximateSupportClosedRule(rule);
                         appNano = System.nanoTime() - startApp;
-//                    altApp = ApproximateSupportClosedRule2(rule);
-                        factors = GetFactorsOfApproximateSupportClosedRule(rule) ;
+                        factors = GetFactorsOfApproximateSupportClosedRule(rule);
                     }
 
 
@@ -219,54 +250,81 @@ public class miniAMIE {
                                     + (IsRealPerfectPath(rule) ? 1 : 0) + sep
                                     + (HasNoRedundancies(rule) ? 0 : 1) + sep
                                     + app + sep // APP SUPPORT
-//                                + altApp + sep // ALT APP
                                     + real + sep
                                     + appNano + sep
                                     + realNano + sep
                                     + factors
                                     + "\n"
                     );
-                    writer.write(csvLine);
+                    outputComparisonCsvWriter.write(csvLine);
                     // Printing comparison to console
                     System.out.print(comparisonCharacter + csvLine + ANSI_RESET);
-//                csvText += csvLine ;
                 }
 
-            } catch (IOException e) {
-                System.err.println("Couldn't create output file: "+ outputComparisonCsvPath+ ". Maybe file already exists.");
+
+            } catch (Exception e) {
+//                System.err.println("Couldn't create output file: "+ outputComparisonCsvPath+ ". Maybe file already exists.");
                 e.printStackTrace();
             }
-
-
-
-
-//            System.out.println(" --- ---- CSV BELLOW (copy/paste result to file)") ;
-//            System.out.println(csvText) ;
-//            System.out.println(" --- ---- ") ;
-
         }
-//        for (Rule rule : finalRules) {
-//            if (ShowRealSupport) {
-//                double real = RealSupport(rule) ;
-//                double app = ApproximateSupportClosedRule(rule) ;
-//                double errorRate = utils.ErrorRate(real, app);
-//                double errorContrastRatio = ErrorContrastRatio(real, app);
-//                double errorLog = ErrorRateLog(real, app);
-//                if (errorRate >= ErrorRateThreshold) {
-//                    System.out.print(ANSI_YELLOW) ;
-//                } else if (errorRate < -ErrorRateThreshold) {
-//                    System.out.print(ANSI_CYAN) ;
-//                } else {
-//                    System.out.print(ANSI_WHITE) ;
-//                }
-//                utils.printRuleAsPerfectPath(rule) ;
-//                System.out.println(" : s~ " + app +
-//                        " | s " + real +
-//                        " | err (rate, contrast, log) " + errorRate + " " + errorContrastRatio + " " + errorLog + ANSI_RESET);
-//            }
-//            else
-//                System.out.println(rule.toString() + " : s~ " + ApproximateSupportClosedRule(rule) );
-//        }
+
+        // Outputing general information on run config
+        try {
+            File outputRunConfigCsvFile = new File(outputConfigurationCsvPath);
+            if (outputRunConfigCsvFile.createNewFile()) {
+                System.out.println("Created CSV run config output: " + outputConfigurationCsvPath);
+            } else {
+                System.err.println("Could not create CSV output: " + outputConfigurationCsvPath +
+                        ". Maybe name already exists?");
+            }
+
+            FileWriter outputConfigurationCsvWriter = new FileWriter(outputConfigurationCsvPath);
+
+            System.out.println("Run configuration :");
+            String runConfigCsvHeader =
+                    "MaxRuleSize" + sep
+                            + "MinSup" + sep
+                            + "NThreads" + sep
+                            + "ShowRealSupport" + sep
+                            + "ShowExplorationLayers" + sep
+                            + "Verbose" + sep
+                            + "ErrorRateThreshold" + sep
+                            + "CompareToGroundTruth" + sep
+                            + "RestrainedHead" + sep
+                            + "PathToGroundTruthRules" + sep
+                            + "CorrectionFactorClosure" + sep
+                            + "CorrectionFactorOpening" + sep
+                            + "SearchRuntime" + sep
+                            + "MemoryPeak" + sep
+                            + "SearchSpaceSizeEstimate" + sep
+                            + "FixedSearchSpaceSizeEstimate"
+                            + "\n";
+            System.out.print(runConfigCsvHeader);
+            outputConfigurationCsvWriter.write(runConfigCsvHeader);
+            String runConfigCsvLine = "" +
+                    MaxRuleSize + sep
+                    + MinSup + sep
+                    + NThreads + sep
+                    + ShowRealSupport + sep
+                    + ShowExplorationLayers + sep
+                    + Verbose + sep
+                    + ErrorRateThreshold + sep
+                    + CompareToGroundTruth + sep
+                    + (RestrainedHead == null ? "" : RestrainedHead) + sep
+                    + (pathToGroundTruthRules == null ? "" : pathToGroundTruthRules) + sep
+                    + CORRECTION_FACTOR_CLOSURE + sep
+                    + CORRECTION_FACTOR_OPENING + sep
+                    + duration + sep
+                    + Runtime.getRuntime().totalMemory() / 1048576 + sep
+                    + totalSumExploredRules + sep
+                    + totalSumExploredRulesAdjustedWithBidirectionality + "\n";
+            outputConfigurationCsvWriter.write(runConfigCsvLine);
+            System.out.print(runConfigCsvLine);
+            outputConfigurationCsvWriter.close();
+        } catch (IOException e) {
+            System.err.println("Couldn't create output file: " + outputComparisonCsvPath + ". Maybe file already exists.");
+            e.printStackTrace();
+        }
 
         System.out.println("Thank you for using mini-Amie. See you next time");
 
@@ -293,7 +351,6 @@ public class miniAMIE {
                 searchSpaceEstimatedAdjustedWithBidirectionalitySize += correction;
 
                 long appSupp = ApproximateSupportClosedRule(closedChild);
-//            System.out.println("approximation: " + appSupp);
                 if (appSupp >= MinSup) {
                     finalRules.add(closedChild);
                 }

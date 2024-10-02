@@ -14,10 +14,10 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
-
 import amie.data.AbstractKB;
 import amie.data.Schema;
 import amie.data.U;
+import amie.rules.format.OutputColumn;
 import amie.data.KB;
 import static amie.data.U.increase;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
@@ -30,14 +30,17 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.HashSet;
 
 /**
- * A class that represents Horn rules of the form A =&gt; B where A is a conjunction of binary atoms
- * of the form r(x, y). Each atom is represented as a triple [x, r, y] (subject, relation, object).
+ * A class that represents Horn rules of the form A =&gt; B where A is a
+ * conjunction of binary atoms
+ * of the form r(x, y). Each atom is represented as a triple [x, r, y] (subject,
+ * relation, object).
+ * 
  * @author lgalarra
  *
  */
 public class Rule {
 
-    public AbstractKB kb ;
+    public AbstractKB kb;
     /**
      * The triple patterns
      */
@@ -76,7 +79,6 @@ public class Rule {
      * String unique key for the head of the query
      */
     private int headKey;
-
 
     /**
      * List of parents: queries that are equivalent to the current query but
@@ -159,9 +161,8 @@ public class Rule {
 
     private boolean finalized = false;
 
-
     public boolean isFinal() {
-    	return finalized;
+        return finalized;
     }
 
     /**
@@ -169,28 +170,31 @@ public class Rule {
      */
     private static Pattern variablesRegex = Pattern.compile("\\?([a-z])([0-9]*)");
 
-
-//
-//    public static boolean equal(int[] pattern1, int pattern2[]) {
-//        return pattern1[0] == pattern2[0]
-//                && pattern1[1] == pattern2[1]
-//                && pattern1[2] == pattern2[2];
-//    }
+    //
+    // public static boolean equal(int[] pattern1, int pattern2[]) {
+    // return pattern1[0] == pattern2[0]
+    // && pattern1[1] == pattern2[1]
+    // && pattern1[2] == pattern2[2];
+    // }
 
     /**
      * It creates a new unbound atom with fresh variables for the subject and object
-     * and an undefined property, i.e., ?s[n] ?p ?o[n]. n is optional and is always greater
+     * and an undefined property, i.e., ?s[n] ?p ?o[n]. n is optional and is always
+     * greater
      * than 1.
+     * 
      * @return
      */
     public int[] fullyUnboundTriplePattern() {
-        return new int[] {newVariable(), kb.map("?p9"), newVariable()};
+        return new int[] { newVariable(), kb.map("?p9"), newVariable() };
     }
 
-    /** It creates a new unbound atom with fresh variables for the subject and object
-    * and an undefined property, i.e., ?s[n] ?p ?o[n]. n is optional and is always greater
-    * than 1.
-    **/
+    /**
+     * It creates a new unbound atom with fresh variables for the subject and object
+     * and an undefined property, i.e., ?s[n] ?p ?o[n]. n is optional and is always
+     * greater
+     * than 1.
+     **/
     public synchronized int[] fullyUnboundTriplePattern1() {
         int[] result = new int[3];
         ++varsCount;
@@ -218,8 +222,8 @@ public class Rule {
 
     public static boolean equals(int[] atom1, int[] atom2) {
         return (atom1[0] == atom2[0] &&
-        		atom1[1] == atom2[1] &&
-        		atom1[2] == atom2[2]);
+                atom1[1] == atom2[1] &&
+                atom1[2] == atom2[2]);
     }
 
     /**
@@ -239,13 +243,14 @@ public class Rule {
         this.pcaConfidenceEstimation = 0.0;
         this.ancestors = new HashSet<>();
         this.generation = -1;
-        this.kb = kb ;
+        this.kb = kb;
     }
 
     /**
      * Instantiates a rule of the form [] =&gt; r(?a, ?b) with empty body
      * and the given pattern as rule.
-     * @param headAtom The head atom as an array of the form [?a, r, ?b].
+     * 
+     * @param headAtom    The head atom as an array of the form [?a, r, ?b].
      * @param cardinality
      */
     public Rule(int[] headAtom, double cardinality, AbstractKB kb) {
@@ -264,12 +269,13 @@ public class Rule {
         this.pcaConfidenceEstimation = 0.0;
         this.ancestors = new HashSet<>();
         this.generation = -1;
-        this.kb = kb ;
+        this.kb = kb;
     }
 
     /**
      * Creates a new query as a clone of the query sent as argument with the given
      * support.
+     * 
      * @param otherQuery
      * @param support
      */
@@ -290,7 +296,7 @@ public class Rule {
         this.pcaConfidenceEstimation = 0.0;
         this.ancestors = new HashSet<>();
         this.generation = -1;
-        this.kb = kb ;
+        this.kb = kb;
     }
 
     public Rule(int[] head, List<int[]> body, double cardinality, AbstractKB kb) {
@@ -310,7 +316,7 @@ public class Rule {
         this.pcaConfidenceEstimation = 0.0;
         this.ancestors = new HashSet<>();
         this.generation = -1;
-        this.kb = kb ; 
+        this.kb = kb;
     }
 
     /**
@@ -318,37 +324,36 @@ public class Rule {
      * with the given atom.
      */
     private void parseVariables() {
-    	this.highestVariable = 0;
-    	for (int[] atom : this.triples) {
-	    	for (int particle : atom) {
-	    		if (KB.isVariable(particle) && particle < this.highestVariable) {
-	    			this.highestVariable = particle;
-	    		}
-	    	}
+        this.highestVariable = 0;
+        for (int[] atom : this.triples) {
+            for (int particle : atom) {
+                if (KB.isVariable(particle) && particle < this.highestVariable) {
+                    this.highestVariable = particle;
+                }
+            }
         }
     }
 
+    // /**
+    // * Like String.compareTo at the level of rule variables.
+    // * 1 = first is greater, 0 = they are equal, -1 = first is smaller
+    // * e.g., ?a < ?b, ?a0 < ?a1, ?x0 < ?s1
+    // * @param v1
+    // * @param v2
+    // * @return
+    // */
+    // private int compareVariables(int v1, int v2) {
+    // return Integer.compare(v2, v1);
+    // }
 
-//    /**
-//     * Like String.compareTo at the level of rule variables.
-//     * 1 = first is greater, 0 = they are equal, -1 = first is smaller
-//     * e.g., ?a < ?b, ?a0 < ?a1, ?x0 < ?s1
-//     * @param v1
-//     * @param v2
-//     * @return
-//     */
-//	private int compareVariables(int v1, int v2) {
-//		return Integer.compare(v2, v1);
-//	}
-
-	/**
+    /**
      * It returns a new fresh variable for the rule.
+     * 
      * @return
      */
     private int newVariable() {
-    	return --this.highestVariable;
+        return --this.highestVariable;
     }
-
 
     /**
      * Calculate a simple hash key based on the constant arguments of the head
@@ -366,6 +371,7 @@ public class Rule {
     /**
      * Return the list of triples of the query. Modifications to this
      * list alter the query.
+     * 
      * @return
      */
     public List<int[]> getTriples() {
@@ -373,13 +379,15 @@ public class Rule {
     }
 
     public List<int[]> getTriplesCopy() {
-    	return U.deepCloneInt(getTriples());
+        return U.deepCloneInt(getTriples());
     }
 
     /**
      * Returns the triples of a query except for those containing DIFFERENTFROM
-     * constraints. Modifications to this list do not alter the query. However, modifications
+     * constraints. Modifications to this list do not alter the query. However,
+     * modifications
      * to the atoms do alter the query.
+     * 
      * @return
      */
     public List<int[]> getTriplesWithoutSpecialRelations() {
@@ -395,16 +403,16 @@ public class Rule {
 
     /**
      * Returns the head of a query B =&gt; r(a, b) as a triple [?a, r, ?b].
+     * 
      * @return
      */
     public int[] getHead() {
         return triples.get(0);
     }
 
-
-
     /**
      * Returns the list of triples in the body of the rule.
+     * 
      * @return Non-modifiable list of atoms.
      */
     public List<int[]> getBody() {
@@ -414,6 +422,7 @@ public class Rule {
     /**
      * Returns the list of triples in the body of the rule. It is an alias
      * for the method getBody()
+     * 
      * @return Non-modifiable list of atoms.
      */
     public List<int[]> getAntecedent() {
@@ -434,8 +443,6 @@ public class Rule {
 
         return cloneList;
     }
-
-
 
     /**
      * @return the mustBindVariables
@@ -459,7 +466,6 @@ public class Rule {
     public void setHeadCoverage(double headCoverage) {
         this.headCoverage = headCoverage;
     }
-
 
     /**
      * @param support the support to set
@@ -518,21 +524,19 @@ public class Rule {
         this._confidenceRunningTime = confidenceRunningTime;
     }
 
-
     public void setPcaConfidenceRunningTime(double pcaConfidenceRunningTime) {
         this._pcaConfidenceRunningTime = pcaConfidenceRunningTime;
     }
 
-
     public int getGeneration() {
-		return generation;
-	}
+        return generation;
+    }
 
-	public void setGeneration(int generation) {
-		this.generation = generation;
-	}
+    public void setGeneration(int generation) {
+        this.generation = generation;
+    }
 
-	/**
+    /**
      * Returns the last triple pattern added to this rule.
      *
      * @return
@@ -583,7 +587,6 @@ public class Rule {
         }
     }
 
-
     /**
      * Returns the number of times the relation occurs in the atoms of the query
      *
@@ -599,9 +602,9 @@ public class Rule {
         return count;
     }
 
-
     /**
      * Checks whether the last atom in the query is redundant.
+     * 
      * @return
      */
     public List<int[]> getRedundantAtoms() {
@@ -650,17 +653,17 @@ public class Rule {
      */
     public static boolean isUnifiable(int[] pattern, int[] newAtom) {
         // TODO Auto-generated method stub
-        boolean unifiesSubject =(pattern[0] == newAtom[0])|| KB.isVariable(pattern[0]);
+        boolean unifiesSubject = (pattern[0] == newAtom[0]) || KB.isVariable(pattern[0]);
         if (!unifiesSubject) {
             return false;
         }
 
-        boolean unifiesPredicate =(pattern[1] == newAtom[1])|| KB.isVariable(pattern[1]);
+        boolean unifiesPredicate = (pattern[1] == newAtom[1]) || KB.isVariable(pattern[1]);
         if (!unifiesPredicate) {
             return false;
         }
 
-        boolean unifiesObject =(pattern[2] == newAtom[2])|| KB.isVariable(pattern[2]);
+        boolean unifiesObject = (pattern[2] == newAtom[2]) || KB.isVariable(pattern[2]);
         if (!unifiesObject) {
             return false;
         }
@@ -668,22 +671,20 @@ public class Rule {
         return true;
     }
 
-
-
     public static boolean areEquivalent(int[] pattern, int[] newAtom) {
-        boolean unifiesSubject =(pattern[0] == newAtom[0])
+        boolean unifiesSubject = (pattern[0] == newAtom[0])
                 || (KB.isVariable(pattern[0]) && KB.isVariable(newAtom[0]));
         if (!unifiesSubject) {
             return false;
         }
 
-        boolean unifiesPredicate =(pattern[1] == newAtom[1])
+        boolean unifiesPredicate = (pattern[1] == newAtom[1])
                 || (KB.isVariable(pattern[1]) && KB.isVariable(newAtom[1]));
         if (!unifiesPredicate) {
             return false;
         }
 
-        boolean unifiesObject =(pattern[2] == newAtom[2])
+        boolean unifiesObject = (pattern[2] == newAtom[2])
                 || (KB.isVariable(pattern[2]) && KB.isVariable(newAtom[2]));
         if (!unifiesObject) {
             return false;
@@ -691,25 +692,26 @@ public class Rule {
 
         return true;
     }
-//
-//    /**
-//     * Determines if the first argument is unifiable to at least one atom in the second argument.
-//     * Unifiable means there is a valid unification mapping (variable -&gt;
-//     * variable, variable -&gt; constant) between the components of the triple
-//     * pattern
-//     *
-//     * @param test
-//     * @param query
-//     * @return boolean
-//     */
-//    public static boolean unifies(int[] test, List<int[]> query) {
-//        for (int[] pattern : query) {
-//            if (isUnifiable(pattern, test)) {
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
+    //
+    // /**
+    // * Determines if the first argument is unifiable to at least one atom in the
+    // second argument.
+    // * Unifiable means there is a valid unification mapping (variable -&gt;
+    // * variable, variable -&gt; constant) between the components of the triple
+    // * pattern
+    // *
+    // * @param test
+    // * @param query
+    // * @return boolean
+    // */
+    // public static boolean unifies(int[] test, List<int[]> query) {
+    // for (int[] pattern : query) {
+    // if (isUnifiable(pattern, test)) {
+    // return true;
+    // }
+    // }
+    // return false;
+    // }
 
     /**
      * It returns a list with all the redundant atoms contained in the first
@@ -802,21 +804,19 @@ public class Rule {
         return variables;
     }
 
-
-
-//    /**
-//     * Determines if a pattern contains repeated components, which are
-//     * considered hard to satisfy (i.e., ?x somePredicate ?x)
-//     *
-//     * @return boolean
-//     */
-//    public boolean containsRepeatedVariablesInLastPattern() {
-//        // TODO Auto-generated method stub
-//        int[] triple = getLastTriplePattern();
-//        return(triple[0] == triple[1])||
-//       (		triple[0] == triple[2])||
-//        		(triple[1] == triple[2]);
-//    }
+    // /**
+    // * Determines if a pattern contains repeated components, which are
+    // * considered hard to satisfy (i.e., ?x somePredicate ?x)
+    // *
+    // * @return boolean
+    // */
+    // public boolean containsRepeatedVariablesInLastPattern() {
+    // // TODO Auto-generated method stub
+    // int[] triple = getLastTriplePattern();
+    // return(triple[0] == triple[1])||
+    // ( triple[0] == triple[2])||
+    // (triple[1] == triple[2]);
+    // }
 
     /**
      * Returns true if the rule contains redundant recursive atoms, i.e., atoms
@@ -847,14 +847,16 @@ public class Rule {
 
     /**
      * Returns a histogram with the number of different atoms variables occur in.
-     * @param ignoreSpecialAtoms discards pseudo-atoms containing the keyword DIFFERENTFROM.
+     * 
+     * @param ignoreSpecialAtoms discards pseudo-atoms containing the keyword
+     *                           DIFFERENTFROM.
      * @return
      */
     private Int2IntMap variablesHistogram(boolean ignoreSpecialAtoms) {
         Int2IntMap varsHistogram = new Int2IntOpenHashMap();
         for (int triple[] : triples) {
             if (triple[1] == kb.DIFFERENTFROMbs
-            		&& ignoreSpecialAtoms) {
+                    && ignoreSpecialAtoms) {
                 continue;
             }
 
@@ -900,10 +902,11 @@ public class Rule {
 
     /**
      *
-     * @param ignoreSpecialAtoms If true, atoms special atoms such as DIFFERENTFROM are ignored
-     * in the count.
+     * @param ignoreSpecialAtoms If true, atoms special atoms such as DIFFERENTFROM
+     *                           are ignored
+     *                           in the count.
      * @return boolean True if the rule is closed, i.e., each variable in the
-     * rule occurs at least in two atoms.
+     *         rule occurs at least in two atoms.
      *
      */
     public boolean isClosed(boolean ignoreSpecialAtoms) {
@@ -987,7 +990,6 @@ public class Rule {
         return length;
     }
 
-
     /**
      * Returns the number of atoms of the rule that are not type constraints of
      * the form rdf:type(?x, C) where C is a class, i.e., Person.
@@ -1018,7 +1020,7 @@ public class Rule {
         int size = 0;
         for (int[] triple : triples) {
             if ((triple[1] != typeString
-            		|| KB.isVariable(triple[2]))
+                    || KB.isVariable(triple[2]))
                     && triple[1] != linksString) {
                 ++size;
             }
@@ -1035,20 +1037,17 @@ public class Rule {
     public void addParent(Rule parent) {
         this.ancestors.add(parent);
     }
-//
-//    public boolean containsParent(Rule parent) {
-//    	return this.ancestors.contains(parent);
-//    }
-
-
+    //
+    // public boolean containsParent(Rule parent) {
+    // return this.ancestors.contains(parent);
+    // }
 
     public Rule addAtoms(int[] atom1, int[] atom2, double cardinality) {
-		Rule newQuery = new Rule(this, cardinality, kb);
-		newQuery.triples.add(atom1.clone());
-		newQuery.triples.add(atom2.clone());
-		return newQuery;
-	}
-
+        Rule newQuery = new Rule(this, cardinality, kb);
+        newQuery.triples.add(atom1.clone());
+        newQuery.triples.add(atom2.clone());
+        return newQuery;
+    }
 
     public Rule addAtom(int[] newAtom, double cardinality) {
         Rule newQuery = new Rule(this, cardinality, kb);
@@ -1060,31 +1059,33 @@ public class Rule {
     /**
      * Constructs a new rule identical to the calling one except that
      * the last atom is replaced by the argument.
+     * 
      * @param newAtom
      * @return
      */
-	public Rule replaceLastAtom(int[] newAtom, double cardinality) {
-		Rule newRule = new Rule(this, cardinality, kb);
-		int ruleSize = newRule.getLength();
-		newRule.getTriples().set(ruleSize - 1, newAtom.clone());
-		return newRule;
-	}
+    public Rule replaceLastAtom(int[] newAtom, double cardinality) {
+        Rule newRule = new Rule(this, cardinality, kb);
+        int ruleSize = newRule.getLength();
+        newRule.getTriples().set(ruleSize - 1, newAtom.clone());
+        return newRule;
+    }
 
     /**
      * It returns a new rule where the last atom is replaced by a
      * type constraint with the given subtype.
+     * 
      * @param subtype
      * @param cardinality
      * @return
      */
     public Rule specializeTypeAtom(int subtype, double cardinality) {
-		Rule newRule = new Rule(this.getHead(), this.getBody(), cardinality, kb);
-		int[] lastTriple = newRule.getLastTriplePattern();
-		lastTriple[1] = kb.schema.typeRelationBS;
-		lastTriple[2] = subtype;
-		newRule.setFunctionalVariablePosition(functionalVariablePosition);
-		return newRule;
-	}
+        Rule newRule = new Rule(this.getHead(), this.getBody(), cardinality, kb);
+        int[] lastTriple = newRule.getLastTriplePattern();
+        lastTriple[1] = kb.schema.typeRelationBS;
+        lastTriple[2] = subtype;
+        newRule.setFunctionalVariablePosition(functionalVariablePosition);
+        return newRule;
+    }
 
     /**
      * The alternative hash code for the parents of the rule. The alternative
@@ -1094,12 +1095,13 @@ public class Rule {
      * @return
      */
     public int alternativeParentHashCode() {
-    	int hk = getHeadKey();
+        int hk = getHeadKey();
         return headAndGenerationHashCode(hk, generation);
     }
 
     /**
      * Returns a hash code that depends on the given arguments.
+     * 
      * @param headKey
      * @param generation
      * @return
@@ -1112,7 +1114,9 @@ public class Rule {
         return result;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -1120,18 +1124,20 @@ public class Rule {
         final int prime = 31;
         int result = 1;
         if (generation > 0) {
-	        result = prime * result + (int) initialSupport;
-	        result = prime * result + (int) generation;
-	        result = prime * result + headKey;
+            result = prime * result + (int) initialSupport;
+            result = prime * result + generation;
+            result = prime * result + headKey;
         } else {
-	        result = prime * result + (int) initialSupport;
-	        result = prime * result + (int) getRealLength();
-	        result = prime * result + headKey;
-       }
+            result = prime * result + (int) initialSupport;
+            result = prime * result + getRealLength();
+            result = prime * result + headKey;
+        }
         return result;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
@@ -1159,10 +1165,10 @@ public class Rule {
         }
 
         if (initialSupport != other.initialSupport) {
-        	return false;
+            return false;
         }
 
-        if (((long)support) != ((long)other.support)) {
+        if (((long) support) != ((long) other.support)) {
             return false;
         }
         return QueryEquivalenceChecker.areEquivalent(getTriples(), other.getTriples());
@@ -1172,7 +1178,7 @@ public class Rule {
         StringBuilder strBuilder = new StringBuilder();
         for (int[] pattern : sortBody()) {
             if (pattern[1] == kb.DIFFERENTFROMbs) {
-            	strBuilder.append(kb.unmap(pattern[0]));
+                strBuilder.append(kb.unmap(pattern[0]));
                 strBuilder.append("!=");
                 strBuilder.append(kb.unmap(pattern[2]));
                 strBuilder.append(" ");
@@ -1198,7 +1204,8 @@ public class Rule {
     }
 
     public Collection<int[]> sortBody() {
-    	   //Guarantee that atoms in rules are output in the same order across runs of the program
+        // Guarantee that atoms in rules are output in the same order across runs of the
+        // program
         class TripleComparator implements Comparator<int[]> {
 
             public int compare(int[] t1, int[] t2) {
@@ -1219,7 +1226,7 @@ public class Rule {
         return sortedBody;
     }
 
-    public String getDatalogRuleString() {
+    public String getReverseDatalogRuleString() {
         StringBuilder strBuilder = new StringBuilder();
         for (int[] pattern : sortBody()) {
             if (pattern[1] == kb.DIFFERENTFROMbs) {
@@ -1249,98 +1256,122 @@ public class Rule {
         return strBuilder.toString();
     }
 
-    public String getDatalogBasicRuleString(Metric... metrics2Ommit) {
-    	StringBuilder strBuilder = new StringBuilder();
-        strBuilder.append(getDatalogRuleString());
-        addBasicFields(strBuilder);
+    public String getReverseDatalogBasicRuleString(OutputColumn... metrics2Ommit) {
+        StringBuilder strBuilder = new StringBuilder();
+        strBuilder.append(getReverseDatalogRuleString());
+        addBasicFields(strBuilder, metrics2Ommit);
         return strBuilder.toString();
-	}
+    }
 
-
-    private void addFullFields(StringBuilder strBuilder, Metric... metrics2Ommit) {
-    	DecimalFormat df = new DecimalFormat("#.#########");
+    private void addFullFields(StringBuilder strBuilder, OutputColumn... metrics2Ommit) {
+        DecimalFormat df = new DecimalFormat("#.#########");
         DecimalFormat df1 = new DecimalFormat("#.##");
         if (metrics2Ommit.length == 0) {
-	        strBuilder.append("\t" + df.format(getHeadCoverage()));
-	        strBuilder.append("\t" + df.format(getStdConfidence()));
-	        strBuilder.append("\t" + df.format(getPcaConfidence()));
-	        strBuilder.append("\t" + df1.format(getSupport()));
-	        strBuilder.append("\t" + df1.format(getBodySize()));
-	        strBuilder.append("\t" + df1.format(getPcaBodySize()));
-	        strBuilder.append("\t" + kb.unmap(getFunctionalVariable()));
-	        strBuilder.append("\t" + stdConfidenceUpperBound);
-	        strBuilder.append("\t" + pcaConfidenceUpperBound);
-	        strBuilder.append("\t" + pcaConfidenceEstimation);
+            strBuilder.append("\t" + df.format(getHeadCoverage()));
+            strBuilder.append("\t" + df.format(getStdConfidence()));
+            strBuilder.append("\t" + df.format(getPcaConfidence()));
+            strBuilder.append("\t" + df1.format(getSupport()));
+            strBuilder.append("\t" + df1.format(getBodySize()));
+            strBuilder.append("\t" + df1.format(getPcaBodySize()));
+            strBuilder.append("\t" + kb.unmap(getFunctionalVariable()));
+            strBuilder.append("\t" + stdConfidenceUpperBound);
+            strBuilder.append("\t" + pcaConfidenceUpperBound);
+            strBuilder.append("\t" + pcaConfidenceEstimation);
         } else {
-        	List<Metric> metricsList = Arrays.asList(metrics2Ommit);
-        	if (!metricsList.contains(Metric.HeadCoverage))
-        		strBuilder.append("\t" + df.format(getHeadCoverage()));
-	        if (!metricsList.contains(Metric.StandardConfidence))
-	        	strBuilder.append("\t" + df.format(getStdConfidence()));
-	        if (!metricsList.contains(Metric.PCAConfidence))
-	        	strBuilder.append("\t" + df.format(getPcaConfidence()));
-	        if (!metricsList.contains(Metric.Support))
-	        	strBuilder.append("\t" + df1.format(getSupport()));
-	        if (!metricsList.contains(Metric.BodySize))
-	        	strBuilder.append("\t" + df1.format(getBodySize()));
-	        if (!metricsList.contains(Metric.PCABodySize))
-	        	strBuilder.append("\t" + df1.format(getPcaBodySize()));
-	        strBuilder.append("\t" + kb.unmap(getFunctionalVariable()));
-	        strBuilder.append("\t" + stdConfidenceUpperBound);
-	        strBuilder.append("\t" + pcaConfidenceUpperBound);
-	        strBuilder.append("\t" + pcaConfidenceEstimation);
+            List<OutputColumn> metricsList = Arrays.asList(metrics2Ommit);
+            if (!metricsList.contains(OutputColumn.HeadCoverage))
+                strBuilder.append("\t" + df.format(getHeadCoverage()));
+            if (!metricsList.contains(OutputColumn.StandardConfidence))
+                strBuilder.append("\t" + df.format(getStdConfidence()));
+            if (!metricsList.contains(OutputColumn.PCAConfidence))
+                strBuilder.append("\t" + df.format(getPcaConfidence()));
+            if (!metricsList.contains(OutputColumn.Support))
+                strBuilder.append("\t" + df1.format(getSupport()));
+            if (!metricsList.contains(OutputColumn.BodySize))
+                strBuilder.append("\t" + df1.format(getBodySize()));
+            if (!metricsList.contains(OutputColumn.PCABodySize))
+                strBuilder.append("\t" + df1.format(getPcaBodySize()));
+            strBuilder.append("\t" + kb.unmap(getFunctionalVariable()));
+            strBuilder.append("\t" + stdConfidenceUpperBound);
+            strBuilder.append("\t" + pcaConfidenceUpperBound);
+            strBuilder.append("\t" + pcaConfidenceEstimation);
         }
     }
 
-    private void addBasicFields(StringBuilder strBuilder, Metric... metrics2Ommit) {
-    	DecimalFormat df = new DecimalFormat("#.#########");
-    	if (metrics2Ommit.length == 0) {
-	        strBuilder.append("\t" + df.format(getHeadCoverage()));
-	        strBuilder.append("\t" + df.format(getStdConfidence()));
-	        strBuilder.append("\t" + df.format(getPcaConfidence()));
-	        strBuilder.append("\t" + df.format(getSupport()));
-	        strBuilder.append("\t" + getBodySize());
-	        strBuilder.append("\t" + df.format(getPcaBodySize()));
-	        strBuilder.append("\t" + kb.unmap(getFunctionalVariable()));
-    	} else {
-        	List<Metric> metricsList = Arrays.asList(metrics2Ommit);
-        	if (!metricsList.contains(Metric.HeadCoverage))
-        		strBuilder.append("\t" + df.format(getHeadCoverage()));
-	        if (!metricsList.contains(Metric.StandardConfidence))
-	        	strBuilder.append("\t" + df.format(getStdConfidence()));
-	        if (!metricsList.contains(Metric.PCAConfidence))
-	        	strBuilder.append("\t" + df.format(getPcaConfidence()));
-	        if (!metricsList.contains(Metric.Support))
-	        	strBuilder.append("\t" + df.format(getSupport()));
-	        if (!metricsList.contains(Metric.BodySize))
-	        	strBuilder.append("\t" + getBodySize());
-	        if (!metricsList.contains(Metric.PCABodySize))
-	        	strBuilder.append("\t" + df.format(getPcaBodySize()));
-	        strBuilder.append("\t" + kb.unmap(getFunctionalVariable()));
-    	}
+    private void addBasicFields(StringBuilder strBuilder, OutputColumn... metrics2Ommit) {
+        DecimalFormat df = new DecimalFormat("#.#########");
+        if (metrics2Ommit.length == 0) {
+            strBuilder.append("\t" + df.format(getHeadCoverage()));
+            strBuilder.append("\t" + df.format(getStdConfidence()));
+            strBuilder.append("\t" + df.format(getPcaConfidence()));
+            strBuilder.append("\t" + df.format(getSupport()));
+            strBuilder.append("\t" + getBodySize());
+            strBuilder.append("\t" + df.format(getPcaBodySize()));
+            strBuilder.append("\t" + kb.unmap(getFunctionalVariable()));
+        } else {
+            List<OutputColumn> metricsList = Arrays.asList(metrics2Ommit);
+            if (!metricsList.contains(OutputColumn.HeadCoverage))
+                strBuilder.append("\t" + df.format(getHeadCoverage()));
+            if (!metricsList.contains(OutputColumn.StandardConfidence))
+                strBuilder.append("\t" + df.format(getStdConfidence()));
+            if (!metricsList.contains(OutputColumn.PCAConfidence))
+                strBuilder.append("\t" + df.format(getPcaConfidence()));
+            if (!metricsList.contains(OutputColumn.Support))
+                strBuilder.append("\t" + df.format(getSupport()));
+            if (!metricsList.contains(OutputColumn.BodySize))
+                strBuilder.append("\t" + getBodySize());
+            if (!metricsList.contains(OutputColumn.PCABodySize))
+                strBuilder.append("\t" + df.format(getPcaBodySize()));
+            strBuilder.append("\t" + kb.unmap(getFunctionalVariable()));
+        }
     }
 
-    public String getDatalogFullRuleString(Metric... metrics2Ommit) {
-    	StringBuilder strBuilder = new StringBuilder();
-        strBuilder.append(getDatalogRuleString());
+    public String getReverseDatalogFullRuleString(OutputColumn... metrics2Ommit) {
+        StringBuilder strBuilder = new StringBuilder();
+        strBuilder.append(getReverseDatalogRuleString());
         addFullFields(strBuilder, metrics2Ommit);
         return strBuilder.toString();
     }
 
-    public String getFullRuleString(Metric... metrics2Ommit) {
+    public String getFullRuleString(OutputColumn... metrics2Ommit) {
         StringBuilder strBuilder = new StringBuilder();
         strBuilder.append(getRuleString());
         addFullFields(strBuilder, metrics2Ommit);
         return strBuilder.toString();
     }
 
-    public String getBasicRuleString(Metric... metrics2Ommit) {
+    public String getBasicRuleString(OutputColumn... metrics2Ommit) {
         StringBuilder strBuilder = new StringBuilder();
         strBuilder.append(getRuleString());
         addBasicFields(strBuilder, metrics2Ommit);
         return strBuilder.toString();
     }
 
+    public String toDatalog(int[] atom) {
+        return kb.unmap(atom[1]).replace("<", "").replace(">", "")
+                + "(" + kb.unmap(atom[0]).replace("<", "").replace(">", "")
+                + "," + kb.unmap(atom[2]).replace("<", "").replace(">", "") + ")";
+    }
+
+    public String getDatalogString(boolean includeSpecialAtoms) {
+        StringBuilder builder = new StringBuilder();
+
+        builder.append(toDatalog(getHead()));
+        builder.append(" <=");
+        for (int[] atom : getBody()) {
+            if (!includeSpecialAtoms && atom[1] == kb.DIFFERENTFROMbs)
+                continue;
+            builder.append(" ");
+            builder.append(toDatalog(atom));
+            builder.append(",");
+        }
+
+        if (builder.charAt(builder.length() - 1) == ',') {
+            builder.deleteCharAt(builder.length() - 1);
+        }
+
+        return builder.toString();
+    }
 
     /**
      * Returns a new query where the variable at the dangling position of the
@@ -1382,7 +1413,7 @@ public class Rule {
         Int2IntMap varHistogram = variablesHistogram(true);
         for (int[] triple : triples) {
             if (triple[1] == kb.DIFFERENTFROMbs) {
-                int varPos = KB.firstVariablePos(triple);
+                int varPos = AbstractKB.firstVariablePos(triple);
                 // Check if the variable became orphan
                 if (!varHistogram.containsKey(triple[varPos])) {
                     toRemove.add(triple);
@@ -1396,9 +1427,6 @@ public class Rule {
     public Set<Rule> getAncestors() {
         return ancestors;
     }
-
-
-
 
     public void setPcaBodySize(double size) {
         pcaBodySize = size;
@@ -1424,7 +1452,7 @@ public class Rule {
         }
 
         Rule result = new Rule(kb);
-        //If the removal triple is the head, make sure the target is the new head
+        // If the removal triple is the head, make sure the target is the new head
         if (remove == triples.get(0)) {
             for (int i = 0; i < newTriples.size(); ++i) {
                 if (Arrays.equals(target, newTriples.get(i))) {
@@ -1444,15 +1472,14 @@ public class Rule {
         int variable = triples.get(triplePos)[varPos];
         for (int i = 0; i < triples.size(); ++i) {
             if (i != triplePos) {
-                if (KB.varpos(variable, triples.get(i)) != -1) {
+                if (AbstractKB.varpos(variable, triples.get(i)) != -1) {
                     return false;
                 }
             }
         }
-        //The variable does not appear anywhere else (no constraints)
+        // The variable does not appear anywhere else (no constraints)
         return true;
     }
-
 
     public void setConfidenceUpperBound(double stdConfUpperBound) {
         this.stdConfidenceUpperBound = stdConfUpperBound;
@@ -1479,7 +1506,7 @@ public class Rule {
      */
     public boolean containsLevel2RedundantSubgraphs() {
         if (!isClosed(true) || triples.size() < 4
-        		|| triples.size() % 2 == 1) {
+                || triples.size() % 2 == 1) {
             return false;
         }
 
@@ -1497,116 +1524,38 @@ public class Rule {
         return true;
     }
 
-
-
-
-//    /**
-//     * Given a list of rules A1 =&gt; X1, ... An =&gt; Xn, having the same head
-//     * relation, it returns the combined rule A1,..., An =&gt; X', where X' is the
-//     * most specific atom. For example given the rules A1 =&gt; livesIn(x, y) and
-//     * A2 =&gt; livesIn(x, USA), the method returns A1, A2 =&gt; livesIn(x, USA).
-//     *
-//     * @param rules
-//     * @return
-//     */
-//    public static Rule combineRules(List<Rule> rules) {
-//        if (rules.size() == 1) {
-//            return new Rule(rules.get(0), rules.get(0).getSupport());
-//        }
-//
-//        // Look for the most specific head
-//        Rule canonicalHeadRule = rules.get(0);
-//        for (int i = 0; i < rules.size(); ++i) {
-//            int nVariables = KB.numVariables(rules.get(i).getHead());
-//            if (nVariables == 1) {
-//                canonicalHeadRule = rules.get(i);
-//            }
-//        }
-
-        // We need to rewrite the rules
-//        int[] canonicalHead = canonicalHeadRule.getHead().clone();
-//        int canonicalSubjectExp = canonicalHead[0];
-//        int canonicalObjectExp = canonicalHead[2];
-//        IntSet nonHeadVariables = new IntOpenHashSet();
-//        int varCount = 0;
-//        List<int[]> commonAntecendent = new ArrayList<>();
-//
-//        for (Rule rule : rules) {
-//            List<int[]> antecedentClone = rule.getAntecedentClone();
-//
-//            IntSet otherVariables = rule.getNonHeadVariables();
-//            for (int var : otherVariables) {
-//                Rule.bind(var, kb.map("?v" + varCount), antecedentClone);
-//                ++varCount;
-//                nonHeadVariables.add(var);
-//            }
-//
-//            int[] head = rule.getHead();
-//            Int2IntMap mappings = new Int2IntOpenHashMap();
-//            mappings.put(head[0], canonicalSubjectExp);
-//            mappings.put(head[2], canonicalObjectExp);
-//            Rule.bind(mappings, antecedentClone);
-//
-//            for (int[] atom : antecedentClone) {
-//            	boolean repeated = false;
-//            	for (int[] otherAtom : commonAntecendent) {
-//            		if (equals(atom, otherAtom)) {
-//            			repeated = true;
-//            			break;
-//            		}
-//            	}
-//            	if (!repeated) {
-//            		commonAntecendent.add(atom);
-//            	}
-//            }
-//        }
-//
-//        Rule resultRule = new Rule(canonicalHead, commonAntecendent, 0.0);
-//        return resultRule;
-//    }
-
-
-
     public boolean containsRelation(int relation) {
         return Rule.containsRelation(triples, relation);
     }
 
     public int firstIndexOfRelation(int relation) {
-    	return firstIndexOfRelation(triples, relation);
+        return firstIndexOfRelation(triples, relation);
     }
-
-//
-//    public boolean containsAtom(int[] atom) {
-//		for (int[] triple : triples) {
-//			if (Arrays.equals(triple, atom))
-//				return true;
-//		}
-//
-//		return false;
-//	}
 
     /**
      * If returns true if the list of triples contains an atom
      * using the given relation.
+     * 
      * @param triples
      * @param relation
      * @return
      */
     public static boolean containsRelation(List<int[]> triples,
-    		int relation) {
-    	return firstIndexOfRelation(triples, relation) != -1;
-	}
+            int relation) {
+        return firstIndexOfRelation(triples, relation) != -1;
+    }
 
     /**
      * It returns the index of the first atom using the relation.
+     * 
      * @param triples
      * @param relation
      * @return the index of the atom containing the relation or -1 if such atom
-     * does not exist.
+     *         does not exist.
      */
     public static int firstIndexOfRelation(List<int[]> triples,
-    		int relation) {
-    	for (int i = 0; i < triples.size(); ++i) {
+            int relation) {
+        for (int i = 0; i < triples.size(); ++i) {
             if (triples.get(i)[1] == relation) {
                 return i;
             }
@@ -1614,10 +1563,6 @@ public class Rule {
 
         return -1;
     }
-
-
-
-
 
     /**
      * It determines whether the rule contains a single path that connects the
@@ -1639,7 +1584,7 @@ public class Rule {
         Int2IntMap histogram = alternativeHistogram();
         for (int i = 1; i < triples.size(); ++i) {
             int[] atom = triples.get(i);
-            for (int k : new int[]{0, 2}) {
+            for (int k : new int[] { 0, 2 }) {
                 if (KB.isVariable(atom[k])) {
                     int freq = histogram.get(atom[k]);
                     if (freq != 0) {
@@ -1665,6 +1610,7 @@ public class Rule {
     /**
      * Returns true if the given expression (variable or constant) occurs in
      * the rule's head.
+     * 
      * @param expression
      * @return
      */
@@ -1672,8 +1618,6 @@ public class Rule {
         int[] head = getHead();
         return (expression == head[0] || expression == head[2]);
     }
-
-
 
     /**
      * Given a rule that contains a single variables path for the head variables
@@ -1718,8 +1662,7 @@ public class Rule {
                 }
             }
             path.add(lastAtom);
-            joinVariable =(lastAtom[0] == joinVariable)?
-                    		lastAtom[2] : lastAtom[0];
+            joinVariable = (lastAtom[0] == joinVariable) ? lastAtom[2] : lastAtom[0];
             if (joinVariable == nonFuncVar) {
                 break;
             }
@@ -1738,67 +1681,68 @@ public class Rule {
      */
     public static int[] joinPositions(int[] a1, int[] a2) {
         if (a1[0] == a2[0]) {
-            return new int[]{0, 0};
+            return new int[] { 0, 0 };
         } else if (a1[2] == a2[2]) {
-            return new int[]{2, 2};
+            return new int[] { 2, 2 };
         } else if (a1[0] == a2[2]) {
-            return new int[]{0, 2};
+            return new int[] { 0, 2 };
         } else if (a1[2] == a2[0]) {
-            return new int[]{2, 0};
+            return new int[] { 2, 0 };
         } else {
             return null;
         }
     }
 
-//    /**
-//     * Returns a new rule that is a copy of the current rules plus the two edges
-//     * sent as arguments.
-//     *
-//     * @param newEdge1
-//     * @param newEdge2
-//     * @return
-//     */
-//    public Rule addEdges(int[] newEdge1, int[] newEdge2) {
-//        Rule newQuery = new Rule(this, (int) this.support);
-//        newQuery.triples.add(newEdge1.clone());
-//        newQuery.triples.add(newEdge2.clone());
-//        return newQuery;
-//    }
-
+    // /**
+    // * Returns a new rule that is a copy of the current rules plus the two edges
+    // * sent as arguments.
+    // *
+    // * @param newEdge1
+    // * @param newEdge2
+    // * @return
+    // */
+    // public Rule addEdges(int[] newEdge1, int[] newEdge2) {
+    // Rule newQuery = new Rule(this, (int) this.support);
+    // newQuery.triples.add(newEdge1.clone());
+    // newQuery.triples.add(newEdge2.clone());
+    // return newQuery;
+    // }
 
     /**
      * It returns true if the atoms of the current are a superset for the
      * atoms of the rule sent as argument.
+     * 
      * @param someRule
      * @return
      */
     public boolean subsumes(Rule someRule) {
-		if (someRule.getLength() <= getLength())
-			return false;
+        if (someRule.getLength() <= getLength())
+            return false;
 
-		if (this.getAntecedent().isEmpty()) {
-			return Rule.areEquivalent(someRule.getHead(), getHead());
-		}
+        if (this.getAntecedent().isEmpty()) {
+            return Rule.areEquivalent(someRule.getHead(), getHead());
+        }
 
-		List<int[]> combinations = U.subsetsOfSize(someRule.getLength() - 1, getLength() - 1);
-		List<int[]> targetAntecedent = someRule.getAntecedent();
-		for (int[] cmb : combinations) {
-			List<int[]> subsetOfAtoms = new ArrayList<>();
-			subsetOfAtoms.add(someRule.getHead());
-			for (int idx : cmb) {
-				subsetOfAtoms.add(targetAntecedent.get(idx));
-			}
-			if (QueryEquivalenceChecker.areEquivalent(subsetOfAtoms, triples))
-				return true;
-		}
+        List<int[]> combinations = U.subsetsOfSize(someRule.getLength() - 1, getLength() - 1);
+        List<int[]> targetAntecedent = someRule.getAntecedent();
+        for (int[] cmb : combinations) {
+            List<int[]> subsetOfAtoms = new ArrayList<>();
+            subsetOfAtoms.add(someRule.getHead());
+            for (int idx : cmb) {
+                subsetOfAtoms.add(targetAntecedent.get(idx));
+            }
+            if (QueryEquivalenceChecker.areEquivalent(subsetOfAtoms, triples))
+                return true;
+        }
 
-		return false;
-	}
+        return false;
+    }
 
     /**
      * Return an equivalent rule (body atoms rotation) with no parent.
      *
      * Useful for debugging.
+     * 
      * @return
      */
     public Rule getAlternativeEquivalent() {
@@ -1815,29 +1759,58 @@ public class Rule {
         return result;
     }
 
-
-    public static void main(String[] args) {
-        KB kb = new KB() ; 
-    	Rule rule1 = new Rule(kb.triple("?a", "livesIn", "?x"),
-    			KB.triples(kb.triple("?a", "wasBornIn", "?x"), kb.triple("?a", "diedIn", "?x")),
-                4, kb);
-
-    	Rule rule2 = new Rule(kb.triple("?a", "livesIn", "?x"),
-    			KB.triples(kb.triple("?a", "diedIn", "?x")), 1, kb);
-
-    	Rule rule3 = new Rule(kb.triple("?x", "livesIn", "?z"),
-    			KB.triples(kb.triple("?x", "wasBornIn", "?z")), 1, kb);
-
-    	Rule rule4 = new Rule(kb.triple("?x", "livesIn", "?z"),
-    			KB.triples(kb.triple("?x", "wasBorn", "?h")), 1, kb);
-
-    	Rule rule5 = new Rule(kb.triple("?s1", "livesIn", "?x0"),
-    			KB.triples(kb.triple("?x0", "wasBorn", "?v9")), 1, kb);
-    	System.out.println(rule2.subsumes(rule1));
-    	System.out.println(rule3.subsumes(rule1));
-    	System.out.println(rule4.subsumes(rule1));
-    	System.out.println(rule5);
-    	System.out.println(variablesRegex.matcher("?c").matches());
+    public Object getOutputColumn(OutputColumn col) {
+        switch (col) {
+            case BodySize:
+                return (Long) this.getBodySize();
+            case FunctionalVariable:
+                return (Integer) this.getFunctionalVariable();
+            case HeadCoverage:
+                return (Double) this.getHeadCoverage();
+            case Rule:
+                return this;
+            case PCABodySize:
+                return (Double) this.getPcaBodySize();
+            case PCAConfEstimation:
+                return (Double) this.pcaConfidenceEstimation;
+            case PCAConfidence:
+                return (Double) this.getPcaConfidence();
+            case PCAConfUpperBound:
+                return (Double) this.pcaConfidenceUpperBound;
+            case StandardConfidence:
+                return (Double) this.getStdConfidence();
+            case StdConfUpperBound:
+                return (Double) this.stdConfidenceUpperBound;
+            case SupportRatio:
+                return (Double) this.supportRatio;
+            case Support:
+                return (Double) this.getSupport();
+            default:
+                return this;
+        }
     }
 
+    public static void main(String[] args) {
+        KB kb = new KB();
+        Rule rule1 = new Rule(kb.triple("?a", "livesIn", "?x"),
+                KB.triples(kb.triple("?a", "wasBornIn", "?x"), kb.triple("?a", "diedIn", "?x")),
+                4, kb);
+
+        Rule rule2 = new Rule(kb.triple("?a", "livesIn", "?x"),
+                KB.triples(kb.triple("?a", "diedIn", "?x")), 1, kb);
+
+        Rule rule3 = new Rule(kb.triple("?x", "livesIn", "?z"),
+                KB.triples(kb.triple("?x", "wasBornIn", "?z")), 1, kb);
+
+        Rule rule4 = new Rule(kb.triple("?x", "livesIn", "?z"),
+                KB.triples(kb.triple("?x", "wasBorn", "?h")), 1, kb);
+
+        Rule rule5 = new Rule(kb.triple("?s1", "livesIn", "?x0"),
+                KB.triples(kb.triple("?x0", "wasBorn", "?v9")), 1, kb);
+        System.out.println(rule2.subsumes(rule1));
+        System.out.println(rule3.subsumes(rule1));
+        System.out.println(rule4.subsumes(rule1));
+        System.out.println(rule5);
+        System.out.println(variablesRegex.matcher("?c").matches());
+    }
 }

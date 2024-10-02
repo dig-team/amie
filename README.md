@@ -28,6 +28,14 @@ In case of memory issues, try to increase the virtual machine's memory resources
 
 `MAX_HEAP_SPACE` depends on your input size and the system's available memory. The package also contains the utilities to generate and evaluate predictions from the rules mined by AMIE. Without additional arguments AMIE thresholds with PCA confidence 0.1 and head coverage 0.01. You can change these default settings. Run `java -jar [AMIE-JAR] -h` (without an input file) to see a detailed description of the available options.
 
+### PyClause Integration
+To output rules that can be used by the PyClause library, you need to run AMIE with these additional parameters:
+
+```-bias amie.mining.assistant.pyclause.AnyBurlMiningAssistant -ofmt anyburl```
+
+Additionally this version of AMIE also offers the possibility of outputting the rules directly into a file via the parameter via the argument: `-ofile [OUTPUT file]`. Also, users can establish different limits on rule length for rules with constants and for rules without constants (the default setting). For example, the argument `-maxad 4` mines rules up to 4 atoms (head atom included, the default value being 3). Similarly the combination of arguments `-const -maxad 4 -maxadc 3` enables constants in rule atoms, sets a limit of 4 atoms in rules without constants, and a limit of 3 atoms for rules for constants. This can be useful since the inclusion of constants in atoms (`-const`) increases the search space, thus the runtime, in a significant way.
+
+
 ### Use with remote knowledge base server
 
 Since loading and storing knowledge graphs can take a significant amount of memory space and time, the latest version of AMIE makes it possible to run the mining routine against a remote knowledge base, splitting the architecture into two parts communicating over network.
@@ -80,6 +88,10 @@ AMIE is managed with [Maven](https://maven.apache.org/), therefore to deploy you
 3. Maven will generate an executable jar named amie[LATEST-VERSION].jar in a new "bin/" directory. 
 
 ## Publications 
+
+> Patrick Betz, Luis Galárraga, Simon Ott, Christian Meilicke, Fabian M. Suchanek: 
+> ["PyClause-Simple and Efficient Rule Handling for Knowledge Graphs"](https://luisgalarraga.de/docs/IJCAI_2024_demo_paper.pdf)
+> Demo paper at the International Conference on Artificial Intelligence (IJCAI), 2024 ["Software"](https://github.com/symbolic-kg/PyClause)
 
 > Jonathan Lajus, Luis Galárraga, Fabian M. Suchanek:  
 > [“Fast and Exact Rule Mining with AMIE 3”  ](https://suchanek.name/work/publications/eswc-2020-amie-3.pdf)  

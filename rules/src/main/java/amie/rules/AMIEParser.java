@@ -8,13 +8,11 @@ import java.util.List;
 import amie.data.AbstractKB;
 import amie.data.KB;
 
-
 import amie.data.Schema;
 import amie.data.javatools.datatypes.Pair;
 import amie.data.javatools.filehandlers.TSVFile;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import org.apache.commons.math3.analysis.function.Abs;
 
 /**
  * Parses a file of AMIE rules
@@ -31,7 +29,8 @@ public class AMIEParser {
      */
     public static Rule rule(String s, AbstractKB kb) {
         Pair<List<int[]>, int[]> rulePair = kb.rule(s);
-        if (rulePair == null) return null;
+        if (rulePair == null)
+            return null;
         Rule resultRule = new Rule(rulePair.second, rulePair.first, 0, kb);
         return resultRule;
     }
@@ -65,8 +64,8 @@ public class AMIEParser {
         return result;
     }
 
-    public static void main(String[] args) throws Exception {
-        KB kb = new KB(new Schema()) ;
+    public static void main(String[] args) {
+        KB kb = new KB(new Schema());
         System.out.println(AMIEParser.rule("=> ?a <hasChild> ?b", kb));
     }
 }

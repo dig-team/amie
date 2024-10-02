@@ -37,11 +37,11 @@ import org.eclipse.rdf4j.rio.helpers.AbstractRDFParser;
 import org.eclipse.rdf4j.rio.turtle.TurtleParser;
 import org.eclipse.rdf4j.rio.n3.N3Parser;
 
-
 /**
  * Class KB
  *
- * This class implements an in-memory knowledge base (KB) for facts without identifiers.
+ * This class implements an in-memory knowledge base (KB) for facts without
+ * identifiers.
  * It supports a series of conjunctive queries.
  *
  * @author Fabian M. Suchanek
@@ -57,13 +57,13 @@ public class KB extends AbstractKB {
 	protected final Int2ObjectMap<Int2ObjectMap<IntSet>> subject2relation2object = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 
 	/** Index */
-	public final Int2ObjectMap<Int2ObjectMap<IntSet>> relation2object2subject = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
+	protected final Int2ObjectMap<Int2ObjectMap<IntSet>> relation2object2subject = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 
 	/** Index */
 	protected final Int2ObjectMap<Int2ObjectMap<IntSet>> object2subject2relation = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 
 	/** Index */
-	public final Int2ObjectMap<Int2ObjectMap<IntSet>> relation2subject2object = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
+	protected final Int2ObjectMap<Int2ObjectMap<IntSet>> relation2subject2object = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 
 	/** Index */
 	protected final Int2ObjectMap<Int2ObjectMap<IntSet>> object2relation2subject = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
@@ -78,7 +78,7 @@ public class KB extends AbstractKB {
 	protected final Int2IntMap objectSize = new Int2IntOpenHashMap();
 
 	/** Number of facts per relation */
-	public final Int2IntMap relationSize = new Int2IntOpenHashMap();
+	protected final Int2IntMap relationSize = new Int2IntOpenHashMap();
 
 	// ---------------------------------------------------------------------------
 	// Statistics
@@ -105,31 +105,29 @@ public class KB extends AbstractKB {
 	/** Concatenated arguments to identify a run configuration */
 	protected String config;
 
-
 	/**
 	 * Default constructor for KB.
 	 * Creates a new Schema.
 	 */
 	public KB() {
-		this.schema = new Schema() ;
+		this.schema = new Schema();
 		initMapping();
 	}
 
 	/**
 	 * Schema-based constructor for KB.
+	 * 
 	 * @param schema
 	 */
 	public KB(Schema schema) {
-		this.schema = schema ;
+		this.schema = schema;
 		initMapping();
 	}
 
-
-
 	/** Methods to add single facts to the KB **/
 	protected boolean add(int subject, int relation,
-						  int object,
-						  Int2ObjectMap<Int2ObjectMap<IntSet>> map) {
+			int object,
+			Int2ObjectMap<Int2ObjectMap<IntSet>> map) {
 		synchronized (map) {
 			Int2ObjectMap<IntSet> relation2object = map
 					.get(subject);
@@ -146,6 +144,7 @@ public class KB extends AbstractKB {
 
 	/**
 	 * Adds a fact to the KB
+	 * 
 	 * @param fact
 	 * @return TRUE if the KB was changed, i.e., the fact did not exist before.
 	 */
@@ -160,9 +159,9 @@ public class KB extends AbstractKB {
 
 	}
 
-
 	/**
 	 * Adds a fact to the KB
+	 * 
 	 * @param fact
 	 * @return TRUE if the KB was changed, i.e., the fact did not exist before.
 	 */
@@ -178,13 +177,13 @@ public class KB extends AbstractKB {
 
 	/**
 	 * Add all the facts of the given KB into the current one.
+	 * 
 	 * @param otherKb
 	 */
 	public int add(KB otherKb) {
 		int count = 0;
-		for (int subject: otherKb.subject2relation2object.keySet()) {
-			Int2ObjectMap<IntSet> subjectMap =
-					otherKb.subject2relation2object.get(subject);
+		for (int subject : otherKb.subject2relation2object.keySet()) {
+			Int2ObjectMap<IntSet> subjectMap = otherKb.subject2relation2object.get(subject);
 			for (int relation : subjectMap.keySet()) {
 				for (int object : subjectMap.get(relation)) {
 					if (this.add(subject, relation, object))
@@ -197,6 +196,7 @@ public class KB extends AbstractKB {
 
 	/**
 	 * It loads the contents of the given files into the in-memory database.
+	 * 
 	 * @param files
 	 * @throws IOException
 	 */
@@ -204,9 +204,9 @@ public class KB extends AbstractKB {
 		load(Arrays.asList(files));
 	}
 
-
 	/**
 	 * It loads the contents of the given file into the in-memory database.
+	 * 
 	 * @param f
 	 * @param message
 	 * @throws IOException
@@ -223,7 +223,7 @@ public class KB extends AbstractKB {
 					+ (size() - size)
 					+ " facts in "
 					+ String.format("%d s", (System.currentTimeMillis()
-					- time) / 1000));
+							- time) / 1000));
 		}
 		if (f.getPath().endsWith(RDFFormat.TURTLE.getDefaultFileExtension()) ||
 				f.getPath().endsWith(RDFFormat.N3.getDefaultFileExtension())) {
@@ -231,34 +231,36 @@ public class KB extends AbstractKB {
 			try {
 				in = Files.newInputStream(Paths.get(f.getPath()));
 				StoreStatementToKB abstractRDFHandler = new StoreStatementToKB(this);
-			AbstractRDFParser rdfParser ;
-			if (f.getPath().endsWith(RDFFormat.TURTLE.getDefaultFileExtension())){
-				rdfParser = new TurtleParser();
-			}	else{
-				rdfParser = new N3Parser();
-			}
-			rdfParser.setRDFHandler(abstractRDFHandler);
-			rdfParser.parse(in);
+				AbstractRDFParser rdfParser;
+				if (f.getPath().endsWith(RDFFormat.TURTLE.getDefaultFileExtension())) {
+					rdfParser = new TurtleParser();
+				} else {
+					rdfParser = new N3Parser();
+				}
+				rdfParser.setRDFHandler(abstractRDFHandler);
+				rdfParser.parse(in);
 			} catch (Exception e) {
-				throw e ;
+				throw e;
 			} finally {
-                if (in != null)
-                	in.close() ;
+				if (in != null)
+					in.close();
 			}
 		} else {
 			for (String line : new FileLines(f, "UTF-8", message)) {
 				if (line.endsWith("."))
-					line=line.substring(0, line.length() - 1);
+					line = line.substring(0, line.length() - 1);
 				String[] split = line.trim().split(delimiter);
 				if (split.length == 3) {
 					add(split[0].trim(), split[1].trim(), split[2].trim());
 				} else if (split.length == 4)
 					add(split[1].trim(), split[2].trim(), split[3].trim());
-			/*String[] split = line.trim().split(">" + delimiter);
-			if (split.length == 3) {
-				add(split[0].trim() +">", split[1].trim()+">", split[2].trim());
-			} else if (split.length == 4)
-				add(split[0].trim() +">", split[1].trim()+">", split[2].trim()+">");*/
+				/*
+				 * String[] split = line.trim().split(">" + delimiter);
+				 * if (split.length == 3) {
+				 * add(split[0].trim() +">", split[1].trim()+">", split[2].trim());
+				 * } else if (split.length == 4)
+				 * add(split[0].trim() +">", split[1].trim()+">", split[2].trim()+">");
+				 */
 			}
 		}
 
@@ -266,9 +268,9 @@ public class KB extends AbstractKB {
 			Announce.message("     Loaded", (size() - size), "facts");
 	}
 
-
 	/**
 	 * It loads the contents of the given files into the in-memory database.
+	 * 
 	 * @param files
 	 * @throws IOException
 	 */
@@ -321,9 +323,9 @@ public class KB extends AbstractKB {
 				+ " MB");
 	}
 
-
 	/**
 	 * Adds a fact to the KB
+	 * 
 	 * @param subject
 	 * @param relation
 	 * @param object
@@ -388,6 +390,7 @@ public class KB extends AbstractKB {
 
 	/**
 	 * Returns the number of distinct entities in one column of the database.
+	 * 
 	 * @param column 0 = Subject, 1 = Relation/Predicate, 2 = Object
 	 * @return
 	 */
@@ -408,6 +411,7 @@ public class KB extends AbstractKB {
 
 	/**
 	 * Returns the number of relations in the database.
+	 * 
 	 * @return
 	 */
 	public long relationsSize() {
@@ -416,6 +420,7 @@ public class KB extends AbstractKB {
 
 	/**
 	 * Returns the number of entities in the database.
+	 * 
 	 * @return
 	 */
 	public long entitiesSize() {
@@ -425,7 +430,8 @@ public class KB extends AbstractKB {
 	}
 
 	/**
-	 * It clears the overlap tables and rebuilds them. Recommended when new facts has been added
+	 * It clears the overlap tables and rebuilds them. Recommended when new facts
+	 * has been added
 	 * to the KB after the initial loading.
 	 */
 	public void rebuildOverlapTables() {
@@ -450,6 +456,7 @@ public class KB extends AbstractKB {
 
 	/**
 	 * It resets an overlap index.
+	 * 
 	 * @param map
 	 */
 	private void resetMap(Int2ObjectMap<Int2IntMap> map) {
@@ -459,8 +466,10 @@ public class KB extends AbstractKB {
 	}
 
 	/**
-	 * It builds the overlap tables for relations. They contain the number of subjects and
-	 * objects in common between pairs of relations. They can be used for join cardinality estimation.
+	 * It builds the overlap tables for relations. They contain the number of
+	 * subjects and
+	 * objects in common between pairs of relations. They can be used for join
+	 * cardinality estimation.
 	 */
 	public void buildOverlapTables() {
 		for (int r1 : relationSize.keySet()) {
@@ -560,34 +569,34 @@ public class KB extends AbstractKB {
 			Int2IntMap e;
 			if (sp1.subject && sp2.subject) {
 				e = db.subject2subjectOverlap.get(sp1.predicate);
-				synchronized(e) {
+				synchronized (e) {
 					e.put(sp2.predicate, overlap);
 				}
 				if (sp1.predicate != sp2.predicate) {
 					e = db.subject2subjectOverlap.get(sp2.predicate);
-					synchronized(e) {
+					synchronized (e) {
 						e.put(sp1.predicate, overlap);
 					}
 				}
 			} else if (!sp1.subject && !sp2.subject) {
 				e = db.object2objectOverlap.get(sp1.predicate);
-				synchronized(e) {
+				synchronized (e) {
 					e.put(sp2.predicate, overlap);
 				}
 				if (sp1.predicate != sp2.predicate) {
 					e = db.object2objectOverlap.get(sp2.predicate);
-					synchronized(e) {
+					synchronized (e) {
 						e.put(sp1.predicate, overlap);
 					}
 				}
 			} else if (sp1.subject) {
 				e = db.subject2objectOverlap.get(sp1.predicate);
-				synchronized(e) {
+				synchronized (e) {
 					e.put(sp2.predicate, overlap);
 				}
 			} else { // if (sp2.subject)
 				e = db.subject2objectOverlap.get(sp2.predicate);
-				synchronized(e) {
+				synchronized (e) {
 					e.put(sp1.predicate, overlap);
 				}
 			}
@@ -604,8 +613,8 @@ public class KB extends AbstractKB {
 		public void run() {
 			Pair<SignedPredicate, SignedPredicate> q;
 			int overlap;
-			while(true) {
-				synchronized(queue) {
+			while (true) {
+				synchronized (queue) {
 					q = queue.pollFirst();
 				}
 				if (q == null || q.first == null) {
@@ -624,6 +633,7 @@ public class KB extends AbstractKB {
 
 	/**
 	 * Calculates the number of elements in the intersection of two sets of Strings.
+	 * 
 	 * @param s1
 	 * @param s2
 	 * @return
@@ -642,7 +652,8 @@ public class KB extends AbstractKB {
 	// ---------------------------------------------------------------------------
 
 	/**
-	 * It returns the harmonic functionality of a relation, as defined in the PARIS paper
+	 * It returns the harmonic functionality of a relation, as defined in the PARIS
+	 * paper
 	 * https://www.lri.fr/~cr/Publications_Master_2013/Brigitte_Safar/p157_fabianmsuchanek_vldb2011.pdf
 	 **/
 	@Override
@@ -654,13 +665,15 @@ public class KB extends AbstractKB {
 				return ((double) relation2subject2object.get(relation).size() / relationSize
 						.get(relation));
 			} else {
-				throw new IllegalArgumentException("The relation " + this.schema.unmap(relation) + " was not found in the KB");
+				throw new IllegalArgumentException(
+						"The relation " + this.schema.unmap(relation) + " was not found in the KB");
 			}
 		}
 	}
 
 	/**
-	 * It returns the harmonic functionality of a relation, as defined in the PARIS paper
+	 * It returns the harmonic functionality of a relation, as defined in the PARIS
+	 * paper
 	 * https://www.lri.fr/~cr/Publications_Master_2013/Brigitte_Safar/p157_fabianmsuchanek_vldb2011.pdf
 	 **/
 	public double functionality(CharSequence relation) {
@@ -680,7 +693,8 @@ public class KB extends AbstractKB {
 				return ((double) relation2object2subject.get(relation).size() / relationSize
 						.get(relation));
 			} else {
-				throw new IllegalArgumentException("The relation " + this.schema.unmap(relation) + " was not found in the KB");
+				throw new IllegalArgumentException(
+						"The relation " + this.schema.unmap(relation) + " was not found in the KB");
 			}
 		}
 	}
@@ -693,11 +707,10 @@ public class KB extends AbstractKB {
 		return (inverseFunctionality(compress(relation)));
 	}
 
-
-
 	/**
 	 * Determines whether a relation is functional, i.e., its harmonic functionality
 	 * is greater than its inverse harmonic functionality.
+	 * 
 	 * @param relation
 	 * @return
 	 */
@@ -706,11 +719,10 @@ public class KB extends AbstractKB {
 		return functionality(relation) >= inverseFunctionality(relation);
 	}
 
-
-
 	/**
 	 * It returns the variance of the number of objects associated to a single
 	 * subject.
+	 * 
 	 * @param relation
 	 * @return
 	 */
@@ -719,8 +731,7 @@ public class KB extends AbstractKB {
 		double avg = 1.0 / inverseFunctionality(relation);
 		// Now compute the formula
 		double sum = 0.0;
-		Int2ObjectMap<IntSet> targetMap =
-				relation2object2subject.get(relation);
+		Int2ObjectMap<IntSet> targetMap = relation2object2subject.get(relation);
 		for (int object : targetMap.keySet()) {
 			sum += Math.pow(avg - targetMap.get(object).size(), 2.0);
 		}
@@ -731,6 +742,7 @@ public class KB extends AbstractKB {
 	/**
 	 * It returns the variance of the number of subjects associated to a single
 	 * object.
+	 * 
 	 * @param relation
 	 * @return
 	 */
@@ -739,8 +751,7 @@ public class KB extends AbstractKB {
 		double avg = 1.0 / functionality(relation);
 		// Now compute the formula
 		double sum = 0.0;
-		Int2ObjectMap<IntSet> targetMap =
-				relation2subject2object.get(relation);
+		Int2ObjectMap<IntSet> targetMap = relation2subject2object.get(relation);
 		for (int subject : targetMap.keySet()) {
 			sum += Math.pow(avg - targetMap.get(subject).size(), 2.0);
 		}
@@ -753,11 +764,13 @@ public class KB extends AbstractKB {
 	// ---------------------------------------------------------------------------
 
 	/**
-	 * Given two relations, it returns the number of entities in common (the overlap) between
+	 * Given two relations, it returns the number of entities in common (the
+	 * overlap) between
 	 * two of their columns
+	 * 
 	 * @param relation1
 	 * @param relation2
-	 * @param overlap 0 = Subject-Subject, 2 = Subject-Object, 4 = Object-Object
+	 * @param overlap   0 = Subject-Subject, 2 = Subject-Object, 4 = Object-Object
 	 * @return
 	 */
 	@Override
@@ -778,6 +791,7 @@ public class KB extends AbstractKB {
 
 	/**
 	 * It returns the number of facts of a relation in the KB.
+	 * 
 	 * @param relation
 	 * @return
 	 */
@@ -789,8 +803,9 @@ public class KB extends AbstractKB {
 	/**
 	 * It returns the number of distinct instance of one of the arguments (columns)
 	 * of a relation.
+	 * 
 	 * @param relation
-	 * @param column Subject or Object
+	 * @param column   Subject or Object
 	 * @return
 	 */
 	@Override
@@ -857,11 +872,12 @@ public class KB extends AbstractKB {
 	/**
 	 * It returns the third level values of a map given the keys for the first
 	 * and second level.
+	 * 
 	 * @param key1
 	 * @param key2
-	 * @param map A 3-level map
+	 * @param map  A 3-level map
 	 * @return
-	 * */
+	 */
 	protected IntSet get(
 			Int2ObjectMap<Int2ObjectMap<IntSet>> map,
 			int key1, int key2) {
@@ -875,12 +891,14 @@ public class KB extends AbstractKB {
 	}
 
 	/**
-	 * It returns the second and third level values of a map given the keys for the first
+	 * It returns the second and third level values of a map given the keys for the
+	 * first
 	 * level.
+	 * 
 	 * @param key
 	 * @param map A 3-level map
 	 * @return
-	 * */
+	 */
 	protected Int2ObjectMap<IntSet> get(
 			Int2ObjectMap<Int2ObjectMap<IntSet>> map,
 			int key) {
@@ -982,18 +1000,18 @@ public class KB extends AbstractKB {
 			IntSet results = new IntOpenHashSet();
 			if (cardinalityRelation.first == this.schema.hasNumberOfValuesEqualsBS
 					|| cardinalityRelation.first == this.schema.hasNumberOfValuesEqualsInvBS) {
-				Int2ObjectMap<IntSet> map =(
-						cardinalityRelation.first == this.schema.hasNumberOfValuesEqualsBS)?
-						get(relation2subject2object, triple[2]) :
-						get(relation2object2subject, triple[2]);
+				Int2ObjectMap<IntSet> map = (cardinalityRelation.first == this.schema.hasNumberOfValuesEqualsBS)
+						? get(relation2subject2object, triple[2])
+						: get(relation2object2subject, triple[2]);
 				if (cardinalityRelation.second > 0) {
 					for (int entity : map.keySet()) {
 						if (map.get(entity).size() == cardinalityRelation.second)
 							results.add(entity);
 					}
 				} else {
-					IntSet set =(cardinalityRelation.first == this.schema.hasNumberOfValuesEqualsBS)?
-							subjectSize.keySet() : objectSize.keySet();
+					IntSet set = (cardinalityRelation.first == this.schema.hasNumberOfValuesEqualsBS)
+							? subjectSize.keySet()
+							: objectSize.keySet();
 					for (int entity : set) {
 						if (!map.containsKey(entity)) {
 							results.add(entity);
@@ -1001,11 +1019,10 @@ public class KB extends AbstractKB {
 					}
 				}
 			} else if ((cardinalityRelation.first == this.schema.hasNumberOfValuesGreaterThanBS)
-					||(cardinalityRelation.first == this.schema.hasNumberOfValuesGreaterThanInvBS)) {
-				Int2ObjectMap<IntSet> map =
-						cardinalityRelation.first == (this.schema.hasNumberOfValuesGreaterThanBS) ?
-								get(relation2subject2object, triple[2]) :
-								get(relation2object2subject, triple[2]);
+					|| (cardinalityRelation.first == this.schema.hasNumberOfValuesGreaterThanInvBS)) {
+				Int2ObjectMap<IntSet> map = cardinalityRelation.first == (this.schema.hasNumberOfValuesGreaterThanBS)
+						? get(relation2subject2object, triple[2])
+						: get(relation2object2subject, triple[2]);
 
 				if (cardinalityRelation.second == 0) {
 					return new IntOpenHashSet(map.keySet());
@@ -1016,12 +1033,12 @@ public class KB extends AbstractKB {
 						results.add(entity);
 				}
 			} else {
-				IntSet set =(cardinalityRelation.first == this.schema.hasNumberOfValuesSmallerThanBS)?
-						subjectSize.keySet() : objectSize.keySet();
-				Int2ObjectMap<IntSet> map =(
-						cardinalityRelation.first == this.schema.hasNumberOfValuesSmallerThanBS)?
-						get(relation2subject2object, triple[2]) :
-						get(relation2object2subject, triple[2]);
+				IntSet set = (cardinalityRelation.first == this.schema.hasNumberOfValuesSmallerThanBS)
+						? subjectSize.keySet()
+						: objectSize.keySet();
+				Int2ObjectMap<IntSet> map = (cardinalityRelation.first == this.schema.hasNumberOfValuesSmallerThanBS)
+						? get(relation2subject2object, triple[2])
+						: get(relation2object2subject, triple[2]);
 				for (int entity : set) {
 					if (map.containsKey(entity)) {
 						if (cardinalityRelation.second == 1)
@@ -1045,25 +1062,32 @@ public class KB extends AbstractKB {
 		return (get(subject2relation2object, triple[0], triple[1]));
 	}
 
-//	/**
-//	 * It returns TRUE if the database contains this fact (no variables). If the fact
-//	 * contains meta-relations (e.g. differentFrom, equals, exists), it returns TRUE
-//	 * if the expression evaluates to TRUE.
-//	 * @param fact A triple without variables, e.g., [Barack_Obama, wasBornIn, Hawaii]
-//	 **/
-//	@Override
-//	public boolean contains(CharSequence... fact) {
-//		if (numVariables(fact) != 0)
-//			throw new IllegalArgumentException(
-//					"Triple should not contain a variable: " + toString(fact));
-//		return (contains(triple(fact)));
-//	}
+	// /**
+	// * It returns TRUE if the database contains this fact (no variables). If the
+	// fact
+	// * contains meta-relations (e.g. differentFrom, equals, exists), it returns
+	// TRUE
+	// * if the expression evaluates to TRUE.
+	// * @param fact A triple without variables, e.g., [Barack_Obama, wasBornIn,
+	// Hawaii]
+	// **/
+	// @Override
+	// public boolean contains(CharSequence... fact) {
+	// if (numVariables(fact) != 0)
+	// throw new IllegalArgumentException(
+	// "Triple should not contain a variable: " + toString(fact));
+	// return (contains(triple(fact)));
+	// }
 
 	/**
-	 * It returns TRUE if the database contains this fact (no variables). If the fact
-	 * containst meta-relations (e.g. differentFrom, equals, exists), it returns TRUE
+	 * It returns TRUE if the database contains this fact (no variables). If the
+	 * fact
+	 * containst meta-relations (e.g. differentFrom, equals, exists), it returns
+	 * TRUE
 	 * if the expression evaluates to TRUE.
-	 * @param fact A triple without variables, e.g., [Barack_Obama, wasBornIn, Hawaii]
+	 * 
+	 * @param fact A triple without variables, e.g., [Barack_Obama, wasBornIn,
+	 *             Hawaii]
 	 **/
 	protected boolean contains(int... fact) {
 		if (fact[1] == TRANSITIVETYPEbs) {
@@ -1094,43 +1118,37 @@ public class KB extends AbstractKB {
 			IntPair cardinalityRelation = Schema.uncompose(fact[1]);
 			if (cardinalityRelation.first == this.schema.hasNumberOfValuesEqualsBS) {
 				if (get(subject2relation2object, fact[0]).containsKey(fact[2])) {
-					return get(subject2relation2object, fact[0]).get(fact[2]).size()
-							== cardinalityRelation.second;
+					return get(subject2relation2object, fact[0]).get(fact[2]).size() == cardinalityRelation.second;
 				} else {
 					return cardinalityRelation.second == 0;
 				}
 			} else if (cardinalityRelation.first == this.schema.hasNumberOfValuesEqualsInvBS) {
 				if (get(object2relation2subject, fact[0]).containsKey(fact[2])) {
-					return get(object2relation2subject, fact[0]).get(fact[2]).size()
-							== cardinalityRelation.second;
+					return get(object2relation2subject, fact[0]).get(fact[2]).size() == cardinalityRelation.second;
 				} else {
 					return cardinalityRelation.second == 0;
 				}
 			} else if (cardinalityRelation.first == this.schema.hasNumberOfValuesGreaterThanBS) {
 				if (get(subject2relation2object, fact[0]).containsKey(fact[2])) {
-					return get(subject2relation2object, fact[0]).get(fact[2]).size()
-							> cardinalityRelation.second;
+					return get(subject2relation2object, fact[0]).get(fact[2]).size() > cardinalityRelation.second;
 				} else {
 					return false;
 				}
 			} else if (cardinalityRelation.first == this.schema.hasNumberOfValuesGreaterThanInvBS) {
 				if (get(object2relation2subject, fact[0]).containsKey(fact[2])) {
-					return get(object2relation2subject, fact[0]).get(fact[2]).size()
-							> cardinalityRelation.second;
+					return get(object2relation2subject, fact[0]).get(fact[2]).size() > cardinalityRelation.second;
 				} else {
 					return false;
 				}
 			} else if (cardinalityRelation.first == this.schema.hasNumberOfValuesSmallerThanBS) {
 				if (get(subject2relation2object, fact[0]).containsKey(fact[2])) {
-					return get(subject2relation2object, fact[0]).get(fact[2]).size()
-							< cardinalityRelation.second;
+					return get(subject2relation2object, fact[0]).get(fact[2]).size() < cardinalityRelation.second;
 				} else {
 					return true;
 				}
 			} else if (cardinalityRelation.first == this.schema.hasNumberOfValuesSmallerThanInvBS) {
 				if (get(object2relation2subject, fact[0]).containsKey(fact[2])) {
-					return get(object2relation2subject, fact[0]).get(fact[2]).size()
-							< cardinalityRelation.second;
+					return get(object2relation2subject, fact[0]).get(fact[2]).size() < cardinalityRelation.second;
 				} else {
 					return true;
 				}
@@ -1180,7 +1198,6 @@ public class KB extends AbstractKB {
 		return resultsTwoVariablesByPos(varPos1, varPos2, triple);
 	}
 
-
 	/**
 	 * Returns the results of a triple query pattern with two variables as a map
 	 * of first value to set of second values
@@ -1189,7 +1206,7 @@ public class KB extends AbstractKB {
 			int pos1, int pos2, int[] triple) {
 		if (triple[1] == TRANSITIVETYPEbs) {
 			Int2ObjectMap<IntSet> result = new Int2ObjectOpenHashMap<>();
-			switch(pos1) {
+			switch (pos1) {
 				case 0:
 					/*
 					 * Return a map from all entities to all super-classes
@@ -1202,7 +1219,8 @@ public class KB extends AbstractKB {
 					/*
 					 * Return a map from all types to all entities of sub-classes
 					 */
-					IntSet allTypes = (Schema.isTaxonomyMaterialized()) ? Schema.getAllDefinedTypes() : get(relation2object2subject, this.schema.typeRelationBS).keySet();
+					IntSet allTypes = (Schema.isTaxonomyMaterialized()) ? Schema.getAllDefinedTypes()
+							: get(relation2object2subject, this.schema.typeRelationBS).keySet();
 					for (int type : allTypes) {
 						result.put(type, resultsOneVariable(triple(this.schema.map("?s"), TRANSITIVETYPEbs, type)));
 					}
@@ -1225,9 +1243,8 @@ public class KB extends AbstractKB {
 			}
 			return (result);
 		}
-		if ((triple[1] == EXISTSbs)||(triple[1] == EXISTSINVbs)) {
-			Int2ObjectMap<Int2ObjectMap<IntSet>> map =(
-					triple[1] == EXISTSbs)? relation2subject2object
+		if ((triple[1] == EXISTSbs) || (triple[1] == EXISTSINVbs)) {
+			Int2ObjectMap<Int2ObjectMap<IntSet>> map = (triple[1] == EXISTSbs) ? relation2subject2object
 					: relation2object2subject;
 			Int2ObjectMap<IntSet> result = new Int2ObjectOpenHashMap<>();
 			for (int relation : map.keySet()) {
@@ -1238,14 +1255,13 @@ public class KB extends AbstractKB {
 			return (result);
 		}
 
-		if ((triple[1] == NOTEXISTSbs)||(triple[1] == NOTEXISTSINVbs)) {
-			Int2ObjectMap<Int2ObjectMap<IntSet>> map =(
-					triple[1] == NOTEXISTSbs)? relation2subject2object
+		if ((triple[1] == NOTEXISTSbs) || (triple[1] == NOTEXISTSINVbs)) {
+			Int2ObjectMap<Int2ObjectMap<IntSet>> map = (triple[1] == NOTEXISTSbs) ? relation2subject2object
 					: relation2object2subject;
 			Int2ObjectMap<IntSet> result = new Int2ObjectOpenHashMap<>();
 			for (int relation : map.keySet()) {
-				IntSet uMap =(triple[1] == NOTEXISTSbs)?
-						new IntOpenHashSet(subjectSize.keySet()) : new IntOpenHashSet(objectSize.keySet());
+				IntSet uMap = (triple[1] == NOTEXISTSbs) ? new IntOpenHashSet(subjectSize.keySet())
+						: new IntOpenHashSet(objectSize.keySet());
 				uMap.removeAll(map.get(relation).keySet());
 				result.put(relation, new IntOpenHashSet(uMap));
 			}
@@ -1286,6 +1302,7 @@ public class KB extends AbstractKB {
 	/**
 	 * Returns the results of a triple query pattern with three variables as
 	 * a nested map, firstValue : {secondValue : thirdValue}.
+	 * 
 	 * @param var1
 	 * @param var2
 	 * @param var3
@@ -1305,6 +1322,7 @@ public class KB extends AbstractKB {
 	/**
 	 * Returns the results of a triple query pattern with three variables as
 	 * a nested map, firstValue : {secondValue : thirdValue}.
+	 * 
 	 * @param varPos1 Position of first variable in the triple pattern
 	 * @param varPos2 Position of the second variable in the triple pattern
 	 * @param varPos3 Position of the third variable in the triple pattern
@@ -1314,15 +1332,15 @@ public class KB extends AbstractKB {
 	private Int2ObjectMap<Int2ObjectMap<IntSet>> resultsThreeVariablesByPos(
 			int varPos1, int varPos2, int varPos3, int[] triple) {
 		switch (varPos1) {
-			case 0 :
+			case 0:
 				switch (varPos2) {
-					case 1 :
+					case 1:
 						if (varPos3 == 2)
 							return subject2relation2object;
 						else
 							throw new IllegalArgumentException("Invalid combination of variables in " + toString(triple)
 									+ " pos1 = " + varPos1 + " pos2=" + varPos2 + " pos3=" + varPos3);
-					case 2 :
+					case 2:
 						if (varPos3 == 1)
 							return subject2object2relation;
 						else
@@ -1332,15 +1350,15 @@ public class KB extends AbstractKB {
 						throw new IllegalArgumentException("Invalid combination of variables in " + toString(triple)
 								+ " pos1 = " + varPos1 + " pos2=" + varPos2 + " pos3=" + varPos3);
 				}
-			case 1 :
+			case 1:
 				switch (varPos2) {
-					case 0 :
+					case 0:
 						if (varPos3 == 2)
 							return relation2subject2object;
 						else
 							throw new IllegalArgumentException("Invalid combination of variables in " + toString(triple)
 									+ " pos1 = " + varPos1 + " pos2=" + varPos2 + " pos3=" + varPos3);
-					case 2 :
+					case 2:
 						if (varPos3 == 0)
 							return relation2object2subject;
 						else
@@ -1350,15 +1368,15 @@ public class KB extends AbstractKB {
 						throw new IllegalArgumentException("Invalid combination of variables in " + toString(triple)
 								+ " pos1 = " + varPos1 + " pos2=" + varPos2 + " pos3=" + varPos3);
 				}
-			case 2 :
+			case 2:
 				switch (varPos2) {
-					case 0 :
+					case 0:
 						if (varPos3 == 1)
 							return object2subject2relation;
 						else
 							throw new IllegalArgumentException("Invalid combination of variables in " + toString(triple)
 									+ " pos1 = " + varPos1 + " pos2=" + varPos2 + " pos3=" + varPos3);
-					case 1 :
+					case 1:
 						if (varPos3 == 0)
 							return object2relation2subject;
 						else
@@ -1373,10 +1391,11 @@ public class KB extends AbstractKB {
 	/**
 	 * Returns the number of distinct results of the triple pattern query
 	 * with 1 variable.
+	 * 
 	 * @param triple
 	 **/
 	@Override
-	public long countOneVariable(int... triple)  {
+	public long countOneVariable(int... triple) {
 		if (triple[1] == DIFFERENTFROMbs)
 			return (Long.MAX_VALUE);
 		if (triple[1] == EQUALSbs)
@@ -1411,11 +1430,9 @@ public class KB extends AbstractKB {
 			if (compositeRelation.first == (this.schema.hasNumberOfValuesEqualsBS)
 					|| compositeRelation.first == (this.schema.hasNumberOfValuesEqualsInvBS)) {
 
-
-				Int2ObjectMap<IntSet> map =
-						compositeRelation.first == (this.schema.hasNumberOfValuesEqualsBS) ?
-								get(this.relation2subject2object, triple[2]) :
-								get(this.relation2object2subject, triple[2]);
+				Int2ObjectMap<IntSet> map = compositeRelation.first == (this.schema.hasNumberOfValuesEqualsBS)
+						? get(this.relation2subject2object, triple[2])
+						: get(this.relation2object2subject, triple[2]);
 				long count = 0;
 				if (compositeRelation.second > 0) {
 					for (int s : map.keySet()) {
@@ -1423,9 +1440,9 @@ public class KB extends AbstractKB {
 							++count;
 					}
 				} else {
-					IntSet set =
-							compositeRelation.first == (this.schema.hasNumberOfValuesEqualsBS) ?
-									subjectSize.keySet() : objectSize.keySet();
+					IntSet set = compositeRelation.first == (this.schema.hasNumberOfValuesEqualsBS)
+							? subjectSize.keySet()
+							: objectSize.keySet();
 					for (int s : set) {
 						if (!map.containsKey(s)) {
 							++count;
@@ -1436,10 +1453,9 @@ public class KB extends AbstractKB {
 			} else if (compositeRelation.first == (this.schema.hasNumberOfValuesGreaterThanBS)
 					|| compositeRelation.first == (this.schema.hasNumberOfValuesGreaterThanInvBS)) {
 				// If it is 0, just return the size of the map
-				Int2ObjectMap<IntSet> map =
-						compositeRelation.first == (this.schema.hasNumberOfValuesGreaterThanBS) ?
-								get(this.relation2subject2object, triple[2]) :
-								get(this.relation2object2subject, triple[2]);
+				Int2ObjectMap<IntSet> map = compositeRelation.first == (this.schema.hasNumberOfValuesGreaterThanBS)
+						? get(this.relation2subject2object, triple[2])
+						: get(this.relation2object2subject, triple[2]);
 				if (compositeRelation.second == 0) {
 					return map.size();
 				} else {
@@ -1453,14 +1469,13 @@ public class KB extends AbstractKB {
 					return count;
 				}
 			} else {
-				Int2ObjectMap<IntSet> map =
-						compositeRelation.first == (this.schema.hasNumberOfValuesSmallerThanBS) ?
-								get(this.relation2subject2object, triple[2]) :
-								get(this.relation2object2subject, triple[2]);
+				Int2ObjectMap<IntSet> map = compositeRelation.first == (this.schema.hasNumberOfValuesSmallerThanBS)
+						? get(this.relation2subject2object, triple[2])
+						: get(this.relation2object2subject, triple[2]);
 				long count = 0;
-				IntSet set =
-						compositeRelation.first == (this.schema.hasNumberOfValuesSmallerThanBS) ?
-								subjectSize.keySet() : objectSize.keySet();
+				IntSet set = compositeRelation.first == (this.schema.hasNumberOfValuesSmallerThanBS)
+						? subjectSize.keySet()
+						: objectSize.keySet();
 				for (int s : set) {
 					if (map.containsKey(s)) {
 						if (compositeRelation.second == 1)
@@ -1485,8 +1500,7 @@ public class KB extends AbstractKB {
 	 **/
 	protected long countTwoVariables(int... triple) {
 		if (triple[1] == TRANSITIVETYPEbs) {
-			Int2ObjectMap<IntSet> resultTwoVars =
-					resultsTwoVariablesByPos(0, 2, triple);
+			Int2ObjectMap<IntSet> resultTwoVars = resultsTwoVariablesByPos(0, 2, triple);
 			long count = 0;
 			for (int subject : resultTwoVars.keySet()) {
 				count += resultTwoVars.get(subject).size();
@@ -1511,9 +1525,8 @@ public class KB extends AbstractKB {
 			}
 			return count;
 		}
-		if ((triple[1] == NOTEXISTSbs)||(triple[1] == NOTEXISTSINVbs)) {
-			Int2ObjectMap<IntSet> resultTwoVars =
-					resultsTwoVariables(triple[0], triple[2], triple);
+		if ((triple[1] == NOTEXISTSbs) || (triple[1] == NOTEXISTSINVbs)) {
+			Int2ObjectMap<IntSet> resultTwoVars = resultsTwoVariables(triple[0], triple[2], triple);
 			long count = 0;
 			for (int relation : resultTwoVars.keySet()) {
 				count += resultTwoVars.get(relation).size();
@@ -1543,11 +1556,11 @@ public class KB extends AbstractKB {
 
 	/**
 	 * Determines whether a sequence of triples contains at least one variable
+	 * 
 	 * @param query
 	 * @return
 	 */
 	public static boolean containsVariables(List<int[]> query) {
-		// TODO Auto-generated method stub
 		for (int[] triple : query) {
 			if (numVariables(triple) > 0) {
 				return true;
@@ -1559,8 +1572,10 @@ public class KB extends AbstractKB {
 	/**
 	 * It returns the number of instances (bindings) that satisfy this
 	 * triple pattern.
-	 * @param triple A triple pattern containing both constants and variables (no restrictions,
-	 * it can contain only constants).
+	 * 
+	 * @param triple A triple pattern containing both constants and variables (no
+	 *               restrictions,
+	 *               it can contain only constants).
 	 **/
 	public long count(CharSequence... triple) {
 		return (count(triple(triple)));
@@ -1590,7 +1605,8 @@ public class KB extends AbstractKB {
 
 	/**
 	 * Remove a triple from a list of triples.
-	 * @param pos Index in the list of the triple to be removed.
+	 * 
+	 * @param pos     Index in the list of the triple to be removed.
 	 * @param triples Target list
 	 **/
 	protected static List<int[]> remove(int pos, List<int[]> triples) {
@@ -1603,11 +1619,13 @@ public class KB extends AbstractKB {
 		return (result);
 	}
 
-
 	public static AtomicLong STAT_NUMBER_OF_CALL_TO_MRT = new AtomicLong();
+
 	/**
-	 * It returns the index of the most restrictive triple, -1 if most restrictive has count 0.
-	 * The most restrictive triple is the one that contains the smallest number of satisfying
+	 * It returns the index of the most restrictive triple, -1 if most restrictive
+	 * has count 0.
+	 * The most restrictive triple is the one that contains the smallest number of
+	 * satisfying
 	 * instantiations.
 	 **/
 	protected int mostRestrictiveTriple(List<int[]> triples) {
@@ -1615,8 +1633,7 @@ public class KB extends AbstractKB {
 		int bestPos = -1;
 		long count = Long.MAX_VALUE;
 		for (int i = 0; i < triples.size(); i++) {
-			long myCount = isSpecialAtom(triples.get(i)) ? Long.MAX_VALUE - 1 :
-					count(triples.get(i));
+			long myCount = isSpecialAtom(triples.get(i)) ? Long.MAX_VALUE - 1 : count(triples.get(i));
 			if (myCount >= count)
 				continue;
 			if (myCount == 0)
@@ -1628,8 +1645,10 @@ public class KB extends AbstractKB {
 	}
 
 	/**
-	 * Returns true if the atom includes any of the special non-materialized relations.
+	 * Returns true if the atom includes any of the special non-materialized
+	 * relations.
 	 * This types of relations are normally computed in the KB.
+	 * 
 	 * @param atom
 	 * @return
 	 */
@@ -1639,14 +1658,17 @@ public class KB extends AbstractKB {
 	}
 
 	/**
-	 * It returns the index of the most restrictive triple among those that contain the given variable,
-	 * -1 if most restrictive has count 0. The most restrictive triple is the one that contains the smallest
+	 * It returns the index of the most restrictive triple among those that contain
+	 * the given variable,
+	 * -1 if most restrictive has count 0. The most restrictive triple is the one
+	 * that contains the smallest
 	 * number of satisfying instantiations.
+	 * 
 	 * @param triples
 	 * @param variable Only triples containing this variable are considered.
 	 **/
 	protected int mostRestrictiveTriple(List<int[]> triples,
-										int variable) {
+			int variable) {
 		int bestPos = -1;
 		long count = Long.MAX_VALUE;
 		for (int i = 0; i < triples.size(); i++) {
@@ -1664,15 +1686,18 @@ public class KB extends AbstractKB {
 	}
 
 	/**
-	 * It returns the index of the most restrictive triple among those that contain the given variables,
-	 * -1 if most restrictive has count 0. The most restrictive triple is the one that contains the smallest
+	 * It returns the index of the most restrictive triple among those that contain
+	 * the given variables,
+	 * -1 if most restrictive has count 0. The most restrictive triple is the one
+	 * that contains the smallest
 	 * number of satisfying instantiations.
+	 * 
 	 * @param triples
 	 * @param var1
 	 * @param var2
 	 **/
 	protected int mostRestrictiveTriple(List<int[]> triples,
-										int var1, int var2) {
+			int var1, int var2) {
 		int bestPos = -1;
 		long count = Long.MAX_VALUE;
 		for (int i = 0; i < triples.size(); i++) {
@@ -1692,26 +1717,27 @@ public class KB extends AbstractKB {
 
 	/**
 	 * Returns TRUE if the triple pattern contains the given variable.
+	 * 
 	 * @param var
 	 * @param triple
 	 * @return
 	 */
 	private boolean contains(int var, int[] triple) {
-		return(triple[0] == var || triple[1] == var
+		return (triple[0] == var || triple[1] == var
 				|| triple[2] == var);
 	}
 
 	private boolean contains(int var, List<int[]> triples) {
 		for (int[] triple : triples) {
-			if (contains(var, triple)) return true;
+			if (contains(var, triple))
+				return true;
 		}
 		return false;
 	}
 
-
-
 	/**
 	 * Returns the position of a variable in a triple.
+	 * 
 	 * @param var
 	 * @param triple
 	 **/
@@ -1723,12 +1749,10 @@ public class KB extends AbstractKB {
 		return (-1);
 	}
 
-
-
-
 	/**
 	 * It returns TRUE if there exists one instantiation that satisfies
 	 * the query
+	 * 
 	 * @param triples
 	 * @return
 	 */
@@ -1739,6 +1763,7 @@ public class KB extends AbstractKB {
 	/**
 	 * It returns TRUE if there exists one instantiation that satisfies
 	 * the query
+	 * 
 	 * @param triples
 	 * @return
 	 */
@@ -1766,7 +1791,7 @@ public class KB extends AbstractKB {
 				}
 				otherTriples = remove(bestPos, triples);
 				if (optimExistentialDetection && !contains(best[firstVarIdx], otherTriples)) {
-					//if (otherTriples.isEmpty()) return (true);
+					// if (otherTriples.isEmpty()) return (true);
 					return (existsBS1(otherTriples));
 				}
 				try (Instantiator insty = new Instantiator(
@@ -1787,8 +1812,8 @@ public class KB extends AbstractKB {
 					instantiations = resultsTwoVariablesByPos(firstVar, secondVar, best);
 					try (Instantiator insty1 = new Instantiator(otherTriples,
 							best[firstVar]);
-						 Instantiator insty2 = new Instantiator(otherTriples,
-								 best[secondVar])) {
+							Instantiator insty2 = new Instantiator(otherTriples,
+									best[secondVar])) {
 						for (int val1 : instantiations.keySet()) {
 							insty1.instantiate(val1);
 							for (int val2 : instantiations.get(val1)) {
@@ -1822,8 +1847,9 @@ public class KB extends AbstractKB {
 	/**
 	 * It returns the number of instantiations of variable that fulfill a certain
 	 * list of triple patterns.
+	 * 
 	 * @param variable Projection variable
-	 * @param query The list of triple patterns
+	 * @param query    The list of triple patterns
 	 **/
 	public long countDistinct(CharSequence variable, List<CharSequence[]> query) {
 		return (countDistinct(compress(variable), triples(query)));
@@ -1841,14 +1867,14 @@ public class KB extends AbstractKB {
 
 	/** returns the instances that fulfill a certain condition */
 	public IntSet selectDistinct(CharSequence variable,
-								 List<CharSequence[]> query) {
+			List<CharSequence[]> query) {
 		return (selectDistinct(compress(variable), triples(query)));
 	}
 
 	/** returns the instances that fulfill a certain condition */
 	@Override
 	public IntSet selectDistinct(int variable,
-								 List<int[]> query) {
+			List<int[]> query) {
 		// Only one triple
 		if (query.size() == 1) {
 			int[] triple = query.get(0);
@@ -1893,7 +1919,7 @@ public class KB extends AbstractKB {
 		// If the variable is in the most restrictive triple
 		if (varpos(variable, best) != -1) {
 			switch (numVariables(best)) {
-				case 1 :
+				case 1:
 					try (Instantiator insty = new Instantiator(remove(bestPos,
 							query), variable)) {
 						for (int inst : resultsOneVariable(best)) {
@@ -1905,11 +1931,12 @@ public class KB extends AbstractKB {
 				case 2:
 					int firstVar = firstVariablePos(best);
 					int secondVar = secondVariablePos(best);
-					Int2ObjectMap<IntSet> instantiations =(best[firstVar]
-							== variable)? resultsTwoVariablesByPos(firstVar,
-							secondVar, best) : resultsTwoVariablesByPos(secondVar,
-							firstVar, best);
-					int otherVariable =(best[firstVar] == variable)? secondVar : firstVar;
+					Int2ObjectMap<IntSet> instantiations = (best[firstVar] == variable)
+							? resultsTwoVariablesByPos(firstVar,
+									secondVar, best)
+							: resultsTwoVariablesByPos(secondVar,
+									firstVar, best);
+					int otherVariable = (best[firstVar] == variable) ? secondVar : firstVar;
 					List<int[]> otherTriples = remove(bestPos, query);
 					try (Instantiator insty = new Instantiator(
 							(contains(best[otherVariable], otherTriples)) ? query : otherTriples, variable)) {
@@ -1925,17 +1952,18 @@ public class KB extends AbstractKB {
 						int varPos = varpos(variable, best);
 						int var1, var2, var3;
 						switch (varPos) {
-							case 0 :
+							case 0:
 								var1 = best[0];
 								var2 = best[1];
 								var3 = best[2];
 								break;
-							case 1 :
+							case 1:
 								var1 = best[1];
 								var2 = best[0];
 								var3 = best[2];
 								break;
-							case 2 : default :
+							case 2:
+							default:
 								var1 = best[2];
 								var2 = best[0];
 								var3 = best[1];
@@ -1978,8 +2006,8 @@ public class KB extends AbstractKB {
 						|| (contains(best[firstVar], others) && contains(best[secondVar], others))) {
 					instantiations = resultsTwoVariablesByPos(firstVar, secondVar, best);
 					try (Instantiator insty1 = new Instantiator(others, best[firstVar]);
-						 Instantiator insty2 = new Instantiator(others,
-								 best[secondVar])) {
+							Instantiator insty2 = new Instantiator(others,
+									best[secondVar])) {
 						for (int val1 : instantiations.keySet()) {
 							insty1.instantiate(val1);
 							for (int val2 : instantiations.get(val1)) {
@@ -2004,11 +2032,10 @@ public class KB extends AbstractKB {
 			default:
 				firstVar = firstVariablePos(best);
 				secondVar = secondVariablePos(best);
-				Int2ObjectMap<Int2ObjectMap<IntSet>> map =
-						resultsThreeVariables(best[0], best[1], best[2], best);
+				Int2ObjectMap<Int2ObjectMap<IntSet>> map = resultsThreeVariables(best[0], best[1], best[2], best);
 				try (Instantiator insty1 = new Instantiator(others, best[0]);
-					 Instantiator insty2 = new Instantiator(others, best[1]);
-					 Instantiator insty3 = new Instantiator(others, best[2])) {
+						Instantiator insty2 = new Instantiator(others, best[1]);
+						Instantiator insty3 = new Instantiator(others, best[2])) {
 					for (int val1 : map.keySet()) {
 						insty1.instantiate(val1);
 						instantiations = map.get(val1);
@@ -2031,11 +2058,12 @@ public class KB extends AbstractKB {
 	 * returns the instances that fulfill a certain condition
 	 *
 	 * @param query: may be modified in place. Return to a consistent state when
-	 * the iterator is empty or by calling the close() method on the iterator.
-	 * A closed iterator can no longer be iterated upon.
+	 *               the iterator is empty or by calling the close() method on the
+	 *               iterator.
+	 *               A closed iterator can no longer be iterated upon.
 	 */
 	public IntIterator selectDistinctIterator(IntSet result,
-											  int variable, List<int[]> query) {
+			int variable, List<int[]> query) {
 		// Only one triple
 		if (query.size() == 1) {
 			int[] triple = query.get(0);
@@ -2054,11 +2082,13 @@ public class KB extends AbstractKB {
 					if (triple[firstVar] == variable) {
 						return (new SetU.addNotInIntIterator(
 								resultsTwoVariablesByPos(firstVar, secondVar, triple)
-										.keySet(), result));
+										.keySet(),
+								result));
 					} else {
 						return (new SetU.addNotInIntIterator(
 								resultsTwoVariablesByPos(secondVar, firstVar, triple)
-										.keySet(), result));
+										.keySet(),
+								result));
 					}
 				default:
 					switch (varpos(variable, query.get(0))) {
@@ -2092,12 +2122,14 @@ public class KB extends AbstractKB {
 				case 2:
 					int firstVar = firstVariablePos(best);
 					int secondVar = secondVariablePos(best);
-					instantiations =(best[firstVar] == variable)? resultsTwoVariablesByPos(firstVar,
-							secondVar, best).keySet() : resultsTwoVariablesByPos(secondVar,
-							firstVar, best).keySet();
-					int otherVariable =(best[firstVar] == variable)? secondVar : firstVar;
+					instantiations = (best[firstVar] == variable) ? resultsTwoVariablesByPos(firstVar,
+							secondVar, best).keySet()
+							: resultsTwoVariablesByPos(secondVar,
+									firstVar, best).keySet();
+					int otherVariable = (best[firstVar] == variable) ? secondVar : firstVar;
 					List<int[]> otherTriples = remove(bestPos, query);
-					insty = new Instantiator((contains(best[otherVariable], otherTriples)) ? query : otherTriples, variable);
+					insty = new Instantiator((contains(best[otherVariable], otherTriples)) ? query : otherTriples,
+							variable);
 					break;
 				case 3:
 				default:
@@ -2141,11 +2173,13 @@ public class KB extends AbstractKB {
 				if (optimExistentialDetection && !contains(var, others)) {
 					return (selectDistinctIterator(result, variable, others));
 				}
-				return (new KBIteratorU.recursiveSelectForOneVarIterator(this, new Instantiator(others, var), variable, resultsOneVariable(best), result));
+				return (new KBIteratorU.recursiveSelectForOneVarIterator(this, new Instantiator(others, var), variable,
+						resultsOneVariable(best), result));
 			case 2:
 				int firstVar = firstVariablePos(best);
 				int secondVar = secondVariablePos(best);
-				if (!optimExistentialDetection || (contains(best[firstVar], others) && contains(best[secondVar], others))) {
+				if (!optimExistentialDetection
+						|| (contains(best[firstVar], others) && contains(best[secondVar], others))) {
 					return (new KBIteratorU.recursiveSelectForTwoVarIterator(this,
 							new Instantiator(others, best[firstVar]),
 							new Instantiator(others, best[secondVar]),
@@ -2230,8 +2264,7 @@ public class KB extends AbstractKB {
 			}
 		}
 
-		Int2ObjectMap<Int2ObjectMap<IntSet>> result =
-				new Int2ObjectOpenHashMap<>();
+		Int2ObjectMap<Int2ObjectMap<IntSet>> result = new Int2ObjectOpenHashMap<>();
 		try (Instantiator insty1 = new Instantiator(query, var1)) {
 			for (int val1 : selectDistinct(var1, query)) {
 				insty1.instantiate(val1);
@@ -2243,30 +2276,29 @@ public class KB extends AbstractKB {
 		}
 		return result;
 	}
+
 	/**
 	 * Turn a result map of 2 levels into a map of 3 levels.
 	 */
 	private Int2ObjectMap<Int2ObjectMap<IntSet>> fixResultMap(
 			Int2ObjectMap<IntSet> resultsTwoVars, int fixLevel, int constant) {
-		Int2ObjectMap<Int2ObjectMap<IntSet>> extendedMap = new
-				Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
+		Int2ObjectMap<Int2ObjectMap<IntSet>> extendedMap = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 		switch (fixLevel) {
 			case 1:
 				extendedMap.put(constant, resultsTwoVars);
 				break;
-			case 2 :
+			case 2:
 				for (int val : resultsTwoVars.keySet()) {
-					Int2ObjectMap<IntSet> newMap =
-							new Int2ObjectOpenHashMap<IntSet>();
+					Int2ObjectMap<IntSet> newMap = new Int2ObjectOpenHashMap<IntSet>();
 					newMap.put(constant, resultsTwoVars.get(val));
 					extendedMap.put(val, newMap);
 				}
-			case 3 : default:
+			case 3:
+			default:
 				IntSet newMap = new IntOpenHashSet();
 				newMap.add(constant);
 				for (int val1 : resultsTwoVars.keySet()) {
-					Int2ObjectMap<IntSet> intermediateMap =
-							new Int2ObjectOpenHashMap<IntSet>();
+					Int2ObjectMap<IntSet> intermediateMap = new Int2ObjectOpenHashMap<IntSet>();
 					for (int val2 : resultsTwoVars.get(val1)) {
 						intermediateMap.put(val2, newMap);
 					}
@@ -2290,13 +2322,11 @@ public class KB extends AbstractKB {
 			throw new IllegalArgumentException("The query must have at least 2 atoms");
 		}
 
-		Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> result =
-				new Int2ObjectOpenHashMap<>();
+		Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> result = new Int2ObjectOpenHashMap<>();
 		try (Instantiator insty1 = new Instantiator(query, var1)) {
 			for (int val1 : selectDistinct(var1, query)) {
 				insty1.instantiate(val1);
-				Int2ObjectMap<Int2ObjectMap<IntSet>> tail =
-						selectDistinct(var2, var3, var4, query);
+				Int2ObjectMap<Int2ObjectMap<IntSet>> tail = selectDistinct(var2, var3, var4, query);
 				if (!tail.isEmpty()) {
 					result.put(val1, tail);
 				}
@@ -2309,7 +2339,8 @@ public class KB extends AbstractKB {
 	public Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>>> selectDistinct(
 			CharSequence var1, CharSequence var2, CharSequence var3, CharSequence var4, CharSequence var5,
 			List<? extends CharSequence[]> query) {
-		return selectDistinct(compress(var1), compress(var2), compress(var3), compress(var4), compress(var5), triples(query));
+		return selectDistinct(compress(var1), compress(var2), compress(var3), compress(var4), compress(var5),
+				triples(query));
 	}
 
 	public Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>>> selectDistinct(
@@ -2319,13 +2350,12 @@ public class KB extends AbstractKB {
 			throw new IllegalArgumentException("The query must have at least 2 atoms");
 		}
 
-		Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>>> result =
-				new Int2ObjectOpenHashMap<>();
+		Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>>> result = new Int2ObjectOpenHashMap<>();
 		try (Instantiator insty1 = new Instantiator(query, var1)) {
 			for (int val1 : selectDistinct(var1, query)) {
 				insty1.instantiate(val1);
-				Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> tail =
-						selectDistinct(var2, var3, var4, var5, query);
+				Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> tail = selectDistinct(var2, var3, var4, var5,
+						query);
 				if (!tail.isEmpty()) {
 					result.put(val1, tail);
 				}
@@ -2344,7 +2374,7 @@ public class KB extends AbstractKB {
 	 * projection variable
 	 */
 	public Int2IntMap frequentBindingsOf(CharSequence variable,
-										 CharSequence projectionVariable, List<CharSequence[]> query) {
+			CharSequence projectionVariable, List<CharSequence[]> query) {
 		return (frequentBindingsOf(compress(variable),
 				compress(projectionVariable), triples(query)));
 	}
@@ -2357,7 +2387,7 @@ public class KB extends AbstractKB {
 	 **/
 	@Override
 	public Int2IntMap frequentBindingsOf(int variable,
-										 int projectionVariable, List<int[]> query) {
+			int projectionVariable, List<int[]> query) {
 		// If only one triple
 		Int2IntMap result = new Int2IntOpenHashMap();
 		if (query.size() == 1) {
@@ -2394,7 +2424,7 @@ public class KB extends AbstractKB {
 
 			for (int predicate : relationSize.keySet()) {
 				triple[1] = predicate;
-				increase(result, predicate, resultsTwoVariablesByPos(varPos, 2-varPos, triple).size());
+				increase(result, predicate, resultsTwoVariablesByPos(varPos, 2 - varPos, triple).size());
 			}
 			triple[1] = variable;
 			return (result);
@@ -2416,13 +2446,14 @@ public class KB extends AbstractKB {
 				case 2:
 					int firstVar = firstVariablePos(best);
 					int secondVar = secondVariablePos(best);
-					Int2ObjectMap<IntSet> instantiations =(best[firstVar]
-							== variable)? resultsTwoVariablesByPos(firstVar,
-							secondVar, best) : resultsTwoVariablesByPos(secondVar,
-							firstVar, best);
+					Int2ObjectMap<IntSet> instantiations = (best[firstVar] == variable)
+							? resultsTwoVariablesByPos(firstVar,
+									secondVar, best)
+							: resultsTwoVariablesByPos(secondVar,
+									firstVar, best);
 					try (Instantiator insty1 = new Instantiator(other, variable);
-						 Instantiator insty2 = new Instantiator(other,
-								 projectionVariable)) {
+							Instantiator insty2 = new Instantiator(other,
+									projectionVariable)) {
 						for (int val1 : instantiations.keySet()) {
 							insty1.instantiate(val1);
 							for (int val2 : instantiations.get(val1)) {
@@ -2447,7 +2478,7 @@ public class KB extends AbstractKB {
 				case 1:
 					try (Instantiator insty = new Instantiator(other, variable)) {
 						for (int inst : resultsOneVariable(best)) {
-							increase(       result,
+							increase(result,
 									inst,
 									selectDistinct(projectionVariable,
 											insty.instantiate(inst)).size());
@@ -2457,13 +2488,14 @@ public class KB extends AbstractKB {
 				case 2:
 					int firstVar = firstVariablePos(best);
 					int secondVar = secondVariablePos(best);
-					Int2ObjectMap<IntSet> instantiations =(best[firstVar]
-							== variable)? resultsTwoVariablesByPos(firstVar,
-							secondVar, best) : resultsTwoVariablesByPos(secondVar,
-							firstVar, best);
+					Int2ObjectMap<IntSet> instantiations = (best[firstVar] == variable)
+							? resultsTwoVariablesByPos(firstVar,
+									secondVar, best)
+							: resultsTwoVariablesByPos(secondVar,
+									firstVar, best);
 					try (Instantiator insty1 = new Instantiator(query, variable)) {
 						for (int val1 : instantiations.keySet()) {
-							increase(       result,
+							increase(result,
 									val1,
 									selectDistinct(projectionVariable,
 											insty1.instantiate(val1)).size());
@@ -2494,10 +2526,11 @@ public class KB extends AbstractKB {
 				case 2:
 					int firstVar = firstVariablePos(best);
 					int secondVar = secondVariablePos(best);
-					Int2ObjectMap<IntSet> instantiations =(best[firstVar]
-							== projectionVariable)? resultsTwoVariablesByPos(
-							firstVar, secondVar, best) : resultsTwoVariablesByPos(
-							secondVar, firstVar, best);
+					Int2ObjectMap<IntSet> instantiations = (best[firstVar] == projectionVariable)
+							? resultsTwoVariablesByPos(
+									firstVar, secondVar, best)
+							: resultsTwoVariablesByPos(
+									secondVar, firstVar, best);
 					try (Instantiator insty1 = new Instantiator(query,
 							projectionVariable)) {
 						for (int val1 : instantiations.keySet()) {
@@ -2527,7 +2560,7 @@ public class KB extends AbstractKB {
 	 * instantiations of the triple
 	 */
 	protected Int2IntMap countBindings(int pos,
-									   int... triple) {
+			int... triple) {
 		Int2IntMap result = new Int2IntOpenHashMap();
 		switch (numVariables(triple)) {
 			case 1:
@@ -2536,15 +2569,22 @@ public class KB extends AbstractKB {
 			case 2:
 				int pos2 = -1;
 				switch (pos) {
-					case 0: pos2 = (Schema.isVariable(triple[2])) ? 2 : 1; break; // We want the most frequent subjects
-					case 1: pos2 = (Schema.isVariable(triple[2])) ? 2 : 0; break; // We want the most frequent predicates
-					case 2: pos2 = (Schema.isVariable(triple[1])) ? 1 : 0; break; // we want the most frequent objects
+					case 0:
+						pos2 = (Schema.isVariable(triple[2])) ? 2 : 1;
+						break; // We want the most frequent subjects
+					case 1:
+						pos2 = (Schema.isVariable(triple[2])) ? 2 : 0;
+						break; // We want the most frequent predicates
+					case 2:
+						pos2 = (Schema.isVariable(triple[1])) ? 1 : 0;
+						break; // we want the most frequent objects
 				}
 				increase(result, resultsTwoVariablesByPos(pos, pos2, triple));
 				return (result);
 			case 3:
-				return (pos == 0 ? subjectSize : pos == 1 ? relationSize
-						: objectSize);
+				return (pos == 0 ? subjectSize
+						: pos == 1 ? relationSize
+								: objectSize);
 			default:
 				throw new InvalidParameterException(
 						"Triple should contain at least 1 variable: "
@@ -2557,7 +2597,7 @@ public class KB extends AbstractKB {
 	 * projection triple exist in the query
 	 */
 	protected Int2IntMap countProjectionBindings(int pos,
-												 int[] projectionTriple, List<int[]> otherTriples) {
+			int[] projectionTriple, List<int[]> otherTriples) {
 		if (!Schema.isVariable(projectionTriple[pos]))
 			throw new IllegalArgumentException("Position " + pos + " in "
 					+ toString(projectionTriple) + " must be a variable");
@@ -2579,8 +2619,8 @@ public class KB extends AbstractKB {
 						firstVar, secondVar, projectionTriple);
 				try (Instantiator insty1 = new Instantiator(otherTriples,
 						projectionTriple[firstVar]);
-					 Instantiator insty2 = new Instantiator(otherTriples,
-							 projectionTriple[secondVar])) {
+						Instantiator insty2 = new Instantiator(otherTriples,
+								projectionTriple[secondVar])) {
 					for (int val1 : instantiations.keySet()) {
 						insty1.instantiate(val1);
 						for (int val2 : instantiations.get(val1)) {
@@ -2659,8 +2699,8 @@ public class KB extends AbstractKB {
 							firstVar, secondVar, projectionTriple);
 					try (Instantiator insty1 = new Instantiator(otherTriples,
 							projectionTriple[firstVar]);
-						 Instantiator insty2 = new Instantiator(otherTriples,
-								 projectionTriple[secondVar])) {
+							Instantiator insty2 = new Instantiator(otherTriples,
+									projectionTriple[secondVar])) {
 						for (int val1 : instantiations.keySet()) {
 							insty1.instantiate(val1);
 							for (int val2 : instantiations.get(val1)) {
@@ -2692,8 +2732,8 @@ public class KB extends AbstractKB {
 					instVar = mostRestrictive[firstVariablePos(mostRestrictive)];
 					try (Instantiator insty1 = new Instantiator(otherTriples2,
 							instVar);
-						 Instantiator insty2 = new Instantiator(
-								 projectionTripleList, instVar)) {
+							Instantiator insty2 = new Instantiator(
+									projectionTripleList, instVar)) {
 						for (int inst : resultsOneVariable(mostRestrictive)) {
 							increase(result, countProjectionBindings(
 									insty2.instantiate(inst).get(0),
@@ -2709,15 +2749,17 @@ public class KB extends AbstractKB {
 					if (nHeadVars == 2) {
 						try (Instantiator insty1 = new Instantiator(otherTriples2,
 								mostRestrictive[posInCommon]);
-							 Instantiator insty3 = new Instantiator(
-									 projectionTripleList,
-									 projectionTriple[projectionPosition])) {
+								Instantiator insty3 = new Instantiator(
+										projectionTripleList,
+										projectionTriple[projectionPosition])) {
 							Int2IntMap instantiations = countBindings(
 									posInCommon, mostRestrictive);
 							for (int b1 : instantiations.keySet()) {
 								increase(result, countProjectionBindings(insty3
-										.instantiate(b1).get(0), insty1
-										.instantiate(b1), variable));
+										.instantiate(b1).get(0),
+										insty1
+												.instantiate(b1),
+										variable));
 							}
 						}
 					} else if (nHeadVars == 1) {
@@ -2746,6 +2788,7 @@ public class KB extends AbstractKB {
 	/**
 	 * Returns the in the first atom, of the first variable that is found on the
 	 * second atom.
+	 * 
 	 * @param t1
 	 * @param t2
 	 * @return
@@ -2761,6 +2804,7 @@ public class KB extends AbstractKB {
 
 	/**
 	 * Return the number of common variables between 2 atoms.
+	 * 
 	 * @param a
 	 * @param b
 	 * @return
@@ -2802,7 +2846,7 @@ public class KB extends AbstractKB {
 	 * joins with the query
 	 */
 	public long countProjection(CharSequence[] projectionTriple,
-								List<CharSequence[]> query) {
+			List<CharSequence[]> query) {
 		int[] projection = triple(projectionTriple);
 		// Create "otherTriples"
 		List<int[]> otherTriples = new ArrayList<>();
@@ -2820,7 +2864,7 @@ public class KB extends AbstractKB {
 	 */
 	@Override
 	public long countProjection(int[] projectionTriple,
-								List<int[]> otherTriples) {
+			List<int[]> otherTriples) {
 		if (otherTriples.isEmpty())
 			return (count(projectionTriple));
 		switch (numVariables(projectionTriple)) {
@@ -2870,12 +2914,12 @@ public class KB extends AbstractKB {
 	// ---------------------------------------------------------------------------
 
 	public long countPairs(CharSequence var1, CharSequence var2,
-						   List<CharSequence[]> query) {
+			List<CharSequence[]> query) {
 		return (countDistinctPairs(compress(var1), compress(var2), triples(query)));
 	}
 
 	public long countPairs(int var1, int var2,
-						   List<int[]> query, int[] queryInfo) {
+			List<int[]> query, int[] queryInfo) {
 
 		long result = 0;
 		// Approximate count
@@ -2906,7 +2950,8 @@ public class KB extends AbstractKB {
 				result += (long) Math
 						.ceil(Math.pow(
 								countDistinct(targetVariable,
-										insty1.instantiate(value)), 2));
+										insty1.instantiate(value)),
+								2));
 			}
 		}
 
@@ -2915,8 +2960,8 @@ public class KB extends AbstractKB {
 	}
 
 	public long countPairs(int var1, int var2,
-						   List<int[]> query, int[] queryInfo,
-						   int[] existentialTriple, int nonExistentialPosition) {
+			List<int[]> query, int[] queryInfo,
+			int[] existentialTriple, int nonExistentialPosition) {
 		long result = 0;
 		long duplicatesEstimate, duplicatesCard;
 		double duplicatesFactor;
@@ -2972,13 +3017,14 @@ public class KB extends AbstractKB {
 	 * the first variable.
 	 *
 	 * A test-case exist in amie.data.KBTest
-	 * @param query The query to rewrite (unaltered)
+	 * 
+	 * @param query          The query to rewrite (unaltered)
 	 * @param fromVariable
 	 * @param removeVariable
 	 * @return New rewritten query
 	 */
 	public static List<int[]> connectedComponent(List<int[]> query,
-												 int fromVariable, int removeVariable) {
+			int fromVariable, int removeVariable) {
 		IntSet connectedVariables = new IntOpenHashSet();
 		connectedVariables.add(fromVariable);
 		boolean fixedpoint;
@@ -3001,7 +3047,7 @@ public class KB extends AbstractKB {
 		} while (!fixedpoint);
 		List<int[]> result = new ArrayList<>();
 		for (int[] atom : query) {
-			for (int pos=0; pos < 3; pos++) {
+			for (int pos = 0; pos < 3; pos++) {
 				if (connectedVariables.contains(atom[pos])) {
 					result.add(atom);
 					break;
@@ -3010,12 +3056,13 @@ public class KB extends AbstractKB {
 		}
 		return result;
 	}
+
 	/**
 	 * returns the number of distinct pairs (var1,var2) for the query
 	 */
 	@Override
 	public long countDistinctPairs(int var1, int var2,
-								   List<int[]> query) {
+			List<int[]> query) {
 
 		long result = 0;
 
@@ -3046,7 +3093,8 @@ public class KB extends AbstractKB {
 		}
 
 		// Go for the standard plan
-		try (Instantiator insty1 = new Instantiator((optimConnectedComponent) ? connectedComponent(query, var2, var1) : query, var1)) {
+		try (Instantiator insty1 = new Instantiator(
+				(optimConnectedComponent) ? connectedComponent(query, var2, var1) : query, var1)) {
 			IntSet bindings = selectDistinct(var1, query);
 			for (int val1 : bindings) {
 				result += countDistinct(var2, insty1.instantiate(val1));
@@ -3061,7 +3109,7 @@ public class KB extends AbstractKB {
 	 */
 	@Override
 	public long countDistinctPairsUpTo(long upperBound, int var1, int var2,
-									   List<int[]> query) {
+			List<int[]> query) {
 
 		long result = 0;
 
@@ -3097,7 +3145,8 @@ public class KB extends AbstractKB {
 		}
 
 		// Go for the standard plan
-		try (Instantiator insty1 = new Instantiator((optimConnectedComponent) ? connectedComponent(query, var2, var1) : query, var1)) {
+		try (Instantiator insty1 = new Instantiator(
+				(optimConnectedComponent) ? connectedComponent(query, var2, var1) : query, var1)) {
 			IntSet bindings = selectDistinct(var1, query);
 			for (int val1 : bindings) {
 				result += countDistinct(var2, insty1.instantiate(val1));
@@ -3112,19 +3161,21 @@ public class KB extends AbstractKB {
 
 	@Override
 	public long countDistinctPairsUpToWithIterator(long upperBound, int var1,
-												   int var2, List<int[]> query) {
+			int var2, List<int[]> query) {
 
 		// Go for the standard plan
 		long result = 0;
 		IntSet bindings, bindings2;
 
 		try (Instantiator insty1 = new Instantiator(
-				(optimConnectedComponent) ? connectedComponent(U.deepCloneInt(query), var2, var1) : U.deepCloneInt(query), var1)) {
+				(optimConnectedComponent) ? connectedComponent(U.deepCloneInt(query), var2, var1)
+						: U.deepCloneInt(query),
+				var1)) {
 			bindings = new IntOpenHashSet();
-			for (IntIterator bindingsIt = selectDistinctIterator(bindings, var1, query); bindingsIt.hasNext(); ) {
+			for (IntIterator bindingsIt = selectDistinctIterator(bindings, var1, query); bindingsIt.hasNext();) {
 				bindings2 = new IntOpenHashSet();
 				for (IntIterator bindingsIt2 = selectDistinctIterator(bindings2, var2,
-						insty1.instantiate(bindingsIt.nextInt())); bindingsIt2.hasNext(); ) {
+						insty1.instantiate(bindingsIt.nextInt())); bindingsIt2.hasNext();) {
 					result += 1;
 					bindingsIt2.nextInt();
 					if (result > upperBound) {
@@ -3190,7 +3241,6 @@ public class KB extends AbstractKB {
 	// Creating Triples
 	// ---------------------------------------------------------------------------
 
-
 	/** Compresses a string to an internal string */
 	private static String _compress(CharSequence s) {
 		if (s instanceof String) {
@@ -3202,9 +3252,6 @@ public class KB extends AbstractKB {
 			str = str.substring(0, pos + 1);
 		return str;
 	}
-
-
-
 
 	public static int[] triple2Array(
 			IntTriple t) {
@@ -3229,7 +3276,7 @@ public class KB extends AbstractKB {
 
 	/** Makes a triple */
 	public static int[] triple(int s, int p, int o) {
-		return new int[]{s, p, o};
+		return new int[] { s, p, o };
 	}
 
 	/** Makes a triple */
@@ -3253,10 +3300,10 @@ public class KB extends AbstractKB {
 		return config;
 	}
 
-
 	/**
 	 * Parses a triple of the form r(x,y) and turns into a triple
 	 * of the form [x, r, y]
+	 * 
 	 * @param s
 	 * @return
 	 **/
@@ -3270,20 +3317,17 @@ public class KB extends AbstractKB {
 		return (null);
 	}
 
-
-
-
-
 	/**
 	 * It returns all the bindings of the projection variable that match
 	 * the antecedent but not the head.
+	 * 
 	 * @param projectionVariable
 	 * @param antecedent
 	 * @param head
 	 * @return
 	 */
 	public IntSet difference(CharSequence projectionVariable,
-							 List<? extends CharSequence[]> antecedent, CharSequence[] head) {
+			List<? extends CharSequence[]> antecedent, CharSequence[] head) {
 		List<CharSequence[]> headList = new ArrayList<>();
 		headList.add(head);
 		return difference(compress(projectionVariable), triples(antecedent),
@@ -3293,14 +3337,14 @@ public class KB extends AbstractKB {
 	/**
 	 * It returns all the bindings of the projection variable that match
 	 * the antecedent but not the succedent.
+	 * 
 	 * @param projectionVariable
 	 * @param antecedent
 	 * @param head
 	 * @return
 	 */
 	public IntSet difference(int projectionVariable,
-							 List<int[]> antecedent, List<int[]> head) {
-		// TODO Auto-generated method stub
+			List<int[]> antecedent, List<int[]> head) {
 		IntSet bodyBindings = new IntOpenHashSet(selectDistinct(
 				projectionVariable, antecedent));
 		IntSet headBindings = selectDistinct(projectionVariable, head);
@@ -3309,7 +3353,6 @@ public class KB extends AbstractKB {
 		return bodyBindings;
 	}
 
-
 	// ---------------------------------------------------------------------------
 	// Difference with 2 variables
 	// ---------------------------------------------------------------------------
@@ -3317,6 +3360,7 @@ public class KB extends AbstractKB {
 	/**
 	 * Bindings of the projection variables that satisfy the first list of atoms
 	 * but not the atom 'head'.
+	 * 
 	 * @param var1
 	 * @param var2
 	 * @param antecedent
@@ -3324,13 +3368,14 @@ public class KB extends AbstractKB {
 	 * @return
 	 */
 	public Int2ObjectMap<IntSet> difference(CharSequence var1,
-											CharSequence var2, List<? extends CharSequence[]> antecedent, CharSequence[] head) {
+			CharSequence var2, List<? extends CharSequence[]> antecedent, CharSequence[] head) {
 		return difference(compress(var1), compress(var2), triples(antecedent), triple(head));
 	}
 
 	/**
 	 * Bindings of the projection variables that satisfy the first list of atoms
 	 * but not the atom 'head'.
+	 * 
 	 * @param var1
 	 * @param var2
 	 * @param antecedent
@@ -3338,8 +3383,8 @@ public class KB extends AbstractKB {
 	 * @return
 	 */
 	public Int2ObjectMap<IntSet> difference(int var1,
-											int var2, List<int[]> antecedent,
-											int[] head) {
+			int var2, List<int[]> antecedent,
+			int[] head) {
 		// Look for all bindings for the variables that appear on the antecedent
 		// but not in the head
 		List<int[]> headList = new ArrayList<int[]>(1);
@@ -3350,6 +3395,7 @@ public class KB extends AbstractKB {
 	/**
 	 * Bindings of the projection variables that satisfy the first list of atoms
 	 * but not the atom 'head'.
+	 * 
 	 * @param var1
 	 * @param var2
 	 * @param antecedent
@@ -3357,15 +3403,17 @@ public class KB extends AbstractKB {
 	 * @return
 	 */
 	public Int2ObjectMap<IntSet> differenceNoVarsInCommon(CharSequence var1,
-														  CharSequence var2, List<? extends CharSequence[]> antecedent,
-														  CharSequence[] head) {
+			CharSequence var2, List<? extends CharSequence[]> antecedent,
+			CharSequence[] head) {
 		return differenceNoVarsInCommon(compress(var1), compress(var2), triples(antecedent), triple(head));
 	}
 
 	/**
 	 * Bindings of the projection variables that satisfy the first list of atoms
-	 * but not the atom 'head'. Special case of the difference where the head atom does
+	 * but not the atom 'head'. Special case of the difference where the head atom
+	 * does
 	 * not contain the projection variables.
+	 * 
 	 * @param var1
 	 * @param var2
 	 * @param antecedent
@@ -3373,8 +3421,8 @@ public class KB extends AbstractKB {
 	 * @return
 	 */
 	public Int2ObjectMap<IntSet> differenceNoVarsInCommon(int var1,
-														  int var2, List<int[]> antecedent,
-														  int[] head) {
+			int var2, List<int[]> antecedent,
+			int[] head) {
 		// Look for all bindings for the variables that appear on the antecedent
 		// but not in the head
 		List<int[]> headList = new ArrayList<int[]>(1);
@@ -3383,14 +3431,13 @@ public class KB extends AbstractKB {
 		wholeQuery.add(head);
 		Int2ObjectMap<IntSet> results = new Int2ObjectOpenHashMap<IntSet>();
 
-		Int2ObjectMap<IntSet> antecedentBindings =
-				selectDistinct(var1, var2, antecedent);
-		try(Instantiator insty1 = new Instantiator(wholeQuery, var1);
-			Instantiator insty2 = new Instantiator(wholeQuery, var2)) {
+		Int2ObjectMap<IntSet> antecedentBindings = selectDistinct(var1, var2, antecedent);
+		try (Instantiator insty1 = new Instantiator(wholeQuery, var1);
+				Instantiator insty2 = new Instantiator(wholeQuery, var2)) {
 			for (int val1 : antecedentBindings.keySet()) {
 				insty1.instantiate(val1);
 				IntSet nestedValues = new IntOpenHashSet();
-				for(int val2 : antecedentBindings.get(val1)) {
+				for (int val2 : antecedentBindings.get(val1)) {
 					insty2.instantiate(val2);
 					if (!existsBS1(wholeQuery)) {
 						nestedValues.add(val2);
@@ -3408,6 +3455,7 @@ public class KB extends AbstractKB {
 	/**
 	 * Bindings of the projection variables that satisfy the first list of atoms
 	 * but not the second.
+	 * 
 	 * @param var1
 	 * @param var2
 	 * @param antecedent
@@ -3415,8 +3463,8 @@ public class KB extends AbstractKB {
 	 * @return
 	 */
 	public Int2ObjectMap<IntSet> difference(int var1,
-											int var2, List<int[]> antecedent,
-											List<int[]> headList) {
+			int var2, List<int[]> antecedent,
+			List<int[]> headList) {
 		Int2ObjectMap<IntSet> bodyBindings = selectDistinct(
 				var1, var2, antecedent);
 		Int2ObjectMap<IntSet> headBindings = selectDistinct(
@@ -3450,6 +3498,7 @@ public class KB extends AbstractKB {
 	/**
 	 * Bindings of the projection variables that satisfy the first list of atoms
 	 * but not the atom 'head'.
+	 * 
 	 * @param var1
 	 * @param var2
 	 * @param var3
@@ -3467,6 +3516,7 @@ public class KB extends AbstractKB {
 	/**
 	 * Bindings of the projection variables that satisfy the first list of atoms
 	 * but not the atom 'head'
+	 * 
 	 * @param var1
 	 * @param var2
 	 * @param var3
@@ -3493,25 +3543,21 @@ public class KB extends AbstractKB {
 			for (int val1 : bodyBindings.keySet()) {
 				if (headBindings.containsKey(val1)) {
 					// Check at the next level
-					Int2ObjectMap<IntSet> tailBody =
-							bodyBindings.get(val1);
-					Int2ObjectMap<IntSet> tailHead =
-							headBindings.get(val1);
+					Int2ObjectMap<IntSet> tailBody = bodyBindings.get(val1);
+					Int2ObjectMap<IntSet> tailHead = headBindings.get(val1);
 					for (int val2 : tailBody.keySet()) {
 						if (tailHead.containsKey(val2)) {
 							IntSet tailBody1 = tailBody.get(val2);
 							IntSet headBody1 = tailHead.get(val2);
 							for (int val3 : tailBody1) {
 								if (!headBody1.contains(val3)) {
-									Int2ObjectMap<IntSet> secondLevel =
-											results.get(val1);
+									Int2ObjectMap<IntSet> secondLevel = results.get(val1);
 									if (secondLevel == null) {
 										secondLevel = new Int2ObjectOpenHashMap<IntSet>();
 										results.put(val1, secondLevel);
 									}
 
-									IntSet thirdLevel =
-											secondLevel.get(val2);
+									IntSet thirdLevel = secondLevel.get(val2);
 									if (thirdLevel == null) {
 										thirdLevel = new IntOpenHashSet();
 										secondLevel.put(val2, thirdLevel);
@@ -3521,8 +3567,7 @@ public class KB extends AbstractKB {
 								}
 							}
 						} else {
-							Int2ObjectMap<IntSet> secondLevel =
-									results.get(val1);
+							Int2ObjectMap<IntSet> secondLevel = results.get(val1);
 							if (secondLevel == null) {
 								secondLevel = new Int2ObjectOpenHashMap<IntSet>();
 								results.put(val1, secondLevel);
@@ -3563,7 +3608,6 @@ public class KB extends AbstractKB {
 		return results;
 	}
 
-
 	// ---------------------------------------------------------------------------
 	// Difference with 4 variables
 	// ---------------------------------------------------------------------------
@@ -3586,16 +3630,14 @@ public class KB extends AbstractKB {
 	public Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> difference(
 			int var1, int var2, int var3, int var4,
 			List<int[]> antecedent, int[] head) {
-		Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> results = new
-				Int2ObjectOpenHashMap<Int2ObjectMap<Int2ObjectMap<IntSet>>>();
+		Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> results = new Int2ObjectOpenHashMap<Int2ObjectMap<Int2ObjectMap<IntSet>>>();
 
 		int headNumVars = numVariables(head);
 		if (headNumVars == 3) {
 			try (Instantiator insty = new Instantiator(antecedent, var1)) {
 				for (int val1 : selectDistinct(var1, antecedent)) {
 					insty.instantiate(val1);
-					Int2ObjectMap<Int2ObjectMap<IntSet>> diff =
-							difference(var2, var3, var4, antecedent, head);
+					Int2ObjectMap<Int2ObjectMap<IntSet>> diff = difference(var2, var3, var4, antecedent, head);
 					if (!diff.isEmpty()) {
 						results.put(val1, diff);
 					}
@@ -3604,16 +3646,13 @@ public class KB extends AbstractKB {
 		} else if (headNumVars == 2) {
 			try (Instantiator insty1 = new Instantiator(antecedent, var1)) {
 				try (Instantiator insty2 = new Instantiator(antecedent, var2)) {
-					Int2ObjectMap<IntSet> resultsTwoVars =
-							selectDistinct(var1, var2, antecedent);
+					Int2ObjectMap<IntSet> resultsTwoVars = selectDistinct(var1, var2, antecedent);
 					for (int val1 : resultsTwoVars.keySet()) {
 						insty1.instantiate(val1);
-						Int2ObjectMap<Int2ObjectMap<IntSet>> level1 =
-								new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
+						Int2ObjectMap<Int2ObjectMap<IntSet>> level1 = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 						for (int val2 : resultsTwoVars.get(val1)) {
 							insty2.instantiate(val2);
-							Int2ObjectMap<IntSet> diff =
-									difference(var3, var4, antecedent, head);
+							Int2ObjectMap<IntSet> diff = difference(var3, var4, antecedent, head);
 							if (!diff.isEmpty()) {
 								level1.put(val2, diff);
 							}
@@ -3630,14 +3669,15 @@ public class KB extends AbstractKB {
 		return results;
 	}
 
-
 	/**
-	 * It performs set difference for the case where the head contains 2 out of the 4 variables
+	 * It performs set difference for the case where the head contains 2 out of the
+	 * 4 variables
 	 * defined in the body.
-	 * @param var1 First variable, not occurring in the head
-	 * @param var2 Second variable, not occuring in the head
-	 * @param var3 First Variable occurring in both body and head
-	 * @param var4 Second Variable occuring in both body and head
+	 * 
+	 * @param var1       First variable, not occurring in the head
+	 * @param var2       Second variable, not occuring in the head
+	 * @param var3       First Variable occurring in both body and head
+	 * @param var4       Second Variable occuring in both body and head
 	 * @param antecedent
 	 * @param head
 	 * @return
@@ -3650,12 +3690,14 @@ public class KB extends AbstractKB {
 	}
 
 	/**
-	 * It performs set difference for the case where the head contains 2 out of the 4 variables
+	 * It performs set difference for the case where the head contains 2 out of the
+	 * 4 variables
 	 * defined in the body.
-	 * @param var1 First variable, not occurring in the head
-	 * @param var2 Second variable, not occurring in the head
-	 * @param var3 First Variable occurring in both body and head
-	 * @param var4 Second Variable occurring in both body and head
+	 * 
+	 * @param var1       First variable, not occurring in the head
+	 * @param var2       Second variable, not occurring in the head
+	 * @param var3       First Variable occurring in both body and head
+	 * @param var4       Second Variable occurring in both body and head
 	 * @param antecedent
 	 * @param head
 	 * @return
@@ -3664,8 +3706,7 @@ public class KB extends AbstractKB {
 			int var1, int var2, int var3, int var4,
 			List<int[]> antecedent, int[] head) {
 		int headNumVars = numVariables(head);
-		Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> results =
-				new Int2ObjectOpenHashMap<Int2ObjectMap<Int2ObjectMap<IntSet>>>();
+		Int2ObjectMap<Int2ObjectMap<Int2ObjectMap<IntSet>>> results = new Int2ObjectOpenHashMap<Int2ObjectMap<Int2ObjectMap<IntSet>>>();
 		List<int[]> wholeQuery = new ArrayList<int[]>(antecedent);
 		wholeQuery.add(head);
 
@@ -3674,8 +3715,7 @@ public class KB extends AbstractKB {
 				for (int val1 : selectDistinct(var1, antecedent)) {
 					insty.instantiate(val1);
 					if (!existsBS1(wholeQuery)) {
-						Int2ObjectMap<Int2ObjectMap<IntSet>> diff =
-								selectDistinct(var2, var3, var4, antecedent);
+						Int2ObjectMap<Int2ObjectMap<IntSet>> diff = selectDistinct(var2, var3, var4, antecedent);
 						results.put(val1, diff);
 					}
 				}
@@ -3686,13 +3726,11 @@ public class KB extends AbstractKB {
 					Int2ObjectMap<IntSet> resultsTwoVars = selectDistinct(var1, var2, antecedent);
 					for (int val1 : resultsTwoVars.keySet()) {
 						insty1.instantiate(val1);
-						Int2ObjectMap<Int2ObjectMap<IntSet>> level1 =
-								new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
+						Int2ObjectMap<Int2ObjectMap<IntSet>> level1 = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 						for (int val2 : resultsTwoVars.get(val1)) {
 							insty2.instantiate(val2);
 							if (!existsBS1(wholeQuery)) {
-								Int2ObjectMap<IntSet> diff =
-										selectDistinct(var3, var4, antecedent);
+								Int2ObjectMap<IntSet> diff = selectDistinct(var3, var4, antecedent);
 								level1.put(val2, diff);
 							}
 						}
@@ -3710,6 +3748,7 @@ public class KB extends AbstractKB {
 
 	/**
 	 * Counts the number of bindings in the given nested map.
+	 * 
 	 * @param bindings
 	 * @return
 	 */
@@ -3724,9 +3763,9 @@ public class KB extends AbstractKB {
 		return result;
 	}
 
-
 	/**
 	 * Get a collection with all the relations of the KB.
+	 * 
 	 * @return
 	 */
 	@Override
@@ -3737,6 +3776,7 @@ public class KB extends AbstractKB {
 	/**
 	 * It returns all the entities that occur as subjects or objects
 	 * in the KB.
+	 * 
 	 * @return
 	 */
 	public IntCollection getAllEntities() {
@@ -3748,6 +3788,7 @@ public class KB extends AbstractKB {
 
 	/**
 	 * It returns all the entities and the number of facts where they occur.
+	 * 
 	 * @return
 	 */
 	public Int2IntMap getEntitiesOccurrences() {
@@ -3757,25 +3798,27 @@ public class KB extends AbstractKB {
 		return result;
 	}
 
-
 	/**
 	 * It returns the number of facts for each of the entities in the
 	 * collection provided as argument.
+	 * 
 	 * @return
 	 */
 	public Int2IntMap getEntitiesOccurrences(IntCollection entities) {
 		Int2IntMap result = new Int2IntOpenHashMap();
 		for (int entity : entities) {
-			if (subjectSize.containsKey(entity)) increase(result, entity, subjectSize.get(entity));
-			if (objectSize.containsKey(entity)) increase(result, entity, objectSize.get(entity));
+			if (subjectSize.containsKey(entity))
+				increase(result, entity, subjectSize.get(entity));
+			if (objectSize.containsKey(entity))
+				increase(result, entity, objectSize.get(entity));
 		}
 		return result;
 	}
 
-
 	/**
 	 * Return all the relations (and their sizes) that are bigger than the given
 	 * threshold.
+	 * 
 	 * @param threshold
 	 * @return
 	 */
@@ -3783,8 +3826,7 @@ public class KB extends AbstractKB {
 		Int2IntMap relationsBiggerThan = new Int2IntOpenHashMap();
 		for (int relation : relation2subject2object.keySet()) {
 			int size = 0;
-			Int2ObjectMap<IntSet> tail =
-					relation2subject2object.get(relation);
+			Int2ObjectMap<IntSet> tail = relation2subject2object.get(relation);
 			for (int subject : tail.keySet()) {
 				size += tail.get(subject).size();
 				if (size >= threshold) {
@@ -3798,6 +3840,7 @@ public class KB extends AbstractKB {
 
 	/**
 	 * Get a list of the relations of the KB.
+	 * 
 	 * @return
 	 */
 	public IntList getRelationsList() {
@@ -3834,12 +3877,16 @@ public class KB extends AbstractKB {
 
 	/**
 	 * Given a relation returns the maximal number of object values such that
-	 * the right cumulative distribution of values is higher than threshold. For example given
+	 * the right cumulative distribution of values is higher than threshold. For
+	 * example given
 	 * the histogram {1: 3, 2: 4, 3: 5} and the right cumulative distribution
 	 * {0: 12, 1: 9, 2: 5} for the number of nationalities of people
-	 * maximalRightCumulativeCardinality(<isCitizenOf>, 5, 3) would return 2 as this is the
-	 * maximal entry in the cumulative distribution that is above the provided threshold (10)
+	 * maximalRightCumulativeCardinality(<isCitizenOf>, 5, 3) would return 2 as this
+	 * is the
+	 * maximal entry in the cumulative distribution that is above the provided
+	 * threshold (10)
 	 * and that is smaller than 3, the given limit.
+	 * 
 	 * @param relation
 	 * @param threshold
 	 * @param limit
@@ -3853,12 +3900,15 @@ public class KB extends AbstractKB {
 
 	/**
 	 * Given a relation returns the maximal number of subject values such that
-	 * the right cumulative distribution of values is higher than threshold. For example given
+	 * the right cumulative distribution of values is higher than threshold. For
+	 * example given
 	 * the histogram {1: 3, 2: 4, 3: 5} and the right cumulative distribution
 	 * {0: 12, 1: 9, 2: 5} for the number of parents of people
 	 * maximalCardinality(<hasChild>, 5, 3) would return 2 as this is the
-	 * maximal entry in the cumulative distribution that is above the provided threshold (10)
+	 * maximal entry in the cumulative distribution that is above the provided
+	 * threshold (10)
 	 * and smaller than the given limit 3.
+	 * 
 	 * @param relation
 	 * @param threshold
 	 * @param limit
@@ -3866,13 +3916,12 @@ public class KB extends AbstractKB {
 	 */
 	@Override
 	public int maximalRightCumulativeCardinalityInv(int relation, long threshold, int limit) {
-		Int2ObjectMap<IntSet> map =
-				get(relation2object2subject, relation);
+		Int2ObjectMap<IntSet> map = get(relation2object2subject, relation);
 		return maximalRightCumulativeCardinality(relation, threshold, map, limit);
 	}
 
 	private int maximalRightCumulativeCardinality(int relation, long threshold,
-												  Int2ObjectMap<IntSet> map, int iMaxThreshold) {
+			Int2ObjectMap<IntSet> map, int iMaxThreshold) {
 		IntHashMap<Integer> histogram = buildCumulativeHistogram(map);
 		List<Integer> keys = histogram.decreasingKeys();
 		Collections.sort(keys);
@@ -3889,9 +3938,13 @@ public class KB extends AbstractKB {
 	}
 
 	/**
-	 * It returns a histogram, where the keys are cardinalities and the values are the number of
-	 * instances in the map that have equal or fewer values than the key of the map. The entry [2: 20] in the
-	 * resulting map means that there are 20 keys in the map that have at most 2 values associated to them.
+	 * It returns a histogram, where the keys are cardinalities and the values are
+	 * the number of
+	 * instances in the map that have equal or fewer values than the key of the map.
+	 * The entry [2: 20] in the
+	 * resulting map means that there are 20 keys in the map that have at most 2
+	 * values associated to them.
+	 * 
 	 * @param map
 	 * @return
 	 */
@@ -3906,9 +3959,12 @@ public class KB extends AbstractKB {
 	}
 
 	/**
-	 * It returns a histogram for the number of values associated to each instance in the map.
-	 * For example the entry [2: 20] in the map means that there are 20 keys that have 2 values
+	 * It returns a histogram for the number of values associated to each instance
+	 * in the map.
+	 * For example the entry [2: 20] in the map means that there are 20 keys that
+	 * have 2 values
 	 * in the input map.
+	 * 
 	 * @param map
 	 * @return
 	 */
@@ -3921,43 +3977,46 @@ public class KB extends AbstractKB {
 	}
 
 	/**
-	 * Returns the maximal number of values an entity can have for the given relation.
+	 * Returns the maximal number of values an entity can have for the given
+	 * relation.
+	 * 
 	 * @param relation
 	 * @return
 	 */
 	@Override
 	public int maximalCardinality(int relation) {
-		Int2ObjectMap<IntSet> map =
-				get(relation2subject2object, relation);
+		Int2ObjectMap<IntSet> map = get(relation2subject2object, relation);
 		return maximalCardinality(relation, map);
 	}
 
 	/**
 	 * Returns the maximal number of values smaller than limit than
 	 * an entity can have for the given relation.
+	 * 
 	 * @param relation
 	 * @return
 	 */
 	@Override
 	public int maximalCardinality(int relation, int limit) {
-		Int2ObjectMap<IntSet> map =
-				get(relation2subject2object, relation);
+		Int2ObjectMap<IntSet> map = get(relation2subject2object, relation);
 		return maximalCardinality(relation, map, limit);
 	}
 
 	private int maximalCardinality(int relation,
-								   Int2ObjectMap<IntSet> map, int limit) {
+			Int2ObjectMap<IntSet> map, int limit) {
 		IntHashMap<Integer> histogram = buildHistogram(map);
 		List<Integer> keys = histogram.decreasingKeys();
 		Collections.sort(keys);
 		Object[] keysArray = keys.toArray();
 		int idx = Arrays.binarySearch(keysArray, limit);
 		int val = limit;
-		if (idx == -1) return val;
-		if (idx < -1) idx = -idx - 2;
+		if (idx == -1)
+			return val;
+		if (idx < -1)
+			idx = -idx - 2;
 		while (val >= limit &&
 				idx >= 0) {
-			val = ((Integer)keysArray[idx]);
+			val = ((Integer) keysArray[idx]);
 			--idx;
 		}
 		return val;
@@ -3965,15 +4024,13 @@ public class KB extends AbstractKB {
 
 	@Override
 	public int maximalCardinalityInv(int relation) {
-		Int2ObjectMap<IntSet> map =
-				get(relation2object2subject, relation);
+		Int2ObjectMap<IntSet> map = get(relation2object2subject, relation);
 		return maximalCardinality(relation, map);
 	}
 
 	@Override
 	public int maximalCardinalityInv(int relation, int limit) {
-		Int2ObjectMap<IntSet> map =
-				get(relation2object2subject, relation);
+		Int2ObjectMap<IntSet> map = get(relation2object2subject, relation);
 		return maximalCardinality(relation, map, limit);
 	}
 
@@ -3992,6 +4049,7 @@ public class KB extends AbstractKB {
 	/**
 	 * Returns a new KB containing the triples that are present in
 	 * the KBs.
+	 * 
 	 * @param otherKb
 	 * @return
 	 */
@@ -4023,6 +4081,7 @@ public class KB extends AbstractKB {
 
 	/**
 	 * Removes the given triple from the in-memory KB.
+	 * 
 	 * @param subject
 	 * @param predicate
 	 * @param object
@@ -4055,7 +4114,8 @@ public class KB extends AbstractKB {
 		Int2ObjectMap<IntSet> imap2 = index.get(s1);
 		IntSet imap3 = imap2.get(s2);
 		if (imap3 == null) {
-			System.out.println("Problem for prediction " + this.schema.unmap(s1) + " " + this.schema.unmap(s2) + " " + this.schema.unmap(s3));
+			System.out.println("Problem for prediction " + this.schema.unmap(s1) + " " + this.schema.unmap(s2) + " "
+					+ this.schema.unmap(s3));
 		}
 		imap3.remove(s3);
 		if (imap3.isEmpty()) {
@@ -4068,6 +4128,7 @@ public class KB extends AbstractKB {
 
 	/**
 	 * It outputs statistical information about the KB.
+	 * 
 	 * @param detailRelations If true, print also information about the relations
 	 */
 	public void summarize(boolean detailRelations) {
@@ -4080,7 +4141,7 @@ public class KB extends AbstractKB {
 			System.out.println("Relation\tTriples\tFunctionality"
 					+ "\tInverse functionality\tVariance\tInverse Variance"
 					+ "\tNumber of subjects\tNumber of objects");
-			for(int relation: relationSize.keySet()){
+			for (int relation : relationSize.keySet()) {
 				System.out.println(this.schema.unmap(relation) + "\t" + relationSize.get(relation) +
 						"\t" + functionality(relation) +
 						"\t" + inverseFunctionality(relation) +
@@ -4095,6 +4156,7 @@ public class KB extends AbstractKB {
 	/**
 	 * It outputs information about the distribution of the number of properties per
 	 * instance in relations.
+	 * 
 	 * @param useSignatureTypes
 	 */
 	public void summarizeDistributions(boolean useSignatureTypes) {
@@ -4109,7 +4171,7 @@ public class KB extends AbstractKB {
 			e.printStackTrace();
 			System.exit(2);
 		}
-        for (int relation : relationSize.keySet()) {
+		for (int relation : relationSize.keySet()) {
 			if (ommittedRelations.contains(relation))
 				continue;
 
@@ -4126,13 +4188,13 @@ public class KB extends AbstractKB {
 			if (useSignatureTypes) {
 				IntSet instances = null;
 				if (isFunctional) {
-					instances = this.schema.getDomainSet( this, relation);
+					instances = this.schema.getDomainSet(this, relation);
 					// We still intersect them with the entities we have in the KB
-					//instances.retainAll(subjectSize);
+					// instances.retainAll(subjectSize);
 				} else {
 					// We still intersect them with the entities we have in the KB
-					instances = this.schema.getRangeSet( this, relation);
-					//instances.retainAll(objectSize);
+					instances = this.schema.getRangeSet(this, relation);
+					// instances.retainAll(objectSize);
 				}
 				// Now count the instances not occurring in the relation.
 				for (int instance : instances) {
@@ -4140,9 +4202,11 @@ public class KB extends AbstractKB {
 						distribution.increase(0);
 						if (Math.random() >= 0.9) {
 							if (isFunctional)
-								writer.write(this.schema.unmap(instance) + "\t" + this.schema.unmap(relation) + "\t" + "NULL\n");
+								writer.write(this.schema.unmap(instance) + "\t" + this.schema.unmap(relation) + "\t"
+										+ "NULL\n");
 							else
-								writer.write("NULL" + "\t" + this.schema.unmap(relation) + "\t" + this.schema.unmap(instance) + "\n");
+								writer.write("NULL" + "\t" + this.schema.unmap(relation) + "\t"
+										+ this.schema.unmap(instance) + "\n");
 						}
 					}
 				}
@@ -4161,9 +4225,9 @@ public class KB extends AbstractKB {
 		dump(System.out);
 	}
 
-
 	/**
 	 * Dump the contents of the in-memory KB in TSV format into a PrintStream
+	 * 
 	 * @param out
 	 */
 	public void dump(PrintStream out) {
@@ -4179,6 +4243,7 @@ public class KB extends AbstractKB {
 
 	/**
 	 * Returns true if the KB contains at least one fact with this relation
+	 * 
 	 * @param relation
 	 * @return
 	 */
@@ -4191,18 +4256,17 @@ public class KB extends AbstractKB {
 	 */
 	public void summarizeTypes() {
 		if (relation2object2subject.containsKey(this.schema.typeRelationBS)) {
-			Int2ObjectMap<IntSet> map =
-					relation2object2subject.get(this.schema.typeRelationBS);
+			Int2ObjectMap<IntSet> map = relation2object2subject.get(this.schema.typeRelationBS);
 			for (int type : map.keySet()) {
 				System.out.println(this.schema.unmap(type) + "\t" + map.get(type).size());
 			}
 		}
 	}
 
-
 	/**
 	 * Returns a new KB containing the entities that are not present in
 	 * the KBs.
+	 * 
 	 * @param oldEntities
 	 * @return
 	 */
@@ -4217,7 +4281,8 @@ public class KB extends AbstractKB {
 				triple[1] = predicate;
 				for (int object : tail.get(predicate)) {
 					triple[2] = object;
-					if ((newEntities.contains(subject) && !oldEntities.contains(subject)) || (newEntities.contains(object) && !oldEntities.contains(object))) {
+					if ((newEntities.contains(subject) && !oldEntities.contains(subject))
+							|| (newEntities.contains(object) && !oldEntities.contains(object))) {
 						result.add(triple);
 					}
 				}
@@ -4241,20 +4306,18 @@ public class KB extends AbstractKB {
 	}
 
 	@Override
-	public int map(String e){
+	public int map(String e) {
 		return schema.map(e);
 	}
 
-	public int map(CharSequence cs){
+	public int map(CharSequence cs) {
 		return schema.map(cs);
 	}
 
 	@Override
-	public String unmap(int e){
-		return schema.unmap(e) ;
+	public String unmap(int e) {
+		return schema.unmap(e);
 	}
-
-
 
 	public IntSet getRelationSet() {
 		return new IntOpenHashSet(relationSize.keySet());
@@ -4265,7 +4328,7 @@ public class KB extends AbstractKB {
 	}
 
 	public static void main(String[] args) {
-		System.out.println(Arrays.binarySearch(new int[]{3, 4}, 1));
+		System.out.println(Arrays.binarySearch(new int[] { 3, 4 }, 1));
 
 	}
 }

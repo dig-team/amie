@@ -851,7 +851,7 @@ public class AMIE {
             miniAMIE.MaxRuleSize = maxDepth ;
             miniAMIE.MinSup = minSup ;
             miniAMIE.kb = dataSource ;
-
+            miniAMIE.NThreads = nThreads ;
             miniAMIE.Verbose = cli.hasOption(AMIEOptions.MINI_AMIE_VERBOSE.getOpt()) ;
             String miniAMIECompareToGroundTruthOption = AMIEOptions.MINI_AMIE_COMPARE_TO_GROUND_TRUTH.getOpt();
             miniAMIE.CompareToGroundTruth = cli.hasOption(miniAMIECompareToGroundTruthOption) ;

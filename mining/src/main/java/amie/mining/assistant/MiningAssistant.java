@@ -201,6 +201,11 @@ public class MiningAssistant {
 	protected boolean ommitStdConfidence;
 
 	/**
+	 * Do not calculate PCA confidence.
+	 */
+	protected boolean ommitPCAConfidence;
+
+	/**
 	 * Sequence of mining operators to be applied to a rule.
 	 */
 	private LinkedList<Method> miningOperators;
@@ -730,12 +735,19 @@ public class MiningAssistant {
 	 * @param candidate
 	 */
 	public void calculateConfidenceMetrics(Rule candidate) {
-		if (this.ommitStdConfidence) {
-			candidate.setBodySize((long) candidate.getSupport() * 2);
-		} else {
+		boolean rule_will_be_ignored;
+		if (!this.ommitStdConfidence) {
 			computeStandardConfidence(candidate);
+			rule_will_be_ignored = candidate.getStdConfidence() >= this.minStdConfidence;
+		} else {
+			rule_will_be_ignored = true;
 		}
-		computePCAConfidence(candidate);
+
+		// If we want to calculate the PCA and we know the rule will not be pruned by
+		// the standard confidence
+		if (!this.ommitPCAConfidence && !rule_will_be_ignored) {
+			computePCAConfidence(candidate);
+		}
 	}
 
 	/**
@@ -1644,6 +1656,14 @@ public class MiningAssistant {
 		return this.ommitStdConfidence;
 	}
 
+	public void setOmmitPCAConfidence(boolean ommitPCAConfidence) {
+		this.ommitPCAConfidence = ommitPCAConfidence;
+	}
+
+	public boolean isOmmitPCAConfidence() {
+		return this.ommitPCAConfidence;
+	}
+
 	public boolean isUseSkylinePruning() {
 		return useSkylinePruning;
 	}
@@ -1660,6 +1680,7 @@ public class MiningAssistant {
 		try {
 			Map<String, Object> args = new HashMap<>();
 			args.put("ommitStd", (Boolean) this.ommitStdConfidence);
+			args.put("ommitPCA", (Boolean) this.ommitStdConfidence);
 			this.formatter = RuleFormatterFactory.getFormatter(outputFormat, this.verbose, args);
 		} catch (Exception e) {
 			System.err.println("Unknown output formatter " + outputFormat + ": Using default formatter");

@@ -586,6 +586,7 @@ public class AMIE {
         boolean enforceConstants = false;
         boolean avoidUnboundTypeAtoms = true;
         boolean ommitStdConfidence = false;
+        boolean ommitPCAConfidence = false;
         boolean adaptiveInstantiations = false;
         /**
          * System performance measure *
@@ -910,6 +911,7 @@ public class AMIE {
         realTime = !cli.hasOption(AMIEOptions.OUTPUT_AT_END.getOpt());
         enforceConstants = cli.hasOption(AMIEOptions.ONLY_CONSTANTS.getOpt());
         ommitStdConfidence = cli.hasOption(AMIEOptions.OMMIT_STD_CONF.getOpt());
+        ommitPCAConfidence = cli.hasOption(AMIEOptions.OMMIT_PCA_CONF.getOpt());
         adaptiveInstantiations = cli.hasOption(AMIEOptions.ADAPTATIVE_INSTANTIATIONS.getOpt());
 
         // These configurations override others
@@ -971,6 +973,7 @@ public class AMIE {
         mineAssistant.setEnablePerfectRules(enablePerfectRulesPruning);
         mineAssistant.setVerbose(verbose);
         mineAssistant.setOmmitStdConfidence(ommitStdConfidence);
+        mineAssistant.setOmmitPCAConfidence(ommitPCAConfidence);
         mineAssistant.setOptimAdaptiveInstantiations(adaptiveInstantiations);
         mineAssistant.setUseSkylinePruning(!cli.hasOption(AMIEOptions.NO_SKYLINE.getOpt()));
         mineAssistant.setFormatter(outputFormat);

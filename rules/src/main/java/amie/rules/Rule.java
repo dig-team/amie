@@ -237,7 +237,7 @@ public class Rule {
         this.bodySize = -1;
         this.highestVariable = 0; // The character before letter 'a'
         this.highestVariableSuffix = 0;
-        this.pcaBodySize = 0.0;
+        this.pcaBodySize = -1.0;
         this.stdConfidenceUpperBound = 0.0;
         this.pcaConfidenceUpperBound = 0.0;
         this.pcaConfidenceEstimation = 0.0;
@@ -259,7 +259,8 @@ public class Rule {
         this.initialSupport = (int) cardinality;
         this.triples.add(headAtom.clone());
         this.functionalVariablePosition = 0;
-        this.bodySize = 0;
+        this.bodySize = -1;
+        this.pcaBodySize = -1.0;
         this.highestVariable = 0; // The character before letter 'a'
         this.highestVariableSuffix = 0;
         computeHeadKey();
@@ -289,6 +290,7 @@ public class Rule {
         this.functionalVariablePosition = otherQuery.functionalVariablePosition;
         computeHeadKey();
         this.bodySize = -1;
+        this.pcaBodySize = -1.0;
         this.highestVariable = otherQuery.highestVariable;
         this.highestVariableSuffix = otherQuery.highestVariableSuffix;
         this.stdConfidenceUpperBound = 0.0;
@@ -311,6 +313,7 @@ public class Rule {
         this.initialSupport = (int) cardinality;
         this.functionalVariablePosition = 0;
         this.bodySize = -1;
+        this.pcaBodySize = -1.0;
         this.stdConfidenceUpperBound = 0.0;
         this.pcaConfidenceUpperBound = 0.0;
         this.pcaConfidenceEstimation = 0.0;
@@ -510,7 +513,7 @@ public class Rule {
      * @return the confidence
      */
     public double getStdConfidence() {
-        return (double) support / bodySize;
+        return support / bodySize;
     }
 
     /**

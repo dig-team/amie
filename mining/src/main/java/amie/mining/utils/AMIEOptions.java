@@ -166,8 +166,11 @@ public interface AMIEOptions {
         Option OUTPUT_FILE = new Option("ofile", "output-file", true,
                         "Output file to store the rules");
 
-        Option OMMIT_STD_CONF = new Option("ostd", "ommit-std-conf", false,
+        Option OMMIT_STD_CONF = new Option("omstd", "ommit-std-conf", false,
                         "Do not calculate standard confidence");
+
+        Option OMMIT_PCA_CONF = new Option("ompca", "ommit-pca-conf", false,
+                        "Do not calculate PCA confidence");
 
         Option ADAPTATIVE_INSTANTIATIONS = new Option("optimai", "adaptive-instantiations", false,
                         "Prune instantiated rules that decrease too much the support of their parent rule (ratio 0.2)");
@@ -278,6 +281,7 @@ public interface AMIEOptions {
                 options.addOption(OUTPUT_FILE);
                 options.addOption(OUTPUT_FORMAT);
                 options.addOption(OMMIT_STD_CONF);
+                options.addOption(OMMIT_PCA_CONF);
                 options.addOption(ADAPTATIVE_INSTANTIATIONS);
                 options.addOption(MULTILINGUAL);
                 options.addOption(DELIMITER);

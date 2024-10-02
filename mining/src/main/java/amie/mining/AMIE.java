@@ -60,7 +60,7 @@ public class AMIE {
     /**
      * Default standard confidence threshold
      */
-    protected static final double DEFAULT_STD_CONFIDENCE = 0.1;
+    protected static final double DEFAULT_STD_CONFIDENCE = 0.0;
 
     /**
      * Default PCA confidence threshold

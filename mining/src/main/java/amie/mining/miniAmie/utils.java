@@ -1054,7 +1054,8 @@ public class utils {
                     String relationString = headParts[RELATION_POSITION];
                     String objectString = headParts[OBJECT_POSITION];
 
-                    if(!miniAMIE.RestrainedHead.isEmpty() &&
+                    if(miniAMIE.RestrainedHead != null &&
+                            !miniAMIE.RestrainedHead.isEmpty() &&
                             !Objects.equals(relationString, miniAMIE.RestrainedHead))
                         break ;
                     int subject = miniAMIE.kb.map(subjectString);

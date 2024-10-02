@@ -289,8 +289,6 @@ public class Rule {
         this.bodyMinusHeadSize = otherQuery.bodyMinusHeadSize;
         this.functionalVariablePosition = otherQuery.functionalVariablePosition;
         computeHeadKey();
-        this.bodySize = -1;
-        this.pcaBodySize = -1.0;
         this.highestVariable = otherQuery.highestVariable;
         this.highestVariableSuffix = otherQuery.highestVariableSuffix;
         this.stdConfidenceUpperBound = 0.0;
@@ -1286,7 +1284,7 @@ public class Rule {
                 strBuilder.append("\t" + df.format(getHeadCoverage()));
             if (!metricsList.contains(OutputColumn.StandardConfidence))
                 strBuilder.append("\t" + df.format(getStdConfidence()));
-            if (!metricsList.contains(OutputColumn.PCAConfidence))
+            if (!metricsList.contains(OutputColumn.PcaConfidence))
                 strBuilder.append("\t" + df.format(getPcaConfidence()));
             if (!metricsList.contains(OutputColumn.Support))
                 strBuilder.append("\t" + df1.format(getSupport()));
@@ -1317,7 +1315,7 @@ public class Rule {
                 strBuilder.append("\t" + df.format(getHeadCoverage()));
             if (!metricsList.contains(OutputColumn.StandardConfidence))
                 strBuilder.append("\t" + df.format(getStdConfidence()));
-            if (!metricsList.contains(OutputColumn.PCAConfidence))
+            if (!metricsList.contains(OutputColumn.PcaConfidence))
                 strBuilder.append("\t" + df.format(getPcaConfidence()));
             if (!metricsList.contains(OutputColumn.Support))
                 strBuilder.append("\t" + df.format(getSupport()));
@@ -1776,9 +1774,9 @@ public class Rule {
                 return (Double) this.getPcaBodySize();
             case PCAConfEstimation:
                 return (Double) this.pcaConfidenceEstimation;
-            case PCAConfidence:
+            case PcaConfidence:
                 return (Double) this.getPcaConfidence();
-            case PCAConfUpperBound:
+            case PcaConfUpperBound:
                 return (Double) this.pcaConfidenceUpperBound;
             case StandardConfidence:
                 return (Double) this.getStdConfidence();

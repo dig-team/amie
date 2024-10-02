@@ -988,13 +988,13 @@ public class AMIE {
         miner.setRealTime(realTime);
         miner.setSeeds(headTargetRelations);
 
-        if (minStdConf > 0.0) {
+        if (minStdConf > 0.0 && !ommitStdConfidence) {
             System.out.println("Filtering on standard confidence with minimum threshold " + minStdConf);
         } else {
             System.out.println("No minimum threshold on standard confidence");
         }
 
-        if (minPCAConf > 0.0) {
+        if (minPCAConf > 0.0 && !ommitPCAConfidence) {
             System.out.println("Filtering on PCA confidence with minimum threshold " + minPCAConf);
         } else {
             System.out.println("No minimum threshold on PCA confidence");
@@ -1053,6 +1053,7 @@ public class AMIE {
     }
 
     public void outputHeader() {
+        this.rulesOutputStream.println();
         this.rulesOutputStream.print(assistant.getFormatter().header());
     }
 

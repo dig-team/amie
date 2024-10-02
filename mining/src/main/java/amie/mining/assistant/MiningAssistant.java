@@ -735,18 +735,22 @@ public class MiningAssistant {
 	 * @param candidate
 	 */
 	public void calculateConfidenceMetrics(Rule candidate) {
-		boolean rule_will_be_ignored;
-		if (!this.ommitStdConfidence) {
-			computeStandardConfidence(candidate);
-			rule_will_be_ignored = candidate.getStdConfidence() >= this.minStdConfidence;
+		boolean rule_will_be_output;
+		if (this.ommitStdConfidence) {
+			rule_will_be_output = true;
 		} else {
-			rule_will_be_ignored = true;
+			computeStandardConfidence(candidate);
+			rule_will_be_output = candidate.getStdConfidence() >= this.minStdConfidence;
 		}
 
 		// If we want to calculate the PCA and we know the rule will not be pruned by
 		// the standard confidence
-		if (!this.ommitPCAConfidence && !rule_will_be_ignored) {
-			computePCAConfidence(candidate);
+		if (this.ommitPCAConfidence) {
+			return;
+		} else {
+			if (rule_will_be_output) {
+				computePCAConfidence(candidate);
+			}
 		}
 	}
 
@@ -1209,11 +1213,28 @@ public class MiningAssistant {
 	public boolean testConfidenceThresholds(Rule candidate) {
 		boolean addIt = true;
 
-		if (candidate.getStdConfidence() < minStdConfidence
-				|| candidate.getPcaConfidence() < minPcaConfidence) {
-			return false;
+		if (candidate.getStdConfidence() < 0.0) {
+			if (candidate.getPcaConfidence() < 0.0) {
+				// No enforceable thresholds
+				return true;
+			} 
+		} else {
+			if (candidate.getStdConfidence() < minStdConfidence) {
+				return false;
+			}	
 		}
 
+		if (candidate.getPcaConfidence() < 0.0) {
+			if (candidate.getStdConfidence() < 0.0) {
+				return true;
+			} 
+		} else {
+			if (candidate.getPcaConfidence() < minPcaConfidence) {
+				return false;
+			}
+		}
+
+		// If we are here it means there are enforceable thresholds and the rule passed them
 		if (useSkylinePruning) {
 			// Now check the confidence with respect to its ancestors
 			Set<Rule> ancestors = candidate.getAncestors();
@@ -1381,7 +1402,6 @@ public class MiningAssistant {
 	 * @return
 	 */
 	public double computePCAConfidence(Rule rule) {
-		// TODO Auto-generated method stub
 		List<int[]> antecedent = new ArrayList<int[]>();
 		antecedent.addAll(rule.getTriples().subList(1, rule.getTriples().size()));
 		int[] succedent = rule.getTriples().get(0);

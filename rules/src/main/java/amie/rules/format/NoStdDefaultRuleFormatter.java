@@ -25,7 +25,7 @@ public class NoStdDefaultRuleFormatter extends DefaultRuleFormatter {
 		}
 		if (this.ommitPCAConf) {
 		    ommittedCols.add(OutputColumn.PCABodySize);
-		    ommittedCols.add(OutputColumn.PCAConfidence);
+		    ommittedCols.add(OutputColumn.PcaConfidence);
 	    }
 	    
     	OutputColumn[] allMetrics = new OutputColumn[columns.length - ommittedCols.size()];

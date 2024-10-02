@@ -18,8 +18,8 @@ public abstract class RuleFormatter {
 	 */
 	public static final List<OutputColumn> headers = Arrays.asList(OutputColumn.Rule, OutputColumn.HeadCoverage,
 			OutputColumn.StandardConfidence,
-			OutputColumn.PCAConfidence, OutputColumn.Support, OutputColumn.BodySize, OutputColumn.PCABodySize,
-			OutputColumn.FunctionalVariable, OutputColumn.StdConfUpperBound, OutputColumn.PCAConfUpperBound,
+			OutputColumn.PcaConfidence, OutputColumn.Support, OutputColumn.BodySize, OutputColumn.PCABodySize,
+			OutputColumn.FunctionalVariable, OutputColumn.StdConfUpperBound, OutputColumn.PcaConfUpperBound,
 			OutputColumn.PCAConfEstimation);
 
 	protected static final HashMap<OutputColumn, String> formatMappings = new HashMap<>();
@@ -28,13 +28,13 @@ public abstract class RuleFormatter {
 		formatMappings.put(OutputColumn.Rule, "%s");
 		formatMappings.put(OutputColumn.HeadCoverage, "%f");
 		formatMappings.put(OutputColumn.StandardConfidence, "%f");
-		formatMappings.put(OutputColumn.PCAConfidence, "%f");
+		formatMappings.put(OutputColumn.PcaConfidence, "%f");
 		formatMappings.put(OutputColumn.Support, "%.0f");
 		formatMappings.put(OutputColumn.BodySize, "%d");
 		formatMappings.put(OutputColumn.PCABodySize, "%.0f");
 		formatMappings.put(OutputColumn.FunctionalVariable, "%d");
 		formatMappings.put(OutputColumn.StdConfUpperBound, "%f");
-		formatMappings.put(OutputColumn.PCAConfUpperBound, "%f");
+		formatMappings.put(OutputColumn.PcaConfUpperBound, "%f");
 		formatMappings.put(OutputColumn.PCAConfEstimation, "%f");
 	}
 

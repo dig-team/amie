@@ -521,6 +521,14 @@ public class Rule {
         return support / pcaBodySize;
     }
 
+    public boolean isStdConfidenceComputed() {
+        return bodySize > -1.0;
+    }
+
+    public boolean isPcaConfidenceComputed() {
+        return pcaBodySize > -1.0;
+    }
+
     public void setConfidenceRunningTime(double confidenceRunningTime) {
         this._confidenceRunningTime = confidenceRunningTime;
     }
@@ -1290,7 +1298,7 @@ public class Rule {
                 strBuilder.append("\t" + df1.format(getSupport()));
             if (!metricsList.contains(OutputColumn.BodySize))
                 strBuilder.append("\t" + df1.format(getBodySize()));
-            if (!metricsList.contains(OutputColumn.PCABodySize))
+            if (!metricsList.contains(OutputColumn.PcaBodySize))
                 strBuilder.append("\t" + df1.format(getPcaBodySize()));
             strBuilder.append("\t" + kb.unmap(getFunctionalVariable()));
             strBuilder.append("\t" + stdConfidenceUpperBound);
@@ -1321,7 +1329,7 @@ public class Rule {
                 strBuilder.append("\t" + df.format(getSupport()));
             if (!metricsList.contains(OutputColumn.BodySize))
                 strBuilder.append("\t" + getBodySize());
-            if (!metricsList.contains(OutputColumn.PCABodySize))
+            if (!metricsList.contains(OutputColumn.PcaBodySize))
                 strBuilder.append("\t" + df.format(getPcaBodySize()));
             strBuilder.append("\t" + kb.unmap(getFunctionalVariable()));
         }
@@ -1770,9 +1778,9 @@ public class Rule {
                 return (Double) this.getHeadCoverage();
             case Rule:
                 return this;
-            case PCABodySize:
+            case PcaBodySize:
                 return (Double) this.getPcaBodySize();
-            case PCAConfEstimation:
+            case PcaConfEstimation:
                 return (Double) this.pcaConfidenceEstimation;
             case PcaConfidence:
                 return (Double) this.getPcaConfidence();

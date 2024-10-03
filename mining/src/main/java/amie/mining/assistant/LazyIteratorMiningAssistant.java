@@ -26,35 +26,6 @@ public class LazyIteratorMiningAssistant extends LazyMiningAssistant {
     }
 
     /**
-     * It computes the standard and the PCA confidence of a given rule. It
-     * assumes the rule's cardinality (absolute support) is known.
-     *
-     * @param candidate
-     */
-    public void calculateConfidenceMetrics(Rule candidate) {
-        if (this.minPcaConfidence == 0) {
-            if (this.ommitStdConfidence) {
-                candidate.setBodySize((long) candidate.getSupport() * 2);
-                computePCAConfidence(candidate);
-            } else {
-                computeStandardConfidence(candidate);
-                if (candidate.getStdConfidence() >= this.minStdConfidence) {
-                    computePCAConfidence(candidate);
-                }
-            }
-        } else {
-            computePCAConfidence(candidate);
-            if (candidate.getPcaConfidence() >= this.minPcaConfidence) {
-                if (this.ommitStdConfidence) {
-                    candidate.setBodySize((long) candidate.getSupport() * 2);
-                } else {
-                    computeStandardConfidence(candidate);
-                }
-            }
-        }
-    }
-
-    /**
      * Returns the denominator of the PCA confidence expression for the
      * antecedent of a rule.
      *
@@ -67,19 +38,22 @@ public class LazyIteratorMiningAssistant extends LazyMiningAssistant {
      * @return
      */
     @Override
-    protected double computePcaBodySize(int var1, int var2, Rule query, List<int[]> antecedent, int[] existentialTriple, int nonExistentialPosition) {
+    protected double computePcaBodySize(int var1, int var2, Rule query, List<int[]> antecedent, int[] existentialTriple,
+            int nonExistentialPosition) {
         antecedent.add(existentialTriple);
         long t1 = System.currentTimeMillis();
         long result;
         if (this.minPcaConfidence > 0.0) {
-            result = this.kb.countDistinctPairsUpToWithIterator((long) Math.ceil(query.getSupport() / this.minPcaConfidence) + 1, var1, var2, antecedent);
+            result = this.kb.countDistinctPairsUpToWithIterator(
+                    (long) Math.ceil(query.getSupport() / this.minPcaConfidence) + 1, var1, var2, antecedent);
         } else {
             result = this.kb.countDistinctPairs(var1, var2, antecedent);
         }
         long t2 = System.currentTimeMillis();
         query.setPcaConfidenceRunningTime(t2 - t1);
         if ((t2 - t1) > 20000 && this.verbose) {
-            System.err.println("countPairs vars " + kb.unmap(var1) + ", " + kb.unmap(var2) + " in " + kb.toString(antecedent) + " has taken " + (t2 - t1) + " ms");
+            System.err.println("countPairs vars " + kb.unmap(var1) + ", " + kb.unmap(var2) + " in "
+                    + kb.toString(antecedent) + " has taken " + (t2 - t1) + " ms");
         }
         return result;
     }
@@ -98,14 +72,17 @@ public class LazyIteratorMiningAssistant extends LazyMiningAssistant {
         long t1 = System.currentTimeMillis();
         long result;
         if (this.minStdConfidence > 0.0) {
-            result = this.kb.countDistinctPairsUpToWithIterator((long) Math.ceil(query.getSupport() / this.minStdConfidence) + 1, var1, var2, query.getAntecedent());
+            result = this.kb.countDistinctPairsUpToWithIterator(
+                    (long) Math.ceil(query.getSupport() / this.minStdConfidence) + 1, var1, var2,
+                    query.getAntecedent());
         } else {
             result = this.kb.countDistinctPairs(var1, var2, query.getAntecedent());
         }
         long t2 = System.currentTimeMillis();
         query.setConfidenceRunningTime(t2 - t1);
         if ((t2 - t1) > 20000 && this.verbose) {
-            System.err.println("countPairs vars " + kb.unmap(var1) + ", " + kb.unmap(var2) + " in " + kb.toString(query.getAntecedent()) + " has taken " + (t2 - t1) + " ms");
+            System.err.println("countPairs vars " + kb.unmap(var1) + ", " + kb.unmap(var2) + " in "
+                    + kb.toString(query.getAntecedent()) + " has taken " + (t2 - t1) + " ms");
         }
         return result;
     }

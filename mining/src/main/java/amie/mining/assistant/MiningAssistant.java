@@ -961,7 +961,7 @@ public class MiningAssistant {
 	 */
 	public boolean calculateConfidenceBoundsAndApproximations(Rule candidate) {
 		if (enabledConfidenceUpperBounds) {
-			if (!calculateConfidenceBounds(candidate)) {
+			if (!testConfidenceBounds(candidate)) {
 				return false;
 			}
 		}
@@ -983,10 +983,9 @@ public class MiningAssistant {
 	 * 
 	 * @param candidate
 	 * @return boolean True if the confidence bounds are not applicable or they
-	 *         cannot
-	 *         find enough evidence to discard the rule.
+	 *         cannot find enough evidence to discard the rule.
 	 */
-	private boolean calculateConfidenceBounds(Rule candidate) {
+	private boolean testConfidenceBounds(Rule candidate) {
 		if (candidate.getRealLength() != 3) {
 			return true;
 		}
@@ -994,7 +993,7 @@ public class MiningAssistant {
 		int[] hardQueryInfo = null;
 		hardQueryInfo = kb.identifyHardQueryTypeI(candidate.getAntecedent());
 		if (hardQueryInfo != null) {
-			if (this.minPcaConfidence > 0) {
+			if (this.minPcaConfidence > 0.0 && !this.ommitPCAConfidence) {
 				double pcaConfUpperBound = getPcaConfidenceUpperBound(candidate);
 				if (pcaConfUpperBound < this.minPcaConfidence) {
 					if (this.verbose) {
@@ -1006,7 +1005,7 @@ public class MiningAssistant {
 				candidate.setPcaConfidenceUpperBound(pcaConfUpperBound);
 			}
 
-			if (this.minStdConfidence > 0) {
+			if (this.minStdConfidence > 0.0 && !this.ommitStdConfidence) {
 				double stdConfUpperBound = getStdConfidenceUpperBound(candidate);
 
 				if (stdConfUpperBound < this.minStdConfidence) {
@@ -1187,7 +1186,7 @@ public class MiningAssistant {
 				// Overlap between the body and the head * estimation of body size * duplicate
 				// elimination factor
 				double ratio = overlapHead * f4 * (ifuncOutputRelation / funcOutputRelation);
-				ratio = (double) candidate.getSupport() / ratio;
+				ratio = candidate.getSupport() / ratio;
 				candidate.setPcaEstimation(ratio);
 				if (ratio < minPcaConfidence) {
 					if (this.verbose) {
@@ -1217,28 +1216,32 @@ public class MiningAssistant {
 			if (candidate.getPcaConfidence() < 0.0) {
 				// No enforceable thresholds
 				return true;
-			} 
+			}
 		} else {
 			if (candidate.getStdConfidence() < minStdConfidence) {
 				return false;
-			}	
+			}
 		}
 
 		if (candidate.getPcaConfidence() < 0.0) {
 			if (candidate.getStdConfidence() < 0.0) {
 				return true;
-			} 
+			}
 		} else {
 			if (candidate.getPcaConfidence() < minPcaConfidence) {
 				return false;
 			}
 		}
 
-		// If we are here it means there are enforceable thresholds and the rule passed them
+		// If we are here it means there are enforceable thresholds and the rule passed
+		// them
 		if (useSkylinePruning) {
 			// Now check the confidence with respect to its ancestors
 			Set<Rule> ancestors = candidate.getAncestors();
 			for (Rule ancestor : ancestors) {
+				if (!shouldBeOutput(ancestor))
+					continue;
+
 				double ancestorConfidence = 0.0;
 				double ruleConfidence = 0.0;
 				if (this.confidenceMetric == ConfidenceMetric.PCAConfidence) {
@@ -1248,9 +1251,13 @@ public class MiningAssistant {
 					ancestorConfidence = ancestor.getStdConfidence();
 					ruleConfidence = candidate.getStdConfidence();
 				}
-				// Skyline technique on PCA confidence
-				if (shouldBeOutput(ancestor)
-						&& ruleConfidence <= ancestorConfidence) {
+				if (ancestorConfidence < 0.0) {
+					// It means the confidence scores has not really been calculated
+					continue;
+				}
+				// Skyline technique: if there is at least one more performant ancestor, do not
+				// output the rule
+				if (ruleConfidence <= ancestorConfidence) {
 					addIt = false;
 					break;
 				}
@@ -1389,7 +1396,7 @@ public class MiningAssistant {
 			countVariable = rule.getFunctionalVariable();
 		}
 		rule.setSupport(kb.countDistinct(countVariable, rule.getTriples()));
-		rule.setSupportRatio((double) rule.getSupport() / kb.size());
+		rule.setSupportRatio(rule.getSupport() / kb.size());
 		return rule.getSupport();
 	}
 
@@ -1700,7 +1707,7 @@ public class MiningAssistant {
 		try {
 			Map<String, Object> args = new HashMap<>();
 			args.put("ommitStd", (Boolean) this.ommitStdConfidence);
-			args.put("ommitPCA", (Boolean) this.ommitStdConfidence);
+			args.put("ommitPCA", (Boolean) this.ommitPCAConfidence);
 			this.formatter = RuleFormatterFactory.getFormatter(outputFormat, this.verbose, args);
 		} catch (Exception e) {
 			System.err.println("Unknown output formatter " + outputFormat + ": Using default formatter");

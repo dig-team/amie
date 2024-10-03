@@ -37,7 +37,7 @@ public class AnyBurlFormatter extends RuleFormatter {
 
 	@Override
 	public OutputColumn[] columns() {
-		return new OutputColumn[] { OutputColumn.PCABodySize, OutputColumn.Support,
+		return new OutputColumn[] { OutputColumn.PcaBodySize, OutputColumn.Support,
 				OutputColumn.PcaConfidence, OutputColumn.Rule };
 	}
 

@@ -24,18 +24,19 @@ public class NoStdDefaultRuleFormatter extends DefaultRuleFormatter {
 			ommittedCols.add(OutputColumn.StandardConfidence);
 		}
 		if (this.ommitPCAConf) {
-		    ommittedCols.add(OutputColumn.PCABodySize);
-		    ommittedCols.add(OutputColumn.PcaConfidence);
-	    }
-	    
-    	OutputColumn[] allMetrics = new OutputColumn[columns.length - ommittedCols.size()];
-	    while (i < allMetrics.length) {
-		    if (!ommittedCols.contains(columns[i])) {
-			    allMetrics[i] = columns[i];
-			    i++;
-		    }
-	    }
+			ommittedCols.add(OutputColumn.PcaBodySize);
+			ommittedCols.add(OutputColumn.PcaConfidence);
+		}
 
-    	return allMetrics;
-    }
+		OutputColumn[] allMetrics = new OutputColumn[columns.length - ommittedCols.size()];
+		int j = 0;
+		for (i = 0; i < columns.length; ++i) {
+			if (!ommittedCols.contains(columns[i])) {
+				allMetrics[j] = columns[i];
+				++j;
+			}
+		}
+
+		return allMetrics;
+	}
 }

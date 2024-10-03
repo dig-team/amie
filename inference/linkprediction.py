@@ -17,7 +17,7 @@ import pandas as pd
 train = "/home/lgalarra/Documents/git/mm-kge/data/wn18rr/train.tsv"
 filter_set = "/home/lgalarra/Documents/git/mm-kge/data/wn18rr/valid.tsv"
 target = "/home/lgalarra/Documents/git/mm-kge/data/wn18rr/test.tsv"
-rules = 'inference/rules-100'
+rules = 'inference/rules-amie-default-noconf'
 
 #data = pd.read_csv(train, delimiter='\t', header=None, dtype={0: str, 1: str, 2: str})
 #rules = pd.read_csv('inference/rules.tsv', delimiter='\t', header=None, dtype={0: int, 1: int, 2: float, 3: str})
@@ -31,7 +31,7 @@ options.set("loader.load_u_xxd_rules", False)
 
 loader = Loader(options=options.get("loader"))
 loader.load_data(data=train, filter=filter_set, target=target)
-loader.load_rules(rules='inference/rules-amie-constants')
+loader.load_rules(rules=rules)
 
 ranker = RankingHandler(options=options.get("ranking_handler"))
 ranker.calculate_ranking(loader=loader)

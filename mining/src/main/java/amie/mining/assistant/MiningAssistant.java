@@ -1077,7 +1077,7 @@ public class MiningAssistant {
 			denominator = denominator * term;
 		}
 
-		double estimatedPCA = (double) candidate.getSupport() / denominator;
+		double estimatedPCA = candidate.getSupport() / denominator;
 		candidate.setPcaEstimation(estimatedPCA);
 		if (estimatedPCA < this.minPcaConfidence) {
 			if (this.verbose) {
@@ -1210,11 +1210,11 @@ public class MiningAssistant {
 	 * @return
 	 */
 	public boolean testConfidenceThresholds(Rule candidate) {
-		boolean addIt = true;
+		boolean addIt = true; // By default we accept the rule
 
-		if (candidate.getStdConfidence() < 0.0) {
-			if (candidate.getPcaConfidence() < 0.0) {
-				// No enforceable thresholds
+		if (!candidate.isStdConfidenceComputed()) {
+			if (!candidate.isPcaConfidenceComputed()) {
+				// No enforceable thresholds, the rule passes the test
 				return true;
 			}
 		} else {
@@ -1223,8 +1223,9 @@ public class MiningAssistant {
 			}
 		}
 
-		if (candidate.getPcaConfidence() < 0.0) {
-			if (candidate.getStdConfidence() < 0.0) {
+		if (!candidate.isPcaConfidenceComputed()) {
+			// No enforceable thresholds, the rule passes the test
+			if (!candidate.isStdConfidenceComputed()) {
 				return true;
 			}
 		} else {
@@ -1244,14 +1245,17 @@ public class MiningAssistant {
 
 				double ancestorConfidence = 0.0;
 				double ruleConfidence = 0.0;
+				boolean ancestorConfidenceComputed = true;
 				if (this.confidenceMetric == ConfidenceMetric.PCAConfidence) {
 					ancestorConfidence = ancestor.getPcaConfidence();
 					ruleConfidence = candidate.getPcaConfidence();
+					ancestorConfidenceComputed = ancestor.isStdConfidenceComputed();
 				} else {
 					ancestorConfidence = ancestor.getStdConfidence();
 					ruleConfidence = candidate.getStdConfidence();
+					ancestorConfidenceComputed = ancestor.isPcaConfidenceComputed();
 				}
-				if (ancestorConfidence < 0.0) {
+				if (!ancestorConfidenceComputed) {
 					// It means the confidence scores has not really been calculated
 					continue;
 				}

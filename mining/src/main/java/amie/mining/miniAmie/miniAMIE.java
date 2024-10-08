@@ -3,12 +3,9 @@ package amie.mining.miniAmie;
 import amie.data.AbstractKB;
 import amie.data.javatools.datatypes.Pair;
 import amie.mining.assistant.DefaultMiningAssistant;
-import amie.rules.Metric;
+import amie.rules.PruningMetric;
 import amie.rules.Rule;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
@@ -26,7 +23,7 @@ public class miniAMIE {
     public static AbstractKB kb;
 
     public static int MaxRuleSize;
-    public static Metric PruningMetric ;
+    public static PruningMetric PM;
     public static int MinSup;
     public static double MinHC;
     public static int NThreads = 1;
@@ -165,7 +162,7 @@ public class miniAMIE {
 
     // TODO replace that with IsPrunedClosedRule static method attribute to avoid repeated PruningMetric check
     private static boolean IsKeptClosedRule(Rule rule) {
-        if(PruningMetric == Metric.Support)
+        if(PM == PruningMetric.Support)
             return ApproximateSupportClosedRule(rule) >= MinSup ;
         else
             return ApproximateHeadCoverageClosedRule(rule) >= MinHC ;
@@ -173,7 +170,7 @@ public class miniAMIE {
 
     // TODO replace that with IsPrunedOpenRule static method attribute to avoid repeated PruningMetric check
     private static boolean IsKeptOpenRule(Rule rule) {
-        if(PruningMetric == Metric.Support)
+        if(PM == PruningMetric.Support)
             return ApproximateSupportOpenRule(rule) >= MinSup ;
         else
             return ApproximateHeadCoverageOpenRule(rule) >= MinHC ;

@@ -84,6 +84,10 @@ public interface AMIEOptions {
                     "Provide a list of relation names separated by commas (incompatible with " +
                     "instantiation-excluded-relations). Example: <livesIn>,<bornIn>");
 
+    Option MAX_DEPTH_CONST = new Option("maxadc", "max-depth-constants", true,
+            "Maximum number of atoms in the antecedent and succedent of rules with constants (applicable to the anyburl rule biases)."
+                    + " Default: 3");
+
     Option MAX_DEPTH = new Option("maxad", "max-depth", true,
             "Maximum number of atoms in the antecedent and succedent of rules. Default: 3");
 
@@ -170,12 +174,14 @@ public interface AMIEOptions {
     Option VARIABLE_ORDER = new Option("vo", "variableOrder", true,
             "Define the order of the variable in counting query among: app, fun (default), ifun");
 
-    Option EXTRA_FILE = new Option("ef", "extraFile", true,
-            "An additional text file whose interpretation depends " +
-                    "on the selected mining assistant (bias)");
+    Option OUTPUT_FILE = new Option("ofile", "output-file", true,
+            "Output file to store the rules");
 
     Option OMMIT_STD_CONF = new Option("ostd", "ommit-std-conf", false,
             "Do not calculate standard confidence");
+
+    Option OMMIT_PCA_CONF = new Option("ompca", "ommit-pca-conf", false,
+            "Do not calculate PCA confidence");
 
     Option ADAPTATIVE_INSTANTIATIONS = new Option("optimai", "adaptive-instantiations", false,
             "Prune instantiated rules that decrease too much the support of their parent rule (ratio 0.2)");
@@ -214,7 +220,8 @@ public interface AMIEOptions {
             VERBOSE,
             DISABLE_QUERY_REWRITING,
             DELIMITER,
-            DATALOG
+            DATALOG,
+            OUTPUT_FILE
     ) ;
 
     static String FormatConfigIndentifier(CommandLine cli) {
@@ -264,6 +271,7 @@ public interface AMIEOptions {
         options.addOption(HEAD_EXCLUDED);
         options.addOption(INSTANTIATION_EXCLUDED);
         options.addOption(MAX_DEPTH);
+        options.addOption(MAX_DEPTH_CONST);
         options.addOption(MIN_PCA_CONFIDENCE);
         options.addOption(HEAD_TARGET_RELATIONS);
         options.addOption(BODY_TARGET_RELATIONS);
@@ -288,9 +296,10 @@ public interface AMIEOptions {
         options.addOption(NO_KB_EXISTS_DETECTION);
         options.addOption(NO_SKYLINE);
         options.addOption(VARIABLE_ORDER);
-        options.addOption(EXTRA_FILE);
+        options.addOption(OUTPUT_FILE);
         options.addOption(OUTPUT_FORMAT);
         options.addOption(OMMIT_STD_CONF);
+        options.addOption(OMMIT_PCA_CONF);
         options.addOption(ADAPTATIVE_INSTANTIATIONS);
         options.addOption(MULTILINGUAL);
         options.addOption(DELIMITER);

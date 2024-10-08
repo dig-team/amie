@@ -54,9 +54,7 @@ public class GlobalSearchResult {
             System.out.println("Run configuration :");
             String runConfigCsvHeader =
                     "MaxRuleSize" + CompareToGT.sep
-                            + "PruningMetric" + CompareToGT.sep
                             + "MinSup" + CompareToGT.sep
-                            + "MinHC" + CompareToGT.sep
                             + "NThreads" + CompareToGT.sep
                             + "ShowRealSupport" + CompareToGT.sep
                             + "ShowExplorationLayers" + CompareToGT.sep
@@ -76,9 +74,7 @@ public class GlobalSearchResult {
             outputConfigurationCsvWriter.write(runConfigCsvHeader);
             String runConfigCsvLine = "" +
                     MaxRuleSize + CompareToGT.sep
-                    + PM + CompareToGT.sep
                     + MinSup + CompareToGT.sep
-                    + MinHC + CompareToGT.sep
                     + NThreads + CompareToGT.sep
                     + ShowRealSupport + CompareToGT.sep
                     + ShowExplorationLayers + CompareToGT.sep

@@ -849,7 +849,10 @@ public class AMIE {
         if (cli.hasOption(AMIEOptions.MINI_AMIE.getOpt())) {
             System.out.println("Running mini-AMIE! Have fun.");
             miniAMIE.MaxRuleSize = maxDepth ;
+
+            miniAMIE.PruningMetric = pruningMetric ;
             miniAMIE.MinSup = minSup ;
+            miniAMIE.MinHC = minHeadCover ;
             miniAMIE.kb = dataSource ;
             miniAMIE.NThreads = nThreads ;
             miniAMIE.Verbose = cli.hasOption(AMIEOptions.MINI_AMIE_VERBOSE.getOpt()) ;

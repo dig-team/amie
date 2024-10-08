@@ -54,13 +54,13 @@ public class KB extends AbstractKB {
 	protected final Int2ObjectMap<Int2ObjectMap<IntSet>> subject2relation2object = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 
 	/** Index */
-	protected final Int2ObjectMap<Int2ObjectMap<IntSet>> relation2object2subject = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
+	public final Int2ObjectMap<Int2ObjectMap<IntSet>> relation2object2subject = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 
 	/** Index */
 	protected final Int2ObjectMap<Int2ObjectMap<IntSet>> object2subject2relation = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 
 	/** Index */
-	protected final Int2ObjectMap<Int2ObjectMap<IntSet>> relation2subject2object = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
+	public final Int2ObjectMap<Int2ObjectMap<IntSet>> relation2subject2object = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();
 
 	/** Index */
 	protected final Int2ObjectMap<Int2ObjectMap<IntSet>> object2relation2subject = new Int2ObjectOpenHashMap<Int2ObjectMap<IntSet>>();

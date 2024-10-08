@@ -845,25 +845,6 @@ public class AMIE {
             }
         }
 
-        // Mini-AMIE
-        if (cli.hasOption(AMIEOptions.MINI_AMIE.getOpt())) {
-            System.out.println("Running mini-AMIE! Have fun.");
-            miniAMIE.MaxRuleSize = maxDepth ;
-
-            miniAMIE.PruningMetric = pruningMetric ;
-            miniAMIE.MinSup = minSup ;
-            miniAMIE.MinHC = minHeadCover ;
-            miniAMIE.kb = dataSource ;
-            miniAMIE.NThreads = nThreads ;
-            miniAMIE.Verbose = cli.hasOption(AMIEOptions.MINI_AMIE_VERBOSE.getOpt()) ;
-            String miniAMIECompareToGroundTruthOption = AMIEOptions.MINI_AMIE_COMPARE_TO_GROUND_TRUTH.getOpt();
-            miniAMIE.CompareToGroundTruth = cli.hasOption(miniAMIECompareToGroundTruthOption) ;
-            miniAMIE.pathToGroundTruthRules = miniAMIE.CompareToGroundTruth ?
-                    cli.getOptionValue(miniAMIECompareToGroundTruthOption) : null ;
-            miniAMIE.Run() ;
-            return null ;
-        }
-
         if (cli.hasOption(AMIEOptions.MIN_SUPPORT.getOpt()) != cli.hasOption(AMIEOptions.MIN_HEAD_COVERAGE.getOpt())) {
             if (cli.hasOption(AMIEOptions.MIN_SUPPORT.getOpt())) {
                 metric = PruningMetric.Support;
@@ -893,6 +874,25 @@ public class AMIE {
             }
         }
         System.out.println("Using " + metric + " as pruning metric with minimum threshold " + minMetricValue);
+
+        // Mini-AMIE
+        if (cli.hasOption(AMIEOptions.MINI_AMIE.getOpt())) {
+            System.out.println("Running mini-AMIE! Have fun.");
+            miniAMIE.MaxRuleSize = maxDepth ;
+
+            miniAMIE.PM = metric ;
+            miniAMIE.MinSup = minSup ;
+            miniAMIE.MinHC = minHeadCover ;
+            miniAMIE.kb = dataSource ;
+            miniAMIE.NThreads = nThreads ;
+            miniAMIE.Verbose = cli.hasOption(AMIEOptions.MINI_AMIE_VERBOSE.getOpt()) ;
+            String miniAMIECompareToGroundTruthOption = AMIEOptions.MINI_AMIE_COMPARE_TO_GROUND_TRUTH.getOpt();
+            miniAMIE.CompareToGroundTruth = cli.hasOption(miniAMIECompareToGroundTruthOption) ;
+            miniAMIE.pathToGroundTruthRules = miniAMIE.CompareToGroundTruth ?
+                    cli.getOptionValue(miniAMIECompareToGroundTruthOption) : null ;
+            miniAMIE.Run() ;
+            return null ;
+        }
 
         if (cli.hasOption(AMIEOptions.BIAS.getOpt())) {
             bias = cli.getOptionValue(AMIEOptions.BIAS.getOpt());

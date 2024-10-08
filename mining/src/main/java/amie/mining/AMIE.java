@@ -855,7 +855,10 @@ public class AMIE {
         if (cli.hasOption(AMIEOptions.MINI_AMIE.getOpt())) {
             System.out.println("Running mini-AMIE! Have fun.");
             miniAMIE.MaxRuleSize = maxDepth ;
+
+            miniAMIE.PruningMetric = pruningMetric ;
             miniAMIE.MinSup = minSup ;
+            miniAMIE.MinHC = minHeadCover ;
             miniAMIE.kb = dataSource ;
             miniAMIE.NThreads = nThreads ;
             miniAMIE.Verbose = cli.hasOption(AMIEOptions.MINI_AMIE_VERBOSE.getOpt()) ;
@@ -1067,7 +1070,7 @@ public class AMIE {
     /**
      * It defines the stream on which the mined rules will be written.
      * By default this is System.out
-     * 
+     *
      * @param outStream
      */
     public void setRulesOutputStream(PrintStream outStream) {

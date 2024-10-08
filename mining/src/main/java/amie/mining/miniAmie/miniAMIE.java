@@ -46,9 +46,6 @@ public class miniAMIE {
 
     public static void Run() {
 
-
-
-        //
         List<Rule> groundTruthRules = new ArrayList<>();
         if (CompareToGroundTruth) {
             // Generating comparison map

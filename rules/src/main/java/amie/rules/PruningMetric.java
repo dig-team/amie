@@ -7,5 +7,7 @@ package amie.rules;
  *
  */
 public enum PruningMetric {
-	Support, HeadCoverage
+	Support, HeadCoverage,
+	// Mini-AMIE
+	ApproximateSupport, ApproximateHeadCoverage,
 }

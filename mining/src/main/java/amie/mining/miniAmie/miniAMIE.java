@@ -44,6 +44,34 @@ public class miniAMIE {
     protected static List<Integer> SelectedRelations = new ArrayList<>();
     protected static ThreadPoolExecutor executor;
 
+    protected static AtomicInteger totalSumExploredRules = new AtomicInteger();
+    protected static AtomicInteger totalSumExploredRulesAdjustedWithBidirectionality = new AtomicInteger();
+    protected static Lock lock = new ReentrantLock();
+    protected static CountDownLatch headLatch ;
+    protected static Set<Rule> exploringRules = new HashSet<>() ;
+    protected static List<Rule> finalRules = new ArrayList<>();
+
+    protected static class SubtreeExploration implements Callable<Void> {
+        Rule initRule ;
+        public SubtreeExploration(Rule initRule) {
+            this.initRule = initRule;
+        }
+        @Override
+        public Void call() throws Exception {
+            Thread.sleep(10);
+            ExplorationResult exploreChildrenResult = InitExploreChildren(initRule);
+            totalSumExploredRules.addAndGet(exploreChildrenResult.sumExploredRules);
+            totalSumExploredRulesAdjustedWithBidirectionality.addAndGet
+                    (exploreChildrenResult.sumExploredRulesAdjustedWithBidirectionality);
+            lock.lock();
+            finalRules.addAll(List.copyOf(exploreChildrenResult.finalRules));
+            exploringRules.remove(initRule);
+            lock.unlock();
+            headLatch.countDown();
+            return null ;
+        }
+    }
+
     public static void Run() {
 
         List<Rule> groundTruthRules = new ArrayList<>();
@@ -58,11 +86,10 @@ public class miniAMIE {
 
         SelectedRelations = SelectRelations();
 
-        Collection<Rule> initRules = GetInitRules(MinSup);
-        AtomicInteger totalSumExploredRules = new AtomicInteger();
-        AtomicInteger totalSumExploredRulesAdjustedWithBidirectionality = new AtomicInteger();
+        System.out.println("Using " + PM + " as pruning metric with minimum threshold " +
+                (PM == PruningMetric.ApproximateSupport || PM == PruningMetric.Support ? MinSup : MinHC));
 
-        List<Rule> finalRules = new ArrayList<>();
+        Collection<Rule> initRules = GetInitRules(MinSup);
 
         // Multicore execution
         System.out.println("Running mini-AMIE with " + NThreads + " threads.");
@@ -84,57 +111,29 @@ public class miniAMIE {
             }
         } else {
             try {
-                Lock lock = new ReentrantLock();
+
                 System.out.println("Exploring ...");
-                CountDownLatch headLatch = new CountDownLatch(initRules.size());
+                headLatch = new CountDownLatch(initRules.size());
                 executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(NThreads);
-                Set<Rule> exploringRules = new HashSet<>() ;
-                for (Rule rule : initRules) {
-                    exploringRules.add(rule);
-                    if (RestrainedHead == null || rule.toString().contains(RestrainedHead)) {
-                        executor.submit(() -> {
-                            try {
-//                                System.out.println(rule + " Thread " + Thread.currentThread().getName());
-//                                System.out.println(rule + " sub ");
-                                ExplorationResult exploreChildrenResult = InitExploreChildren(rule);
-//                                System.out.println(rule + " exploreChildrenResult "+exploreChildrenResult);
-                                totalSumExploredRules.addAndGet(exploreChildrenResult.sumExploredRules);
-//                                System.out.println(rule + " totalSumExploredRules "+totalSumExploredRules);
-                                totalSumExploredRulesAdjustedWithBidirectionality.addAndGet
-                                        (exploreChildrenResult.sumExploredRulesAdjustedWithBidirectionality);
-//                                System.out.println(rule + " totalSumExploredRulesAdjustedWithBidirectionality "
-//                                        +totalSumExploredRulesAdjustedWithBidirectionality);
 
-                                lock.lock();
-                                finalRules.addAll(List.copyOf(exploreChildrenResult.finalRules));
-//                                System.out.println(rule + " finalRules "+finalRules);
-                                exploringRules.remove(rule);
-                                lock.unlock();
-                                headLatch.countDown();
-                            } catch (Exception e) {
-                                System.err.println("Exception while exploring " + rule + " subtree");
-                                e.printStackTrace();
-                                System.exit(1);
-                            }
-                        });
-                    } else {
-                        System.out.println("Skipping rule " + rule + ".");
-                    }
+                for (Rule initRule : initRules) {
+                    exploringRules.add(initRule);
+                    if (RestrainedHead == null || initRule.toString().contains(RestrainedHead))
+                        executor
+                                .submit(new SubtreeExploration(initRule))
+                                .get(); // Exception can be raised from here
+                    else
+                        System.out.println("Skipping subtree " + initRule + ".");
                 }
-                if (!headLatch.await(5000, TimeUnit.MILLISECONDS)) {
-                    System.err.println("FAILED !! "
+                if (!headLatch.await(10, TimeUnit.MICROSECONDS))
+                    throw new TimeoutException(("Latch Timeout: "
                             + "\n latch value " + headLatch.getCount()
-                            + "\n tasks left : " + Arrays.toString(exploringRules.toArray())
-                            + "\n executor completed jobs : "
-                            + executor.getCompletedTaskCount()
+                            + "\n subtree(s) left : " + Arrays.toString(exploringRules.toArray())
+                            + "\n executor completed jobs : " + executor.getCompletedTaskCount()
                             + "/" + initRules.size()
-                            + "\n queue size " + executor.getQueue().size());
-                    System.exit(1);
-                }
-
-
+                            + "\n queue size " + executor.getQueue().size())) ;
             } catch (Exception e) {
-                System.err.println("Mini-AMIE multicore error: " + e.getMessage());
+                System.err.println("Mini-AMIE multicore error: \n" + e.getMessage());
                 System.exit(1);
             }
 
@@ -159,18 +158,44 @@ public class miniAMIE {
 
     // TODO replace that with IsPrunedClosedRule static method attribute to avoid repeated PruningMetric check
     private static boolean IsKeptClosedRule(Rule rule) {
-        if(PM == PruningMetric.Support)
-            return ApproximateSupportClosedRule(rule) >= MinSup ;
-        else
-            return ApproximateHeadCoverageClosedRule(rule) >= MinHC ;
+        switch(PM) {
+            case ApproximateSupport -> {
+                return ApproximateSupportClosedRule(rule) >= MinSup ;
+            }
+            case ApproximateHeadCoverage -> {
+                return ApproximateHeadCoverageClosedRule(rule) >= MinHC ;
+            }
+            case Support -> {
+                return RealSupport(rule) >= MinSup ;
+            }
+            case HeadCoverage -> {
+                return RealHeadCoverage(rule) >= MinHC ;
+            }
+            default -> {
+                return false;
+            }
+        }
     }
 
     // TODO replace that with IsPrunedOpenRule static method attribute to avoid repeated PruningMetric check
     private static boolean IsKeptOpenRule(Rule rule) {
-        if(PM == PruningMetric.Support)
-            return ApproximateSupportOpenRule(rule) >= MinSup ;
-        else
-            return ApproximateHeadCoverageOpenRule(rule) >= MinHC ;
+        switch(PM) {
+            case ApproximateSupport -> {
+                return ApproximateSupportOpenRule(rule) >= MinSup ;
+            }
+            case ApproximateHeadCoverage -> {
+                return ApproximateHeadCoverageOpenRule(rule) >= MinHC ;
+            }
+            case Support -> {
+                return RealSupport(rule) >= MinSup ;
+            }
+            case HeadCoverage -> {
+                return RealHeadCoverage(rule) >= MinHC ;
+            }
+            default -> {
+                return false;
+            }
+        }
     }
 
 

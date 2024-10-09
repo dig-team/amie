@@ -892,13 +892,24 @@ public class AMIE {
                     break;
             }
         }
-        System.out.println("Using " + metric + " as pruning metric with minimum threshold " + minMetricValue);
 
         // Mini-AMIE
         if (cli.hasOption(AMIEOptions.MINI_AMIE.getOpt())) {
             System.out.println("Running mini-AMIE! Have fun.");
             miniAMIE.MaxRuleSize = maxDepth ;
-
+            if (!cli.hasOption(AMIEOptions.PRUNING_METRIC.getOpt()) ) {
+                // Default pruning metric for mini-AMIE is ApproximateSupport
+                metric = PruningMetric.ApproximateSupport ;
+            } else {
+                String pm = cli.getOptionValue(AMIEOptions.PRUNING_METRIC.getOpt()) ;
+                switch (pm) {
+                    case "support" ->  metric = PruningMetric.Support;
+                    case "hc" -> metric = PruningMetric.HeadCoverage;
+                    case "appsupport" -> metric = PruningMetric.ApproximateSupport;
+                    case "apphc" -> metric = PruningMetric.ApproximateHeadCoverage;
+                    default -> throw new IOException("Mini-AMIE : Unrecognized pruning metric \"" + pm + "\"") ;
+                }
+            }
             miniAMIE.PM = metric ;
             miniAMIE.MinSup = minSup ;
             miniAMIE.MinHC = minHeadCover ;
@@ -912,6 +923,7 @@ public class AMIE {
             miniAMIE.Run() ;
             return null ;
         }
+        System.out.println("Using " + metric + " as pruning metric with minimum threshold " + minMetricValue);
 
         if (cli.hasOption(AMIEOptions.BIAS.getOpt())) {
             bias = cli.getOptionValue(AMIEOptions.BIAS.getOpt());

@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.ints.*;
 
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -77,7 +78,7 @@ public class utils {
     }
 
     // bidirectionalityMap stores function result to avoid computing the same unions multiple times
-    public static HashMap<Integer, Boolean> bidirectionalityMap = new HashMap<>();
+    public static ConcurrentHashMap<Integer, Boolean> bidirectionalityMap = new ConcurrentHashMap<>();
 
     public static final double BidirectionalityJaccardThreshold = 0.95;
     private static boolean isBidirectional(int relation) {

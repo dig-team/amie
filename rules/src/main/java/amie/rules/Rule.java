@@ -1383,6 +1383,34 @@ public class Rule {
     }
 
     /**
+     * It returns a datalog-like representation of the rule of the form
+     * r(X, Y) <= r1(X, A1) .... rn(An, Y) 
+     * @param includeSpecialAtoms
+     * @return
+     */
+    public String getDatalogPathString() {
+        if (!containsSinglePath()) {
+            return getDatalogString(false);
+        }
+
+        StringBuilder builder = new StringBuilder();
+        builder.append(toDatalog(getHead()));
+        builder.append(" <=");
+        List<int[]> atomsInBodyPath = getCanonicalPath(false);
+        for (int[] atom : atomsInBodyPath) {
+            builder.append(" ");
+            builder.append(toDatalog(atom));
+            builder.append(",");
+        }
+
+        if (builder.charAt(builder.length() - 1) == ',') {
+            builder.deleteCharAt(builder.length() - 1);
+        }
+
+        return builder.toString();
+    }
+
+    /**
      * Returns a new query where the variable at the dangling position of the
      * last atom has been unified to the provided constant.
      *
@@ -1495,7 +1523,6 @@ public class Rule {
     }
 
     public void setPcaConfidenceUpperBound(double pcaConfUpperBound) {
-        // TODO Auto-generated method stub
         this.pcaConfidenceUpperBound = pcaConfUpperBound;
     }
 
@@ -1632,13 +1659,24 @@ public class Rule {
      * Given a rule that contains a single variables path for the head variables
      * in the body (the method containsSinglePath returns true), it returns the
      * atoms sorted so that the path can be reproduced.
-     *
-     * @return
+     * Note: This function assumes the rule can be expressed as a path, hence
+     * its results with other types of rules, such as rules with constants, are unknown. 
+     * 
+     * @param startFromFunctionalVariable
+     * @return The atoms of the rules sorted to form a parth
      */
-    public List<int[]> getCanonicalPath() {
+    public List<int[]> getCanonicalPath(boolean startFromFunctionalVariable) {
+        int funcVar = 0;
+        int nonFuncVar = 0;
         // First check the most functional variable
-        int funcVar = getFunctionalVariable();
-        int nonFuncVar = getNonFunctionalVariable();
+        if (startFromFunctionalVariable) {
+            funcVar = getFunctionalVariable();
+            nonFuncVar = getNonFunctionalVariable();
+        } else {
+            funcVar = getHead()[0];
+            nonFuncVar = getHead()[2];
+        }
+
         List<int[]> body = getBody();
         Int2ObjectMap<List<int[]>> variablesToAtom = new Int2ObjectOpenHashMap<>(triples.size(), 1.0f);
         List<int[]> path = new ArrayList<>();

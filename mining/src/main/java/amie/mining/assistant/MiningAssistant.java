@@ -1044,7 +1044,7 @@ public class MiningAssistant {
 		double denominator = 1.0;
 		// If the approximation is applicable, let's reorder the atoms in the canonical
 		// way
-		List<int[]> path = candidate.getCanonicalPath();
+		List<int[]> path = candidate.getCanonicalPath(true);
 		// Let's calculate the first term.
 		int r1 = path.get(0)[1];
 		int rh = candidate.getHead()[1];

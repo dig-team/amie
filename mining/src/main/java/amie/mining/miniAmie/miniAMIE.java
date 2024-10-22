@@ -15,6 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static amie.mining.miniAmie.CompareToGT.PrintComparisonCSV;
 import static amie.mining.miniAmie.GlobalSearchResult.PrintGlobalSearchResultCSV;
+import static amie.mining.miniAmie.OutputRules.PrintOutputCSV;
 import static amie.mining.miniAmie.utils.*;
 import static amie.mining.miniAmie.utils.ApproximateSupportClosedRule;
 
@@ -32,11 +33,18 @@ public class miniAMIE {
     public static boolean Verbose = false;
     public static double ErrorRateThreshold = 0.5;
     public static boolean CompareToGroundTruth = false;
+    public static boolean OutputRules = true ;
     public static String RestrainedHead;
     public static String pathToGroundTruthRules;
-    static String suffix = Instant.now().toString().replace(" ", "_") + ".csv";
-    public static String outputComparisonCsvPath = "./comparison-" + suffix;
-    public static String outputConfigurationCsvPath = "./run-" + suffix;
+    static String timestamp = Instant.now().toString().replace(" ", "_") ;
+    static int  runId = 0 ;
+    static String suffix =   timestamp + ".csv";
+
+    public static String OutputRulesCsvPath = "./rules-" + suffix;
+    public static String OutputComparisonCsvPath = "./comparison-" + suffix;
+    public static String OutputConfigurationCsvPath = "./run-" + suffix;
+
+    public static boolean OutputConfigurationToAlreadyExistingCSV = false;
 
     static final int CORRECTION_FACTOR_CLOSURE = 2;
     static final int CORRECTION_FACTOR_OPENING = 4;
@@ -48,9 +56,10 @@ public class miniAMIE {
     protected static AtomicInteger totalSumExploredRulesAdjustedWithBidirectionality = new AtomicInteger();
     protected static Lock lock = new ReentrantLock();
     protected static CountDownLatch headLatch ;
-    protected static Set<Rule> exploringRules = new HashSet<>() ;
+//    protected static Set<Rule> exploringRules = new HashSet<>() ;
     protected static List<Rule> finalRules = new ArrayList<>();
 
+    // SubtreeExploration explores a subtree of rules from a head start
     protected static class SubtreeExploration implements Callable<Void> {
         Rule initRule ;
         public SubtreeExploration(Rule initRule) {
@@ -65,7 +74,7 @@ public class miniAMIE {
                     (exploreChildrenResult.sumExploredRulesAdjustedWithBidirectionality);
             lock.lock();
             finalRules.addAll(List.copyOf(exploreChildrenResult.finalRules));
-            exploringRules.remove(initRule);
+//            exploringRules.remove(initRule);
             lock.unlock();
             headLatch.countDown();
             return null ;
@@ -117,7 +126,6 @@ public class miniAMIE {
                 executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(NThreads);
 
                 for (Rule initRule : initRules) {
-                    exploringRules.add(initRule);
                     if (RestrainedHead == null || initRule.toString().contains(RestrainedHead))
                         executor
                                 .submit(new SubtreeExploration(initRule))
@@ -128,7 +136,7 @@ public class miniAMIE {
                 if (!headLatch.await(10, TimeUnit.MICROSECONDS))
                     throw new TimeoutException(("Latch Timeout: "
                             + "\n latch value " + headLatch.getCount()
-                            + "\n subtree(s) left : " + Arrays.toString(exploringRules.toArray())
+//                            + "\n subtree(s) left : " + Arrays.toString(exploringRules.toArray())
                             + "\n executor completed jobs : " + executor.getCompletedTaskCount()
                             + "/" + initRules.size()
                             + "\n queue size " + executor.getQueue().size())) ;
@@ -141,12 +149,20 @@ public class miniAMIE {
         totalSumExploredRules.addAndGet(initRules.size());
         totalSumExploredRulesAdjustedWithBidirectionality.addAndGet(initRules.size());
 
+        if (OutputRules) {
+            System.out.println("");
+            System.out.println("Mini-AMIE rules output: ");
+            PrintOutputCSV(finalRules) ;
+        }
+
         if (CompareToGroundTruth) {
             System.out.println("");
             System.out.println("Comparison to ground truth: ");
             PrintComparisonCSV(finalRules, groundTruthRules) ;
         }
-        PrintGlobalSearchResultCSV(startTime,
+
+        PrintGlobalSearchResultCSV(
+                startTime,
                 totalSumExploredRules,
                 totalSumExploredRulesAdjustedWithBidirectionality) ;
 
@@ -157,13 +173,16 @@ public class miniAMIE {
     }
 
     // TODO replace that with IsPrunedClosedRule static method attribute to avoid repeated PruningMetric check
-    private static boolean IsKeptClosedRule(Rule rule) {
+    private static boolean ClosedRuleIsKept(Rule rule) {
         switch(PM) {
             case ApproximateSupport -> {
                 return ApproximateSupportClosedRule(rule) >= MinSup ;
             }
             case ApproximateHeadCoverage -> {
                 return ApproximateHeadCoverageClosedRule(rule) >= MinHC ;
+            }
+            case AlternativeApproximateSupport -> {
+                return AltApproximateSupportClosedRule(rule) >= MinSup ;
             }
             case Support -> {
                 return RealSupport(rule) >= MinSup ;
@@ -178,13 +197,16 @@ public class miniAMIE {
     }
 
     // TODO replace that with IsPrunedOpenRule static method attribute to avoid repeated PruningMetric check
-    private static boolean IsKeptOpenRule(Rule rule) {
+    private static boolean OpenRuleIsKept(Rule rule) {
         switch(PM) {
             case ApproximateSupport -> {
                 return ApproximateSupportOpenRule(rule) >= MinSup ;
             }
             case ApproximateHeadCoverage -> {
                 return ApproximateHeadCoverageOpenRule(rule) >= MinHC ;
+            }
+            case AlternativeApproximateSupport -> {
+                return AltApproximateSupportOpenRule(rule) >= MinSup ;
             }
             case Support -> {
                 return RealSupport(rule) >= MinSup ;
@@ -218,7 +240,7 @@ public class miniAMIE {
                 int correction = closedChildCorrectionPair.second;
                 searchSpaceEstimatedAdjustedWithBidirectionalitySize += correction;
 
-                if (IsKeptClosedRule(closedChild)) {
+                if (ClosedRuleIsKept(closedChild)) {
                     finalRules.add(closedChild);
                 }
             }
@@ -235,7 +257,7 @@ public class miniAMIE {
                 int correction = openChildCorrectionPair.second;
                 searchSpaceEstimatedAdjustedWithBidirectionalitySize += correction;
 
-                if (IsKeptOpenRule(openChild)) {
+                if (OpenRuleIsKept(openChild)) {
                     ExplorationResult exploreOpenChildResult = ExploreChildren(openChild);
                     finalRules.addAll(exploreOpenChildResult.finalRules);
                     searchSpaceEstimatedSize += exploreOpenChildResult.sumExploredRules;
@@ -271,7 +293,7 @@ public class miniAMIE {
                 searchSpaceEstimatedAdjustedWithBidirectionalitySize += correction;
 
 
-                if (IsKeptClosedRule(closedChild)) {
+                if (ClosedRuleIsKept(closedChild)) {
                     finalRules.add(closedChild);
                 }
             }
@@ -291,7 +313,7 @@ public class miniAMIE {
                 int correction = openChildCorrectionPair.second;
                 searchSpaceEstimatedAdjustedWithBidirectionalitySize += correction;
 
-                if (IsKeptOpenRule(rule)) {
+                if (OpenRuleIsKept(rule)) {
                     ExplorationResult exploreOpenChildResult = ExploreChildren(openChild);
                     finalRules.addAll(exploreOpenChildResult.finalRules);
                     searchSpaceEstimatedSize += exploreOpenChildResult.sumExploredRules;

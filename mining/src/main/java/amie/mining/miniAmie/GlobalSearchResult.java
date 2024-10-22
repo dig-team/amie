@@ -1,17 +1,39 @@
 package amie.mining.miniAmie;
 
+import amie.mining.utils.Benchmarking;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static amie.mining.miniAmie.CompareToGT.PrintComparisonCSV;
 import static amie.mining.miniAmie.miniAMIE.*;
 import static amie.mining.miniAmie.utils.BidirectionalityJaccardThreshold;
 import static amie.mining.miniAmie.utils.bidirectionalityMap;
 
 public class GlobalSearchResult {
+   public static final String HEADER = "Timestamp" + utils.commaSep
+                + "MaxRuleSize" + utils.commaSep
+                + "PruningMetric" + utils.commaSep
+                + "MinSup" + utils.commaSep
+                + "MinHC" + utils.commaSep
+                + "NThreads" + utils.commaSep
+                + "ShowRealSupport" + utils.commaSep
+                + "ShowExplorationLayers" + utils.commaSep
+                + "Verbose" + utils.commaSep
+                + "ErrorRateThreshold" + utils.commaSep
+                + "CompareToGroundTruth" + utils.commaSep
+                + "RestrainedHead" + utils.commaSep
+                + "PathToGroundTruthRules" + utils.commaSep
+                + "CorrectionFactorClosure" + utils.commaSep
+                + "CorrectionFactorOpening" + utils.commaSep
+                + "SearchRuntime" + utils.commaSep
+                + "MemoryPeak_kB" + utils.commaSep
+                + "SearchSpaceSizeEstimate" + utils.commaSep
+                + "FixedSearchSpaceSizeEstimate"
+                + "\n";
+
     public static void PrintGlobalSearchResultCSV(long startTime, AtomicInteger totalSumExploredRules,
                                                   AtomicInteger totalSumExploredRulesAdjustedWithBidirectionality) {
         // Displaying result
@@ -41,59 +63,52 @@ public class GlobalSearchResult {
 
         // Outputing general information on run config
         try {
-            File outputRunConfigCsvFile = new File(outputConfigurationCsvPath);
-            if (outputRunConfigCsvFile.createNewFile()) {
-                System.out.println("Created CSV run config output: " + outputConfigurationCsvPath);
+            File outputRunConfigCsvFile = new File(OutputConfigurationCsvPath);
+            FileWriter outputConfigurationCsvWriter ;
+            if (!OutputConfigurationToAlreadyExistingCSV || !outputRunConfigCsvFile.isFile()) {
+                if (outputRunConfigCsvFile.createNewFile()) {
+                    System.out.println("Created CSV run config output: " + OutputConfigurationCsvPath);
+                } else {
+                    throw new IOException("Could not create CSV output: " + OutputConfigurationCsvPath +
+                            ". Maybe name already exists?") ;
+                }
+                outputConfigurationCsvWriter = new FileWriter(outputRunConfigCsvFile, true) ;
+                outputConfigurationCsvWriter.write(HEADER);
             } else {
-                System.err.println("Could not create CSV output: " + outputConfigurationCsvPath +
-                        ". Maybe name already exists?");
+                outputConfigurationCsvWriter = new FileWriter(outputRunConfigCsvFile, true) ;
             }
 
-            FileWriter outputConfigurationCsvWriter = new FileWriter(outputConfigurationCsvPath);
-
             System.out.println("Run configuration :");
-            String runConfigCsvHeader =
-                    "MaxRuleSize" + CompareToGT.sep
-                            + "MinSup" + CompareToGT.sep
-                            + "NThreads" + CompareToGT.sep
-                            + "ShowRealSupport" + CompareToGT.sep
-                            + "ShowExplorationLayers" + CompareToGT.sep
-                            + "Verbose" + CompareToGT.sep
-                            + "ErrorRateThreshold" + CompareToGT.sep
-                            + "CompareToGroundTruth" + CompareToGT.sep
-                            + "RestrainedHead" + CompareToGT.sep
-                            + "PathToGroundTruthRules" + CompareToGT.sep
-                            + "CorrectionFactorClosure" + CompareToGT.sep
-                            + "CorrectionFactorOpening" + CompareToGT.sep
-                            + "SearchRuntime" + CompareToGT.sep
-                            + "MemoryPeak" + CompareToGT.sep
-                            + "SearchSpaceSizeEstimate" + CompareToGT.sep
-                            + "FixedSearchSpaceSizeEstimate"
-                            + "\n";
-            System.out.print(runConfigCsvHeader);
-            outputConfigurationCsvWriter.write(runConfigCsvHeader);
-            String runConfigCsvLine = "" +
-                    MaxRuleSize + CompareToGT.sep
-                    + MinSup + CompareToGT.sep
-                    + NThreads + CompareToGT.sep
-                    + ShowRealSupport + CompareToGT.sep
-                    + ShowExplorationLayers + CompareToGT.sep
-                    + Verbose + CompareToGT.sep
-                    + ErrorRateThreshold + CompareToGT.sep
-                    + CompareToGroundTruth + CompareToGT.sep
-                    + (RestrainedHead == null ? "" : RestrainedHead) + CompareToGT.sep
-                    + (pathToGroundTruthRules == null ? "" : pathToGroundTruthRules) + CompareToGT.sep
-                    + CORRECTION_FACTOR_CLOSURE + CompareToGT.sep
-                    + CORRECTION_FACTOR_OPENING + CompareToGT.sep
-                    + duration + CompareToGT.sep
-                    + Runtime.getRuntime().totalMemory() / 1048576 + CompareToGT.sep
-                    + totalSumExploredRules + CompareToGT.sep
+            System.out.print(HEADER);
+            String runConfigCsvLine = ""
+                    + timestamp + utils.commaSep
+                    + MaxRuleSize + utils.commaSep
+                    + PM + utils.commaSep
+                    + MinSup + utils.commaSep
+                    + MinHC + utils.commaSep
+                    + NThreads + utils.commaSep
+                    + ShowRealSupport + utils.commaSep
+                    + ShowExplorationLayers + utils.commaSep
+                    + Verbose + utils.commaSep
+                    + ErrorRateThreshold + utils.commaSep
+                    + CompareToGroundTruth + utils.commaSep
+                    + (RestrainedHead == null ? "" : RestrainedHead) + utils.commaSep
+                    + (pathToGroundTruthRules == null ? "" : pathToGroundTruthRules) + utils.commaSep
+                    + CORRECTION_FACTOR_CLOSURE + utils.commaSep
+                    + CORRECTION_FACTOR_OPENING + utils.commaSep
+                    + duration + utils.commaSep
+                    + Benchmarking.PeakMemory() + utils.commaSep
+                    + totalSumExploredRules + utils.commaSep
                     + totalSumExploredRulesAdjustedWithBidirectionality + "\n";
+
+//            Files.write(
+//                    Paths.get(OutputConfigurationCsvPath),
+//                    runConfigCsvLine.getBytes(),
+//                    StandardOpenOption.APPEND);
             outputConfigurationCsvWriter.write(runConfigCsvLine);
             System.out.print(runConfigCsvLine);
             outputConfigurationCsvWriter.close();
-        } catch (IOException e) {
-            System.err.println("Couldn't create output file: " + outputComparisonCsvPath + ". Maybe file already exists.");
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

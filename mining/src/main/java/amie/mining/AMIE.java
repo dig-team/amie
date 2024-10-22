@@ -4,10 +4,7 @@
  */
 package amie.mining;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,7 +20,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import amie.data.*;
 import amie.data.remote.Caching;
 import amie.mining.miniAmie.miniAMIE;
-import amie.mining.utils.AMIEOptions;
+import amie.mining.utils.*;
 import org.apache.commons.cli.*;
 
 import amie.mining.assistant.MiningAssistant;
@@ -40,6 +37,8 @@ import amie.data.javatools.administrative.Announce;
 
 import amie.data.javatools.datatypes.MultiMap;
 import org.apache.commons.lang.StringUtils;
+
+import static amie.mining.utils.Benchmarking.PeakMemory;
 
 /**
  * Main class that implements the AMIE algorithm for rule mining on ontologies.
@@ -907,6 +906,7 @@ public class AMIE {
                     case "hc" -> metric = PruningMetric.HeadCoverage;
                     case "appsupport" -> metric = PruningMetric.ApproximateSupport;
                     case "apphc" -> metric = PruningMetric.ApproximateHeadCoverage;
+                    case "altappsupport" -> metric = PruningMetric.AlternativeApproximateSupport;
                     default -> throw new IOException("Mini-AMIE : Unrecognized pruning metric \"" + pm + "\"") ;
                 }
             }
@@ -920,6 +920,12 @@ public class AMIE {
             miniAMIE.CompareToGroundTruth = cli.hasOption(miniAMIECompareToGroundTruthOption) ;
             miniAMIE.pathToGroundTruthRules = miniAMIE.CompareToGroundTruth ?
                     cli.getOptionValue(miniAMIECompareToGroundTruthOption) : null ;
+            String miniAMIEOutputConfigurationPathOption = AMIEOptions.MINI_AMIE_GLOBAL_SEARCH_RESULT_PATH.getOpt() ;
+            if (cli.hasOption(AMIEOptions.MINI_AMIE_GLOBAL_SEARCH_RESULT_PATH.getOpt())) {
+                miniAMIE.OutputConfigurationToAlreadyExistingCSV = true ;
+                miniAMIE.OutputConfigurationCsvPath = cli.getOptionValue(miniAMIEOutputConfigurationPathOption) ;
+            }
+
             miniAMIE.Run() ;
             return null ;
         }
@@ -1201,7 +1207,11 @@ public class AMIE {
 
         long miningTime = System.currentTimeMillis() - time;
         System.out.println("Mining done in " + formatDuration(miningTime));
+
         Announce.done("Total time " + formatDuration(miningTime + loadingTime));
+
+        System.out.println("Used memory (peak) " + PeakMemory() + " kilobytes");
+
         System.out.println(rules.size() + " rules mined.");
     }
 

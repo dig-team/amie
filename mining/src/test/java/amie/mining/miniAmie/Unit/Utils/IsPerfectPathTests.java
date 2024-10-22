@@ -1,15 +1,12 @@
 package amie.mining.miniAmie.Unit.Utils;
 
-import amie.data.remote.Utils;
-import amie.mining.miniAmie.CompareToGT;
 import amie.mining.miniAmie.Unit.UnitTest;
 import amie.rules.Rule;
-import junit.framework.TestCase;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static amie.mining.miniAmie.CompareToGT.IsRealPerfectPath;
+import static amie.mining.miniAmie.MiniAmieClosedRule.IsRealPerfectPath;
 
 public class IsPerfectPathTests extends UnitTest {
     protected void setUp() throws Exception {

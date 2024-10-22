@@ -19,6 +19,9 @@ public interface AMIEOptions {
     Option MINI_AMIE = new Option("mini", "Runs mini-AMIE.") ;
     Option MINI_AMIE_COMPARE_TO_GROUND_TRUTH = new Option("compareToGT", true ,
             "Compares mini-AMIE rule set to a list of rules (path as parameter).") ;
+    Option MINI_AMIE_GLOBAL_SEARCH_RESULT_PATH = new Option("globalSearchInfoPath", true,
+            "Sets the path to a CSV containing general information on the run (ex. search time, memory " +
+                    "peak value). Default ./run-<TIMESTAMP>.csv") ;
     Option MINI_AMIE_VERBOSE = new Option("miniVerbose", "Shows more information during the mining " +
             "process.") ;
 
@@ -93,7 +96,7 @@ public interface AMIEOptions {
 
     Option MIN_PCA_CONFIDENCE = new Option("minpca", "min-pca-confidence", true,
             "Minimum PCA confidence threshold. This value is not used for pruning, only for filtering of the " +
-                    "results. Default: 0.0");
+                    "results. Default: 0.1");
 
     Option ALLOW_CONSTANTS = new Option("const", "allow-constants", false,
             "Enable rules with constants. Default: false");
@@ -119,9 +122,10 @@ public interface AMIEOptions {
                     "higher value is provided.");
 
 
+    // TODO reference to static attribute in AMIE
     Option MIN_STD_CONFIDENCE = new Option("minc", "min-std-confidence", true,
             "Minimum standard confidence threshold. "
-                    + "This value is not used for pruning, only for filtering of the results. Default: 0.0");
+                    + "This value is not used for pruning, only for filtering of the results. Default: 0.1");
 
 
     Option OPTIM_CONFIDENCE_BOUNDS = new Option("optimcb", "optim-confidence-bounds", false,
@@ -207,6 +211,7 @@ public interface AMIEOptions {
      * List of options that do not influence remote KB queries (used for cache saving)
      */
     List<Option> ignoredByCacheOptions = List.of(
+            MINI_AMIE_GLOBAL_SEARCH_RESULT_PATH,
             INVALIDATE_CACHE,
             CACHE,
             CSIZE,
@@ -259,6 +264,7 @@ public interface AMIEOptions {
         Options options = new Options();
 
         options.addOption(MINI_AMIE) ;
+        options.addOption(MINI_AMIE_GLOBAL_SEARCH_RESULT_PATH) ;
         options.addOption(MINI_AMIE_COMPARE_TO_GROUND_TRUTH) ;
         options.addOption(MINI_AMIE_VERBOSE) ;
         options.addOption(MIN_STD_CONFIDENCE);

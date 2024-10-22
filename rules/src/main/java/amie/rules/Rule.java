@@ -159,6 +159,9 @@ public class Rule {
      */
     private double _confidenceRunningTime;
 
+
+
+
     private boolean finalized = false;
 
     public boolean isFinal() {
@@ -1799,6 +1802,7 @@ public class Rule {
                 return this;
         }
     }
+
 
     public static void main(String[] args) {
         KB kb = new KB();

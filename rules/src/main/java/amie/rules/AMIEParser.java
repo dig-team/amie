@@ -53,13 +53,15 @@ public class AMIEParser {
         }
     }
 
-    public static List<Rule> rules(File f, KB kb) throws IOException {
+    public static List<Rule> parseRules(File f, AbstractKB kb) throws IOException {
         List<Rule> result = new ArrayList<>();
-        for (List<String> record : new TSVFile(f)) {
-            Rule query = rule(record.get(0), kb);
-
-            if (query != null)
-                result.add(query);
+        try (TSVFile fileObj = new TSVFile(f)) {
+            fileObj.next(); // Ignore the header
+            for (List<String> record : fileObj) {
+                Rule rule = rule(record.get(0), kb);
+                if (rule != null)
+                    result.add(rule);
+            }
         }
         return result;
     }

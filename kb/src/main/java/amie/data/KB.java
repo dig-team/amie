@@ -31,8 +31,6 @@ import amie.data.javatools.datatypes.IntHashMap;
 import amie.data.javatools.datatypes.Pair;
 import amie.data.javatools.filehandlers.FileLines;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.eclipse.rdf4j.rio.RDFParser;
-import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.helpers.AbstractRDFParser;
 import org.eclipse.rdf4j.rio.turtle.TurtleParser;
 import org.eclipse.rdf4j.rio.n3.N3Parser;

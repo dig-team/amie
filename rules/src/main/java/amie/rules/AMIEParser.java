@@ -59,6 +59,9 @@ public class AMIEParser {
             fileObj.next(); // Ignore the header
             for (List<String> record : fileObj) {
                 Rule rule = rule(record.get(0), kb);
+                rule.setSupport(Double.parseDouble(record.get(4)));
+                rule.setBodySize(Long.parseLong(record.get(5)));
+                rule.setPcaBodySize(Long.parseLong(record.get(6)));
                 if (rule != null)
                     result.add(rule);
             }

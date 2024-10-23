@@ -3,7 +3,7 @@ package amie.linkprediction;
 /**
  * An entity id labeled with a likelihood score
  */
-public class Rank implements Comparable<Rank>{
+public class Rank implements Comparable<Rank> {
 	public int entity;
 	public double score;
 	public double tiesBreakerScore;
@@ -14,10 +14,26 @@ public class Rank implements Comparable<Rank>{
 		this.tiesBreakerScore = tiesBreakerScore;
 	}
 
-	@Override 
-	public int compareTo(Rank a){
-        int firstComparison = Double.compare(this.score, a.score);
-		return firstComparison != 0 ? Double.compare(this.tiesBreakerScore, 
-														a.tiesBreakerScore) : firstComparison;
-    }
+	@Override
+	public int compareTo(Rank a) {
+		int firstComparison = Double.compare(a.score, this.score);
+		if (firstComparison == 0) {
+			int secondComparison = Double.compare(a.tiesBreakerScore,
+					this.tiesBreakerScore);
+			return secondComparison == 0 ? Integer.compare(a.entity, this.entity) : secondComparison;
+		} else {
+			return firstComparison;
+		}
+	}
+
+	public int partialCompareTo(Rank a) {
+		int firstComparison = Double.compare(a.score, this.score);
+		return firstComparison == 0 ? Double.compare(a.tiesBreakerScore,
+				this.tiesBreakerScore) : firstComparison;
+	}
+
+	@Override
+	public String toString() {
+		return "<" + entity + ", " + score + ", " + tiesBreakerScore + ">";
+	}
 }

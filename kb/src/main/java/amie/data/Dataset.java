@@ -12,7 +12,7 @@ import java.util.Map;
  * Three KGs with a common dictionary -- mostly for ML purposes
  */
 public class Dataset {
-	public AbstractKB training;
+	public KB training;
 	public Map<Integer, List<int[]>> testing;
 
 	/**
@@ -30,15 +30,24 @@ public class Dataset {
 
 		String train = basePath + "train.tsv";
 		String valid = basePath + "valid.tsv";
-		KB trainingKB = new KB();
-		trainingKB.load(new File[] { new File(train), new File(valid) });
-		this.training = trainingKB;
+		this.training = new KB();
+		this.training.load(new File[] { new File(train), new File(valid) });
 
 		String test = basePath + "test.tsv";
 		this.testing = new LinkedHashMap<>();
-		for (int r : trainingKB.getRelations())
+		for (int r : this.training.getRelations())
 			this.testing.put(r, new ArrayList<>());
 		this.loadTestTriples(new File(test));
+	}
+
+	/**
+	 * Constructor for testing purposes
+	 * @param trainingKb
+	 * @param testTriples
+	 */
+    public Dataset(KB trainingKb, Map<Integer, List<int[]>> testTriples) {
+		this.training = trainingKb;
+		this.testing = testTriples;
 	}
 
 	private void loadTestTriples(File testFile) throws IOException {

@@ -896,6 +896,8 @@ public class AMIE {
             miniAMIE.MinHC = minHeadCover ;
             miniAMIE.kb = dataSource ;
             miniAMIE.NThreads = nThreads ;
+            miniAMIE.EnableVariableSwitch = cli.hasOption(AMIEOptions.MINI_AMIE_ENABLE_VARIABLE_SWITCH.getOpt());
+            miniAMIE.EnableConstants = cli.hasOption(AMIEOptions.MINI_AMIE_ENABLE_CONSTANTS.getOpt());
             miniAMIE.Verbose = cli.hasOption(AMIEOptions.MINI_AMIE_VERBOSE.getOpt()) ;
             String miniAMIECompareToGroundTruthOption = AMIEOptions.MINI_AMIE_COMPARE_TO_GROUND_TRUTH.getOpt();
             miniAMIE.CompareToGroundTruth = cli.hasOption(miniAMIECompareToGroundTruthOption) ;

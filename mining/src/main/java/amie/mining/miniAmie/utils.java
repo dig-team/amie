@@ -120,17 +120,8 @@ public class utils {
         return isBidirectional(lastAddedRelation) ? DEFAULT_CORRECTION_OPEN : REDUCED_CORRECTION_OPEN;
     }
 
-    /**
-     * AddClosureToEmptyBody adds a closure atom to an empty body rule, with respect to perfect path pattern
-     * (i.e. Head subject is closure subject, Head object is closure object)
-     *
-     * @param rule to be closed
-     * @return A set of possible closed rules.
-     */
-    public static ArrayList<Pair<Rule, Integer>> AddClosureToEmptyBody(final Rule rule) {
+    private static ArrayList<Pair<Rule, Integer>> addClosure(Rule rule, int joinSubject, int joinObject) {
         ArrayList<Pair<Rule, Integer>> closedRules = new ArrayList<>();
-        int[] headAtom = rule.getHead();
-
         List<Integer> relations = PromisingRelations(rule);
 
         if (relations.isEmpty()) {
@@ -143,16 +134,33 @@ public class utils {
             int[] newAtom = new int[ATOM_SIZE];
             closedRule.getBody().add(newAtom);
 
-            newAtom[SUBJECT_POSITION] = headAtom[SUBJECT_POSITION];
+            newAtom[SUBJECT_POSITION] = joinSubject;
             newAtom[RELATION_POSITION] = relation;
-            newAtom[OBJECT_POSITION] = headAtom[OBJECT_POSITION];
+            newAtom[OBJECT_POSITION] = joinObject;
 
             int searchSpaceCorrectingFactor = ClosedCorrectingFactor(relation);
             closedRules.add(new Pair<>(closedRule, searchSpaceCorrectingFactor));
 
         }
-
         return closedRules;
+    }
+
+    /**
+     * AddClosureToEmptyBody adds a closure atom to an empty body rule, with respect to perfect path pattern
+     * (i.e. Head subject is closure subject, Head object is closure object)
+     *
+     * @param rule to be closed
+     * @return A set of possible closed rules.
+     */
+    public static ArrayList<Pair<Rule, Integer>> AddClosureToEmptyBody(Rule rule) {
+        if (rule.getBody().size() > 0)
+            throw new IllegalArgumentException("Non empty body");
+
+        int[] headAtom = rule.getHead();
+        int joinSubject = headAtom[SUBJECT_POSITION];
+        int joinObject = headAtom[OBJECT_POSITION];
+
+        return addClosure(rule, joinSubject, joinObject);
     }
 
     /**
@@ -162,11 +170,17 @@ public class utils {
      * @param rule to be closed
      * @return A set of possible closed rules paired with their correcting factor for search space size.
      */
-    public static ArrayList<Pair<Rule, Integer>> AddClosure(final Rule rule) {
-        ArrayList<Pair<Rule, Integer>> closedRules = new ArrayList<>();
-        int[] headAtom = rule.getHead();
-        int[] lastBodyAtom = rule.getLastTriplePattern();
+    public static ArrayList<Pair<Rule, Integer>> AddClosureToNonEmptyBody(Rule rule) {
+        if (rule.getBody().size() == 0)
+            throw new IllegalArgumentException("Empty body");
+        int joinSubject = rule.getHead()[SUBJECT_POSITION];
+        int joinObject = rule.getLastTriplePattern()[OBJECT_POSITION];
 
+        return addClosure(rule, joinSubject, joinObject);
+    }
+
+    private static ArrayList<Pair<Rule, Integer>> addDangling(Rule rule, int joinObject) {
+        ArrayList<Pair<Rule, Integer>> openRules = new ArrayList<>();
         List<Integer> relations = PromisingRelations(rule);
 
         if (relations.isEmpty()) {
@@ -179,17 +193,16 @@ public class utils {
             int[] newAtom = new int[ATOM_SIZE];
             closedRule.getBody().add(newAtom);
 
-            newAtom[SUBJECT_POSITION] = headAtom[SUBJECT_POSITION];
+            newAtom[SUBJECT_POSITION] = closedRule.fullyUnboundTriplePattern()[SUBJECT_POSITION];
             newAtom[RELATION_POSITION] = relation;
-            newAtom[OBJECT_POSITION] = lastBodyAtom[SUBJECT_POSITION];
+            newAtom[OBJECT_POSITION] = joinObject;
 
-            int searchSpaceCorrectingFactor = ClosedCorrectingFactor(relation);
-            closedRules.add(new Pair<>(closedRule, searchSpaceCorrectingFactor));
+            int searchSpaceCorrectingFactor = OpenCorrectingFactor(relation);
+            openRules.add(new Pair<>(closedRule, searchSpaceCorrectingFactor));
         }
 
-        return closedRules;
+        return openRules;
     }
-
 
     /**
      * AddDanglingToEmptyBody adds a dangling atom to an empty body rule, with respect to the perfect path pattern
@@ -199,64 +212,20 @@ public class utils {
      * @return A set of possible open rules
      */
     public static ArrayList<Pair<Rule, Integer>> AddDanglingToEmptyBody(Rule rule) {
-        ArrayList<Pair<Rule, Integer>> openRules = new ArrayList<>();
-        int[] headAtom = rule.getHead();
-
-        List<Integer> relations = PromisingRelations(rule);
-
-        if (relations.isEmpty()) {
-            return null;
-        }
-
-        for (int relation : relations) {
-            Rule closedRule = new Rule(rule, -1, miniAMIE.kb);
-
-            int[] newAtom = new int[ATOM_SIZE];
-            closedRule.getBody().add(newAtom);
-
-            newAtom[SUBJECT_POSITION] = closedRule.fullyUnboundTriplePattern()[SUBJECT_POSITION];
-            newAtom[RELATION_POSITION] = relation;
-            newAtom[OBJECT_POSITION] = headAtom[OBJECT_POSITION];
-
-            int searchSpaceCorrectingFactor = OpenCorrectingFactor(relation);
-            openRules.add(new Pair<>(closedRule, searchSpaceCorrectingFactor));
-        }
-
-        return openRules;
+        int joinParameter = rule.getHead()[OBJECT_POSITION];
+        return addDangling(rule, joinParameter);
     }
 
     /**
-     * AddDangling adds a dangling atom to an empty body rule, with respect to the perfect path pattern
+     * AddDangling adds a dangling atom to a non empty body rule, with respect to the perfect path pattern
      * (i.e. Only open variable is dangling's subject, Head object is dangling's object )
      *
      * @param rule parent
      * @return A set of possible open rules
      */
-    public static ArrayList<Pair<Rule, Integer>> AddDangling(Rule rule) {
-        ArrayList<Pair<Rule, Integer>> openRules = new ArrayList<>();
-        int[] lastBodyAtom = rule.getLastTriplePattern();
-
-        List<Integer> closureRelations = PromisingRelations(rule);
-
-        if (closureRelations.isEmpty()) {
-            return null;
-        }
-
-        for (int relation : closureRelations) {
-            Rule closedRule = new Rule(rule, -1, miniAMIE.kb);
-
-            int[] newAtom = new int[ATOM_SIZE];
-            closedRule.getBody().add(newAtom);
-
-            newAtom[SUBJECT_POSITION] = closedRule.fullyUnboundTriplePattern()[SUBJECT_POSITION];
-            newAtom[RELATION_POSITION] = relation;
-            newAtom[OBJECT_POSITION] = lastBodyAtom[SUBJECT_POSITION];
-
-            int searchSpaceCorrectingFactor = OpenCorrectingFactor(relation);
-            openRules.add(new Pair<>(closedRule, searchSpaceCorrectingFactor));
-        }
-
-        return openRules;
+    public static ArrayList<Pair<Rule, Integer>> AddDanglingToNonEmptyBody(Rule rule) {
+        int joinParameter = rule.getLastTriplePattern()[SUBJECT_POSITION];
+        return addDangling(rule, joinParameter);
     }
 
     private static IntSet range(int r) {

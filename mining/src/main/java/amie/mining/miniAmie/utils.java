@@ -153,9 +153,6 @@ public class utils {
      * @return A set of possible closed rules.
      */
     public static ArrayList<Pair<Rule, Integer>> AddClosureToEmptyBody(Rule rule) {
-        if (rule.getBody().size() > 0)
-            throw new IllegalArgumentException("Non empty body");
-
         int[] headAtom = rule.getHead();
         int joinSubject = headAtom[SUBJECT_POSITION];
         int joinObject = headAtom[OBJECT_POSITION];
@@ -171,10 +168,8 @@ public class utils {
      * @return A set of possible closed rules paired with their correcting factor for search space size.
      */
     public static ArrayList<Pair<Rule, Integer>> AddClosureToNonEmptyBody(Rule rule) {
-        if (rule.getBody().size() == 0)
-            throw new IllegalArgumentException("Empty body");
         int joinSubject = rule.getHead()[SUBJECT_POSITION];
-        int joinObject = rule.getLastTriplePattern()[OBJECT_POSITION];
+        int joinObject = rule.getLastTriplePattern()[SUBJECT_POSITION];
 
         return addClosure(rule, joinSubject, joinObject);
     }

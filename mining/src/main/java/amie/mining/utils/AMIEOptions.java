@@ -25,6 +25,13 @@ public interface AMIEOptions {
     Option MINI_AMIE_VERBOSE = new Option("miniVerbose", "Shows more information during the mining " +
             "process.") ;
 
+    Option MINI_AMIE_ENABLE_CONSTANTS = new Option("enableConstants", true,
+            "Enable AnyBurl-style constants in mini-AMIE.") ;
+
+    Option MINI_AMIE_ENABLE_VARIABLE_SWITCH = new Option("enableConstants", true,
+            "Enable AnyBurl-style variable switching within atoms in mini-AMIE. \n" +
+                    "Ex. x <r1> a , b <r2> a , b <r3> y => x <rh> y") ;
+
     Option INVALIDATE_CACHE = new Option("invalidateCache", false, "Ignores previously saved cache.");
     Option CACHE = new Option("cache", false, "Enables query caching.");
     Option CSIZE = new Option("csize", true,
@@ -266,6 +273,8 @@ public interface AMIEOptions {
                 options.addOption(MIN_SUPPORT);
                 options.addOption(MIN_INITIAL_SUPPORT);
                 options.addOption(MIN_HEAD_COVERAGE);
+                options.addOption(MINI_AMIE_ENABLE_CONSTANTS);
+                options.addOption(MINI_AMIE_ENABLE_VARIABLE_SWITCH);
                 options.addOption(PRUNING_METRIC);
                 options.addOption(OUTPUT_AT_END);
                 options.addOption(BODY_EXCLUDED);

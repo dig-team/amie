@@ -27,6 +27,8 @@ public class miniAMIE {
     public static PruningMetric PM;
     public static int MinSup;
     public static double MinHC;
+    public static boolean EnableVariableSwitch = false ;
+    public static boolean EnableConstants = false ;
     public static int NThreads = 1;
     public static boolean ShowRealSupport = false;
     public static boolean ShowExplorationLayers = false;
@@ -142,6 +144,7 @@ public class miniAMIE {
                             + "\n queue size " + executor.getQueue().size())) ;
             } catch (Exception e) {
                 System.err.println("Mini-AMIE multicore error: \n" + e.getMessage());
+                e.printStackTrace();
                 System.exit(1);
             }
 
@@ -282,7 +285,7 @@ public class miniAMIE {
         ArrayList<Rule> finalRules = new ArrayList<>();
         int searchSpaceEstimatedSize = 0;
         int searchSpaceEstimatedAdjustedWithBidirectionalitySize = 0;
-        ArrayList<Pair<Rule, Integer>> closedChildren = AddClosure(rule);
+        ArrayList<Pair<Rule, Integer>> closedChildren = AddClosureToNonEmptyBody(rule);
 
         if (closedChildren != null) {
             searchSpaceEstimatedSize += closedChildren.size() * CORRECTION_FACTOR_CLOSURE;
@@ -303,7 +306,7 @@ public class miniAMIE {
             return new ExplorationResult(searchSpaceEstimatedSize, searchSpaceEstimatedAdjustedWithBidirectionalitySize,
                     finalRules);
 
-        ArrayList<Pair<Rule, Integer>> openChildren = AddDangling(rule);
+        ArrayList<Pair<Rule, Integer>> openChildren = AddDanglingToNonEmptyBody(rule);
 
         if (openChildren != null) {
             searchSpaceEstimatedSize += openChildren.size() * CORRECTION_FACTOR_OPENING;
@@ -321,7 +324,6 @@ public class miniAMIE {
                             exploreOpenChildResult.sumExploredRulesAdjustedWithBidirectionality;
                 }
             }
-
         }
 
         return new ExplorationResult(searchSpaceEstimatedSize, searchSpaceEstimatedAdjustedWithBidirectionalitySize,

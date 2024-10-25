@@ -1,5 +1,6 @@
 package amie.linkprediction;
 
 public enum LinkPredictionMetric {
-	MRR, HitsAt1, HitsAt3, HitsAt5, HitsAt10, MR, Count
+	FilteredMRR, MRR, FilteredHitsAt1, HitsAt1, FilteredHitsAt3, HitsAt3, FilteredHitsAt5, HitsAt5, FilteredHitsAt10,
+	HitsAt10, MR, Count
 }

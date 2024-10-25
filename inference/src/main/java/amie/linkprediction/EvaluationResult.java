@@ -11,11 +11,18 @@ public class EvaluationResult {
 	public Map<String, Map<LinkPredictionMetric, Double>> headMetrics;
 	public Map<String, Map<LinkPredictionMetric, Double>> tailMetrics;
 	public Map<String, Map<LinkPredictionMetric, Double>> bothMetrics;
+	double sumOfInvRanks;
+	double sumOfHeadInvRanks;
+	double sumOfTailInvRanks;
+	int headRanks;
+	int tailRanks;
 
 	public EvaluationResult() {
 		this.headMetrics = new HashMap<>();
 		this.tailMetrics = new HashMap<>();
 		this.bothMetrics = new HashMap<>();
+		this.sumOfInvRanks = this.sumOfHeadInvRanks = this.sumOfTailInvRanks = 0.0;
+		this.headRanks = this.tailRanks = 0;
 	}
 
 	public void putResult(EvaluationFocus focus, String scope, LinkPredictionMetric metric, double value) {
@@ -42,6 +49,53 @@ public class EvaluationResult {
 			metricSubMap.put(metric, value);
 			metricsMap.put(scope, metricSubMap);
 		}
+	}
+
+
+	@Override
+	public String toString() {
+		StringBuilder str = new StringBuilder();
+		headMetrics.entrySet().stream().forEach(e -> str.append(e.getKey() + " (Head): " + formatMetrics(e.getValue()) + "\n"));
+		tailMetrics.entrySet().stream().forEach(e -> str.append(e.getKey() + " (Tail): " + formatMetrics(e.getValue()) + "\n"));
+		bothMetrics.entrySet().stream().forEach(e -> str.append(e.getKey() + " (Both): " + formatMetrics(e.getValue()) + "\n"));
+		return str.toString();
+	}
+
+	private String formatMetrics(Map<LinkPredictionMetric, Double> metricsMap) {
+		StringBuilder str = new StringBuilder();
+		metricsMap.entrySet().stream().forEach(e -> str.append(e.getKey() + "=" + e.getValue() + "; "));
+		return str.toString();
+	}
+
+	public void computeMRR(EvaluationFocus focus, String relation) {
+		switch (focus){
+			case Head:
+				this.putResult(focus, relation, LinkPredictionMetric.MRR, this.sumOfHeadInvRanks / this.headRanks);
+				break;
+			case Tail:
+				this.putResult(focus, relation, LinkPredictionMetric.MRR, this.sumOfTailInvRanks / this.tailRanks);
+				break;
+			case Both:
+				this.putResult(focus, relation, LinkPredictionMetric.MRR, this.sumOfInvRanks / (this.headRanks + this.tailRanks));
+				break;
+		}
 
 	}
+
+	public void computeCount(EvaluationFocus focus, String relation) {
+		switch(focus) {
+			case Head:
+				this.putResult(focus, relation, LinkPredictionMetric.Count, this.headRanks);
+				break;
+			case Tail:
+				this.putResult(focus, relation, LinkPredictionMetric.Count, this.tailRanks);
+				break;
+			case Both:
+				this.putResult(focus, relation, LinkPredictionMetric.Count, this.tailRanks + this.headRanks);
+				break;
+		}
+
+	}
+
+
 }

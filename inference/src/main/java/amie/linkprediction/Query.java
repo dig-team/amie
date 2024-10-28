@@ -9,7 +9,7 @@ import amie.data.AbstractKB;
  */
 
 public class Query {
-	private AbstractKB kb;
+	AbstractKB kb;
 	public int[] triple;
 
 	public Query(AbstractKB kb, int h, int r, int t) {
@@ -33,5 +33,12 @@ public class Query {
 		return "" + this.kb.unmap(this.triple[1]) +
 				"(" + (!AbstractKB.isVariable(this.triple[0]) ? this.kb.unmap(this.triple[0]) : "?s") + ", "
 				+ (!AbstractKB.isVariable(this.triple[2]) ? this.kb.unmap(this.triple[2]) : "?o") + ")";
+	}
+
+	public int[] instantiate(int entity) {
+		int varPos = this.variablePosition();
+		int[] newTriple = triple.clone();
+		newTriple[varPos] = entity;
+		return newTriple;
 	}
 }

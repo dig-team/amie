@@ -82,27 +82,26 @@ public class Evaluator {
 	 */
 	public EvaluationResult evaluate() {
 		// Get all predicates
-		EvaluationResult resultMetrics = new EvaluationResult();
+		List<EvaluationResult> resultsPerRelation = new ArrayList<>();
 		for (int rel : this.dataset.testing.keySet()) {
+			EvaluationResult relationResultMetrics = new EvaluationResult();
 			List<int[]> relationBatch = this.dataset.testing.get(rel);
 			System.err.println("Evaluating " + relationBatch.size() + " triples in relation " + this.dataset.training.unmap(rel));
-			evaluateRelation(relationBatch, resultMetrics);
+			evaluateRelation(relationBatch, relationResultMetrics);
+			resultsPerRelation.add(relationResultMetrics);
 		}
 
-		computeGlobalEvaluationMetrics(resultMetrics);
+		return EvaluationResult.merge(resultsPerRelation);
 
-		return resultMetrics;
-	}
-
-	private void computeGlobalEvaluationMetrics(EvaluationResult resultMetrics) {
 	}
 
 	private void evaluateRelation(List<int[]> batch, EvaluationResult resultMetrics) {
+		// To limit memory consumption we have to focus on one type of evaluation
 		evaluateRelationOnOneFocus(batch, EvaluationFocus.Head, resultMetrics);
 		evaluateRelationOnOneFocus(batch, EvaluationFocus.Tail, resultMetrics);
-		// Get the MRR for both metrics
-		resultMetrics.putResult(EvaluationFocus.Both, this.dataset.training.unmap(batch.get(0)[1]),
-				LinkPredictionMetric.MRR, resultMetrics.sumOfInvRanks / (2 * batch.size())); // both rankings should have the same size
+		resultMetrics.computeCount(EvaluationFocus.Both, this.dataset.training.unmap(batch.get(0)[1]));
+		resultMetrics.computeMRR(EvaluationFocus.Both, this.dataset.training.unmap(batch.get(0)[1]));
+		resultMetrics.computeHits(EvaluationFocus.Both, this.dataset.training.unmap(batch.get(0)[1]));
 	}
 
 	private void evaluateRelationOnOneFocus(List<int[]> batch, EvaluationFocus focus, EvaluationResult resultMetrics) {
@@ -110,8 +109,17 @@ public class Evaluator {
 		// We have to carry out the evaluation per sub-batches, otherwise it consumes too much memory
 		for (List<int[]> subBatch : ListUtils.partition(batch, 100)) {
 			List<Pair<Integer, Ranking>> rankings = new ArrayList<>();
-			for (int[] triple : subBatch) {
-				rankings.add(new Pair<>(triple[0], new Ranking(new Query(this.dataset.training, -1, triple[1], triple[2]))));
+			if (focus == EvaluationFocus.Head) {
+				for (int[] triple : subBatch) {
+					rankings.add(new Pair<>(triple[0], new Ranking(new Query(this.dataset.training, -1, triple[1], triple[2]))));
+				}
+			} else if (focus == EvaluationFocus.Tail) {
+				for (int[] triple : subBatch) {
+					rankings.add(new Pair<>(triple[2], new Ranking(new Query(this.dataset.training, triple[0], triple[1], -1))));
+				}
+			} else {
+				// This focus does not have sense here
+				continue;
 			}
 			if (candidatesSet == null) {
 				candidatesSet = new IntLinkedOpenHashSet();
@@ -130,6 +138,7 @@ public class Evaluator {
 		String relation = this.dataset.training.unmap(batch.get(0)[1]);
 		resultMetrics.computeMRR(focus, relation);
 		resultMetrics.computeCount(focus, relation);
+		resultMetrics.computeHits(focus, relation);
 	}
 
 	private void updateBatchEvaluationMetrics(List<Pair<Integer, Ranking>> rankings, EvaluationFocus focus,
@@ -140,14 +149,51 @@ public class Evaluator {
 			int solution = solutionAndRanking.first;
 			int rank = ranking.rank(solution);
 			double invRank = 1.0 / rank;
+			int filteredRank = ranking.filteredRank(solution);
+			double invFilteredRank = 1.0 / filteredRank;
 			if (focus == EvaluationFocus.Head) {
 				resultMetrics.sumOfHeadInvRanks += invRank;
 				resultMetrics.headRanks++;
+				resultMetrics.sumOfFilteredHeadInvRanks += invFilteredRank;
+				if (rank == 1)
+					resultMetrics.headHitsAt1++;
+				if (rank <= 3)
+					resultMetrics.headHitsAt3++;
+				if (rank <= 5)
+					resultMetrics.headHitsAt5++;
+				if (rank <= 10)
+					resultMetrics.headHitsAt10++;
+				if (filteredRank == 1)
+					resultMetrics.filteredHeadHitsAt1++;
+				if (filteredRank <= 3)
+					resultMetrics.filteredHeadHitsAt3++;
+				if (filteredRank <= 5)
+					resultMetrics.filteredHeadHitsAt5++;
+				if (filteredRank <= 10)
+					resultMetrics.filteredHeadHitsAt10++;
 			} else if (focus == EvaluationFocus.Tail) {
 				resultMetrics.sumOfTailInvRanks += invRank;
 				resultMetrics.tailRanks++;
+				resultMetrics.sumOfFilteredTailInvRanks += invFilteredRank;
+				if (rank == 1)
+					resultMetrics.tailHitsAt1++;
+				if (rank <= 3)
+					resultMetrics.tailHitsAt3++;
+				if (rank <= 5)
+					resultMetrics.tailHitsAt5++;
+				if (rank <= 10)
+					resultMetrics.tailHitsAt10++;
+				if (filteredRank == 1)
+					resultMetrics.filteredTailHitsAt1++;
+				if (filteredRank <= 3)
+					resultMetrics.filteredTailHitsAt3++;
+				if (filteredRank <= 5)
+					resultMetrics.filteredTailHitsAt5++;
+				if (filteredRank <= 10)
+					resultMetrics.filteredTailHitsAt10++;
 			}
 			resultMetrics.sumOfInvRanks += invRank;
+			resultMetrics.sumOfFilteredInvRanks += invFilteredRank;
 		}
 	}
 
@@ -191,7 +237,7 @@ public class Evaluator {
 	 * It determines whether a rule provides evidence for entity as a solution
 	 * for the query
 	 * 
-	 * @param rules
+	 * @param rule
 	 * @param entity
 	 * @param query
 	 * @return

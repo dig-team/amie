@@ -12,17 +12,13 @@ public class Ranking {
 	private Query query;
 	private TreeSet<Rank> solutions;
 	private Map<Integer, Integer> ranks;
-	private Map<Integer, Integer> filteredRanks;
-	private int maxRank;
-	private int maxFilteredRank;
+	private int[] nSolutionsUpTo;
 
 	public Ranking(Query query) {
 		this.query = query;
 		this.solutions = new TreeSet<>();
 		this.ranks = new HashMap<>();
-		this.filteredRanks = new HashMap<>();
-		this.maxRank = -1;
-		this.maxFilteredRank = -1;
+		this.nSolutionsUpTo = null; // We need to know the size of the ranking to allocate memory for this
 	}
 
 	public Query getQuery() {
@@ -45,40 +41,31 @@ public class Ranking {
 	 * that is, different entities with the same scores are assigned the same rank.
 	 */
 	public void build() {
-		Rank lastRank = new Rank(-1, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
-		Rank lastFilteredRank = lastRank;
+		this.nSolutionsUpTo = new int[this.solutions.size()];
+		int nSolutionsUpToHere = 0;
 		int rankId = 0;
-		int filteredRankId = 0;
 		for (Rank r : this.solutions) {
-			// Standard rank
-			if (lastRank.partialCompareTo(r) != 0) {
-				rankId++;
-			}
-			ranks.put(r.entity, rankId);
-			lastRank = r;
-			// Filtered rank
-			boolean isSolutionForQuery = this.solutionForQueryInKG(query, r.entity);
-			if (isSolutionForQuery)
-				continue;
+			// Required for filtered rank
+			if (this.isSolutionForQuery(r.entity))
+				nSolutionsUpToHere++;
 
-			if (lastFilteredRank.partialCompareTo(r) != 0) {
-				filteredRankId++;
-			}
-			filteredRanks.put(r.entity, filteredRankId);
-			lastFilteredRank = r;
+			this.nSolutionsUpTo[rankId] = nSolutionsUpToHere;
+			rankId++;
+			this.ranks.put(r.entity, rankId);
 		}
-		this.maxRank = rankId;
-		this.maxFilteredRank = filteredRankId;
 	}
 
 	/**
-	 * Is
-	 * @param query
+	 * Determines if a solution for a query has been observed in the
+	 * training KG
 	 * @param entity
 	 * @return
 	 */
-	private boolean solutionForQueryInKG(Query query, int entity) {
-		return false;
+	public boolean isSolutionForQuery(int entity) {
+		if (this.query == null)
+			return false;
+		int[] triple = this.query.instantiate(entity);
+		return this.query.kb.count(triple) > 0;
 	}
 
 	/**
@@ -89,9 +76,10 @@ public class Ranking {
 	 * once
 	 */
 	public Integer rank(int entity) {
+		int maxRank = this.solutions.size();
 		Integer r = this.ranks.get(entity);
 		if (r == null) {
-			return maxRank + 1;
+			return maxRank;
 		} else {
 			return r;
 		}
@@ -106,11 +94,22 @@ public class Ranking {
 	 * once
 	 */
 	public Integer filteredRank(int entity) {
-		Integer r = this.filteredRanks.get(entity);
-		if (r == null) {
-			return maxFilteredRank + 1;
+		int rank = this.rank(entity);
+		int nSolutions = this.getNSolutionsUpToRank(rank);
+		return rank - nSolutions;
+	}
+
+	/**
+	 * It computes the number of solutions that correspond observed triples such
+	 * that their rank is smaller than the provided rank
+	 * @param rank
+	 * @return
+	 */
+	private int getNSolutionsUpToRank(int rank) {
+		if (rank > this.solutions.size()) {
+			return this.nSolutionsUpTo[nSolutionsUpTo.length - 1];
 		} else {
-			return r;
+			return this.nSolutionsUpTo[rank - 1];
 		}
 	}
 
@@ -130,7 +129,7 @@ public class Ranking {
 		if (this.query != null)
 			str.append(this.query + "\n");
 		str.append("Rankings\n");
-		ranks.entrySet().stream().forEach(e -> str.append(e.getKey() + "--" + e.getValue() + "\n"));
+		ranks.entrySet().stream().forEach(e -> str.append(this.query.kb.unmap(e.getKey()) + "--" + e.getValue() + "\n"));
 
 		return str.toString();
 	}

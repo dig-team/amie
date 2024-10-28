@@ -111,10 +111,9 @@ public class TestEvaluator extends TestCase {
 
         Map<Integer, List<int[]>> testTriples = new HashMap<>();
         testTriples.put(kb.map("livesIn"), List.of(
-                new int[]{kb.map("Christophe"), kb.map("livesIn"), kb.map("Montpellier")},
-                new int[]{kb.map("Luis"), kb.map("livesIn"), kb.map("Rennes")},
-                new int[]{kb.map("Julianne"), kb.map("livesIn"), kb.map("Rennes")}
-                ));
+                new int[]{kb.map("Christophe"), kb.map("livesIn"), kb.map("Montpellier")}, // r1 and r2
+                new int[]{kb.map("Julianne"), kb.map("livesIn"), kb.map("Rennes")} // no rule
+        ));
         Evaluator ev = new Evaluator(new Dataset(kb, testTriples), List.of(r1, r2));
         Set<Integer> candidates = ev.getQueryCandidatesStream(kb.map("livesIn"), 2).collect(Collectors.toSet());
         System.out.println(candidates);
@@ -123,17 +122,20 @@ public class TestEvaluator extends TestCase {
         assertTrue(candidates.contains(kb.map("Scaer")));
         assertTrue(candidates.contains(kb.map("Montpellier")));
         assertTrue(candidates.contains(kb.map("Paris")));
-        Query query = new Query(kb, kb.map("Christophe"), kb.map("livesIn"), -1);
-        Ranking ranking = new Ranking(query);
-        ranking.addSolution(ev.getEntityScoresForQuery(kb.map("Rennes"), query));
-        ranking.addSolution(ev.getEntityScoresForQuery(kb.map("Scaer"), query));
-        ranking.addSolution(ev.getEntityScoresForQuery(kb.map("Montpellier"), query));
-        ranking.addSolution(ev.getEntityScoresForQuery(kb.map("Paris"), query));
-        ranking.build();
-        assertEquals(ranking.rank(kb.map("Rennes")).intValue(), 3);
-        assertEquals(ranking.rank(kb.map("Paris")).intValue(), 3);
-        assertEquals(ranking.rank(kb.map("Montpellier")).intValue(), 1);
-        assertEquals(ranking.rank(kb.map("Scaer")).intValue(), 2);
+        Query tailQuery = new Query(kb, kb.map("Christophe"), kb.map("livesIn"), -1);
+        Ranking rankingTail = new Ranking(tailQuery);
+        rankingTail.addSolution(ev.getEntityScoresForQuery(kb.map("Rennes"), tailQuery));
+        rankingTail.addSolution(ev.getEntityScoresForQuery(kb.map("Scaer"), tailQuery));
+        rankingTail.addSolution(ev.getEntityScoresForQuery(kb.map("Montpellier"), tailQuery));
+        rankingTail.addSolution(ev.getEntityScoresForQuery(kb.map("Paris"), tailQuery));
+        rankingTail.build();
+        assertTrue(rankingTail.rank(kb.map("Rennes")).intValue() > rankingTail.rank(kb.map("Scaer")).intValue());
+        assertTrue(rankingTail.rank(kb.map("Paris")).intValue() > rankingTail.rank(kb.map("Scaer")).intValue());
+        assertEquals(rankingTail.rank(kb.map("Montpellier")).intValue(), 1);
+        assertEquals(rankingTail.rank(kb.map("Scaer")).intValue(), 2);
+        assertEquals(rankingTail.filteredRank(kb.map("Montpellier")).intValue(), 1);
+        assertEquals(rankingTail.filteredRank(kb.map("Scaer")).intValue(), 2);
+
         EvaluationResult eresult = ev.evaluate();
         System.out.println(eresult);
     }

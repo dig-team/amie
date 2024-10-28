@@ -20,7 +20,7 @@ public class Rank implements Comparable<Rank> {
 		if (firstComparison == 0) {
 			int secondComparison = Double.compare(a.tiesBreakerScore,
 					this.tiesBreakerScore);
-			return secondComparison == 0 ? Integer.compare(a.entity, this.entity) : secondComparison;
+			return secondComparison == 0 ? Integer.compare(this.entity, a.entity) : secondComparison;
 		} else {
 			return firstComparison;
 		}

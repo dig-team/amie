@@ -1,13 +1,16 @@
 package amie.mining.miniAmie;
 
-import amie.data.AbstractKB;
+import amie.mining.miniAmie.output.Attributes;
 import amie.rules.Rule;
 
 import java.util.HashSet;
-import java.util.List;
 
-public class MiniAmieClosedRule extends Rule {
+import static amie.mining.miniAmie.miniAMIE.*;
+import static amie.mining.miniAmie.utils.*;
 
+public class MiniAmieClosedRule extends MiniAmieRule {
+
+    static final int CLOSED_RULE_OPEN_VALUE = 0 ;
 
     private double approximateHC = -1 ;
 
@@ -19,27 +22,31 @@ public class MiniAmieClosedRule extends Rule {
 
     private long appSupportNano ;
 
-    private FactorsOfApproximateSupportClosedRule factorsOfApproximateSupport ;
-
-
-    public MiniAmieClosedRule(AbstractKB kb) {
-        super(kb);
-    }
-
-    public MiniAmieClosedRule(int[] headAtom, double cardinality, AbstractKB kb) {
-        super(headAtom, cardinality, kb);
-    }
+    private Attributes factorsOfApproximateSupport ;
 
     public MiniAmieClosedRule(Rule rule) {
-        super(rule, -1, rule.kb) ;
+        super(rule) ;
     }
 
-    public MiniAmieClosedRule(Rule otherQuery, double support, AbstractKB kb) {
-        super(otherQuery, support, kb);
-    }
+    /** Appends closing atom to clone
+     * @param rule
+     * @param subject
+     * @param relation
+     * @param object
+     * @return clone of the given rule with new closing atom
+     */
+    public MiniAmieClosedRule(MiniAmieRule rule, int subject, int relation, int object) {
+        super(rule, rule.getSupport(), rule.kb);
+        this.setLastOpenParameter(CLOSED_RULE_OPEN_VALUE) ;
 
-    public MiniAmieClosedRule(int[] head, List<int[]> body, double cardinality, AbstractKB kb) {
-        super(head, body, cardinality, kb);
+        int[] newAtom = new int[ATOM_SIZE];
+        this.getBody().add(newAtom);
+
+        newAtom[SUBJECT_POSITION] = subject;
+        newAtom[RELATION_POSITION] = relation;
+        newAtom[OBJECT_POSITION] = object;
+
+        setCorrectingFactor(ClosedCorrectingFactor(relation));
     }
 
     // todo test this
@@ -60,7 +67,7 @@ public class MiniAmieClosedRule extends Rule {
         return found_x && found_y ;
     }
 
-    protected static boolean HasNoRedundancies(Rule rule) {
+    public static boolean HasNoRedundancies(Rule rule) {
         HashSet<Integer> relations = new HashSet<>();
         relations.add(rule.getHead()[utils.RELATION_POSITION]);
         // Redundancy check
@@ -124,12 +131,37 @@ public class MiniAmieClosedRule extends Rule {
         this.appSupportNano = appSupportNano;
     }
 
-    public FactorsOfApproximateSupportClosedRule getFactorsOfApproximateSupport() {
+    public Attributes getFactorsOfApproximateSupport() {
         return factorsOfApproximateSupport;
     }
 
-    public void setFactorsOfApproximateSupport(FactorsOfApproximateSupportClosedRule factorsOfApproximateSupport) {
+    public void setFactorsOfApproximateSupport(Attributes factorsOfApproximateSupport) {
         this.factorsOfApproximateSupport = factorsOfApproximateSupport;
+    }
+
+    // TODO replace that with IsPrunedClosedRule static method attribute to avoid repeated PruningMetric check
+    @Override
+    public boolean IsNotPruned() {
+        switch(PM) {
+            case ApproximateSupport -> {
+                return ApproximateSupportClosedRule(this) >= MinSup ;
+            }
+            case ApproximateHeadCoverage -> {
+                return ApproximateHeadCoverageClosedRule(this) >= MinHC ;
+            }
+            case AlternativeApproximateSupport -> {
+                return AltApproximateSupportClosedRule(this) >= MinSup ;
+            }
+            case Support -> {
+                return RealSupport(this) >= MinSup ;
+            }
+            case HeadCoverage -> {
+                return RealHeadCoverage(this) >= MinHC ;
+            }
+            default -> {
+                return false;
+            }
+        }
     }
 
 }

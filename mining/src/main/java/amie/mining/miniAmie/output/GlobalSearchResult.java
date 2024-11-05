@@ -1,5 +1,6 @@
-package amie.mining.miniAmie;
+package amie.mining.miniAmie.output;
 
+import amie.mining.miniAmie.utils;
 import amie.mining.utils.Benchmarking;
 
 import java.io.File;
@@ -55,11 +56,12 @@ public class GlobalSearchResult {
         System.out.println("Search space approximation (adjusted with bidirectionality): " +
                 totalSumExploredRulesAdjustedWithBidirectionality + " possibilities.");
 
-        System.out.println("Bidirectional relations (range-dom Jaccard >= " + BidirectionalityJaccardThreshold + "):");
+        System.out.print("Bidirectional relations (range-dom Jaccard >= " + BidirectionalityJaccardThreshold + "):");
         for (int relation : bidirectionalityMap.keySet())
             if (bidirectionalityMap.get(relation)) {
-                System.out.print(kb.unmap(relation) + " ");
+                System.out.print(" " + Kb.unmap(relation) );
             }
+        System.out.println();
 
         // Outputing general information on run config
         try {
@@ -81,7 +83,7 @@ public class GlobalSearchResult {
             System.out.println("Run configuration :");
             System.out.print(HEADER);
             String runConfigCsvLine = ""
-                    + timestamp + utils.commaSep
+                    + Timestamp + utils.commaSep
                     + MaxRuleSize + utils.commaSep
                     + PM + utils.commaSep
                     + MinSup + utils.commaSep
@@ -93,18 +95,13 @@ public class GlobalSearchResult {
                     + ErrorRateThreshold + utils.commaSep
                     + CompareToGroundTruth + utils.commaSep
                     + (RestrainedHead == null ? "" : RestrainedHead) + utils.commaSep
-                    + (pathToGroundTruthRules == null ? "" : pathToGroundTruthRules) + utils.commaSep
+                    + (PathToGroundTruthRules == null ? "" : PathToGroundTruthRules) + utils.commaSep
                     + CORRECTION_FACTOR_CLOSURE + utils.commaSep
                     + CORRECTION_FACTOR_OPENING + utils.commaSep
                     + duration + utils.commaSep
                     + Benchmarking.PeakMemory() + utils.commaSep
                     + totalSumExploredRules + utils.commaSep
                     + totalSumExploredRulesAdjustedWithBidirectionality + "\n";
-
-//            Files.write(
-//                    Paths.get(OutputConfigurationCsvPath),
-//                    runConfigCsvLine.getBytes(),
-//                    StandardOpenOption.APPEND);
             outputConfigurationCsvWriter.write(runConfigCsvLine);
             System.out.print(runConfigCsvLine);
             outputConfigurationCsvWriter.close();

@@ -1,11 +1,7 @@
 package amie.mining.miniAmie.Unit;
 
-import amie.data.AbstractKB;
 import amie.data.KB;
-import amie.mining.AMIE;
 import amie.mining.miniAmie.miniAMIE;
-import amie.mining.utils.AMIEOptions;
-import com.google.gson.Gson;
 import junit.framework.TestCase;
 
 import java.io.File;
@@ -37,7 +33,7 @@ public abstract class UnitTest extends TestCase {
         dataFiles.add (kbFile);
         kb = new KB () ;
         kb.load (dataFiles);
-        miniAMIE.kb = kb ;
+        miniAMIE.Kb = kb ;
     }
 
     protected void setUp() throws Exception {

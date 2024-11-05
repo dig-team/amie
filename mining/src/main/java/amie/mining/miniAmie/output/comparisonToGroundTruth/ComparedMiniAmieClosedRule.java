@@ -1,5 +1,6 @@
-package amie.mining.miniAmie;
+package amie.mining.miniAmie.output.comparisonToGroundTruth;
 
+import amie.mining.miniAmie.MiniAmieClosedRule;
 import amie.rules.Rule;
 
 public class ComparedMiniAmieClosedRule extends MiniAmieClosedRule {

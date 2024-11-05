@@ -1,5 +1,8 @@
-package amie.mining.miniAmie;
+package amie.mining.miniAmie.output.comparisonToGroundTruth;
 
+import amie.mining.miniAmie.MiniAmieClosedRule;
+import amie.mining.miniAmie.miniAMIE;
+import amie.mining.miniAmie.utils;
 import amie.rules.QueryEquivalenceChecker;
 import amie.rules.Rule;
 
@@ -9,16 +12,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static amie.mining.miniAmie.ComparedMiniAmieClosedRule.RuleStateComparison.*;
+import static amie.mining.miniAmie.output.OutputRules.OutputCSVLine;
+import static amie.mining.miniAmie.output.comparisonToGroundTruth.ComparedMiniAmieClosedRule.RuleStateComparison.*;
+import static amie.mining.miniAmie.output.OutputRules.OUTPUT_CSV_HEADER;
 import static amie.mining.miniAmie.miniAMIE.*;
 import static amie.mining.miniAmie.utils.*;
 import static amie.mining.miniAmie.utils.ComputeRuleListMetrics;
 
+// TODO fix this (broken atm)
 public class CompareToGT {
 
-
-    protected static String bodySep = ";" ;
-
+    static final String COMPARE_CSV_HEADER = "isFalse" + commaSep // FALSE
+            + "isCorrect" + commaSep // CORRECT
+            + "isMissingFailure" + commaSep // MISSING_FAILURE
+            + "isMissingOK" + commaSep
+            + OUTPUT_CSV_HEADER ;
     /**
      * CompareRules will return true if two rules are equivalent (considering atom positions and variable naming)
      * (ex: ?a  < worksAt >  ?c ?c  < isLocatedIn >  ?b => ?a  < isCitizenOf >  ?b
@@ -31,12 +39,12 @@ public class CompareToGT {
         return QueryEquivalenceChecker.areEquivalent(groundTruthRule.getTriples(), rule.getTriples());
     }
 
-    protected static List<Rule> LoadGroundTruthRules() {
+    public static List<Rule> LoadGroundTruthRules() {
         List<Rule> groundTruthRules = new ArrayList<>();
         BufferedReader reader;
 
         try {
-            reader = new BufferedReader(new FileReader(miniAMIE.pathToGroundTruthRules));
+            reader = new BufferedReader(new FileReader(miniAMIE.PathToGroundTruthRules));
             String line = reader.readLine();
             String regexSpace = "[(\\ )|(\t)]+";
             String regexAtom = "(\\?[a-z]" + regexSpace + "<[^>]+>" + regexSpace + "\\?[a-z]" + regexSpace + ")";
@@ -55,9 +63,9 @@ public class CompareToGT {
                         String relationString = bodyParts[i + 1];
                         String objectString = bodyParts[i + 2];
 
-                        int subject = miniAMIE.kb.map(subjectString);
-                        int relation = miniAMIE.kb.map(relationString);
-                        int object = miniAMIE.kb.map(objectString);
+                        int subject = miniAMIE.Kb.map(subjectString);
+                        int relation = miniAMIE.Kb.map(relationString);
+                        int object = miniAMIE.Kb.map(objectString);
 
                         bodyAtoms.add(new int[]{subject, relation, object});
                     }
@@ -71,11 +79,11 @@ public class CompareToGT {
                             !miniAMIE.RestrainedHead.isEmpty() &&
                             !Objects.equals(relationString, miniAMIE.RestrainedHead))
                         break ;
-                    int subject = miniAMIE.kb.map(subjectString);
-                    int relation = miniAMIE.kb.map(relationString);
-                    int object = miniAMIE.kb.map(objectString);
+                    int subject = miniAMIE.Kb.map(subjectString);
+                    int relation = miniAMIE.Kb.map(relationString);
+                    int object = miniAMIE.Kb.map(objectString);
                     headAtom = new int[]{subject, relation, object};
-                    Rule groundTruthRule = new Rule(headAtom, bodyAtoms, -1, miniAMIE.kb);
+                    Rule groundTruthRule = new Rule(headAtom, bodyAtoms, -1, miniAMIE.Kb);
                     groundTruthRules.add(groundTruthRule);
                 } else {
                     System.err.println("Could not find ground truth rule in "+line);
@@ -88,7 +96,6 @@ public class CompareToGT {
             e.printStackTrace();
             System.exit(1);
         }
-//        System.out.println("groundTruthRules "+ groundTruthRules);
         return groundTruthRules;
     }
 
@@ -143,41 +150,8 @@ public class CompareToGT {
 
             FileWriter outputComparisonCsvWriter = new FileWriter(OutputComparisonCsvPath);
 
-            String csvColumnLine = String.format(
-                    "rule" + commaSep // RULE
-                            + "headRelation" + commaSep
-                            + "size" + commaSep
-                            + "isFalse" + commaSep // FALSE
-                            + "isCorrect" + commaSep // CORRECT
-                            + "isMissingFailure" + commaSep // MISSING_FAILURE
-                            + "isMissingOK" + commaSep // MISSING_OK
-                            + "isPerfectPath" + commaSep
-                            + "hasRedundancies" + commaSep
-                            + "appSupport" + commaSep // APP SUPPORT
-                            + "altAppSupport" + commaSep // APP SUPPORT
-                            + "realSupport" + commaSep
-                            + "appHeadCoverage" + commaSep
-                            + "realHeadCoverage" + commaSep
-                            + "appSupportNano" + commaSep
-                            + "realSupportNano" + commaSep
-                            + "relationHeadAtom" + commaSep
-                            + "relationFirstBodyAtom" + commaSep
-                            + "relationLastBodyAtom" + commaSep
-                            + "headAtomObjectToFirstBodyAtomObjectOverlap" + commaSep
-                            + "lastBodyAtomSubjectToHeadAtomSubjectOverlap" + commaSep
-                            + "relationFirstBodyAtomSize" + commaSep
-                            + "relationHeadSize" + commaSep
-                            + "rangeFirstBodyAtom" + commaSep
-                            + "domainHeadAtom" + commaSep
-                            + "domainLastBodyAtom" + commaSep
-                            + "ifunRelationFirstBodyAtom" + commaSep
-                            + "funRelationHeadAtom" + commaSep
-                            + "bodyEstimate" + commaSep
-                            + "bodyProductElements"
-                            + "\n"
-            );
-            outputComparisonCsvWriter.write(csvColumnLine);
-            System.out.print(csvColumnLine);
+            outputComparisonCsvWriter.write(COMPARE_CSV_HEADER);
+            System.out.print(COMPARE_CSV_HEADER);
 
             // Computing real support using available cores
             if (!miniAMIE.OutputRules) {
@@ -189,26 +163,13 @@ public class CompareToGT {
                 ComparedMiniAmieClosedRule.RuleStateComparison compRule = comparisonMap.get(rule);
 
                 // Printing to csv file
-                String csvLine = String.format(
-                        rule + commaSep + // RULE
-                                kb.unmap(rule.getHead()[RELATION_POSITION]) + commaSep // HEAD RELATION
-                                + (rule.getBody().size() + 1) + commaSep // RULE SIZE
-                                + (compRule == FALSE ? 1 : 0) + commaSep // FALSE
+                String csvLine =
+                                 (compRule == FALSE ? 1 : 0) + commaSep // FALSE
                                 + (compRule == CORRECT ? 1 : 0) + commaSep // CORRECT
                                 + (compRule == ComparedMiniAmieClosedRule.RuleStateComparison.MISSING_FAILURE ? 1 : 0) + commaSep // MISSING_FAILURE
                                 + (compRule == ComparedMiniAmieClosedRule.RuleStateComparison.MISSING_OK ? 1 : 0) + commaSep // MISSING_OK
-                                + (MiniAmieClosedRule.IsRealPerfectPath(rule) ? 1 : 0) + commaSep
-                                + (MiniAmieClosedRule.HasNoRedundancies(rule) ? 0 : 1) + commaSep
-                                + comparedRule.getApproximateSupport() + commaSep // APP SUPPORT
-                                + comparedRule.getAlternativeApproximateSupport() + commaSep // APP SUPPORT
-                                + comparedRule.getSupport() + commaSep
-                                + comparedRule.getApproximateHC() + commaSep
-                                + comparedRule.getHeadCoverage() + commaSep
-                                + comparedRule.getAppSupportNano() + commaSep
-                                + comparedRule.getSupportNano() + commaSep
-                                + comparedRule.getFactorsOfApproximateSupport()
-                                + "\n"
-                );
+                                + OutputCSVLine((MiniAmieClosedRule) rule)
+                                + "\n";
                 outputComparisonCsvWriter.write(csvLine);
                 // Printing comparison to console
                 System.out.print(comparedRule.getComparisonCharacter() + csvLine + ComparedMiniAmieClosedRule.ANSI_RESET);
@@ -216,7 +177,6 @@ public class CompareToGT {
 
 
         } catch (Exception e) {
-//                System.err.println("Couldn't create output file: "+ outputComparisonCsvPath+ ". Maybe file already exists.");
             e.printStackTrace();
         }
 

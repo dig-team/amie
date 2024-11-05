@@ -913,14 +913,14 @@ public class AMIE {
             miniAMIE.PM = metric ;
             miniAMIE.MinSup = minSup ;
             miniAMIE.MinHC = minHeadCover ;
-            miniAMIE.kb = dataSource ;
+            miniAMIE.Kb = dataSource ;
             miniAMIE.NThreads = nThreads ;
             miniAMIE.EnableVariableSwitch = cli.hasOption(AMIEOptions.MINI_AMIE_ENABLE_VARIABLE_SWITCH.getOpt());
             miniAMIE.EnableConstants = cli.hasOption(AMIEOptions.MINI_AMIE_ENABLE_CONSTANTS.getOpt());
             miniAMIE.Verbose = cli.hasOption(AMIEOptions.MINI_AMIE_VERBOSE.getOpt()) ;
             String miniAMIECompareToGroundTruthOption = AMIEOptions.MINI_AMIE_COMPARE_TO_GROUND_TRUTH.getOpt();
             miniAMIE.CompareToGroundTruth = cli.hasOption(miniAMIECompareToGroundTruthOption) ;
-            miniAMIE.pathToGroundTruthRules = miniAMIE.CompareToGroundTruth ?
+            miniAMIE.PathToGroundTruthRules = miniAMIE.CompareToGroundTruth ?
                     cli.getOptionValue(miniAMIECompareToGroundTruthOption) : null ;
             String miniAMIEOutputConfigurationPathOption = AMIEOptions.MINI_AMIE_GLOBAL_SEARCH_RESULT_PATH.getOpt() ;
             if (cli.hasOption(AMIEOptions.MINI_AMIE_GLOBAL_SEARCH_RESULT_PATH.getOpt())) {

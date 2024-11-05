@@ -3,6 +3,7 @@ package amie.mining.miniAmie;
 import amie.data.KB;
 import amie.data.javatools.datatypes.Pair;
 import amie.mining.assistant.MiningAssistant;
+import amie.mining.miniAmie.output.Attributes;
 import amie.rules.Rule;
 import it.unimi.dsi.fastutil.ints.*;
 
@@ -12,21 +13,23 @@ import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static amie.mining.miniAmie.miniAMIE.NThreads;
-import static amie.mining.miniAmie.miniAMIE.executor;
+import static amie.mining.miniAmie.miniAMIE.*;
 
-public class utils {
+public abstract class utils {
 
     public static MiningAssistant miningAssistant;
 
     public static final int ATOM_SIZE = 3;
 
+    public static final int UNDEFINED_POSITION = -1 ;
     public static final int SUBJECT_POSITION = 0;
     public static final int RELATION_POSITION = 1;
     public static final int OBJECT_POSITION = 2;
 
     public static final int NO_OVERLAP_VALUE = -1;
-    protected static String commaSep = ",";
+    public static final String commaSep = ",";
+    public static String bodySep = ";" ;
+    public static String atomSep = " " ;
 
     /**
      * ExplorationResult is instantiated to return the result of an exploration.
@@ -50,32 +53,9 @@ public class utils {
     protected static List<Integer> SelectRelations() {
         List<Integer> relations = new ArrayList<>();
 
-        for (int relation : miniAMIE.kb.getRelations()) {
+        for (int relation : Kb.getRelations()) {
 
-            if (miniAMIE.kb.relationSize(relation) >= miniAMIE.MinSup)
-                relations.add(relation);
-        }
-        return relations;
-    }
-
-    private static boolean RuleDoesNotContainsRelation(Rule rule, int relation) {
-
-        if (relation == rule.getHead()[RELATION_POSITION])
-            return false;
-
-        // Seeking unwanted duplicates
-        for (int[] atom : rule.getBody()) {
-            if (relation == atom[RELATION_POSITION])
-                return false;
-        }
-        return true;
-    }
-
-    private static List<Integer> PromisingRelations(Rule rule) {
-        List<Integer> relations = new ArrayList<>();
-
-        for (int relation : miniAMIE.SelectedRelations) {
-            if (RuleDoesNotContainsRelation(rule, relation))
+            if (Kb.relationSize(relation) >= MinSup)
                 relations.add(relation);
         }
         return relations;
@@ -95,7 +75,7 @@ public class utils {
         IntSet rangeDomainUnion = new IntOpenHashSet(domain);
         rangeDomainUnion.addAll(range);
 //        rangeDomainUnion.addAll(domain(relation));
-        double bidirectionalityJaccard = (double) subjectToObjectOverlapSize(relation, relation)
+        double bidirectionalityJaccard = (double) SubjectToObjectOverlapSize(relation, relation)
                 / rangeDomainUnion.size();
         if (bidirectionalityJaccard >= BidirectionalityJaccardThreshold) {
             bidirectionalityMap.put(relation, true);
@@ -120,111 +100,8 @@ public class utils {
         return isBidirectional(lastAddedRelation) ? DEFAULT_CORRECTION_OPEN : REDUCED_CORRECTION_OPEN;
     }
 
-    private static ArrayList<Pair<Rule, Integer>> addClosure(Rule rule, int joinSubject, int joinObject) {
-        ArrayList<Pair<Rule, Integer>> closedRules = new ArrayList<>();
-        List<Integer> relations = PromisingRelations(rule);
-
-        if (relations.isEmpty()) {
-            return null;
-        }
-
-        for (int relation : relations) {
-            Rule closedRule = new Rule(rule, -1, miniAMIE.kb);
-
-            int[] newAtom = new int[ATOM_SIZE];
-            closedRule.getBody().add(newAtom);
-
-            newAtom[SUBJECT_POSITION] = joinSubject;
-            newAtom[RELATION_POSITION] = relation;
-            newAtom[OBJECT_POSITION] = joinObject;
-
-            int searchSpaceCorrectingFactor = ClosedCorrectingFactor(relation);
-            closedRules.add(new Pair<>(closedRule, searchSpaceCorrectingFactor));
-
-        }
-        return closedRules;
-    }
-
-    /**
-     * AddClosureToEmptyBody adds a closure atom to an empty body rule, with respect to perfect path pattern
-     * (i.e. Head subject is closure subject, Head object is closure object)
-     *
-     * @param rule to be closed
-     * @return A set of possible closed rules.
-     */
-    public static ArrayList<Pair<Rule, Integer>> AddClosureToEmptyBody(Rule rule) {
-        int[] headAtom = rule.getHead();
-        int joinSubject = headAtom[SUBJECT_POSITION];
-        int joinObject = headAtom[OBJECT_POSITION];
-
-        return addClosure(rule, joinSubject, joinObject);
-    }
-
-    /**
-     * AddClosure adds a closure atom to a non-empty body rule, with respect to perfect path pattern
-     * (i.e. Head subject is closure subject, dangling's subject is closure object)
-     *
-     * @param rule to be closed
-     * @return A set of possible closed rules paired with their correcting factor for search space size.
-     */
-    public static ArrayList<Pair<Rule, Integer>> AddClosureToNonEmptyBody(Rule rule) {
-        int joinSubject = rule.getHead()[SUBJECT_POSITION];
-        int joinObject = rule.getLastTriplePattern()[SUBJECT_POSITION];
-
-        return addClosure(rule, joinSubject, joinObject);
-    }
-
-    private static ArrayList<Pair<Rule, Integer>> addDangling(Rule rule, int joinObject) {
-        ArrayList<Pair<Rule, Integer>> openRules = new ArrayList<>();
-        List<Integer> relations = PromisingRelations(rule);
-
-        if (relations.isEmpty()) {
-            return null;
-        }
-
-        for (int relation : relations) {
-            Rule closedRule = new Rule(rule, -1, miniAMIE.kb);
-
-            int[] newAtom = new int[ATOM_SIZE];
-            closedRule.getBody().add(newAtom);
-
-            newAtom[SUBJECT_POSITION] = closedRule.fullyUnboundTriplePattern()[SUBJECT_POSITION];
-            newAtom[RELATION_POSITION] = relation;
-            newAtom[OBJECT_POSITION] = joinObject;
-
-            int searchSpaceCorrectingFactor = OpenCorrectingFactor(relation);
-            openRules.add(new Pair<>(closedRule, searchSpaceCorrectingFactor));
-        }
-
-        return openRules;
-    }
-
-    /**
-     * AddDanglingToEmptyBody adds a dangling atom to an empty body rule, with respect to the perfect path pattern
-     * (i.e. Only open variable is dangling's subject, Head object is dangling's object )
-     *
-     * @param rule parent
-     * @return A set of possible open rules
-     */
-    public static ArrayList<Pair<Rule, Integer>> AddDanglingToEmptyBody(Rule rule) {
-        int joinParameter = rule.getHead()[OBJECT_POSITION];
-        return addDangling(rule, joinParameter);
-    }
-
-    /**
-     * AddDangling adds a dangling atom to a non empty body rule, with respect to the perfect path pattern
-     * (i.e. Only open variable is dangling's subject, Head object is dangling's object )
-     *
-     * @param rule parent
-     * @return A set of possible open rules
-     */
-    public static ArrayList<Pair<Rule, Integer>> AddDanglingToNonEmptyBody(Rule rule) {
-        int joinParameter = rule.getLastTriplePattern()[SUBJECT_POSITION];
-        return addDangling(rule, joinParameter);
-    }
-
     private static IntSet range(int r) {
-        KB kb = (KB) miniAMIE.kb;
+        KB kb = (KB) miniAMIE.Kb;
         Int2ObjectMap<IntSet> objectsToSubjects = kb.relation2object2subject.get(r);
         if (objectsToSubjects == null)
             return null;
@@ -232,23 +109,23 @@ public class utils {
     }
 
     private static IntSet domain(int r) {
-        KB kb = (KB) miniAMIE.kb;
+        KB kb = (KB) miniAMIE.Kb;
         Int2ObjectMap<IntSet> subjectsToObjects = kb.relation2subject2object.get(r);
         if (subjectsToObjects == null)
             return null;
         return subjectsToObjects.keySet();
     }
 
-    static int rangeSize(int r) {
-        KB kb = (KB) miniAMIE.kb;
+    public static int RangeSize(int r) {
+        KB kb = (KB) miniAMIE.Kb;
         Int2ObjectMap<IntSet> factSet = kb.relation2object2subject.get(r);
         if (factSet == null)
             return 0;
         return factSet.size();
     }
 
-    static int domainSize(int r) {
-        KB kb = (KB) miniAMIE.kb;
+    public static int DomainSize(int r) {
+        KB kb = (KB) miniAMIE.Kb;
         Int2ObjectMap<IntSet> factSet = kb.relation2subject2object.get(r);
         if (factSet == null)
             return 0;
@@ -256,6 +133,8 @@ public class utils {
     }
 
     private static Lock overlapLock = new ReentrantLock();
+
+
 
     private static int overlapSize(int r1, int r2,
                                    Int2ObjectMap<Int2IntMap> overlapTable,
@@ -297,8 +176,8 @@ public class utils {
         return overlap;
     }
 
-    static int objectToObjectOverlapSize(int r1, int r2) {
-        KB kb = (KB) miniAMIE.kb;
+    public static int ObjectToObjectOverlapSize(int r1, int r2) {
+        KB kb = (KB) miniAMIE.Kb;
         Int2ObjectMap<Int2IntMap> overlapTable = kb.object2objectOverlap;
         Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet1 = kb.relation2object2subject;
         Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet2 = kb.relation2object2subject;
@@ -306,8 +185,8 @@ public class utils {
         return overlap;
     }
 
-    static int subjectToObjectOverlapSize(int r1, int r2) {
-        KB kb = (KB) miniAMIE.kb;
+    public static int SubjectToObjectOverlapSize(int r1, int r2) {
+        KB kb = (KB) miniAMIE.Kb;
         Int2ObjectMap<Int2IntMap> overlapTable = kb.subject2objectOverlap;
         Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet1 = kb.relation2subject2object;
         Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet2 = kb.relation2object2subject;
@@ -317,7 +196,7 @@ public class utils {
 
 
     static int subjectToSubjectOverlapSize(int r1, int r2) {
-        KB kb = (KB) miniAMIE.kb;
+        KB kb = (KB) miniAMIE.Kb;
         Int2ObjectMap<Int2IntMap> overlapTable = kb.subject2subjectOverlap;
         Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet1 = kb.relation2subject2object;
         Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet2 = kb.relation2subject2object;
@@ -325,58 +204,203 @@ public class utils {
         return overlap;
     }
 
-    static List<int[]> sortPerfectPathBody(Rule rule) {
+    public static int VariablePosition(int[] r, int variable) {
+        int pos = UNDEFINED_POSITION ;
+        for(int i = 0 ; i < r.length ; i++) {
+            if (r[i] == variable) {
+                pos = i;
+                break;
+            }
+        }
+        if (pos == UNDEFINED_POSITION) {
+            throw new IllegalArgumentException("Variable " + variable + " not found in " + Arrays.toString(r));
+        }
+        return pos;
+    }
+
+
+    public static int nextPosition(int position) {
+        switch (position) {
+            case SUBJECT_POSITION -> {
+                return OBJECT_POSITION ;
+            }
+            case OBJECT_POSITION -> {
+                return SUBJECT_POSITION ;
+            }
+            default -> throw new IllegalArgumentException("Invalid position " + position);
+        }
+    }
+
+    public static int VariableSetSize(int position, int relation) {
+        switch (position) {
+            case SUBJECT_POSITION -> {
+                return DomainSize(relation) ;
+            }
+            case OBJECT_POSITION -> {
+                return RangeSize(relation) ;
+            }
+            default -> throw new IllegalArgumentException("Invalid position " + position + " in relation " + relation);
+        }
+    }
+
+    /**
+     *
+     * @param r1_atom
+     * @param r2_atom
+     * @param variablePosition_r1
+     * @return Pair of overlap size and next variable position in r2 atom
+     */
+    public static Pair<Integer, Integer> VariableOverlapSize(int[] r1_atom, int[] r2_atom, int variablePosition_r1) {
+        int overlapSize = -1 ;
+
+        int variable = r1_atom[variablePosition_r1] ;
+        int variablePosition_r2 ;
+        try {
+            variablePosition_r2 = VariablePosition(r2_atom, variable);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Variable position fail r1_atom "+ Arrays.toString(r1_atom)
+                    + " r2_atom " + Arrays.toString(r2_atom) + " variable position " + variablePosition_r1
+                    , e) ;
+        }
+        int r1 = r1_atom[RELATION_POSITION] ;
+        int r2 = r2_atom[RELATION_POSITION] ;
+
+        if (variablePosition_r1 == SUBJECT_POSITION && variablePosition_r2 == SUBJECT_POSITION) {
+            overlapSize = subjectToSubjectOverlapSize(r1, r2);
+        }
+        else if (variablePosition_r1 == SUBJECT_POSITION && variablePosition_r2 == OBJECT_POSITION) {
+            overlapSize = SubjectToObjectOverlapSize(r1, r2);
+        }
+        else if (variablePosition_r1 == OBJECT_POSITION && variablePosition_r2 == SUBJECT_POSITION) {
+            overlapSize = SubjectToObjectOverlapSize(r2, r1) ;
+        }
+        else if (variablePosition_r1 == OBJECT_POSITION && variablePosition_r2 == OBJECT_POSITION) {
+            overlapSize = SubjectToObjectOverlapSize(r1, r2) ;
+        }
+
+        if (overlapSize == -1) {
+            throw new IllegalArgumentException("Couldn't compute overlap for " + variable +
+                    " in " + Arrays.toString(r1_atom) + " and " + Arrays.toString(r2_atom));
+        }
+
+        return new Pair<Integer, Integer>(overlapSize, nextPosition(variablePosition_r2));
+    }
+
+    public static List<int[]> SortPerfectPathBody(Rule rule) {
         int bodySize = rule.getBody().size();
-        rule.setBodySize(rule.getBody().size());
-        if (bodySize < 2)
+        if (bodySize < 2) {
             return rule.getBody();
+        }
 
         List<int[]> body = rule.getBody();
-        List<int[]> sortedBody = new ArrayList<>();
+        List<int[]> mutableBody = new ArrayList<>(bodySize) ;
+        for (int[] atom: body){
+            mutableBody.add(atom) ;
+        }
+
+        LinkedList<int[]> sortedBody = new LinkedList<>();
         int[] head = rule.getHead();
-        int var = head[SUBJECT_POSITION];
-        for (int i = 0; i < bodySize + 1; i++) {
-            for (int[] atom : body)
+        int var = head[OBJECT_POSITION];
+
+        for (int[] ignored : body) {
+            for (int[] atom : mutableBody) {
                 if (atom[SUBJECT_POSITION] == var) {
-                    sortedBody.add(atom);
+                    sortedBody.addFirst(atom);
+                    mutableBody.remove(atom) ;
                     var = atom[OBJECT_POSITION];
-                    break;
+                    break ;
+                } else if (atom[OBJECT_POSITION] == var) {
+                    sortedBody.addFirst(atom);
+                    var = atom[SUBJECT_POSITION];
+                    mutableBody.remove(atom) ;
+                    break ;
                 }
+            }
+        }
+        if (body.size() != sortedBody.size()) {
+            throw new IllegalArgumentException("Couldn't sort body " + RawBodyHeadToString(body, head));
         }
         return sortedBody;
+    }
+
+    public static double AverageParameterRatio(int relation, int destinationSetPosition) {
+        switch (destinationSetPosition) {
+            case OBJECT_POSITION -> {
+                // functionality
+                double domain = DomainSize(relation) ;
+                if (domain > 0)
+                    return Kb.relationSize(relation) / domain ;
+                else
+                    return 0 ;
+            }
+            case SUBJECT_POSITION -> {
+                // inverse functionality
+                double range = RangeSize(relation) ;
+                if (range > 0)
+                    return Kb.relationSize(relation) / range ;
+                else
+                    return 0 ;
+            }
+            default -> throw new IllegalArgumentException("Invalid position " + destinationSetPosition +
+                    " for relation " + relation);
+        }
+    }
+
+    public static int GetInitPositionInBody(Rule rule) {
+        List<int[]> body = SortPerfectPathBody(rule);
+        int last_id = body.size() - 1;
+        int[] lastAtom = body.get(last_id) ;
+        int headObject = rule.getHead()[OBJECT_POSITION];
+        int headObjectPositionInLastAtom = VariablePosition(lastAtom, headObject) ;
+        return nextPosition(headObjectPositionInLastAtom);
     }
 
     /**
      * bodyEstimate computes the total product operation for estimating support of a rule
      *
-     * @param rule
+     * @param rule rule to compute body approximation
+     * @param initVariablePosition indicates the position of the starting variable in the first atom.
      * @return total product operation iterating over the provided rule's body
      */
-    protected static double bodyEstimate(Rule rule) {
+    // todo replace Rule rule param by sorted body
+    public static double BodyEstimate(Rule rule, int initVariablePosition) {
         double product = 1;
-        rule.setBodySize(rule.getBody().size());
-        List<int[]> body = sortPerfectPathBody(rule);
+        List<int[]> body = SortPerfectPathBody(rule);
+        int last_id = body.size() - 1;
+        int[] lastAtom = body.get(last_id) ;
+        int headObject = rule.getHead()[OBJECT_POSITION];
+        int headObjectPositionInLastAtom = VariablePosition(lastAtom, headObject) ;
+        int variablePosition = nextPosition(headObjectPositionInLastAtom);
+        for (int id = 0; id < body.size() - 1; id++) {
+            int atom_id = body.size() - id - 1;
+            int atom_next_id = atom_id - 1 ;
+            int[] atom = body.get(atom_id);
+            int[] atom_next = body.get(atom_next_id);
 
-
-        int last_id = (int) rule.getBodySize() - 1;
-        for (int id = 0; id < rule.getBodySize() - 1; id++) {
-            int r_id = last_id - id;
-            int r_next_id = last_id - id - 1;
-            int r = body.get(r_id)[RELATION_POSITION];
-            int r_next = body.get(r_next_id)[RELATION_POSITION];
-            // Computing SO Survival rate
-            int rDom = domainSize(r);
-            int r_nextRng = rangeSize(r_next);
-            int r_nextSize = miniAMIE.kb.relationSize(r_next);
-
-            double soOV = subjectToObjectOverlapSize(r, r_next);
-
-            double factor = 0;
-            double ifun_next = (double) r_nextRng / r_nextSize;
-            double soSurv = soOV / rDom;
-            if (ifun_next > 0) {
-                factor = soSurv / ifun_next;
+            Pair<Integer, Integer> variableOverlapSizeResult = null;
+            try {
+                variableOverlapSizeResult =
+                        VariableOverlapSize(atom, atom_next, variablePosition);
+            } catch (Exception e) {
+                throw new IllegalArgumentException("body estimate fail id " + id + " rule "
+                            + RawBodyHeadToString(body, rule.getHead())
+                            + " lastAtom " + Arrays.toString(lastAtom)
+                        + " headObject " + headObject
+                        + " headObjectPositionInLastAtom " + headObjectPositionInLastAtom
+                        + " variablePosition " + variablePosition
+                        + " unsorted rule " + RawBodyHeadToString(rule.getBody(), rule.getHead()) +
+                            " body size " + body.size() + " rule body size "+ rule.getBodySize(), e) ;
             }
+            int variableOverlap = variableOverlapSizeResult.first ;
+            variablePosition = variableOverlapSizeResult.second ;
+
+            int r = atom[RELATION_POSITION];
+            int r_next = atom_next[RELATION_POSITION];
+            int variableSetSize = VariableSetSize(variablePosition, r);
+
+            double survRate = variableOverlap / variableSetSize;
+            double nAvg = AverageParameterRatio(r_next, variablePosition) ;
+            double factor = survRate * nAvg ;
 
             product *= factor;
 
@@ -387,47 +411,12 @@ public class utils {
         return product;
     }
 
-    /**
-     * Support approximation for a closed rule
-     *
-     * @param rule Closed rule
-     * @return Support approximation
-     */
-    public static long ApproximateSupportClosedRule(Rule rule) {
-        int rHead = rule.getHeadRelationBS();
-        List<int[]> body = sortPerfectPathBody(rule);
-        int bodySize = body.size();
-        int idFirst = bodySize - 1;
-        if (idFirst < 0)
-            System.err.println(rule);
-        int idLast = 0;
-        int rFirstBodyAtom = body.get(idFirst)[RELATION_POSITION];
-        int rLastBodyAtom = body.get(idLast)[RELATION_POSITION];
-
-
-        int objectToObjectOverlap = objectToObjectOverlapSize(rHead, rFirstBodyAtom);
-        int subjectToSubjectOverlap = subjectToSubjectOverlapSize(rLastBodyAtom, rHead);
-        double rFirstSize = miniAMIE.kb.relationSize(rFirstBodyAtom);
-        double rHeadSize = miniAMIE.kb.relationSize(rHead);
-
-
-        int domainHead = domainSize(rHead);
-        int domainLast = domainSize(rLastBodyAtom);
-        int rangeFirst = rangeSize(rFirstBodyAtom);
-
-        double bodyEstimate = bodyEstimate(rule);
-
-        long result = 0;
-
-        double inv_ifun_r1 = rFirstSize / rangeFirst;
-        double inv_fun_rh = rHeadSize / domainHead;
-        double ssSurv = (double) subjectToSubjectOverlap / domainLast;
-        double factor1 = objectToObjectOverlap * inv_ifun_r1;
-        double factor2 = ssSurv * inv_fun_rh;
-        double product = factor1 * factor2;
-        result = (long) (product * bodyEstimate);
-
-        return result;
+    public static String RawBodyHeadToString(List<int[]> body, int[] head) {
+        String ruleStr = "";
+        for (int[] atom : body) {
+            ruleStr += Arrays.toString(atom)+" " ;
+        }
+        return ruleStr + "=> "+Arrays.toString(head);
     }
 
     /**
@@ -437,29 +426,108 @@ public class utils {
      * @return Support approximation
      */
     public static long ApproximateSupportOpenRule(Rule rule) {
-        int rHead = rule.getHeadRelationBS();
+        if (rule.getBody().isEmpty())
+            return 0;
 
-        List<int[]> body = sortPerfectPathBody(rule);
+        int[] headAtom = rule.getHead() ;
+        int headObject = headAtom[OBJECT_POSITION] ;
+        List<int[]> body = SortPerfectPathBody(rule);
         int bodySize = body.size();
-        int idFirst = bodySize - 1;
-        int rFirstBodyAtom = body.get(idFirst)[RELATION_POSITION];
 
+        int headRelation = headAtom[RELATION_POSITION] ;
 
-        double bodyEstimate = bodyEstimate(rule);
-        int objectToObjectOverlap = objectToObjectOverlapSize(rHead, rFirstBodyAtom);
-        int rFirstSize = miniAMIE.kb.relationSize(rFirstBodyAtom);
-        double rangeFirst = rangeSize(rFirstBodyAtom);
-        double result = 0;
+        //// Opening
+        int[] firstBodyAtom = body.get(bodySize - 1);
+        int subjectPositionInFirstBodyAtom ;
 
-        double inv_ifun_r1 = rFirstSize / rangeFirst;
-        result = objectToObjectOverlap * inv_ifun_r1 * bodyEstimate;
+        try {
+            subjectPositionInFirstBodyAtom = VariablePosition(firstBodyAtom, headObject);
+        } catch(IllegalArgumentException e) {
+            throw new IllegalArgumentException("Failed to find init variable " +
+                    headObject + " position in " + RawBodyHeadToString(body, headAtom) +
+                    " firstBodyAtom " + Arrays.toString(firstBodyAtom), e) ;
+        }
 
-        return (long) result;
+        int firstBodyRelation = firstBodyAtom[RELATION_POSITION];
+        int openingOverlap;
+        switch (subjectPositionInFirstBodyAtom) {
+            case SUBJECT_POSITION ->
+                    openingOverlap = ObjectToObjectOverlapSize(headRelation, firstBodyRelation) ;
+            case OBJECT_POSITION ->
+                    openingOverlap = SubjectToObjectOverlapSize(firstBodyRelation, headRelation) ;
+            default -> throw new IllegalArgumentException("Invalid position " + subjectPositionInFirstBodyAtom
+                    + " in first body atom " + Arrays.toString(firstBodyAtom) + " of rule " + rule);
+        }
+        double nAvgFirst = AverageParameterRatio(firstBodyRelation, nextPosition(subjectPositionInFirstBodyAtom)) ;
+
+        // -------------------------------------
+        // Body
+        double bodyEstimate = BodyEstimate(rule, nextPosition(subjectPositionInFirstBodyAtom));
+
+        return (long) (openingOverlap * nAvgFirst * bodyEstimate);
+    }
+
+    /**
+     * Support approximation for a closed rule
+     *
+     * @param rule Closed rule
+     * @return Support approximation
+     */
+    public static long ApproximateSupportClosedRule(Rule rule) {
+        long approximateSupportOpen = ApproximateSupportOpenRule(rule) ;
+        if (approximateSupportOpen == 0)
+            return 0;
+
+        int[] headAtom = rule.getHead() ;
+        int headSubject = headAtom[SUBJECT_POSITION] ;
+        List<int[]> body = SortPerfectPathBody(rule);
+        // Closed rule factor (closing)
+
+        ///// Closing
+        int headRelation = headAtom[RELATION_POSITION] ;
+        int idLast = 0;
+        int[] lastBodyAtom =  body.get(idLast) ;
+        int lastBodyRelation = lastBodyAtom[RELATION_POSITION] ;
+        double closingSurvivalRate ;
+
+        int lastVariablePosition ;
+        try {
+            lastVariablePosition = VariablePosition(lastBodyAtom, headSubject) ;
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Failed to find last variable "+
+                    headSubject + " position in " + RawBodyHeadToString(body, rule.getHead())
+                    + " last " + Arrays.toString(body.get(idLast)), e) ;
+        }
+        switch (lastVariablePosition) {
+            case SUBJECT_POSITION -> {
+                double lastBodyRelationDomainSize = DomainSize(lastBodyRelation);
+                if (lastBodyRelationDomainSize > 0)
+                    closingSurvivalRate = SubjectToObjectOverlapSize(lastBodyRelation, headRelation)
+                            / lastBodyRelationDomainSize;
+                else
+                    closingSurvivalRate = 0;
+            }
+            case OBJECT_POSITION -> {
+                double lastBodyRelationRangeSize = RangeSize(lastBodyRelation);
+                if (lastBodyRelationRangeSize > 0)
+                    closingSurvivalRate = SubjectToObjectOverlapSize(headRelation, lastBodyRelation)
+                            / lastBodyRelationRangeSize;
+                else
+                    closingSurvivalRate = 0;
+            }
+            default -> throw new IllegalArgumentException("Invalid position " + lastVariablePosition
+                    + " in last body atom " + Arrays.toString(lastBodyAtom) + " of rule " + rule);
+        }
+        double nAvgHead = AverageParameterRatio(headRelation, SUBJECT_POSITION) ;
+
+        return (long) (approximateSupportOpen * closingSurvivalRate * nAvgHead);
     }
 
 
+
+
     protected static double getSizeOfHead(Rule rule) {
-        return miniAMIE.kb.relationSize(rule.getHead()[RELATION_POSITION]);
+        return Kb.relationSize(rule.getHead()[RELATION_POSITION]);
     }
 
     public static double ApproximateHeadCoverageOpenRule(Rule rule) {
@@ -472,7 +540,7 @@ public class utils {
 
 
     public static long RealSupport(Rule rule) {
-        return miniAMIE.kb.countProjection(rule.getHead(), rule.getTriples());
+        return Kb.countProjection(rule.getHead(), rule.getTriples());
     }
 
     // RealHeadCoverage computes head coverage for a rule. /!\ Relies on pre-existing support value in rule
@@ -483,19 +551,19 @@ public class utils {
     private static double altBodyEstimate(Rule rule) {
         double product = 1;
         rule.setBodySize(rule.getBody().size());
-        List<int[]> body = sortPerfectPathBody(rule);
+        List<int[]> body = SortPerfectPathBody(rule);
 
-        for (int r_id = 0; r_id < rule.getBodySize() - 1; r_id++) {
+        for (int r_id = 0; r_id < body.size() - 1; r_id++) {
 
             int r_next_id = r_id + 1;
             int r = body.get(r_id)[RELATION_POSITION];
             int r_next = body.get(r_next_id)[RELATION_POSITION];
             // Computing SO Survival rate
-            int rRng = rangeSize(r);
-            int r_nextDom = domainSize(r_next);
-            int r_nextSize = miniAMIE.kb.relationSize(r_next);
+            int rRng = RangeSize(r);
+            int r_nextDom = DomainSize(r_next);
+            int r_nextSize = Kb.relationSize(r_next);
 
-            double ov = subjectToObjectOverlapSize(r_next, r);
+            double ov = SubjectToObjectOverlapSize(r_next, r);
 
             double factor = 0;
             double fun_next = (double) r_nextDom / r_nextSize;
@@ -515,7 +583,7 @@ public class utils {
 
     public static long AltApproximateSupportClosedRule(Rule rule) {
         int rHead = rule.getHeadRelationBS();
-        List<int[]> body = sortPerfectPathBody(rule);
+        List<int[]> body = SortPerfectPathBody(rule);
         int bodySize = body.size();
         int idFirst = 0;
         if (idFirst < 0)
@@ -526,14 +594,14 @@ public class utils {
 
 
         int subjectToSubjectOverlap = subjectToSubjectOverlapSize(rHead, rFirstBodyAtom);
-        int objectToObjectOverlap = objectToObjectOverlapSize(rLastBodyAtom, rHead);
-        double rFirstSize = miniAMIE.kb.relationSize(rFirstBodyAtom);
-        double rHeadSize = miniAMIE.kb.relationSize(rHead);
+        int objectToObjectOverlap = ObjectToObjectOverlapSize(rLastBodyAtom, rHead);
+        double rFirstSize = Kb.relationSize(rFirstBodyAtom);
+        double rHeadSize = Kb.relationSize(rHead);
 
 
-        int rangeHead = rangeSize(rHead);
-        int rangeLast = rangeSize(rLastBodyAtom);
-        int domainFirst = domainSize(rFirstBodyAtom);
+        int rangeHead = RangeSize(rHead);
+        int rangeLast = RangeSize(rLastBodyAtom);
+        int domainFirst = DomainSize(rFirstBodyAtom);
 
         double bodyEstimate = altBodyEstimate(rule);
 
@@ -553,16 +621,16 @@ public class utils {
     public static long AltApproximateSupportOpenRule(Rule rule) {
         int rHead = rule.getHeadRelationBS();
 
-        List<int[]> body = sortPerfectPathBody(rule);
+        List<int[]> body = SortPerfectPathBody(rule);
         int bodySize = body.size();
         int idFirst = bodySize - 1;
         int rFirstBodyAtom = body.get(idFirst)[RELATION_POSITION];
 
 
-        double bodyEstimate = bodyEstimate(rule);
-        int objectToObjectOverlap = objectToObjectOverlapSize(rHead, rFirstBodyAtom);
-        int rFirstSize = miniAMIE.kb.relationSize(rFirstBodyAtom);
-        double rangeFirst = rangeSize(rFirstBodyAtom);
+        double bodyEstimate = BodyEstimate(rule, SUBJECT_POSITION);
+        int objectToObjectOverlap = ObjectToObjectOverlapSize(rHead, rFirstBodyAtom);
+        int rFirstSize = Kb.relationSize(rFirstBodyAtom);
+        double rangeFirst = RangeSize(rFirstBodyAtom);
         double result = 0;
 
         double inv_ifun_r1 = rFirstSize / rangeFirst;
@@ -572,13 +640,17 @@ public class utils {
     }
 
     /**
-     * GetInitRules provides a sample of rules with empty bodies and head coverage above provided minimum support.
-     *
+     * GetInitRules provides a sample of rules with empty
+     * bodies and head coverage above provided minimum support.
      * @param minSup
      * @return Collection of single atom rules
      */
-    public static Collection<Rule> GetInitRules(double minSup) {
-        return miningAssistant.getInitialAtoms(minSup);
+    public static Collection<MiniAmieRule> GetInitRules(double minSup) {
+        Collection<Rule> initRules = miningAssistant.getInitialAtoms(minSup) ;
+        Collection<MiniAmieRule> miniAmieInitRules = new ArrayList<>() ;
+        for (Rule initRule: initRules)
+            miniAmieInitRules.add(new MiniAmieRule(initRule)) ;
+        return miniAmieInitRules;
     }
 
     public static MiniAmieClosedRule computeClosedRuleMetrics(Rule rule) {
@@ -599,7 +671,9 @@ public class utils {
         miniAmieClosedRule.setApproximateHC(ApproximateHeadCoverageClosedRule(rule));
         miniAmieClosedRule.setAlternativeApproximateSupport(AltApproximateSupportClosedRule(rule));
 
-        miniAmieClosedRule.setFactorsOfApproximateSupport(new FactorsOfApproximateSupportClosedRule(rule));
+        miniAmieClosedRule.setFactorsOfApproximateSupport(
+                new Attributes(rule)
+        );
 
         return miniAmieClosedRule;
     }

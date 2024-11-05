@@ -355,7 +355,7 @@ public class Rule {
      *
      * @return
      */
-    private int newVariable() {
+    public int newVariable() {
         return --this.highestVariable;
     }
 

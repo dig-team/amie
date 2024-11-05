@@ -1,8 +1,8 @@
 package amie.mining.miniAmie;
 
 import amie.data.AbstractKB;
-import amie.data.javatools.datatypes.Pair;
 import amie.mining.assistant.DefaultMiningAssistant;
+import amie.mining.miniAmie.output.comparisonToGroundTruth.CompareToGT;
 import amie.rules.PruningMetric;
 import amie.rules.Rule;
 
@@ -13,15 +13,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static amie.mining.miniAmie.CompareToGT.PrintComparisonCSV;
-import static amie.mining.miniAmie.GlobalSearchResult.PrintGlobalSearchResultCSV;
-import static amie.mining.miniAmie.OutputRules.PrintOutputCSV;
+import static amie.mining.miniAmie.output.comparisonToGroundTruth.CompareToGT.PrintComparisonCSV;
+import static amie.mining.miniAmie.output.GlobalSearchResult.PrintGlobalSearchResultCSV;
+import static amie.mining.miniAmie.output.OutputRules.PrintOutputCSV;
 import static amie.mining.miniAmie.utils.*;
-import static amie.mining.miniAmie.utils.ApproximateSupportClosedRule;
 
 
-public class miniAMIE {
-    public static AbstractKB kb;
+public abstract class miniAMIE {
+    public static AbstractKB Kb;
 
     public static int MaxRuleSize;
     public static PruningMetric PM;
@@ -37,19 +36,19 @@ public class miniAMIE {
     public static boolean CompareToGroundTruth = false;
     public static boolean OutputRules = true ;
     public static String RestrainedHead;
-    public static String pathToGroundTruthRules;
-    static String timestamp = Instant.now().toString().replace(" ", "_") ;
-    static int  runId = 0 ;
-    static String suffix =   timestamp + ".csv";
+    public static String PathToGroundTruthRules;
+    
+    public static String Timestamp = Instant.now().toString().replace(" ", "_") ;
+    public static String Suffix =   Timestamp + ".csv";
 
-    public static String OutputRulesCsvPath = "./rules-" + suffix;
-    public static String OutputComparisonCsvPath = "./comparison-" + suffix;
-    public static String OutputConfigurationCsvPath = "./run-" + suffix;
+    public static String OutputRulesCsvPath = "./rules-" + Suffix;
+    public static String OutputComparisonCsvPath = "./comparison-" + Suffix;
+    public static String OutputConfigurationCsvPath = "./run-" + Suffix;
 
     public static boolean OutputConfigurationToAlreadyExistingCSV = false;
 
-    static final int CORRECTION_FACTOR_CLOSURE = 2;
-    static final int CORRECTION_FACTOR_OPENING = 4;
+    public static final int CORRECTION_FACTOR_CLOSURE = 2;
+    public static final int CORRECTION_FACTOR_OPENING = 4;
 
     protected static List<Integer> SelectedRelations = new ArrayList<>();
     protected static ThreadPoolExecutor executor;
@@ -63,20 +62,18 @@ public class miniAMIE {
 
     // SubtreeExploration explores a subtree of rules from a head start
     protected static class SubtreeExploration implements Callable<Void> {
-        Rule initRule ;
-        public SubtreeExploration(Rule initRule) {
+        MiniAmieRule initRule ;
+        public SubtreeExploration(MiniAmieRule initRule) {
             this.initRule = initRule;
         }
         @Override
         public Void call() throws Exception {
-            Thread.sleep(10);
             ExplorationResult exploreChildrenResult = InitExploreChildren(initRule);
             totalSumExploredRules.addAndGet(exploreChildrenResult.sumExploredRules);
             totalSumExploredRulesAdjustedWithBidirectionality.addAndGet
                     (exploreChildrenResult.sumExploredRulesAdjustedWithBidirectionality);
             lock.lock();
             finalRules.addAll(List.copyOf(exploreChildrenResult.finalRules));
-//            exploringRules.remove(initRule);
             lock.unlock();
             headLatch.countDown();
             return null ;
@@ -93,19 +90,19 @@ public class miniAMIE {
         long startTime = System.currentTimeMillis();
 
         // Init mining assistant (temp solution)
-        miningAssistant = new DefaultMiningAssistant(kb);
+        miningAssistant = new DefaultMiningAssistant(Kb);
 
         SelectedRelations = SelectRelations();
 
         System.out.println("Using " + PM + " as pruning metric with minimum threshold " +
                 (PM == PruningMetric.ApproximateSupport || PM == PruningMetric.Support ? MinSup : MinHC));
 
-        Collection<Rule> initRules = GetInitRules(MinSup);
+        Collection<MiniAmieRule> initRules = GetInitRules(MinSup);
 
         // Multicore execution
         System.out.println("Running mini-AMIE with " + NThreads + " threads.");
         if (NThreads == 1) {
-            for (Rule rule : initRules) {
+            for (MiniAmieRule rule : initRules) {
                 try {
                     if (RestrainedHead == null || rule.toString().contains(RestrainedHead)) {
                         ExplorationResult exploreChildrenResult = InitExploreChildren(rule);
@@ -127,7 +124,7 @@ public class miniAMIE {
                 headLatch = new CountDownLatch(initRules.size());
                 executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(NThreads);
 
-                for (Rule initRule : initRules) {
+                for (MiniAmieRule initRule : initRules) {
                     if (RestrainedHead == null || initRule.toString().contains(RestrainedHead))
                         executor
                                 .submit(new SubtreeExploration(initRule))
@@ -175,158 +172,75 @@ public class miniAMIE {
             executor.shutdown();
     }
 
-    // TODO replace that with IsPrunedClosedRule static method attribute to avoid repeated PruningMetric check
-    private static boolean ClosedRuleIsKept(Rule rule) {
-        switch(PM) {
-            case ApproximateSupport -> {
-                return ApproximateSupportClosedRule(rule) >= MinSup ;
-            }
-            case ApproximateHeadCoverage -> {
-                return ApproximateHeadCoverageClosedRule(rule) >= MinHC ;
-            }
-            case AlternativeApproximateSupport -> {
-                return AltApproximateSupportClosedRule(rule) >= MinSup ;
-            }
-            case Support -> {
-                return RealSupport(rule) >= MinSup ;
-            }
-            case HeadCoverage -> {
-                return RealHeadCoverage(rule) >= MinHC ;
-            }
-            default -> {
-                return false;
-            }
-        }
-    }
+    private static ExplorationResult ExploreClosedChildren(MiniAmieRule rule) {
 
-    // TODO replace that with IsPrunedOpenRule static method attribute to avoid repeated PruningMetric check
-    private static boolean OpenRuleIsKept(Rule rule) {
-        switch(PM) {
-            case ApproximateSupport -> {
-                return ApproximateSupportOpenRule(rule) >= MinSup ;
-            }
-            case ApproximateHeadCoverage -> {
-                return ApproximateHeadCoverageOpenRule(rule) >= MinHC ;
-            }
-            case AlternativeApproximateSupport -> {
-                return AltApproximateSupportOpenRule(rule) >= MinSup ;
-            }
-            case Support -> {
-                return RealSupport(rule) >= MinSup ;
-            }
-            case HeadCoverage -> {
-                return RealHeadCoverage(rule) >= MinHC ;
-            }
-            default -> {
-                return false;
-            }
-        }
-    }
-
-
-
-    private static ExplorationResult InitExploreChildren(Rule rule) {
-
-//        System.out.println(rule+" : Init Exploring  subtrees");
-        ArrayList<Rule> finalRules = new ArrayList<>();
+        ArrayList<Rule> keptRules = new ArrayList<>();
         int searchSpaceEstimatedSize = 0;
         int searchSpaceEstimatedAdjustedWithBidirectionalitySize = 0;
 
-        ArrayList<Pair<Rule, Integer>> closedChildren = AddClosureToEmptyBody(rule);
+        ArrayList<MiniAmieClosedRule> closedChildren = rule.AddClosure();
 
         if (closedChildren != null) {
             searchSpaceEstimatedSize += closedChildren.size() * CORRECTION_FACTOR_CLOSURE;
 
-            for (Pair<Rule, Integer> closedChildCorrectionPair : closedChildren) {
-                Rule closedChild = closedChildCorrectionPair.first;
+            for (MiniAmieClosedRule closedChild : closedChildren) {
+                searchSpaceEstimatedAdjustedWithBidirectionalitySize +=
+                        closedChild.getCorrectingFactor();
 
-                int correction = closedChildCorrectionPair.second;
-                searchSpaceEstimatedAdjustedWithBidirectionalitySize += correction;
-
-                if (ClosedRuleIsKept(closedChild)) {
-                    finalRules.add(closedChild);
+                if (closedChild.IsNotPruned()) {
+                    keptRules.add(closedChild);
                 }
             }
         }
-//        System.out.println(rule+" : closedChildren Exploring  subtrees");
 
-        ArrayList<Pair<Rule, Integer>> openChildren = AddDanglingToEmptyBody(rule);
+        return new ExplorationResult(
+                searchSpaceEstimatedSize,
+                searchSpaceEstimatedAdjustedWithBidirectionalitySize,
+                keptRules
+        ) ;
+
+    }
+
+    private static ExplorationResult ExploreOpenChildren(MiniAmieRule rule,
+                                                         ExplorationResult explorationResult) {
+
+        ArrayList<MiniAmieRule> openChildren = rule.AddDangling();
         if (openChildren != null) {
-            searchSpaceEstimatedSize += openChildren.size() * CORRECTION_FACTOR_OPENING;
+            explorationResult.sumExploredRules += openChildren.size() * CORRECTION_FACTOR_OPENING;
 
-            for (Pair<Rule, Integer> openChildCorrectionPair : openChildren) {
-                Rule openChild = openChildCorrectionPair.first;
+            for (MiniAmieRule openChild : openChildren) {
+                explorationResult.sumExploredRulesAdjustedWithBidirectionality +=
+                        openChild.getCorrectingFactor();
 
-                int correction = openChildCorrectionPair.second;
-                searchSpaceEstimatedAdjustedWithBidirectionalitySize += correction;
-
-                if (OpenRuleIsKept(openChild)) {
+                if (openChild.IsNotPruned()) {
                     ExplorationResult exploreOpenChildResult = ExploreChildren(openChild);
                     finalRules.addAll(exploreOpenChildResult.finalRules);
-                    searchSpaceEstimatedSize += exploreOpenChildResult.sumExploredRules;
-                    searchSpaceEstimatedAdjustedWithBidirectionalitySize +=
+                    explorationResult.sumExploredRules += exploreOpenChildResult.sumExploredRules;
+                    explorationResult.sumExploredRulesAdjustedWithBidirectionality +=
                             exploreOpenChildResult.sumExploredRulesAdjustedWithBidirectionality;
                 }
             }
         }
-//        System.out.println(rule+" : End Init Exploring  subtrees");
 
-        return new ExplorationResult(searchSpaceEstimatedSize,
-                searchSpaceEstimatedAdjustedWithBidirectionalitySize, finalRules);
+        return explorationResult ;
     }
 
-    private static ExplorationResult ExploreChildren(Rule rule) {
+    private static ExplorationResult InitExploreChildren(MiniAmieRule rule) {
+        ExplorationResult explorationResult = ExploreClosedChildren(rule) ;
+        return ExploreOpenChildren(rule, explorationResult) ;
+    }
 
-//        System.out.println(rule+" : Exploring  subtrees");
-        if (rule.getBody().size() + 2 > miniAMIE.MaxRuleSize)
+    private static ExplorationResult ExploreChildren(MiniAmieRule rule) {
+
+        if (rule.ExceedsLengthWhenClosing())
             return new ExplorationResult(0, 0,
                     Collections.emptyList());
 
-        ArrayList<Rule> finalRules = new ArrayList<>();
-        int searchSpaceEstimatedSize = 0;
-        int searchSpaceEstimatedAdjustedWithBidirectionalitySize = 0;
-        ArrayList<Pair<Rule, Integer>> closedChildren = AddClosureToNonEmptyBody(rule);
+        ExplorationResult explorationResult = ExploreClosedChildren(rule) ;
 
-        if (closedChildren != null) {
-            searchSpaceEstimatedSize += closedChildren.size() * CORRECTION_FACTOR_CLOSURE;
+        if (rule.ExceedsLengthWhenOpening())
+            return explorationResult;
 
-            for (Pair<Rule, Integer> closedChildCorrectionPair : closedChildren) {
-                Rule closedChild = closedChildCorrectionPair.first;
-                int correction = closedChildCorrectionPair.second;
-                searchSpaceEstimatedAdjustedWithBidirectionalitySize += correction;
-
-
-                if (ClosedRuleIsKept(closedChild)) {
-                    finalRules.add(closedChild);
-                }
-            }
-        }
-
-        if (rule.getBody().size() + 3 > miniAMIE.MaxRuleSize)
-            return new ExplorationResult(searchSpaceEstimatedSize, searchSpaceEstimatedAdjustedWithBidirectionalitySize,
-                    finalRules);
-
-        ArrayList<Pair<Rule, Integer>> openChildren = AddDanglingToNonEmptyBody(rule);
-
-        if (openChildren != null) {
-            searchSpaceEstimatedSize += openChildren.size() * CORRECTION_FACTOR_OPENING;
-
-            for (Pair<Rule, Integer> openChildCorrectionPair : openChildren) {
-                Rule openChild = openChildCorrectionPair.first;
-                int correction = openChildCorrectionPair.second;
-                searchSpaceEstimatedAdjustedWithBidirectionalitySize += correction;
-
-                if (OpenRuleIsKept(rule)) {
-                    ExplorationResult exploreOpenChildResult = ExploreChildren(openChild);
-                    finalRules.addAll(exploreOpenChildResult.finalRules);
-                    searchSpaceEstimatedSize += exploreOpenChildResult.sumExploredRules;
-                    searchSpaceEstimatedAdjustedWithBidirectionalitySize +=
-                            exploreOpenChildResult.sumExploredRulesAdjustedWithBidirectionality;
-                }
-            }
-        }
-
-        return new ExplorationResult(searchSpaceEstimatedSize, searchSpaceEstimatedAdjustedWithBidirectionalitySize,
-                finalRules);
+        return ExploreOpenChildren(rule, explorationResult);
     }
 }

@@ -1,5 +1,5 @@
 package amie.mining.miniAmie.Unit.Utils;
-import amie.mining.miniAmie.CompareToGT;
+import amie.mining.miniAmie.output.comparisonToGroundTruth.CompareToGT;
 import amie.mining.miniAmie.Unit.UnitTest;
 import amie.rules.Rule;
 

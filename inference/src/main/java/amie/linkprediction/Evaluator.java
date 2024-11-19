@@ -5,7 +5,11 @@ package amie.linkprediction;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -14,6 +18,7 @@ import amie.data.Dataset;
 import amie.data.KB;
 import amie.data.javatools.datatypes.Pair;
 import amie.rules.Rule;
+import com.google.gson.Gson;
 import it.unimi.dsi.fastutil.ints.IntLinkedOpenHashSet;
 import amie.rules.AMIEParser;
 import org.apache.commons.collections4.ListUtils;
@@ -21,16 +26,26 @@ import org.apache.commons.collections4.ListUtils;
 public class Evaluator {
 	private Dataset dataset;
 	private Map<Integer, Collection<Rule>> rules;
+	private int nCores;
+
+	public static int BATCH_SIZE = 100;
 
 	public static Evaluator getEvaluator(String dataFolder, String rulesFile) throws IOException {
 		Dataset d = new Dataset(dataFolder);
 		List<Rule> rules = AMIEParser.parseRules(new File(rulesFile), d.training);
-		return new Evaluator(d, rules);
+		return new Evaluator(d, rules, 1);
 	}
 
-	protected Evaluator(Dataset d, Collection<Rule> inputRules) {
+	public static Evaluator getEvaluator(String dataFolder, String rulesFile, int nCores) throws IOException {
+		Dataset d = new Dataset(dataFolder);
+		List<Rule> rules = AMIEParser.parseRules(new File(rulesFile), d.training);
+		return new Evaluator(d, rules, nCores);
+	}
+
+	protected Evaluator(Dataset d, Collection<Rule> inputRules, int nCores) {
 		this.dataset = d;
 		this.rules = new HashMap<>();
+		this.nCores = nCores;
 		this.indexRules(inputRules);
 	}
 
@@ -72,6 +87,26 @@ public class Evaluator {
 		}
 	}
 
+	protected static class PredicateEvaluator implements Callable<EvaluationResult> {
+		List<int[]> triplesInBatch;
+		int rel;
+		Evaluator ev;
+		public PredicateEvaluator(int rel, List<int[]> triplesInBatch, Evaluator e) {
+			this.rel = rel;
+			this.triplesInBatch = triplesInBatch;
+			this.ev = e;
+		}
+		@Override
+		public EvaluationResult call() {
+			EvaluationResult relationResultMetrics = new EvaluationResult();
+			List<int[]> relationBatch = this.ev.dataset.testing.get(rel);
+			System.err.println("Evaluating " + relationBatch.size() + " triples in relation " + this.ev.dataset.training.unmap(rel));
+			this.ev.evaluateRelation(relationBatch, relationResultMetrics);
+			return relationResultMetrics;
+		}
+	}
+
+
 	/**
 	 * Returns all the link prediction evaluation metrics, per predicate and for the entire
 	 * test set. The evaluation corresponds to a classical transductive link prediction task:
@@ -82,16 +117,28 @@ public class Evaluator {
 	 */
 	public EvaluationResult evaluate() {
 		// Get all predicates
-		List<EvaluationResult> resultsPerRelation = new ArrayList<>();
-		for (int rel : this.dataset.testing.keySet()) {
-			EvaluationResult relationResultMetrics = new EvaluationResult();
+		ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(this.nCores);
+		List<Callable<EvaluationResult>> tasks = new ArrayList<Callable<EvaluationResult>>();
+		for (final int rel : this.dataset.testing.keySet()) {
 			List<int[]> relationBatch = this.dataset.testing.get(rel);
-			System.err.println("Evaluating " + relationBatch.size() + " triples in relation " + this.dataset.training.unmap(rel));
-			evaluateRelation(relationBatch, relationResultMetrics);
-			resultsPerRelation.add(relationResultMetrics);
+			tasks.add(new PredicateEvaluator(rel, relationBatch, this));
 		}
+		List<Future<EvaluationResult>> results = null;
+        try {
+            results = executor.invokeAll(tasks);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
-		return EvaluationResult.merge(resultsPerRelation);
+		return EvaluationResult.merge(results.stream().map(x -> {
+			try {
+				return x.get();
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			} catch (ExecutionException e) {
+				throw new RuntimeException(e);
+			}
+		}).collect(Collectors.toList()));
 
 	}
 
@@ -107,7 +154,7 @@ public class Evaluator {
 	private void evaluateRelationOnOneFocus(List<int[]> batch, EvaluationFocus focus, EvaluationResult resultMetrics) {
 		IntLinkedOpenHashSet candidatesSet = null;
 		// We have to carry out the evaluation per sub-batches, otherwise it consumes too much memory
-		for (List<int[]> subBatch : ListUtils.partition(batch, 100)) {
+		for (List<int[]> subBatch : ListUtils.partition(batch, BATCH_SIZE)) {
 			List<Pair<Integer, Ranking>> rankings = new ArrayList<>();
 			if (focus == EvaluationFocus.Head) {
 				for (int[] triple : subBatch) {
@@ -337,5 +384,44 @@ public class Evaluator {
 			}
 		}
 		return triplePatterns;
+	}
+
+	public static String helpText(String headMessage) {
+		String s = headMessage + "\n";
+		s += "Evaluator <DATA_PATH> <RULES_FILE> [N_CORES=1]\n";
+		s += "<DATA_PATH> is a directory that must contain at least files train.tsv and test.tsv -- optionally valid.tsv\n";
+		s += "<RULES_FILE> is text file that contains one rule per line as output by AMIE";
+		return s;
+	}
+	/**
+	 * Main routine to evaluate a set of rules on link prediction
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		if (args.length < 2) {
+			System.err.println(helpText("Insufficient number of arguments"));
+			System.exit(1);
+		}
+		String datasetPath = args[0];
+		String rulesPath = args[1];
+		int nc = 1;
+		if (args.length > 2) {
+			nc = Integer.parseInt(args[2]);
+			System.err.println("Using " + nc + " cores");
+		}
+		Instant inst1 = Instant.now();
+		Evaluator e = null;
+        try {
+            e = Evaluator.getEvaluator(datasetPath, rulesPath, nc);
+        } catch (IOException ex) {
+            System.err.println(ex);
+			System.exit(2);
+        }
+		EvaluationResult eresult = e.evaluate();
+		Instant inst2 = Instant.now();
+		Gson gson = new Gson();
+		String json = gson.toJson(eresult);
+		System.out.println(json);
+		System.err.println("Elapsed Time: "+ Duration.between(inst1, inst2).toString());
 	}
 }

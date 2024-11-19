@@ -22,7 +22,7 @@ def get_data_loader(evaluation_options):
 if __name__ == '__main__':
    if len(sys.argv) < 3:
       print('The program does not have enough arguments.')
-      print('linkprediction.py DATA_PATH RULES_FILE [EVALUATION_OUTPUT_FILE]', file=sys.stderr)
+      print('pyclause_linkprediction.py DATA_PATH RULES_FILE [EVALUATION_OUTPUT_FILE]', file=sys.stderr)
       sys.exit(1)
 
    ## First argument is the data path

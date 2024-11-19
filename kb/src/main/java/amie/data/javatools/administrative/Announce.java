@@ -71,7 +71,7 @@ public class Announce {
 
 	/** Where to write to (default: System.err) */
 	protected static Writer out = new BufferedWriter(new OutputStreamWriter(
-			System.out));
+			System.err));
 
 	/** Indentation level */
 	protected static int doingLevel = 0;

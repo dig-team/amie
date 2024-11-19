@@ -66,7 +66,7 @@ public class TestEvaluator extends TestCase {
         );
 
         Map<Integer, List<int[]>> testTriples = new HashMap<>();
-        Evaluator ev = new Evaluator(new Dataset(first_kb, testTriples), List.of(r1, r2));
+        Evaluator ev = new Evaluator(new Dataset(first_kb, testTriples), List.of(r1, r2), 1);
         // Some trivial assertions
         assertFalse(ev.ruleSupportsEntityForQuery(r1, first_kb.map("SomeCompany"), new Query(first_kb, first_kb.map("Christophe"),
                 first_kb.map("worksAt"), -1)));
@@ -101,7 +101,7 @@ public class TestEvaluator extends TestCase {
         System.out.println(first_kb);
 
         Map<Integer, List<int[]>> testTriples = new HashMap<>();
-        Evaluator ev = new Evaluator(new Dataset(first_kb, testTriples), List.of(r1));
+        Evaluator ev = new Evaluator(new Dataset(first_kb, testTriples), List.of(r1), 1);
         assertTrue(ev.ruleSupportsEntityForQuery(r1, first_kb.map("SomeCompany"), new Query(first_kb, first_kb.map("Christophe"),
                 first_kb.map("worksAt"), -1)));
         assertFalse(ev.ruleSupportsEntityForQuery(r1, first_kb.map("Inria"), new Query(first_kb, first_kb.map("Christophe"),
@@ -132,7 +132,7 @@ public class TestEvaluator extends TestCase {
                 new int[]{first_kb.map("Christophe"), first_kb.map("livesIn"), first_kb.map("Montpellier")}, // r1 and r2
                 new int[]{first_kb.map("Julianne"), first_kb.map("livesIn"), first_kb.map("Rennes")} // no rule
         ));
-        Evaluator ev = new Evaluator(new Dataset(first_kb, testTriples), List.of(r1, r2));
+        Evaluator ev = new Evaluator(new Dataset(first_kb, testTriples), List.of(r1, r2), 1);
         Set<Integer> candidates = ev.getQueryCandidatesStream(first_kb.map("livesIn"), 2).collect(Collectors.toSet());
         System.out.println(candidates.stream().map(x -> first_kb.unmap(x)).collect(Collectors.toList()));
         assertEquals(candidates.size(), 4);
@@ -188,7 +188,7 @@ public class TestEvaluator extends TestCase {
                 new int[]{second_kb.map("Pedro"), second_kb.map("speaks"), second_kb.map("Catalan")} // r2
         ));
 
-        Evaluator ev = new Evaluator(new Dataset(second_kb, testTriples), List.of(r1, r2, r3));
+        Evaluator ev = new Evaluator(new Dataset(second_kb, testTriples), List.of(r1, r2, r3), 1);
         Set<Integer> candidates = ev.getQueryCandidatesStream(second_kb.map("speaks"), 2).collect(Collectors.toSet());
         System.out.println(candidates.stream().map(x -> second_kb.unmap(x)).collect(Collectors.toSet()));
         assertEquals(candidates.size(), 4);

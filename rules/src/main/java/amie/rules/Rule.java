@@ -890,7 +890,7 @@ public class Rule {
      *
      * @return
      */
-    private Int2IntMap alternativeHistogram() {
+    protected Int2IntMap alternativeHistogram() {
         Int2IntMap hist = new Int2IntOpenHashMap(triples.size(), 1.0f);
         for (int i = 1; i < triples.size(); ++i) {
             int[] triple = triples.get(i);
@@ -1654,7 +1654,7 @@ public class Rule {
      * @param expression
      * @return
      */
-    private boolean occursInHead(int expression) {
+    protected boolean occursInHead(int expression) {
         int[] head = getHead();
         return (expression == head[0] || expression == head[2]);
     }

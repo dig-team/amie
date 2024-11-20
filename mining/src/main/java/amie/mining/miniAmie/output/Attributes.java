@@ -1,6 +1,7 @@
 package amie.mining.miniAmie.output;
 
 import amie.data.javatools.datatypes.Pair;
+import amie.mining.miniAmie.MiniAmieRule;
 import amie.rules.Rule;
 
 import java.util.*;
@@ -142,7 +143,7 @@ public class Attributes {
         attributes.put(HEAD_OBJECT_POSITION_IN_LAST_BODY_ATOM_KEY, headObjectPositionInLastAtom +"") ;
 
 
-        int variablePosition = nextPosition(headObjectPositionInLastAtom);
+        int variablePosition = NextPosition(headObjectPositionInLastAtom);
         List<HashMap<String, String>> bodyAttributesList = new ArrayList<>() ;
         for (int id = 0; id < body.size() - 1; id++) {
             HashMap<String, String> bodyAttributes = initHBodyAttributes() ;
@@ -201,7 +202,7 @@ public class Attributes {
             bodyAttributes.put(BODY_SURVIVAL_RATE_KEY, survRate+"") ;
 
 
-            double nAvg = AverageParameterRatio(r_next, variablePosition) ;
+            double nAvg = AverageParameterRatio(atom_next, variablePosition) ;
             bodyAttributes.put(BODY_N_AVG_KEY, nAvg+"") ;
 
 
@@ -284,12 +285,12 @@ public class Attributes {
         attributes.put(OPENING_OVERLAP_KEY, openingOverlap + "");
 
         
-        double nAvgFirst = AverageParameterRatio(firstBodyRelation, nextPosition(headObjectPositionInFirstBodyAtom)) ;
+        double nAvgFirst = AverageParameterRatio(firstBodyAtom, NextPosition(headObjectPositionInFirstBodyAtom)) ;
         attributes.put(N_AVG_FIRST_KEY, nAvgFirst + "");
 
         // -------------------------------------
 
-        int initVariablePosition =  nextPosition(headObjectPositionInFirstBodyAtom) ;
+        int initVariablePosition =  NextPosition(headObjectPositionInFirstBodyAtom) ;
         double bodyEstimate = BodyEstimate(rule, initVariablePosition);
         attributes.put(BODY_ESTIMATE_KEY, bodyEstimate + "");
         bodyEstimateAttributes(rule, initVariablePosition);
@@ -301,7 +302,7 @@ public class Attributes {
     }
 
 
-    public Attributes(Rule rule) {
+    public Attributes(MiniAmieRule rule) {
         long approximateSupportOpen = ApproximateSupportOpenRule(rule) ;
         openRuleAttributes(rule);
 
@@ -359,7 +360,7 @@ public class Attributes {
         attributes.put(CLOSING_SURVIVAL_RATE_KEY, closingSurvivalRate + "") ;
 
         
-        double nAvgHead = AverageParameterRatio(headRelation, SUBJECT_POSITION) ;
+        double nAvgHead = AverageParameterRatio(headAtom, SUBJECT_POSITION) ;
         attributes.put(N_AVG_HEAD_KEY, nAvgHead + "") ;
 
         

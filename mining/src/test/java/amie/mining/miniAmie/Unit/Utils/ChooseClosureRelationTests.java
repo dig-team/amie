@@ -1,13 +1,8 @@
 package amie.mining.miniAmie.Unit.Utils;
 
 import amie.mining.miniAmie.Unit.UnitTest;
-import amie.mining.miniAmie.miniAMIE;
-import amie.rules.Rule;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
 
-import java.util.List;
-
-public class ChooseClosureRelation extends UnitTest {
+public class ChooseClosureRelationTests extends UnitTest {
     public void setUp () {
 //        int[] unboundPattern = rule.fullyUnboundTriplePattern();
 //        unboundPattern[OBJECT_POSITION] = openVariable;

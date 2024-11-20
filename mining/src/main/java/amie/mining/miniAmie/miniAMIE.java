@@ -50,21 +50,23 @@ public abstract class miniAMIE {
     public static final int CORRECTION_FACTOR_CLOSURE = 2;
     public static final int CORRECTION_FACTOR_OPENING = 4;
 
-    protected static List<Integer> SelectedRelations = new ArrayList<>();
+    public static List<Integer> SelectedRelations = new ArrayList<>();
     protected static ThreadPoolExecutor executor;
 
     protected static AtomicInteger totalSumExploredRules = new AtomicInteger();
     protected static AtomicInteger totalSumExploredRulesAdjustedWithBidirectionality = new AtomicInteger();
     protected static Lock lock = new ReentrantLock();
     protected static CountDownLatch headLatch ;
-//    protected static Set<Rule> exploringRules = new HashSet<>() ;
-    protected static List<Rule> finalRules = new ArrayList<>();
+    protected static List<MiniAmieClosedRule> finalRulesUninstantiated = new ArrayList<>() ;
+    protected static List<MiniAmieClosedRule> finalRulesAcyclicInstantiatedVariables = new ArrayList<>() ;
 
     // SubtreeExploration explores a subtree of rules from a head start
     protected static class SubtreeExploration implements Callable<Void> {
         MiniAmieRule initRule ;
-        public SubtreeExploration(MiniAmieRule initRule) {
+        List<MiniAmieClosedRule> finalRules ;
+        public SubtreeExploration(MiniAmieRule initRule, List<MiniAmieClosedRule> finalRules) {
             this.initRule = initRule;
+            this.finalRules = finalRules;
         }
         @Override
         public Void call() throws Exception {
@@ -77,6 +79,50 @@ public abstract class miniAMIE {
             lock.unlock();
             headLatch.countDown();
             return null ;
+        }
+    }
+
+    private static void RunSearchTreeMonoCore(Collection<MiniAmieRule> initRules, List<MiniAmieClosedRule> finalRules) {
+        for (MiniAmieRule rule : initRules) {
+            try {
+                if (RestrainedHead == null || rule.toString().contains(RestrainedHead)) {
+                    ExplorationResult exploreChildrenResult = InitExploreChildren(rule);
+                    totalSumExploredRules.addAndGet(exploreChildrenResult.sumExploredRules);
+                    totalSumExploredRulesAdjustedWithBidirectionality
+                            .addAndGet(exploreChildrenResult.sumExploredRulesAdjustedWithBidirectionality);
+                    finalRules.addAll(exploreChildrenResult.finalRules);
+                }
+            } catch (Exception e) {
+                System.err.println("Exception while exploring " + rule + " subtree");
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+    }
+
+    private static void RunSearchTreeMultiCore
+            (Collection<MiniAmieRule> initRules, List<MiniAmieClosedRule> finalRules) {
+        try {
+            headLatch = new CountDownLatch(initRules.size());
+            executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(NThreads);
+
+            for (MiniAmieRule initRule : initRules) {
+                if (RestrainedHead == null || initRule.toString().contains(RestrainedHead))
+                    executor
+                            .submit(new SubtreeExploration(initRule, finalRules))
+                            .get();
+                else
+                    System.out.println("Skipping subtree " + initRule + ".");
+            }
+            if (!headLatch.await(10, TimeUnit.MICROSECONDS))
+                throw new TimeoutException(("Latch Timeout: "
+                        + "\n latch value " + headLatch.getCount()
+//                            + "\n subtree(s) left : " + Arrays.toString(exploringRules.toArray())
+                        + "\n executor completed jobs : " + executor.getCompletedTaskCount()
+                        + "/" + initRules.size()
+                        + "\n queue size " + executor.getQueue().size())) ;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Mini-AMIE multicore error.", e) ;
         }
     }
 
@@ -97,68 +143,38 @@ public abstract class miniAMIE {
         System.out.println("Using " + PM + " as pruning metric with minimum threshold " +
                 (PM == PruningMetric.ApproximateSupport || PM == PruningMetric.Support ? MinSup : MinHC));
 
-        Collection<MiniAmieRule> initRules = GetInitRules(MinSup);
+        Collection<MiniAmieRule> initRulesUninstantiated = GetInitRules(MinSup);
+
+        Collection<MiniAmieRule> initRulesInstantiatedParameter = GetInitRulesWithInstantiatedParameter(MinSup) ;
 
         // Multicore execution
         System.out.println("Running mini-AMIE with " + NThreads + " threads.");
         if (NThreads == 1) {
-            for (MiniAmieRule rule : initRules) {
-                try {
-                    if (RestrainedHead == null || rule.toString().contains(RestrainedHead)) {
-                        ExplorationResult exploreChildrenResult = InitExploreChildren(rule);
-                        totalSumExploredRules.addAndGet(exploreChildrenResult.sumExploredRules);
-                        totalSumExploredRulesAdjustedWithBidirectionality.addAndGet(exploreChildrenResult.sumExploredRulesAdjustedWithBidirectionality);
-                        finalRules.addAll(exploreChildrenResult.finalRules);
-                    }
-                } catch (Exception e) {
-                    System.err.println("Exception while exploring " + rule + " subtree");
-                    e.printStackTrace();
-                    System.exit(1);
-                }
-
-            }
+                RunSearchTreeMonoCore(initRulesUninstantiated, finalRulesUninstantiated);
+                RunSearchTreeMonoCore(initRulesInstantiatedParameter, finalRulesAcyclicInstantiatedVariables);
         } else {
-            try {
-
-                System.out.println("Exploring ...");
-                headLatch = new CountDownLatch(initRules.size());
-                executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(NThreads);
-
-                for (MiniAmieRule initRule : initRules) {
-                    if (RestrainedHead == null || initRule.toString().contains(RestrainedHead))
-                        executor
-                                .submit(new SubtreeExploration(initRule))
-                                .get(); // Exception can be raised from here
-                    else
-                        System.out.println("Skipping subtree " + initRule + ".");
-                }
-                if (!headLatch.await(10, TimeUnit.MICROSECONDS))
-                    throw new TimeoutException(("Latch Timeout: "
-                            + "\n latch value " + headLatch.getCount()
-//                            + "\n subtree(s) left : " + Arrays.toString(exploringRules.toArray())
-                            + "\n executor completed jobs : " + executor.getCompletedTaskCount()
-                            + "/" + initRules.size()
-                            + "\n queue size " + executor.getQueue().size())) ;
-            } catch (Exception e) {
-                System.err.println("Mini-AMIE multicore error: \n" + e.getMessage());
-                e.printStackTrace();
-                System.exit(1);
-            }
-
+            System.out.println("Exploring uninstantiated rules...");
+            RunSearchTreeMultiCore(initRulesUninstantiated, finalRulesUninstantiated);
+            System.out.println("Exploring acyclic instantiated rules...");
+            RunSearchTreeMultiCore(initRulesInstantiatedParameter, finalRulesAcyclicInstantiatedVariables);
         }
-        totalSumExploredRules.addAndGet(initRules.size());
-        totalSumExploredRulesAdjustedWithBidirectionality.addAndGet(initRules.size());
+        totalSumExploredRules.addAndGet(initRulesUninstantiated.size());
+        totalSumExploredRulesAdjustedWithBidirectionality.addAndGet(initRulesUninstantiated.size());
+        totalSumExploredRules.addAndGet(initRulesInstantiatedParameter.size());
+        totalSumExploredRulesAdjustedWithBidirectionality.addAndGet(initRulesInstantiatedParameter.size());
 
         if (OutputRules) {
             System.out.println("");
             System.out.println("Mini-AMIE rules output: ");
-            PrintOutputCSV(finalRules) ;
+            PrintOutputCSV(finalRulesUninstantiated) ;
+            System.out.println("/!\\ Acyclic instantiated mini-AMIE rules output: ");
+            PrintOutputCSV(finalRulesAcyclicInstantiatedVariables) ;
         }
 
         if (CompareToGroundTruth) {
             System.out.println("");
             System.out.println("Comparison to ground truth: ");
-            PrintComparisonCSV(finalRules, groundTruthRules) ;
+            PrintComparisonCSV(finalRulesUninstantiated, groundTruthRules) ;
         }
 
         PrintGlobalSearchResultCSV(
@@ -174,7 +190,7 @@ public abstract class miniAMIE {
 
     private static ExplorationResult ExploreClosedChildren(MiniAmieRule rule) {
 
-        ArrayList<Rule> keptRules = new ArrayList<>();
+        ArrayList<MiniAmieClosedRule> keptRules = new ArrayList<>();
         int searchSpaceEstimatedSize = 0;
         int searchSpaceEstimatedAdjustedWithBidirectionalitySize = 0;
 
@@ -214,7 +230,7 @@ public abstract class miniAMIE {
 
                 if (openChild.IsNotPruned()) {
                     ExplorationResult exploreOpenChildResult = ExploreChildren(openChild);
-                    finalRules.addAll(exploreOpenChildResult.finalRules);
+                    explorationResult.finalRules.addAll(exploreOpenChildResult.finalRules);
                     explorationResult.sumExploredRules += exploreOpenChildResult.sumExploredRules;
                     explorationResult.sumExploredRulesAdjustedWithBidirectionality +=
                             exploreOpenChildResult.sumExploredRulesAdjustedWithBidirectionality;
@@ -243,4 +259,5 @@ public abstract class miniAMIE {
 
         return ExploreOpenChildren(rule, explorationResult);
     }
+
 }

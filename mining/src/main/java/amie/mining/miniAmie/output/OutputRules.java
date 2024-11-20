@@ -25,7 +25,7 @@ public abstract class OutputRules {
             + "realSupportNano" + commaSep
             + Attributes.GetCSVHeader() + "\n";
 
-    static public void PrintOutputCSV(List<Rule> finalRules) {
+    static public void PrintOutputCSV(List<MiniAmieClosedRule> finalRules) {
 
         try {
             File outputCsvFile = new File(OutputRulesCsvPath);

@@ -1,9 +1,13 @@
 package amie.mining.miniAmie;
 
+import amie.data.AbstractKB;
+import amie.data.KB;
 import amie.mining.miniAmie.output.Attributes;
 import amie.rules.Rule;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
 import static amie.mining.miniAmie.miniAMIE.*;
 import static amie.mining.miniAmie.utils.*;
@@ -27,6 +31,12 @@ public class MiniAmieClosedRule extends MiniAmieRule {
     public MiniAmieClosedRule(Rule rule) {
         super(rule) ;
     }
+    public MiniAmieClosedRule(int[] headAtom, AbstractKB kb) {
+        super(new Rule(headAtom, -1, kb)) ;
+    }
+    public MiniAmieClosedRule(int[] headAtom, List<int[]> body, AbstractKB kb) {
+        super(new Rule(headAtom, body, -1, kb)) ;
+    }
 
     /** Appends closing atom to clone
      * @param rule
@@ -47,10 +57,12 @@ public class MiniAmieClosedRule extends MiniAmieRule {
         newAtom[OBJECT_POSITION] = object;
 
         setCorrectingFactor(ClosedCorrectingFactor(relation));
+        this.hasAcyclicInstantiatedParameterInHead = rule.hasAcyclicInstantiatedParameterInHead ;
+        this.instantiatedParameterPositionInHead = rule.instantiatedParameterPositionInHead ;
     }
 
-    // todo test this
-    public static boolean IsRealPerfectPath(Rule rule) {
+    @Deprecated
+    public static boolean OLD_IsMiniAmieStylePerfectPath(Rule rule) {
 
         boolean found_x = false ;
         boolean found_y = false ;
@@ -67,6 +79,56 @@ public class MiniAmieClosedRule extends MiniAmieRule {
         return found_x && found_y ;
     }
 
+    private boolean isAcyclicInstantiatedPerfect() {
+        Rule auxRule = new Rule(this, -1, this.kb) ;
+        List<int[]> auxBody = auxRule.getBody() ;
+
+        // Single constant in head, replace it with variable
+        int newVariable = auxRule.newVariable() ;
+        if( !(KB.isVariable(auxRule.getHead()[SUBJECT_POSITION])) )  {
+            System.out.println(auxRule.getHead()[SUBJECT_POSITION] + " is constant");
+            auxRule.getHead()[SUBJECT_POSITION] = newVariable ;
+            System.out.println("Replaced by " + auxRule.getHead()[SUBJECT_POSITION]);
+        }
+
+        if( !(KB.isVariable(auxRule.getHead()[OBJECT_POSITION])) )  {
+            System.out.println(auxRule.getHead()[OBJECT_POSITION] + " is constant");
+            auxRule.getHead()[OBJECT_POSITION] = newVariable ;
+            System.out.println("Replaced by " + auxRule.getHead()[OBJECT_POSITION]);
+        }
+
+        // Single other atom with constant in body, replace it with variable
+        boolean found = false ;
+        for(int k = 0 ; k < auxBody.size() ; k++) {
+            int[] atom = auxBody.get(k) ;
+            if(!KB.isVariable(atom[SUBJECT_POSITION])
+                    ^ !KB.isVariable(atom[OBJECT_POSITION])) {
+                if (found) {
+                    return false;
+                }
+                System.out.println("Found constant in body atom " + Arrays.toString(atom));
+                found = true ;
+            }
+
+            if(!KB.isVariable(atom[SUBJECT_POSITION])) {
+                atom[SUBJECT_POSITION] = newVariable ;
+
+            }
+
+            if(!KB.isVariable(atom[OBJECT_POSITION])) {
+                atom[OBJECT_POSITION] = newVariable ;
+            }
+            System.out.println("Replaced with variable " + Arrays.toString(atom));
+
+        }
+
+        return auxRule.containsSinglePath() ;
+    }
+
+    public boolean IsMiniAmieStylePerfectPath() {
+        return isAcyclicInstantiatedPerfect() || containsSinglePath() ;
+    }
+
     public static boolean HasNoRedundancies(Rule rule) {
         HashSet<Integer> relations = new HashSet<>();
         relations.add(rule.getHead()[utils.RELATION_POSITION]);
@@ -80,14 +142,21 @@ public class MiniAmieClosedRule extends MiniAmieRule {
         }
         return true ;
     }
+    public boolean HasNoRedundancies() {
+        return HasNoRedundancies(this) ;
+    }
 
     /**
      * ShouldHaveBeenFound will seek for a perfect path
      * @param rule
      * @return
      */
-    public static boolean ShouldHaveBeenFound(Rule rule) {
-        return HasNoRedundancies(rule) && IsRealPerfectPath(rule);
+    public static boolean RespectsLanguageBias(Rule rule) {
+        return HasNoRedundancies(rule) && rule.containsSinglePath() ;
+    }
+
+    public boolean RespectsLanguageBias() {
+        return HasNoRedundancies(this) && this.containsSinglePath();
     }
 
 
@@ -142,6 +211,9 @@ public class MiniAmieClosedRule extends MiniAmieRule {
     // TODO replace that with IsPrunedClosedRule static method attribute to avoid repeated PruningMetric check
     @Override
     public boolean IsNotPruned() {
+        if (isAcyclicInstantiated()) {
+            return false ;
+        }
         switch(PM) {
             case ApproximateSupport -> {
                 return ApproximateSupportClosedRule(this) >= MinSup ;

@@ -1,6 +1,7 @@
 package amie.mining.miniAmie.Unit.Utils;
 
 import amie.mining.assistant.DefaultMiningAssistant;
+import amie.mining.miniAmie.MiniAmieRule;
 import amie.mining.miniAmie.Unit.UnitTest;
 import amie.mining.miniAmie.utils;
 import amie.rules.Rule;
@@ -12,7 +13,7 @@ import java.util.List;
 
 public class GetInitRulesTests extends UnitTest {
     private final double DEFAULT_MIN_SUPPORT = 100 ;
-    Collection<Rule> initRules ;
+    Collection<MiniAmieRule> initRules ;
 
     protected void setUp() throws Exception {
         System.out.println("Setting up GetInitRulesTests test.");

@@ -1,6 +1,7 @@
 package amie.mining.miniAmie;
 
 import amie.data.KB;
+import amie.data.Schema;
 import amie.data.javatools.datatypes.Pair;
 import amie.mining.assistant.MiningAssistant;
 import amie.mining.miniAmie.output.Attributes;
@@ -21,15 +22,15 @@ public abstract class utils {
 
     public static final int ATOM_SIZE = 3;
 
-    public static final int UNDEFINED_POSITION = -1 ;
+    public static final int UNDEFINED_POSITION = -1;
     public static final int SUBJECT_POSITION = 0;
     public static final int RELATION_POSITION = 1;
     public static final int OBJECT_POSITION = 2;
 
     public static final int NO_OVERLAP_VALUE = -1;
     public static final String commaSep = ",";
-    public static String bodySep = ";" ;
-    public static String atomSep = " " ;
+    public static String bodySep = ";";
+    public static String atomSep = " ";
 
     /**
      * ExplorationResult is instantiated to return the result of an exploration.
@@ -39,10 +40,10 @@ public abstract class utils {
     public static class ExplorationResult {
         int sumExploredRules;
         int sumExploredRulesAdjustedWithBidirectionality;
-        List<Rule> finalRules;
+        List<MiniAmieClosedRule> finalRules;
 
         public ExplorationResult(int sumExploredRules, int sumExploredRulesAdjustedWithBidirectionality,
-                                 List<Rule> finalRules) {
+                                 List<MiniAmieClosedRule> finalRules) {
             this.sumExploredRules = sumExploredRules;
             this.sumExploredRulesAdjustedWithBidirectionality = sumExploredRulesAdjustedWithBidirectionality;
             this.finalRules = finalRules;
@@ -50,7 +51,7 @@ public abstract class utils {
 
     }
 
-    protected static List<Integer> SelectRelations() {
+    public static List<Integer> SelectRelations() {
         List<Integer> relations = new ArrayList<>();
 
         for (int relation : Kb.getRelations()) {
@@ -60,6 +61,55 @@ public abstract class utils {
         }
         return relations;
     }
+
+
+    /**
+     * GetInitRules provides rules with empty bodies and head size above provided minimum support.
+     *
+     * @param minSup
+     * @return Collection of single atom rules and collection of single atom rules with an instantiated parameter
+     */
+    public static Collection<MiniAmieRule> GetInitRules(double minSup) {
+        Collection<Rule> initRules = miningAssistant.getInitialAtoms(minSup);
+        Collection<MiniAmieRule> miniAmieInitRules = new ArrayList<>();
+        for (Rule initRule : initRules) {
+            miniAmieInitRules.add(new MiniAmieRule(initRule));
+        }
+        return miniAmieInitRules;
+    }
+
+    public static Collection<MiniAmieRule> miniAmieInitRules = new ArrayList<>();
+    public static Collection<MiniAmieRule> GetInitRulesWithInstantiatedParameter(double minSup) {
+        Collection<Rule> initRules = miningAssistant.getInitialAtoms(minSup);
+        for (Rule initRule : initRules) {
+            getInitRulesWithInstantiatedParameterFromSingleRule(initRule, OBJECT_POSITION, miniAmieInitRules);
+            getInitRulesWithInstantiatedParameterFromSingleRule(initRule, SUBJECT_POSITION, miniAmieInitRules);
+        }
+        return miniAmieInitRules;
+    }
+
+    private static void getInitRulesWithInstantiatedParameterFromSingleRule
+            (Rule initRule, int variableInstancePosition, Collection<MiniAmieRule> instantiatedParameterInitRule) {
+
+        // todo use countProjectionBindings and filter
+        // todo keep heads
+        // Instantiated rule
+//        IntSet objectConstants = Kb.selectDistinct(initRule.getHead()[OBJECT_POSITION], initRule.getTriples()) ;
+//        halfInstanciatedAtoms = Kb.countProjectionBindings() ;
+        int[] head = initRule.getHead();
+        Int2IntMap variableInstantiations =
+                Kb.countProjectionBindings(head, new ArrayList<>(), head[variableInstancePosition]);
+        IntSet objectConstants = variableInstantiations.keySet();
+
+        for (int constant : objectConstants) {
+            if (variableInstantiations.get(constant) <= MinSup)
+                break;
+            int[] headClone = head.clone();
+            headClone[variableInstancePosition] = constant;
+            instantiatedParameterInitRule.add(new MiniAmieRule(headClone, variableInstancePosition));
+        }
+    }
+
 
     // bidirectionalityMap stores function result to avoid computing the same unions multiple times
     public static ConcurrentHashMap<Integer, Boolean> bidirectionalityMap = new ConcurrentHashMap<>();
@@ -135,7 +185,6 @@ public abstract class utils {
     private static Lock overlapLock = new ReentrantLock();
 
 
-
     private static int overlapSize(int r1, int r2,
                                    Int2ObjectMap<Int2IntMap> overlapTable,
                                    Int2ObjectMap<Int2ObjectMap<IntSet>> triplesKeySet1,
@@ -205,8 +254,8 @@ public abstract class utils {
     }
 
     public static int VariablePosition(int[] r, int variable) {
-        int pos = UNDEFINED_POSITION ;
-        for(int i = 0 ; i < r.length ; i++) {
+        int pos = UNDEFINED_POSITION;
+        for (int i = 0; i < r.length; i++) {
             if (r[i] == variable) {
                 pos = i;
                 break;
@@ -219,13 +268,13 @@ public abstract class utils {
     }
 
 
-    public static int nextPosition(int position) {
+    public static int NextPosition(int position) {
         switch (position) {
             case SUBJECT_POSITION -> {
-                return OBJECT_POSITION ;
+                return OBJECT_POSITION;
             }
             case OBJECT_POSITION -> {
-                return SUBJECT_POSITION ;
+                return SUBJECT_POSITION;
             }
             default -> throw new IllegalArgumentException("Invalid position " + position);
         }
@@ -234,48 +283,44 @@ public abstract class utils {
     public static int VariableSetSize(int position, int relation) {
         switch (position) {
             case SUBJECT_POSITION -> {
-                return DomainSize(relation) ;
+                return DomainSize(relation);
             }
             case OBJECT_POSITION -> {
-                return RangeSize(relation) ;
+                return RangeSize(relation);
             }
             default -> throw new IllegalArgumentException("Invalid position " + position + " in relation " + relation);
         }
     }
 
     /**
-     *
      * @param r1_atom
      * @param r2_atom
      * @param variablePosition_r1
      * @return Pair of overlap size and next variable position in r2 atom
      */
     public static Pair<Integer, Integer> VariableOverlapSize(int[] r1_atom, int[] r2_atom, int variablePosition_r1) {
-        int overlapSize = -1 ;
+        int overlapSize = -1;
 
-        int variable = r1_atom[variablePosition_r1] ;
-        int variablePosition_r2 ;
+        int variable = r1_atom[variablePosition_r1];
+        int variablePosition_r2;
         try {
             variablePosition_r2 = VariablePosition(r2_atom, variable);
         } catch (Exception e) {
-            throw new IllegalArgumentException("Variable position fail r1_atom "+ Arrays.toString(r1_atom)
+            throw new IllegalArgumentException("Variable position fail r1_atom " + Arrays.toString(r1_atom)
                     + " r2_atom " + Arrays.toString(r2_atom) + " variable position " + variablePosition_r1
-                    , e) ;
+                    , e);
         }
-        int r1 = r1_atom[RELATION_POSITION] ;
-        int r2 = r2_atom[RELATION_POSITION] ;
+        int r1 = r1_atom[RELATION_POSITION];
+        int r2 = r2_atom[RELATION_POSITION];
 
         if (variablePosition_r1 == SUBJECT_POSITION && variablePosition_r2 == SUBJECT_POSITION) {
             overlapSize = subjectToSubjectOverlapSize(r1, r2);
-        }
-        else if (variablePosition_r1 == SUBJECT_POSITION && variablePosition_r2 == OBJECT_POSITION) {
+        } else if (variablePosition_r1 == SUBJECT_POSITION && variablePosition_r2 == OBJECT_POSITION) {
             overlapSize = SubjectToObjectOverlapSize(r1, r2);
-        }
-        else if (variablePosition_r1 == OBJECT_POSITION && variablePosition_r2 == SUBJECT_POSITION) {
-            overlapSize = SubjectToObjectOverlapSize(r2, r1) ;
-        }
-        else if (variablePosition_r1 == OBJECT_POSITION && variablePosition_r2 == OBJECT_POSITION) {
-            overlapSize = SubjectToObjectOverlapSize(r1, r2) ;
+        } else if (variablePosition_r1 == OBJECT_POSITION && variablePosition_r2 == SUBJECT_POSITION) {
+            overlapSize = SubjectToObjectOverlapSize(r2, r1);
+        } else if (variablePosition_r1 == OBJECT_POSITION && variablePosition_r2 == OBJECT_POSITION) {
+            overlapSize = SubjectToObjectOverlapSize(r1, r2);
         }
 
         if (overlapSize == -1) {
@@ -283,7 +328,7 @@ public abstract class utils {
                     " in " + Arrays.toString(r1_atom) + " and " + Arrays.toString(r2_atom));
         }
 
-        return new Pair<Integer, Integer>(overlapSize, nextPosition(variablePosition_r2));
+        return new Pair<Integer, Integer>(overlapSize, NextPosition(variablePosition_r2));
     }
 
     public static List<int[]> SortPerfectPathBody(Rule rule) {
@@ -293,9 +338,9 @@ public abstract class utils {
         }
 
         List<int[]> body = rule.getBody();
-        List<int[]> mutableBody = new ArrayList<>(bodySize) ;
-        for (int[] atom: body){
-            mutableBody.add(atom) ;
+        List<int[]> mutableBody = new ArrayList<>(bodySize);
+        for (int[] atom : body) {
+            mutableBody.add(atom);
         }
 
         LinkedList<int[]> sortedBody = new LinkedList<>();
@@ -306,14 +351,14 @@ public abstract class utils {
             for (int[] atom : mutableBody) {
                 if (atom[SUBJECT_POSITION] == var) {
                     sortedBody.addFirst(atom);
-                    mutableBody.remove(atom) ;
+                    mutableBody.remove(atom);
                     var = atom[OBJECT_POSITION];
-                    break ;
+                    break;
                 } else if (atom[OBJECT_POSITION] == var) {
                     sortedBody.addFirst(atom);
                     var = atom[SUBJECT_POSITION];
-                    mutableBody.remove(atom) ;
-                    break ;
+                    mutableBody.remove(atom);
+                    break;
                 }
             }
         }
@@ -323,42 +368,41 @@ public abstract class utils {
         return sortedBody;
     }
 
-    public static double AverageParameterRatio(int relation, int destinationSetPosition) {
+    public static double AverageParameterRatio(int[] atom, int destinationSetPosition) {
+        int relation = atom[RELATION_POSITION];
+        double nom = Kb.relationSize(relation);
+        double denom = 0;
         switch (destinationSetPosition) {
             case OBJECT_POSITION -> {
-                // functionality
-                double domain = DomainSize(relation) ;
-                if (domain > 0)
-                    return Kb.relationSize(relation) / domain ;
-                else
-                    return 0 ;
+                if (Schema.isVariable(atom[SUBJECT_POSITION])) {
+                    denom = DomainSize(relation);
+                } else {
+                    // not sure how this works but we'll use it for now
+                    // todo replace it with a custom method if necessary
+                    denom = Kb.countOneVariable(atom);
+                }
             }
             case SUBJECT_POSITION -> {
-                // inverse functionality
-                double range = RangeSize(relation) ;
-                if (range > 0)
-                    return Kb.relationSize(relation) / range ;
-                else
-                    return 0 ;
+                if (Schema.isVariable(atom[OBJECT_POSITION])) {
+                    denom = RangeSize(relation);
+                } else {
+                    denom = Kb.countOneVariable(atom);
+                }
             }
             default -> throw new IllegalArgumentException("Invalid position " + destinationSetPosition +
-                    " for relation " + relation);
+                    " int atom " + Arrays.toString(atom));
         }
-    }
 
-    public static int GetInitPositionInBody(Rule rule) {
-        List<int[]> body = SortPerfectPathBody(rule);
-        int last_id = body.size() - 1;
-        int[] lastAtom = body.get(last_id) ;
-        int headObject = rule.getHead()[OBJECT_POSITION];
-        int headObjectPositionInLastAtom = VariablePosition(lastAtom, headObject) ;
-        return nextPosition(headObjectPositionInLastAtom);
+        if (denom > 0)
+            return nom / denom;
+        else
+            return 0;
     }
 
     /**
      * bodyEstimate computes the total product operation for estimating support of a rule
      *
-     * @param rule rule to compute body approximation
+     * @param rule                 rule to compute body approximation
      * @param initVariablePosition indicates the position of the starting variable in the first atom.
      * @return total product operation iterating over the provided rule's body
      */
@@ -367,13 +411,13 @@ public abstract class utils {
         double product = 1;
         List<int[]> body = SortPerfectPathBody(rule);
         int last_id = body.size() - 1;
-        int[] lastAtom = body.get(last_id) ;
+        int[] lastAtom = body.get(last_id);
         int headObject = rule.getHead()[OBJECT_POSITION];
-        int headObjectPositionInLastAtom = VariablePosition(lastAtom, headObject) ;
-        int variablePosition = nextPosition(headObjectPositionInLastAtom);
+        int headObjectPositionInLastAtom = VariablePosition(lastAtom, headObject);
+        int variablePosition = NextPosition(headObjectPositionInLastAtom);
         for (int id = 0; id < body.size() - 1; id++) {
             int atom_id = body.size() - id - 1;
-            int atom_next_id = atom_id - 1 ;
+            int atom_next_id = atom_id - 1;
             int[] atom = body.get(atom_id);
             int[] atom_next = body.get(atom_next_id);
 
@@ -383,24 +427,23 @@ public abstract class utils {
                         VariableOverlapSize(atom, atom_next, variablePosition);
             } catch (Exception e) {
                 throw new IllegalArgumentException("body estimate fail id " + id + " rule "
-                            + RawBodyHeadToString(body, rule.getHead())
-                            + " lastAtom " + Arrays.toString(lastAtom)
+                        + RawBodyHeadToString(body, rule.getHead())
+                        + " lastAtom " + Arrays.toString(lastAtom)
                         + " headObject " + headObject
                         + " headObjectPositionInLastAtom " + headObjectPositionInLastAtom
                         + " variablePosition " + variablePosition
                         + " unsorted rule " + RawBodyHeadToString(rule.getBody(), rule.getHead()) +
-                            " body size " + body.size() + " rule body size "+ rule.getBodySize(), e) ;
+                        " body size " + body.size() + " rule body size " + rule.getBodySize(), e);
             }
-            int variableOverlap = variableOverlapSizeResult.first ;
-            variablePosition = variableOverlapSizeResult.second ;
+            int variableOverlap = variableOverlapSizeResult.first;
+            variablePosition = variableOverlapSizeResult.second;
 
             int r = atom[RELATION_POSITION];
-            int r_next = atom_next[RELATION_POSITION];
             int variableSetSize = VariableSetSize(variablePosition, r);
 
             double survRate = variableOverlap / variableSetSize;
-            double nAvg = AverageParameterRatio(r_next, variablePosition) ;
-            double factor = survRate * nAvg ;
+            double nAvg = AverageParameterRatio(atom_next, variablePosition);
+            double factor = survRate * nAvg;
 
             product *= factor;
 
@@ -414,9 +457,13 @@ public abstract class utils {
     public static String RawBodyHeadToString(List<int[]> body, int[] head) {
         String ruleStr = "";
         for (int[] atom : body) {
-            ruleStr += Arrays.toString(atom)+" " ;
+            ruleStr += Arrays.toString(atom) + " ";
         }
-        return ruleStr + "=> "+Arrays.toString(head);
+        return ruleStr + "=> " + Arrays.toString(head);
+    }
+
+    public static long ApproximateSupportOpenRuleAcyclicConstant(MiniAmieRule rule) {
+        return 0;
     }
 
     /**
@@ -425,46 +472,52 @@ public abstract class utils {
      * @param rule Open rule
      * @return Support approximation
      */
-    public static long ApproximateSupportOpenRule(Rule rule) {
+    public static long ApproximateSupportOpenRule(MiniAmieRule rule) {
+        if (rule.isAcyclicInstantiated()) {
+            return ApproximateSupportOpenRuleAcyclicConstant(rule);
+        }
+
         if (rule.getBody().isEmpty())
             return 0;
 
-        int[] headAtom = rule.getHead() ;
-        int headObject = headAtom[OBJECT_POSITION] ;
+        int[] headAtom = rule.getHead();
+        int headObject = headAtom[OBJECT_POSITION];
         List<int[]> body = SortPerfectPathBody(rule);
         int bodySize = body.size();
 
-        int headRelation = headAtom[RELATION_POSITION] ;
+        int headRelation = headAtom[RELATION_POSITION];
 
         //// Opening
         int[] firstBodyAtom = body.get(bodySize - 1);
-        int subjectPositionInFirstBodyAtom ;
+        int subjectPositionInFirstBodyAtom;
 
         try {
             subjectPositionInFirstBodyAtom = VariablePosition(firstBodyAtom, headObject);
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Failed to find init variable " +
-                    headObject + " position in " + RawBodyHeadToString(body, headAtom) +
-                    " firstBodyAtom " + Arrays.toString(firstBodyAtom), e) ;
+                    headObject + " position in" +
+                    " firstBodyAtom " + Arrays.toString(firstBodyAtom), e);
         }
 
         int firstBodyRelation = firstBodyAtom[RELATION_POSITION];
         int openingOverlap;
         switch (subjectPositionInFirstBodyAtom) {
-            case SUBJECT_POSITION ->
-                    openingOverlap = ObjectToObjectOverlapSize(headRelation, firstBodyRelation) ;
-            case OBJECT_POSITION ->
-                    openingOverlap = SubjectToObjectOverlapSize(firstBodyRelation, headRelation) ;
+            case SUBJECT_POSITION -> openingOverlap = ObjectToObjectOverlapSize(headRelation, firstBodyRelation);
+            case OBJECT_POSITION -> openingOverlap = SubjectToObjectOverlapSize(firstBodyRelation, headRelation);
             default -> throw new IllegalArgumentException("Invalid position " + subjectPositionInFirstBodyAtom
                     + " in first body atom " + Arrays.toString(firstBodyAtom) + " of rule " + rule);
         }
-        double nAvgFirst = AverageParameterRatio(firstBodyRelation, nextPosition(subjectPositionInFirstBodyAtom)) ;
+        double nAvgFirst = AverageParameterRatio(firstBodyAtom, NextPosition(subjectPositionInFirstBodyAtom));
 
         // -------------------------------------
         // Body
-        double bodyEstimate = BodyEstimate(rule, nextPosition(subjectPositionInFirstBodyAtom));
+        double bodyEstimate = BodyEstimate(rule, NextPosition(subjectPositionInFirstBodyAtom));
 
         return (long) (openingOverlap * nAvgFirst * bodyEstimate);
+    }
+
+    public static long ApproximateSupportClosedRuleAcyclicConstant(MiniAmieClosedRule rule) {
+        return 0;
     }
 
     /**
@@ -473,30 +526,30 @@ public abstract class utils {
      * @param rule Closed rule
      * @return Support approximation
      */
-    public static long ApproximateSupportClosedRule(Rule rule) {
-        long approximateSupportOpen = ApproximateSupportOpenRule(rule) ;
+    public static long ApproximateSupportClosedRule(MiniAmieClosedRule rule) {
+        long approximateSupportOpen = ApproximateSupportOpenRule(rule);
         if (approximateSupportOpen == 0)
             return 0;
 
-        int[] headAtom = rule.getHead() ;
-        int headSubject = headAtom[SUBJECT_POSITION] ;
+        int[] headAtom = rule.getHead();
+        int headSubject = headAtom[SUBJECT_POSITION];
         List<int[]> body = SortPerfectPathBody(rule);
         // Closed rule factor (closing)
 
         ///// Closing
-        int headRelation = headAtom[RELATION_POSITION] ;
+        int headRelation = headAtom[RELATION_POSITION];
         int idLast = 0;
-        int[] lastBodyAtom =  body.get(idLast) ;
-        int lastBodyRelation = lastBodyAtom[RELATION_POSITION] ;
-        double closingSurvivalRate ;
+        int[] lastBodyAtom = body.get(idLast);
+        int lastBodyRelation = lastBodyAtom[RELATION_POSITION];
+        double closingSurvivalRate;
 
-        int lastVariablePosition ;
+        int lastVariablePosition;
         try {
-            lastVariablePosition = VariablePosition(lastBodyAtom, headSubject) ;
+            lastVariablePosition = VariablePosition(lastBodyAtom, headSubject);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Failed to find last variable "+
+            throw new IllegalArgumentException("Failed to find last variable " +
                     headSubject + " position in " + RawBodyHeadToString(body, rule.getHead())
-                    + " last " + Arrays.toString(body.get(idLast)), e) ;
+                    + " last " + Arrays.toString(body.get(idLast)), e);
         }
         switch (lastVariablePosition) {
             case SUBJECT_POSITION -> {
@@ -518,23 +571,21 @@ public abstract class utils {
             default -> throw new IllegalArgumentException("Invalid position " + lastVariablePosition
                     + " in last body atom " + Arrays.toString(lastBodyAtom) + " of rule " + rule);
         }
-        double nAvgHead = AverageParameterRatio(headRelation, SUBJECT_POSITION) ;
+        double nAvgHead = AverageParameterRatio(headAtom, SUBJECT_POSITION);
 
         return (long) (approximateSupportOpen * closingSurvivalRate * nAvgHead);
     }
-
-
 
 
     protected static double getSizeOfHead(Rule rule) {
         return Kb.relationSize(rule.getHead()[RELATION_POSITION]);
     }
 
-    public static double ApproximateHeadCoverageOpenRule(Rule rule) {
+    public static double ApproximateHeadCoverageOpenRule(MiniAmieRule rule) {
         return ApproximateSupportOpenRule(rule) / getSizeOfHead(rule);
     }
 
-    public static double ApproximateHeadCoverageClosedRule(Rule rule) {
+    public static double ApproximateHeadCoverageClosedRule(MiniAmieClosedRule rule) {
         return ApproximateSupportClosedRule(rule) / getSizeOfHead(rule);
     }
 
@@ -639,21 +690,7 @@ public abstract class utils {
         return (long) result;
     }
 
-    /**
-     * GetInitRules provides a sample of rules with empty
-     * bodies and head coverage above provided minimum support.
-     * @param minSup
-     * @return Collection of single atom rules
-     */
-    public static Collection<MiniAmieRule> GetInitRules(double minSup) {
-        Collection<Rule> initRules = miningAssistant.getInitialAtoms(minSup) ;
-        Collection<MiniAmieRule> miniAmieInitRules = new ArrayList<>() ;
-        for (Rule initRule: initRules)
-            miniAmieInitRules.add(new MiniAmieRule(initRule)) ;
-        return miniAmieInitRules;
-    }
-
-    public static MiniAmieClosedRule computeClosedRuleMetrics(Rule rule) {
+    public static MiniAmieClosedRule computeClosedRuleMetrics(MiniAmieClosedRule rule) {
         MiniAmieClosedRule miniAmieClosedRule = new MiniAmieClosedRule(rule);
         long start = System.nanoTime();
         long support = RealSupport(rule);
@@ -678,20 +715,20 @@ public abstract class utils {
         return miniAmieClosedRule;
     }
 
-    public static List<MiniAmieClosedRule> ComputeRuleListMetrics(List<Rule> rules)
+    public static List<MiniAmieClosedRule> ComputeRuleListMetrics(List<MiniAmieClosedRule> rules)
             throws InterruptedException, ExecutionException {
 
         List<MiniAmieClosedRule> miniAmieClosedRules = new ArrayList<>();
 
         if (NThreads == 1) {
-            for (Rule rule : rules) {
+            for (MiniAmieClosedRule rule : rules) {
                 miniAmieClosedRules.add(computeClosedRuleMetrics(rule));
             }
         } else {
             List<Future<MiniAmieClosedRule>> miniAmieClosedRulesFutures = new ArrayList<>();
             System.out.println("Computing real support ...");
             CountDownLatch totalRulesLatch = new CountDownLatch(rules.size());
-            for (Rule rule : rules) {
+            for (MiniAmieClosedRule rule : rules) {
                 miniAmieClosedRulesFutures.add(
                         executor.submit(() -> {
                             MiniAmieClosedRule miniAmieRule = computeClosedRuleMetrics(rule);
@@ -702,7 +739,7 @@ public abstract class utils {
             }
             totalRulesLatch.await();
             for (Future<MiniAmieClosedRule> future : miniAmieClosedRulesFutures) {
-                miniAmieClosedRules.add(future.get()) ;
+                miniAmieClosedRules.add(future.get());
             }
         }
 

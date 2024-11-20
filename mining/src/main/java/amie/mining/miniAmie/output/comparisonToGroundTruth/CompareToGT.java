@@ -100,12 +100,12 @@ public class CompareToGT {
     }
 
 
-    static public void PrintComparisonCSV(List<Rule> finalRules, List<Rule> groundTruthRules) {
+    static public void PrintComparisonCSV(List<MiniAmieClosedRule> finalRules, List<Rule> groundTruthRules) {
         List<Rule> comparedRuleList = new ArrayList<>();
-        List<Rule> mAmieStyleRuleList = new ArrayList<>();
+        List<MiniAmieClosedRule> mAmieStyleRuleList = new ArrayList<>();
         // Generating comparison map
         ConcurrentHashMap<Rule, ComparedMiniAmieClosedRule.RuleStateComparison> comparisonMap = new ConcurrentHashMap<>();
-        for (Rule rule : finalRules) {
+        for (MiniAmieClosedRule rule : finalRules) {
             ComparedMiniAmieClosedRule comparedRule = new ComparedMiniAmieClosedRule(rule) ;
             comparedRule.setComparisonState(FALSE);
             comparedRuleList.add(comparedRule) ;
@@ -113,7 +113,7 @@ public class CompareToGT {
         }
         for (Rule groundTruthRule : groundTruthRules) {
             boolean found = false;
-            for (Rule rule : finalRules) {
+            for (MiniAmieClosedRule rule : finalRules) {
                 if (CompareToGT.CompareRules(rule, groundTruthRule)) {
                     found = true;
                     ComparedMiniAmieClosedRule comparedRule = new ComparedMiniAmieClosedRule(rule) ;
@@ -123,7 +123,7 @@ public class CompareToGT {
                 }
             }
             if (!found) {
-                if (MiniAmieClosedRule.ShouldHaveBeenFound(groundTruthRule)) {
+                if (MiniAmieClosedRule.RespectsLanguageBias(groundTruthRule)) {
                     ComparedMiniAmieClosedRule comparedRule = new ComparedMiniAmieClosedRule(groundTruthRule) ;
                     comparedRule.setComparisonState(MISSING_FAILURE);
                     comparedRuleList.add(comparedRule) ;

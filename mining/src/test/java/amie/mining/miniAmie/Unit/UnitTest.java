@@ -23,8 +23,9 @@ public abstract class UnitTest extends TestCase {
         File configFile = new File(configFilePath) ;
         Scanner configFileReader = new Scanner(configFile);
         String fileName = configFileReader.nextLine() ;
-        String filePath = String.format("%s/%s", RESOURCE_DIR_PATH, fileName);
-        return new File (filePath);
+//        String filePath = String.format("%s/%s", RESOURCE_DIR_PATH, fileName);
+//        return new File (filePath);
+        return new File (fileName);
     }
 
     private void miniAmieKBSetup () throws IOException {

@@ -3,40 +3,64 @@
 ## 1. A rule file - as output by AMIE or miniAMIE
 ## 2. A description of the parameters sent to the miner to obtain the rules
 import multiprocessing
+import os
 import subprocess
 import sys
 import json
 
 from joblib import Parallel, delayed
 
-AMIE_ARGS =  ['java', '-cp', 'bin/amie3.5.1.jar', 'amie.linkprediction.Evaluator']
+OUTPUT_DIR = './results/inference/'
+AMIE_ARGS = ['java', '-cp', 'bin/amie3.5.1.jar', 'amie.linkprediction.Evaluator']
 
-def run_job(json_config: dict) :
+
+def filename_from_config(json_config):
+    miner = json_config['miner']
+    min_support = 'min_support=' + json_config["mining_conf"]['min_support']
+    min_std_conf = ''
+    min_pca_conf = ''
+    dataset = os.path.basename(os.path.normpath(json_config['dataset']))
+    if 'min_std_confidence' in json_config["mining_config"]:
+        min_std_conf += '_min_std_conf' + str(json_config["mining_config"]['min_std_confidence'])
+    if 'min_pca_confidence' in json_config["mining_config"]:
+        min_pca_conf += '_min_std_conf=' + str(json_config["mining_config"]['min_pca_confidence'])
+    return f'linkprediction_{miner}_{dataset}{min_support}{min_std_conf}{min_pca_conf}.out'
+
+
+def run_job(json_config: dict, n_configs: int) :
     global AMIE_ARGS
     instantiated_amie_args = list(AMIE_ARGS)
     json_config.setdefault('n_jobs', multiprocessing.cpu_count())
-    instantiated_amie_args.extend([json_config['dataset'], json_config['rules_file'], str(json_config['n_jobs'])])
-    print(instantiated_amie_args)
+    free_cpus = json_config['n_jobs'] - min(json_config['n_jobs'], n_configs) + 1
+    n_threads = max(int(free_cpus), 1)
+    instantiated_amie_args.extend([json_config['dataset'], json_config['rules_file'], str(n_threads)])
+    print('Running job', file=sys.stderr)
+    print(instantiated_amie_args, file=sys.stderr)
+    completed_process = subprocess.Popen(instantiated_amie_args,
+                                         stdout=subprocess.PIPE,
+                                         stderr=subprocess.STDOUT,
+                                         text=True)
     try:
-        completed_process = subprocess.run(args=instantiated_amie_args,
-                                           stdout=subprocess.PIPE,
-                                           stderr=subprocess.STDOUT,
-                                           #timeout=get_setting('rule_timeout', 'amie'),
-                                           text=True)
-        print(completed_process.stdout)
-        scores = json.loads(completed_process.stdout)
-        ##  Do something with the scores, e.g., format them
+        stdout, stderr = completed_process.communicate()
+        scores = json.loads(stdout)
+        print(scores)
+        with open(filename_from_config(json_config), 'w') as fout:
+            fout.write(scores)
     except Exception as e:
         print(e, file=sys.stderr)
-        return None
 
 if __name__ == '__main__':
+    try:
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+    except Exception as e:
+        print(f'An error just occurred: \n {e}')
     with open(sys.argv[1], 'r') as config_file:
         json_config = json.load(config_file)
+        n_configs = len(json_config)
         n_jobs = multiprocessing.cpu_count() if len(sys.argv) < 3 else max(1, min(int(sys.argv[2]),
                                                                                  multiprocessing.cpu_count()))
         rule_batches = Parallel(n_jobs=n_jobs, prefer="processes")(
-            delayed(run_job)(job_config) for job_config in json_config
+            delayed(run_job)(job_config, n_configs) for job_config in json_config
         )
 
 

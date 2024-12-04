@@ -101,7 +101,7 @@ public class CompareToGT {
 
 
     static public void PrintComparisonCSV(List<MiniAmieClosedRule> finalRules, List<Rule> groundTruthRules) {
-        List<Rule> comparedRuleList = new ArrayList<>();
+        List<ComparedMiniAmieClosedRule> comparedRuleList = new ArrayList<>();
         List<MiniAmieClosedRule> mAmieStyleRuleList = new ArrayList<>();
         // Generating comparison map
         ConcurrentHashMap<Rule, ComparedMiniAmieClosedRule.RuleStateComparison> comparisonMap = new ConcurrentHashMap<>();
@@ -158,28 +158,27 @@ public class CompareToGT {
                 ComputeRuleListMetrics(mAmieStyleRuleList) ;
             }
 
-            for (Rule rule : comparedRuleList) {
-                ComparedMiniAmieClosedRule comparedRule = (ComparedMiniAmieClosedRule) rule;
-                ComparedMiniAmieClosedRule.RuleStateComparison compRule = comparisonMap.get(rule);
+            for (ComparedMiniAmieClosedRule rule : comparedRuleList) {
 
                 // Printing to csv file
                 String csvLine =
-                                 (compRule == FALSE ? 1 : 0) + commaSep // FALSE
-                                + (compRule == CORRECT ? 1 : 0) + commaSep // CORRECT
-                                + (compRule == ComparedMiniAmieClosedRule.RuleStateComparison.MISSING_FAILURE ? 1 : 0) + commaSep // MISSING_FAILURE
-                                + (compRule == ComparedMiniAmieClosedRule.RuleStateComparison.MISSING_OK ? 1 : 0) + commaSep // MISSING_OK
-                                + OutputCSVLine((MiniAmieClosedRule) rule)
-                                + "\n";
+                                 boolToBit(rule.IsFalse()) + commaSep // FALSE
+                                + boolToBit(rule.IsCorrect()) + commaSep // CORRECT
+                                + boolToBit(rule.IsMissingFailure()) + commaSep // MISSING_FAILURE
+                                + boolToBit(rule.IsMissingOK()) + commaSep // MISSING_OK
+                                + OutputCSVLine(rule) + "\n" ;
                 outputComparisonCsvWriter.write(csvLine);
                 // Printing comparison to console
-                System.out.print(comparedRule.getComparisonCharacter() + csvLine + ComparedMiniAmieClosedRule.ANSI_RESET);
+                System.out.print(rule.getComparisonCharacter() + csvLine + ComparedMiniAmieClosedRule.ANSI_RESET);
             }
-
-
         } catch (Exception e) {
             e.printStackTrace();
         }
 
 
+    }
+
+    static private int boolToBit(boolean bool) {
+        return bool ? 1 : 0;
     }
 }

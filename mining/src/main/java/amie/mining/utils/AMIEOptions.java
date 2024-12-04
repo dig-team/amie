@@ -19,18 +19,20 @@ public interface AMIEOptions {
     Option MINI_AMIE = new Option("mini", "Runs mini-AMIE.") ;
     Option MINI_AMIE_COMPARE_TO_GROUND_TRUTH = new Option("compareToGT", true ,
             "Compares mini-AMIE rule set to a list of rules (path as parameter).") ;
-    Option MINI_AMIE_GLOBAL_SEARCH_RESULT_PATH = new Option("globalSearchInfoPath", true,
-            "Sets the path to a CSV containing general information on the run (ex. search time, memory " +
-                    "peak value). Default ./run-<TIMESTAMP>.csv") ;
+
     Option MINI_AMIE_VERBOSE = new Option("miniVerbose", "Shows more information during the mining " +
             "process.") ;
 
-    Option MINI_AMIE_ENABLE_CONSTANTS = new Option("enableConstants", true,
-            "Enable AnyBurl-style constants in mini-AMIE.") ;
-
-    Option MINI_AMIE_ENABLE_VARIABLE_SWITCH = new Option("enableConstants", true,
+    Option MINI_AMIE_ENABLE_VARIABLE_SWITCH = new Option("enableVariableSwitch",
             "Enable AnyBurl-style variable switching within atoms in mini-AMIE. \n" +
                     "Ex. x <r1> a , b <r2> a , b <r3> y => x <rh> y") ;
+
+    Option MINI_AMIE_USE_DIRECTIONAL_SELECTIVITY = new Option("useDirectionalSelectivity",
+            "Enable directional selectivity.") ;
+
+    Option GLOBAL_SEARCH_RESULT_PATH = new Option("searchInfoOutputPath", true,
+            "Sets the path to a CSV containing general information on the run (ex. search time, memory " +
+                    "peak value). Default ./run-<TIMESTAMP>.csv") ;
 
     Option INVALIDATE_CACHE = new Option("invalidateCache", false, "Ignores previously saved cache.");
     Option CACHE = new Option("cache", false, "Enables query caching.");
@@ -266,15 +268,15 @@ public interface AMIEOptions {
         Options options = new Options();
 
                 options.addOption(MINI_AMIE) ;
-                options.addOption(MINI_AMIE_GLOBAL_SEARCH_RESULT_PATH) ;
+                options.addOption(GLOBAL_SEARCH_RESULT_PATH) ;
                 options.addOption(MINI_AMIE_COMPARE_TO_GROUND_TRUTH) ;
                 options.addOption(MINI_AMIE_VERBOSE) ;
                 options.addOption(MIN_STD_CONFIDENCE);
                 options.addOption(MIN_SUPPORT);
                 options.addOption(MIN_INITIAL_SUPPORT);
                 options.addOption(MIN_HEAD_COVERAGE);
-                options.addOption(MINI_AMIE_ENABLE_CONSTANTS);
                 options.addOption(MINI_AMIE_ENABLE_VARIABLE_SWITCH);
+                options.addOption(MINI_AMIE_USE_DIRECTIONAL_SELECTIVITY);
                 options.addOption(PRUNING_METRIC);
                 options.addOption(OUTPUT_AT_END);
                 options.addOption(BODY_EXCLUDED);

@@ -94,7 +94,12 @@ public class AMIE {
     /**
      * Metric used to prune the mining tree
      */
-    protected PruningMetric pruningMetric;
+    protected static PruningMetric pruningMetric;
+
+    static double minHeadCover = DEFAULT_HEAD_COVERAGE;
+    static int minSup = DEFAULT_SUPPORT;
+    static int maxDepth = 3;
+
 
     /**
      * Preferred number of threads
@@ -425,8 +430,9 @@ public class AMIE {
                         // queryPool.queueAll(temporalOutput);
                         if (currentRule.getRealLength() < assistant.getMaxDepth() - 1) {
                             if (temporalOutputMap.containsKey("dangling")) {
-                                queryPool.queueAll(temporalOutputMap.get("dangling"));
-                                SearchSpaceSize += temporalOutputMap.get("dangling").size();
+                                Collection<Rule> dangling = temporalOutputMap.get("dangling");
+                                queryPool.queueAll(dangling);
+                                SearchSpaceSize += dangling.size();
                             }
                         }
                     }
@@ -568,10 +574,7 @@ public class AMIE {
 
         double minStdConf = DEFAULT_STD_CONFIDENCE;
         double minPCAConf = DEFAULT_PCA_CONFIDENCE;
-        int minSup = DEFAULT_SUPPORT;
         int minInitialSup = DEFAULT_INITIAL_SUPPORT;
-        double minHeadCover = DEFAULT_HEAD_COVERAGE;
-        int maxDepth = 3;
         int maxDepthConst = 3;
         int recursivityLimit = 3;
         boolean realTime = true;
@@ -892,6 +895,13 @@ public class AMIE {
             }
         }
 
+        // Outputting global execution metrics to csv
+        String outputConfigurationPathOption = AMIEOptions.GLOBAL_SEARCH_RESULT_PATH.getOpt() ;
+        if (cli.hasOption(outputConfigurationPathOption)) {
+            GlobalSearchResult.OutputConfigurationToAlreadyExistingCSV = true ;
+            GlobalSearchResult.OutputConfigurationCsvPath = cli.getOptionValue(outputConfigurationPathOption) ;
+        }
+
         // Mini-AMIE
         if (cli.hasOption(AMIEOptions.MINI_AMIE.getOpt())) {
             System.out.println("Running mini-AMIE! Have fun.");
@@ -906,7 +916,6 @@ public class AMIE {
                     case "hc" -> metric = PruningMetric.HeadCoverage;
                     case "appsupport" -> metric = PruningMetric.ApproximateSupport;
                     case "apphc" -> metric = PruningMetric.ApproximateHeadCoverage;
-                    case "altappsupport" -> metric = PruningMetric.AlternativeApproximateSupport;
                     default -> throw new IOException("Mini-AMIE : Unrecognized pruning metric \"" + pm + "\"") ;
                 }
             }
@@ -916,21 +925,20 @@ public class AMIE {
             miniAMIE.Kb = dataSource ;
             miniAMIE.NThreads = nThreads ;
             miniAMIE.EnableVariableSwitch = cli.hasOption(AMIEOptions.MINI_AMIE_ENABLE_VARIABLE_SWITCH.getOpt());
-            miniAMIE.EnableConstants = cli.hasOption(AMIEOptions.MINI_AMIE_ENABLE_CONSTANTS.getOpt());
+            miniAMIE.EnableConstants = cli.hasOption(AMIEOptions.ALLOW_CONSTANTS.getOpt());
+            miniAMIE.UseDirectionalSelectivity =
+                    cli.hasOption(AMIEOptions.MINI_AMIE_USE_DIRECTIONAL_SELECTIVITY.getOpt());
             miniAMIE.Verbose = cli.hasOption(AMIEOptions.MINI_AMIE_VERBOSE.getOpt()) ;
             String miniAMIECompareToGroundTruthOption = AMIEOptions.MINI_AMIE_COMPARE_TO_GROUND_TRUTH.getOpt();
             miniAMIE.CompareToGroundTruth = cli.hasOption(miniAMIECompareToGroundTruthOption) ;
             miniAMIE.PathToGroundTruthRules = miniAMIE.CompareToGroundTruth ?
                     cli.getOptionValue(miniAMIECompareToGroundTruthOption) : null ;
-            String miniAMIEOutputConfigurationPathOption = AMIEOptions.MINI_AMIE_GLOBAL_SEARCH_RESULT_PATH.getOpt() ;
-            if (cli.hasOption(AMIEOptions.MINI_AMIE_GLOBAL_SEARCH_RESULT_PATH.getOpt())) {
-                miniAMIE.OutputConfigurationToAlreadyExistingCSV = true ;
-                miniAMIE.OutputConfigurationCsvPath = cli.getOptionValue(miniAMIEOutputConfigurationPathOption) ;
-            }
 
             miniAMIE.Run() ;
             return null ;
+
         }
+
         System.out.println("Using " + metric + " as pruning metric with minimum threshold " + minMetricValue);
 
         if (cli.hasOption(AMIEOptions.BIAS.getOpt())) {
@@ -1197,6 +1205,7 @@ public class AMIE {
 
         long time = System.currentTimeMillis();
         List<Rule> rules = miner.mine();
+        Announce.doing("Ended the mining phase");
 
         if (!miner.isRealTime()) {
             miner.outputHeader();
@@ -1213,6 +1222,16 @@ public class AMIE {
         Announce.done("Total time " + formatDuration(miningTime + loadingTime));
 
         System.out.println("Used memory (peak) " + PeakMemory() + " kilobytes");
+
+        GlobalSearchResult.PrintGlobalSearchResultToCSV(
+                maxDepth,
+                pruningMetric,
+                minSup,
+                minHeadCover,
+                miner.nThreads,
+                miningTime,
+                SearchSpaceSize
+        );
 
         System.out.println(rules.size() + " rules mined.");
     }

@@ -3,10 +3,10 @@ package amie.mining.miniAmie;
 import amie.data.AbstractKB;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.mining.miniAmie.output.comparisonToGroundTruth.CompareToGT;
+import amie.mining.utils.GlobalSearchResult;
 import amie.rules.PruningMetric;
 import amie.rules.Rule;
 
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -14,7 +14,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static amie.mining.miniAmie.output.comparisonToGroundTruth.CompareToGT.PrintComparisonCSV;
-import static amie.mining.miniAmie.output.GlobalSearchResult.PrintGlobalSearchResultCSV;
+import static amie.mining.utils.GlobalSearchResult.PrintGlobalSearchResultToCSV;
 import static amie.mining.miniAmie.output.OutputRules.PrintOutputCSV;
 import static amie.mining.miniAmie.utils.*;
 
@@ -28,6 +28,7 @@ public abstract class miniAMIE {
     public static double MinHC;
     public static boolean EnableVariableSwitch = false ;
     public static boolean EnableConstants = false ;
+    public static boolean UseDirectionalSelectivity = false ;
     public static int NThreads = 1;
     public static boolean ShowRealSupport = false;
     public static boolean ShowExplorationLayers = false;
@@ -37,15 +38,11 @@ public abstract class miniAMIE {
     public static boolean OutputRules = true ;
     public static String RestrainedHead;
     public static String PathToGroundTruthRules;
-    
-    public static String Timestamp = Instant.now().toString().replace(" ", "_") ;
-    public static String Suffix =   Timestamp + ".csv";
 
-    public static String OutputRulesCsvPath = "./rules-" + Suffix;
-    public static String OutputComparisonCsvPath = "./comparison-" + Suffix;
-    public static String OutputConfigurationCsvPath = "./run-" + Suffix;
+    public static String OutputUninstantiatedRulesCsvPath = "./rules-uninstantiated-" + GlobalSearchResult.Suffix;
+    public static String OutputInstantiatedRulesCsvPath = "./rules-instantiated-" + GlobalSearchResult.Suffix;
 
-    public static boolean OutputConfigurationToAlreadyExistingCSV = false;
+    public static String OutputComparisonCsvPath = "./comparison-" + GlobalSearchResult.Suffix;
 
     public static final int CORRECTION_FACTOR_CLOSURE = 2;
     public static final int CORRECTION_FACTOR_OPENING = 4;
@@ -53,8 +50,8 @@ public abstract class miniAMIE {
     public static List<Integer> SelectedRelations = new ArrayList<>();
     protected static ThreadPoolExecutor executor;
 
-    protected static AtomicInteger totalSumExploredRules = new AtomicInteger();
-    protected static AtomicInteger totalSumExploredRulesAdjustedWithBidirectionality = new AtomicInteger();
+    protected static AtomicInteger old_SearchSPace = new AtomicInteger();
+    protected static AtomicInteger searchSpace = new AtomicInteger();
     protected static Lock lock = new ReentrantLock();
     protected static CountDownLatch headLatch ;
     protected static List<MiniAmieClosedRule> finalRulesUninstantiated = new ArrayList<>() ;
@@ -71,8 +68,8 @@ public abstract class miniAMIE {
         @Override
         public Void call() throws Exception {
             ExplorationResult exploreChildrenResult = InitExploreChildren(initRule);
-            totalSumExploredRules.addAndGet(exploreChildrenResult.sumExploredRules);
-            totalSumExploredRulesAdjustedWithBidirectionality.addAndGet
+            old_SearchSPace.addAndGet(exploreChildrenResult.sumExploredRules);
+            searchSpace.addAndGet
                     (exploreChildrenResult.sumExploredRulesAdjustedWithBidirectionality);
             lock.lock();
             finalRules.addAll(List.copyOf(exploreChildrenResult.finalRules));
@@ -87,8 +84,8 @@ public abstract class miniAMIE {
             try {
                 if (RestrainedHead == null || rule.toString().contains(RestrainedHead)) {
                     ExplorationResult exploreChildrenResult = InitExploreChildren(rule);
-                    totalSumExploredRules.addAndGet(exploreChildrenResult.sumExploredRules);
-                    totalSumExploredRulesAdjustedWithBidirectionality
+                    old_SearchSPace.addAndGet(exploreChildrenResult.sumExploredRules);
+                    searchSpace
                             .addAndGet(exploreChildrenResult.sumExploredRulesAdjustedWithBidirectionality);
                     finalRules.addAll(exploreChildrenResult.finalRules);
                 }
@@ -126,7 +123,21 @@ public abstract class miniAMIE {
         }
     }
 
+    public static void ResetSelectivity() {
+        if (UseDirectionalSelectivity) {
+            MiniAmieRule.setSelectivity(new utils.SurvivalRateSelectivity()) ;
+        } else {
+            MiniAmieRule.setSelectivity(new utils.JacquardSelectivity()) ;
+        }
+    }
+
     public static void Run() {
+
+        // Choosing selectivity method for support approximation
+
+        ResetSelectivity();
+        System.out.println("Selectivity set to " +
+                (UseDirectionalSelectivity ? "Survival Rate" : "Jacquard")) ;
 
         List<Rule> groundTruthRules = new ArrayList<>();
         if (CompareToGroundTruth) {
@@ -145,47 +156,84 @@ public abstract class miniAMIE {
 
         Collection<MiniAmieRule> initRulesUninstantiated = GetInitRules(MinSup);
 
-        Collection<MiniAmieRule> initRulesInstantiatedParameter = GetInitRulesWithInstantiatedParameter(MinSup) ;
+        Collection<MiniAmieRule> initRulesInstantiatedParameter = EnableConstants ?
+                GetInitRulesWithInstantiatedParameter(MinSup) : new ArrayList<>() ;
 
         // Multicore execution
         System.out.println("Running mini-AMIE with " + NThreads + " threads.");
         if (NThreads == 1) {
                 RunSearchTreeMonoCore(initRulesUninstantiated, finalRulesUninstantiated);
-                RunSearchTreeMonoCore(initRulesInstantiatedParameter, finalRulesAcyclicInstantiatedVariables);
+                if (EnableConstants) RunSearchTreeMonoCore(initRulesInstantiatedParameter, finalRulesAcyclicInstantiatedVariables);
         } else {
             System.out.println("Exploring uninstantiated rules...");
             RunSearchTreeMultiCore(initRulesUninstantiated, finalRulesUninstantiated);
-            System.out.println("Exploring acyclic instantiated rules...");
-            RunSearchTreeMultiCore(initRulesInstantiatedParameter, finalRulesAcyclicInstantiatedVariables);
+            if (EnableConstants) {
+                System.out.println("Exploring acyclic instantiated rules...");
+                RunSearchTreeMultiCore(initRulesInstantiatedParameter, finalRulesAcyclicInstantiatedVariables);
+            }
         }
-        totalSumExploredRules.addAndGet(initRulesUninstantiated.size());
-        totalSumExploredRulesAdjustedWithBidirectionality.addAndGet(initRulesUninstantiated.size());
-        totalSumExploredRules.addAndGet(initRulesInstantiatedParameter.size());
-        totalSumExploredRulesAdjustedWithBidirectionality.addAndGet(initRulesInstantiatedParameter.size());
+        old_SearchSPace.addAndGet(initRulesUninstantiated.size());
+        searchSpace.addAndGet(initRulesUninstantiated.size());
+        old_SearchSPace.addAndGet(initRulesInstantiatedParameter.size());
+        searchSpace.addAndGet(initRulesInstantiatedParameter.size());
 
         if (OutputRules) {
             System.out.println("");
             System.out.println("Mini-AMIE rules output: ");
-            PrintOutputCSV(finalRulesUninstantiated) ;
-            System.out.println("/!\\ Acyclic instantiated mini-AMIE rules output: ");
-            PrintOutputCSV(finalRulesAcyclicInstantiatedVariables) ;
+            PrintOutputCSV(finalRulesUninstantiated, OutputUninstantiatedRulesCsvPath) ;
+            if (EnableConstants){
+                System.out.println("/!\\ Acyclic instantiated mini-AMIE rules output: ");
+                PrintOutputCSV(finalRulesAcyclicInstantiatedVariables, OutputInstantiatedRulesCsvPath) ;
+            }
         }
 
         if (CompareToGroundTruth) {
-            System.out.println("");
-            System.out.println("Comparison to ground truth: ");
+            System.out.println("\nComparison to ground truth: ");
             PrintComparisonCSV(finalRulesUninstantiated, groundTruthRules) ;
         }
 
-        PrintGlobalSearchResultCSV(
-                startTime,
-                totalSumExploredRules,
-                totalSumExploredRulesAdjustedWithBidirectionality) ;
+        // Displaying result
+        long duration = System.currentTimeMillis() - startTime;
+        printMiniAmieResultInfo(duration) ;
+
+        PrintGlobalSearchResultToCSV(
+                MaxRuleSize,
+                PM,
+                MinSup,
+                MinHC,
+                NThreads,
+                duration,
+                searchSpace.get()
+        ) ;
 
         System.out.println("Thank you for using mini-Amie. See you next time");
 
         if(NThreads > 1)
             executor.shutdown();
+    }
+
+    private static void printMiniAmieResultInfo(long duration) {
+        long days = TimeUnit.MILLISECONDS.toDays(duration);
+        long hours = TimeUnit.MILLISECONDS.toHours(duration) - 24 * days;
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(duration) - 60 * hours;
+        long seconds = TimeUnit.MILLISECONDS.toSeconds(duration) - 60 * minutes;
+        long milliseconds = duration - 1000 * seconds;
+
+        System.out.println("Search duration: " +
+                (days > 0 ? days + " days " : "") +
+                (hours > 0 ? hours + " hours " : "") +
+                (minutes > 0 ? minutes + " minutes " : "") +
+                (seconds > 0 ? seconds + " seconds " : "") +
+                milliseconds + " milliseconds" +
+                ".");
+        System.out.println("Search space size approximation: " + searchSpace + " possibilities.");
+
+        System.out.print("Bidirectional relations (range-dom Jaccard >= " + BidirectionalityJaccardThreshold + "):");
+        for (int relation : bidirectionalityMap.keySet())
+            if (bidirectionalityMap.get(relation)) {
+                System.out.print(" " + Kb.unmap(relation) );
+            }
+        System.out.println();
     }
 
     private static ExplorationResult ExploreClosedChildren(MiniAmieRule rule) {

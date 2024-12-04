@@ -1,7 +1,6 @@
 package amie.mining.miniAmie.output;
 
 import amie.mining.miniAmie.MiniAmieClosedRule;
-import amie.rules.Rule;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -16,8 +15,11 @@ public abstract class OutputRules {
     public static final String OUTPUT_CSV_HEADER = "rule" + commaSep // RULE
             + "headRelation" + commaSep
             + "size" + commaSep
-            + "appSupport" + commaSep // APP SUPPORT
-            + "altAppSupport" + commaSep // APP SUPPORT
+            + "appSupport" + commaSep
+            + "appSurvivalRateSupport" + commaSep
+            + "appAvgSupport" + commaSep
+            + "appJacquardSupport"  + commaSep // APP SUPPORT
+//            + "altAppSupport" + commaSep // APP SUPPORT
             + "realSupport" + commaSep
             + "appHeadCoverage" + commaSep
             + "realHeadCoverage" + commaSep
@@ -25,18 +27,18 @@ public abstract class OutputRules {
             + "realSupportNano" + commaSep
             + Attributes.GetCSVHeader() + "\n";
 
-    static public void PrintOutputCSV(List<MiniAmieClosedRule> finalRules) {
+    static public void PrintOutputCSV(List<MiniAmieClosedRule> finalRules, String outputFilePath) {
 
         try {
-            File outputCsvFile = new File(OutputRulesCsvPath);
+            File outputCsvFile = new File(outputFilePath);
             if (outputCsvFile.createNewFile()) {
-                System.out.println("Created CSV rules output: " + OutputRulesCsvPath);
+                System.out.println("Created CSV rules output: " + outputFilePath);
             } else {
-                System.err.println("Could not create CSV output: " + OutputRulesCsvPath +
+                System.err.println("Could not create CSV output: " + outputFilePath +
                         ". Maybe name already exists?");
             }
 
-            FileWriter outputComparisonCsvWriter = new FileWriter(OutputRulesCsvPath);
+            FileWriter outputComparisonCsvWriter = new FileWriter(outputFilePath);
 
             outputComparisonCsvWriter.write(OUTPUT_CSV_HEADER);
             System.out.print(OUTPUT_CSV_HEADER);
@@ -52,6 +54,8 @@ public abstract class OutputRules {
                 System.out.print(csvLine);
             }
 
+            outputComparisonCsvWriter.close();
+
         } catch (Exception e) {
 //                System.err.println("Couldn't create output file: "+ outputComparisonCsvPath+ ". Maybe file already exists.");
             e.printStackTrace();
@@ -65,7 +69,10 @@ public abstract class OutputRules {
                 Kb.unmap(rule.getHead()[RELATION_POSITION]) + commaSep // HEAD RELATION
                 + (rule.getBody().size() + 1) + commaSep // RULE SIZE
                 + rule.getApproximateSupport() + commaSep // APP SUPPORT
-                + rule.getAlternativeApproximateSupport() + commaSep // APP SUPPORT
+                + rule.getSurvivalRateBasedAppSupport() + commaSep
+                + rule.getAvgBasedAppSupport() + commaSep
+                + rule.getJacquardBasedAppSupport() + commaSep
+//                + rule.getAlternativeApproximateSupport() + commaSep // APP SUPPORT
                 + rule.getSupport() + commaSep
                 + rule.getApproximateHC() + commaSep
                 + rule.getHeadCoverage() + commaSep

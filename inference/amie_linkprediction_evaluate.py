@@ -16,38 +16,42 @@ AMIE_ARGS = ['java', '-cp', 'bin/amie3.5.1.jar', 'amie.linkprediction.Evaluator'
 
 def filename_from_config(json_config):
     miner = json_config['miner']
-    min_support = 'min_support=' + json_config["mining_conf"]['min_support']
+    min_support = 'min_support=' + str(json_config["mining_config"]['min_support'])
     min_std_conf = ''
     min_pca_conf = ''
     dataset = os.path.basename(os.path.normpath(json_config['dataset']))
     if 'min_std_confidence' in json_config["mining_config"]:
-        min_std_conf += '_min_std_conf' + str(json_config["mining_config"]['min_std_confidence'])
+        min_std_conf += '_min_std_conf=' + str(json_config["mining_config"]['min_std_confidence'])
     if 'min_pca_confidence' in json_config["mining_config"]:
-        min_pca_conf += '_min_std_conf=' + str(json_config["mining_config"]['min_pca_confidence'])
+        min_pca_conf += '_min_pca_conf=' + str(json_config["mining_config"]['min_pca_confidence'])
     return f'linkprediction_{miner}_{dataset}{min_support}{min_std_conf}{min_pca_conf}.out'
 
 
 def run_job(json_config: dict, n_configs: int) :
     global AMIE_ARGS
+    global OUTPUT_DIR
     instantiated_amie_args = list(AMIE_ARGS)
     json_config.setdefault('n_jobs', multiprocessing.cpu_count())
     free_cpus = json_config['n_jobs'] - min(json_config['n_jobs'], n_configs) + 1
     n_threads = max(int(free_cpus), 1)
     instantiated_amie_args.extend([json_config['dataset'], json_config['rules_file'], str(n_threads)])
+    fout_path = filename_from_config(json_config)
     print('Running job', file=sys.stderr)
     print(instantiated_amie_args, file=sys.stderr)
     completed_process = subprocess.Popen(instantiated_amie_args,
                                          stdout=subprocess.PIPE,
-                                         stderr=subprocess.STDOUT,
+                                         stderr=subprocess.PIPE,
                                          text=True)
     try:
-        stdout, stderr = completed_process.communicate()
-        scores = json.loads(stdout)
+        sout, serr = completed_process.communicate()
+        scores = json.loads(sout)
         print(scores)
-        with open(filename_from_config(json_config), 'w') as fout:
-            fout.write(scores)
+        with open(f'{OUTPUT_DIR}{fout_path}', 'w') as fout:
+            print(f'Writing output to file {OUTPUT_DIR}{fout_path}', file=sys.stderr)
+            fout.write(sout)
     except Exception as e:
         print(e, file=sys.stderr)
+        print(serr, file=sys.stderr)
 
 if __name__ == '__main__':
     try:

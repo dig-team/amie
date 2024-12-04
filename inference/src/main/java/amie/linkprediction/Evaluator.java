@@ -423,5 +423,6 @@ public class Evaluator {
 		String json = gson.toJson(eresult);
 		System.out.println(json);
 		System.err.println("Elapsed Time: "+ Duration.between(inst1, inst2).toString());
+		System.exit(0);
 	}
 }

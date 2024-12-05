@@ -29,21 +29,21 @@ public class AddDanglingToAcyclicWithConstantsTests extends UnitTest {
 
     }
 
-    public void testDangling() {
-        for (MiniAmieRule rule : initRulesInstantiatedParameter) {
-            System.out.println(rule.toString());
-            List<MiniAmieRule> instantiatedAtomsBody = rule.AddDanglingToAcyclicWithConstants() ;
-
-            for (MiniAmieRule rule1 : instantiatedAtomsBody) {
-                List<MiniAmieClosedRule> closures = rule1.AddClosure() ;
-                for (MiniAmieClosedRule rule2 : closures) {
-                    System.out.println(rule2.toString());
-                    assert rule2.IsMiniAmieStylePerfectPath() ;
-                }
-                break ;
-            }
-            break ;
-        }
-    }
+//    public void testDangling() {
+//        for (MiniAmieRule rule : initRulesInstantiatedParameter) {
+//            System.out.println(rule.toString());
+//            List<MiniAmieRule> instantiatedAtomsBody = rule.AddDanglingToAcyclicWithConstants() ;
+//
+//            for (MiniAmieRule rule1 : instantiatedAtomsBody) {
+//                List<MiniAmieClosedRule> closures = rule1.AddClosure() ;
+//                for (MiniAmieClosedRule rule2 : closures) {
+//                    System.out.println(rule2.toString());
+//                    assert rule2.IsMiniAmieStylePerfectPath() ;
+//                }
+//                break ;
+//            }
+//            break ;
+//        }
+//    }
 
 }

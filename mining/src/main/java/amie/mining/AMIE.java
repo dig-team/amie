@@ -8,12 +8,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -23,25 +21,19 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import amie.data.*;
-import amie.data.remote.Cache;
 import amie.data.remote.Caching;
 import amie.mining.utils.AMIEOptions;
 import org.apache.commons.cli.*;
 
 import amie.mining.assistant.MiningAssistant;
 import amie.mining.assistant.MiningAssistantFactory;
-import amie.mining.assistant.RelationSignatureDefaultMiningAssistant;
-import amie.mining.assistant.LazyIteratorMiningAssistant;
-import amie.mining.assistant.LazyMiningAssistant;
 import amie.mining.assistant.DefaultMiningAssistantWithOrder;
 import amie.mining.assistant.variableorder.AppearanceOrder;
 import amie.mining.assistant.variableorder.FunctionalOrder;
 import amie.mining.assistant.variableorder.InverseOrder;
 import amie.mining.assistant.variableorder.VariableOrder;
-import amie.mining.assistant.variableorder.VariableOrderFactory;
 import amie.rules.PruningMetric;
 import amie.rules.Rule;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntCollection;
 import amie.data.javatools.administrative.Announce;
 
@@ -60,7 +52,7 @@ public class AMIE {
     /**
      * Default standard confidence threshold
      */
-    protected static final double DEFAULT_STD_CONFIDENCE = 0.0;
+    protected static final double DEFAULT_STD_CONFIDENCE = 0.1;
 
     /**
      * Default PCA confidence threshold
@@ -585,7 +577,7 @@ public class AMIE {
         boolean verbose = false;
         boolean enforceConstants = false;
         boolean avoidUnboundTypeAtoms = true;
-        boolean ommitStdConfidence = false;
+        boolean enableStdConfidence = false;
         boolean ommitPCAConfidence = false;
         boolean adaptiveInstantiations = false;
         /**
@@ -910,7 +902,7 @@ public class AMIE {
         countAlwaysOnSubject = cli.hasOption(AMIEOptions.COUNT_ALWAYS_ON_SUBJECT.getOpt());
         realTime = !cli.hasOption(AMIEOptions.OUTPUT_AT_END.getOpt());
         enforceConstants = cli.hasOption(AMIEOptions.ONLY_CONSTANTS.getOpt());
-        ommitStdConfidence = cli.hasOption(AMIEOptions.OMMIT_STD_CONF.getOpt());
+        enableStdConfidence = cli.hasOption(AMIEOptions.ENABLE_STD_CONF.getOpt());
         ommitPCAConfidence = cli.hasOption(AMIEOptions.OMMIT_PCA_CONF.getOpt());
         adaptiveInstantiations = cli.hasOption(AMIEOptions.ADAPTATIVE_INSTANTIATIONS.getOpt());
 
@@ -972,7 +964,7 @@ public class AMIE {
         mineAssistant.setEnableQueryRewriting(enableQueryRewriting);
         mineAssistant.setEnablePerfectRules(enablePerfectRulesPruning);
         mineAssistant.setVerbose(verbose);
-        mineAssistant.setOmmitStdConfidence(ommitStdConfidence);
+        mineAssistant.setEnableStdConfidence(enableStdConfidence);
         mineAssistant.setOmmitPCAConfidence(ommitPCAConfidence);
         mineAssistant.setOptimAdaptiveInstantiations(adaptiveInstantiations);
         mineAssistant.setUseSkylinePruning(!cli.hasOption(AMIEOptions.NO_SKYLINE.getOpt()));
@@ -988,7 +980,7 @@ public class AMIE {
         miner.setRealTime(realTime);
         miner.setSeeds(headTargetRelations);
 
-        if (minStdConf > 0.0 && !ommitStdConfidence) {
+        if (minStdConf > 0.0 && enableStdConfidence) {
             System.out.println("Filtering on standard confidence with minimum threshold " + minStdConf);
         } else {
             System.out.println("No minimum threshold on standard confidence");

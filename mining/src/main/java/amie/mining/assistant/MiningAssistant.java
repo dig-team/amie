@@ -198,7 +198,7 @@ public class MiningAssistant {
 	/**
 	 * Do not calculate standard confidence.
 	 */
-	protected boolean ommitStdConfidence;
+	protected boolean enableStdConfidence;
 
 	/**
 	 * Do not calculate PCA confidence.
@@ -256,7 +256,7 @@ public class MiningAssistant {
 		this.enableQueryRewriting = true;
 		this.enablePerfectRules = true;
 		this.confidenceMetric = ConfidenceMetric.PCAConfidence;
-		this.ommitStdConfidence = false;
+		this.enableStdConfidence = false;
 		this.optimAdaptiveInstantiations = false;
 		buildRelationsDictionary();
 		this.miningOperators = new LinkedList<>();
@@ -736,7 +736,7 @@ public class MiningAssistant {
 	 */
 	public void calculateConfidenceMetrics(Rule candidate) {
 		boolean rule_will_be_output;
-		if (this.ommitStdConfidence) {
+		if (!this.enableStdConfidence) {
 			rule_will_be_output = true;
 		} else {
 			computeStandardConfidence(candidate);
@@ -1005,7 +1005,7 @@ public class MiningAssistant {
 				candidate.setPcaConfidenceUpperBound(pcaConfUpperBound);
 			}
 
-			if (this.minStdConfidence > 0.0 && !this.ommitStdConfidence) {
+			if (this.minStdConfidence > 0.0 && this.enableStdConfidence) {
 				double stdConfUpperBound = getStdConfidenceUpperBound(candidate);
 
 				if (stdConfUpperBound < this.minStdConfidence) {
@@ -1679,12 +1679,12 @@ public class MiningAssistant {
 		this.confidenceMetric = confidenceMetric;
 	}
 
-	public void setOmmitStdConfidence(boolean ommitStdConfidence) {
-		this.ommitStdConfidence = ommitStdConfidence;
+	public void setEnableStdConfidence(boolean enableStdConfidence) {
+		this.enableStdConfidence = enableStdConfidence;
 	}
 
-	public boolean isOmmitStdConfidence() {
-		return this.ommitStdConfidence;
+	public boolean isEnableStdConfidence() {
+		return this.enableStdConfidence;
 	}
 
 	public void setOmmitPCAConfidence(boolean ommitPCAConfidence) {
@@ -1710,7 +1710,7 @@ public class MiningAssistant {
 	public void setFormatter(String outputFormat) {
 		try {
 			Map<String, Object> args = new HashMap<>();
-			args.put("ommitStd", (Boolean) this.ommitStdConfidence);
+			args.put("enableStd", (Boolean) this.enableStdConfidence);
 			args.put("ommitPCA", (Boolean) this.ommitPCAConfidence);
 			this.formatter = RuleFormatterFactory.getFormatter(outputFormat, this.verbose, args);
 		} catch (Exception e) {

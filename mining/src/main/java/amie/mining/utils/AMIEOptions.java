@@ -166,8 +166,8 @@ public interface AMIEOptions {
         Option OUTPUT_FILE = new Option("ofile", "output-file", true,
                         "Output file to store the rules");
 
-        Option OMMIT_STD_CONF = new Option("omstd", "ommit-std-conf", false,
-                        "Do not calculate standard confidence");
+        Option ENABLE_STD_CONF = new Option("enstd", "enable-std-conf", false,
+                        "Calculate standard confidence");
 
         Option OMMIT_PCA_CONF = new Option("ompca", "ommit-pca-conf", false,
                         "Do not calculate PCA confidence");
@@ -280,7 +280,7 @@ public interface AMIEOptions {
                 options.addOption(VARIABLE_ORDER);
                 options.addOption(OUTPUT_FILE);
                 options.addOption(OUTPUT_FORMAT);
-                options.addOption(OMMIT_STD_CONF);
+                options.addOption(ENABLE_STD_CONF);
                 options.addOption(OMMIT_PCA_CONF);
                 options.addOption(ADAPTATIVE_INSTANTIATIONS);
                 options.addOption(MULTILINGUAL);

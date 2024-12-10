@@ -30,10 +30,7 @@ public abstract class miniAMIE {
     public static boolean EnableConstants = false ;
     public static boolean UseDirectionalSelectivity = false ;
     public static int NThreads = 1;
-    public static boolean ShowRealSupport = false;
-    public static boolean ShowExplorationLayers = false;
     public static boolean Verbose = false;
-    public static double ErrorRateThreshold = 0.5;
     public static boolean CompareToGroundTruth = false;
     public static boolean OutputRules = true ;
     public static String RestrainedHead;
@@ -77,6 +74,32 @@ public abstract class miniAMIE {
             headLatch.countDown();
             return null ;
         }
+    }
+
+    public static void Setup(
+            AbstractKB Kb,
+            int MaxRuleSize,
+            int MinSup,
+            double MinHC,
+            boolean EnableVariableSwitch,
+            boolean EnableConstants,
+            boolean UseDirectionalSelectivity,
+            int NThreads,
+            boolean Verbose,
+            boolean CompareToGroundTruth,
+            String PathToGroundTruthRules
+    ) {
+        miniAMIE.Kb = Kb;
+        miniAMIE.MaxRuleSize = MaxRuleSize;
+        miniAMIE.MinSup = MinSup;
+        miniAMIE.MinHC = MinHC;
+        miniAMIE.EnableVariableSwitch = EnableVariableSwitch;
+        miniAMIE.EnableConstants = EnableConstants;
+        miniAMIE.UseDirectionalSelectivity = UseDirectionalSelectivity;
+        miniAMIE.NThreads = NThreads;
+        miniAMIE.Verbose = Verbose;
+        miniAMIE.CompareToGroundTruth = CompareToGroundTruth;
+        miniAMIE.PathToGroundTruthRules = PathToGroundTruthRules;
     }
 
     private static void RunSearchTreeMonoCore(Collection<MiniAmieRule> initRules, List<MiniAmieClosedRule> finalRules) {

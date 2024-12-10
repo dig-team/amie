@@ -14,10 +14,10 @@ import static amie.mining.miniAmie.utils.GetInitRulesWithInstantiatedParameter;
 public class AddClosureTests extends UnitTest {
     static List<MiniAmieRule> openRules = new ArrayList<>();
     protected void setUp() throws Exception {
+        super.setUp();
         System.out.println("Setting up AddClosure test.");
         openRules.addAll(GetInitRules(MinSup)) ;
         openRules.addAll(GetInitRulesWithInstantiatedParameter(MinSup)) ;
-        super.setUp();
     }
 
     public void testClosureDifferentFromHead() {

@@ -847,25 +847,6 @@ public class AMIE {
             }
         }
 
-        // Mini-AMIE
-        if (cli.hasOption(AMIEOptions.MINI_AMIE.getOpt())) {
-            System.out.println("Running mini-AMIE! Have fun.");
-            miniAMIE.MaxRuleSize = maxDepth ;
-
-            miniAMIE.PruningMetric = pruningMetric ;
-            miniAMIE.MinSup = minSup ;
-            miniAMIE.MinHC = minHeadCover ;
-            miniAMIE.kb = dataSource ;
-            miniAMIE.NThreads = nThreads ;
-            miniAMIE.Verbose = cli.hasOption(AMIEOptions.MINI_AMIE_VERBOSE.getOpt()) ;
-            String miniAMIECompareToGroundTruthOption = AMIEOptions.MINI_AMIE_COMPARE_TO_GROUND_TRUTH.getOpt();
-            miniAMIE.CompareToGroundTruth = cli.hasOption(miniAMIECompareToGroundTruthOption) ;
-            miniAMIE.pathToGroundTruthRules = miniAMIE.CompareToGroundTruth ?
-                    cli.getOptionValue(miniAMIECompareToGroundTruthOption) : null ;
-            miniAMIE.Run() ;
-            return null ;
-        }
-
         if (cli.hasOption(AMIEOptions.MIN_SUPPORT.getOpt()) != cli.hasOption(AMIEOptions.MIN_HEAD_COVERAGE.getOpt())) {
             if (cli.hasOption(AMIEOptions.MIN_SUPPORT.getOpt())) {
                 metric = PruningMetric.Support;
@@ -905,7 +886,6 @@ public class AMIE {
         // Mini-AMIE
         if (cli.hasOption(AMIEOptions.MINI_AMIE.getOpt())) {
             System.out.println("Running mini-AMIE! Have fun.");
-            miniAMIE.MaxRuleSize = maxDepth ;
             if (!cli.hasOption(AMIEOptions.PRUNING_METRIC.getOpt()) ) {
                 // Default pruning metric for mini-AMIE is ApproximateSupport
                 metric = PruningMetric.ApproximateSupport ;
@@ -919,21 +899,21 @@ public class AMIE {
                     default -> throw new IOException("Mini-AMIE : Unrecognized pruning metric \"" + pm + "\"") ;
                 }
             }
-            miniAMIE.PM = metric ;
-            miniAMIE.MinSup = minSup ;
-            miniAMIE.MinHC = minHeadCover ;
-            miniAMIE.Kb = dataSource ;
-            miniAMIE.NThreads = nThreads ;
-            miniAMIE.EnableVariableSwitch = cli.hasOption(AMIEOptions.MINI_AMIE_ENABLE_VARIABLE_SWITCH.getOpt());
-            miniAMIE.EnableConstants = cli.hasOption(AMIEOptions.ALLOW_CONSTANTS.getOpt());
-            miniAMIE.UseDirectionalSelectivity =
-                    cli.hasOption(AMIEOptions.MINI_AMIE_USE_DIRECTIONAL_SELECTIVITY.getOpt());
-            miniAMIE.Verbose = cli.hasOption(AMIEOptions.MINI_AMIE_VERBOSE.getOpt()) ;
-            String miniAMIECompareToGroundTruthOption = AMIEOptions.MINI_AMIE_COMPARE_TO_GROUND_TRUTH.getOpt();
-            miniAMIE.CompareToGroundTruth = cli.hasOption(miniAMIECompareToGroundTruthOption) ;
-            miniAMIE.PathToGroundTruthRules = miniAMIE.CompareToGroundTruth ?
-                    cli.getOptionValue(miniAMIECompareToGroundTruthOption) : null ;
-
+            String miniAMIECompareToGroundTruthOption = AMIEOptions.MINI_AMIE_COMPARE_TO_GROUND_TRUTH.getOpt() ;
+            miniAMIE.Setup(
+                    dataSource,
+                    maxDepth,
+                    minSup,
+                    minHeadCover,
+                    cli.hasOption(AMIEOptions.MINI_AMIE_ENABLE_VARIABLE_SWITCH.getOpt()),
+                    cli.hasOption(AMIEOptions.ALLOW_CONSTANTS.getOpt()),
+                    cli.hasOption(AMIEOptions.MINI_AMIE_USE_DIRECTIONAL_SELECTIVITY.getOpt()),
+                    nThreads,
+                    cli.hasOption(AMIEOptions.MINI_AMIE_VERBOSE.getOpt()),
+                    cli.hasOption(miniAMIECompareToGroundTruthOption),
+                    miniAMIE.CompareToGroundTruth ?
+                            cli.getOptionValue(miniAMIECompareToGroundTruthOption) : null
+            );
             miniAMIE.Run() ;
             return null ;
 

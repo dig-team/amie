@@ -1,7 +1,9 @@
 package amie.mining.miniAmie.Unit;
 
 import amie.data.KB;
+import amie.mining.assistant.DefaultMiningAssistant;
 import amie.mining.miniAmie.miniAMIE;
+import amie.mining.miniAmie.utils;
 import junit.framework.TestCase;
 
 import java.io.File;
@@ -11,30 +13,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import static amie.mining.miniAmie.utils.miningAssistant;
+
 
 public abstract class UnitTest extends TestCase {
-    static final private String RESOURCE_DIR_PATH = "src/test/resources" ;
-    static final private String CONFIG_FILE_NAME = "config" ;
-
     static protected KB kb;
-
-    private File getKBFile () throws FileNotFoundException {
-        String configFilePath = String.format("%s/%s", RESOURCE_DIR_PATH, CONFIG_FILE_NAME);
-        File configFile = new File(configFilePath) ;
-        Scanner configFileReader = new Scanner(configFile);
-        String fileName = configFileReader.nextLine() ;
-//        String filePath = String.format("%s/%s", RESOURCE_DIR_PATH, fileName);
-//        return new File (filePath);
-        return new File (fileName);
-    }
-
     private void miniAmieKBSetup () throws IOException {
-        List<File> dataFiles = new ArrayList<> ();
-        File kbFile = getKBFile ();
-        dataFiles.add (kbFile);
         kb = new KB () ;
-        kb.load (dataFiles);
         miniAMIE.Kb = kb ;
+        utils.miningAssistant = new DefaultMiningAssistant(kb);
     }
 
     protected void setUp() throws Exception {

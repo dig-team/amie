@@ -23,7 +23,7 @@ public class RespectsLanguageBiasTests extends UnitTest {
 
         MiniAmieClosedRule rule = new MiniAmieClosedRule(headAtom, kb) ;
 
-        assert !rule.IsMiniAmieStylePerfectPath() ;
+        assert rule.IsMiniAmieStylePerfectPath() ;
     }
 
     public void testPerfectPath() {
@@ -79,9 +79,14 @@ public class RespectsLanguageBiasTests extends UnitTest {
         body.add(bodyAtom1);
         body.add(bodyAtom2);
 
-        MiniAmieClosedRule rule = new MiniAmieClosedRule(headAtom, body, kb) ;
-
-        assert !rule.RespectsLanguageBias() ;
+        try {
+            new MiniAmieClosedRule(headAtom, body, kb) ;
+            assert false ;
+        } catch (IllegalArgumentException e) {
+            assert true ;
+        } catch (Exception e) {
+            assert false ;
+        }
     }
 
 
@@ -96,9 +101,14 @@ public class RespectsLanguageBiasTests extends UnitTest {
         body.add(bodyAtom2);
         body.add(bodyAtom3);
 
-        MiniAmieClosedRule rule = new MiniAmieClosedRule(headAtom, body, kb) ;
-
-        assert !rule.RespectsLanguageBias() ;
+        try {
+            new MiniAmieClosedRule(headAtom, body, kb) ;
+            assert false ;
+        } catch (IllegalArgumentException e) {
+            assert true ;
+        } catch (Exception e) {
+            assert false ;
+        }
     }
 
     public void testNonPerfectPath4() {
@@ -136,8 +146,14 @@ public class RespectsLanguageBiasTests extends UnitTest {
         body.add(bodyAtom1);
         body.add(bodyAtom2);
 
-        MiniAmieClosedRule rule = new MiniAmieClosedRule(headAtom, body, kb) ;
-        assert !rule.IsMiniAmieStylePerfectPath() ;
+        try {
+            new MiniAmieClosedRule(headAtom, body, kb) ;
+            assert false ;
+        } catch (IllegalArgumentException e) {
+            assert true ;
+        } catch (Exception e) {
+            assert false ;
+        }
     }
 
     public void testNonPerfectPath7() {
@@ -149,8 +165,14 @@ public class RespectsLanguageBiasTests extends UnitTest {
         body.add(bodyAtom1);
         body.add(bodyAtom2);
 
-        MiniAmieClosedRule rule = new MiniAmieClosedRule(headAtom, body, kb) ;
-        assert !rule.IsMiniAmieStylePerfectPath() ;
+        try {
+            new MiniAmieClosedRule(headAtom, body, kb) ;
+            assert false ;
+        } catch (IllegalArgumentException e) {
+            assert true ;
+        } catch (Exception e) {
+            assert false ;
+        }
     }
 
     public void testNonPerfectPath8() {
@@ -162,8 +184,14 @@ public class RespectsLanguageBiasTests extends UnitTest {
         body.add(bodyAtom1);
         body.add(bodyAtom2);
 
-        MiniAmieClosedRule rule = new MiniAmieClosedRule(headAtom, body, kb) ;
-        assert !rule.IsMiniAmieStylePerfectPath() ;
+        try {
+            new MiniAmieClosedRule(headAtom, body, kb) ;
+            assert false ;
+        } catch (IllegalArgumentException e) {
+            assert true ;
+        } catch (Exception e) {
+            assert false ;
+        }
     }
 
     public void testRedundant() {

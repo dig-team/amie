@@ -1,0 +1,2 @@
+Timestamp,MaxRuleSize,PruningMetric,MinSup,MinHC,NThreads,SearchRuntime,MemoryPeak_kB,SearchSpace
+2024-12-10T10:31:27.763287441Z,3,HeadCoverage,100.0,0.01,20,16437,8430388,2010

@@ -8,31 +8,12 @@ rules run by AMIE.
 The evaluation is wrapped by the Python script amie_link_prediction_evaluate.py, which we can run as follows:
 
 ```
-$ python amie_linkprediction_evaluate.py <CONFIG_FILE>
+$ python amie_linkprediction_evaluate.py <RULES_FILE> <SOURCE_DATASET> <OUTPUT_FILE> [N_JOBS]
 ```
 **Note**: This script assumes that (i) execution is done from the amie's project root directory and (ii) the binary executable 
 AMIE jar bin/amie3.5.1.jar exists
 
-The argument ``<CONFIG_FILE>`` is a JSON file containing a list of evaluation configurations. An example file is
-```
-[
-  {
-    "rules_file" : "inference/wn18rr.rules",
-    "n_jobs" : 4,
-    "dataset" : "/home/lgalarra/Documents/git/mm-kge/data/wn18rr/",
-    "miner": "amie",
-    "mining_config" : {
-      "min_support" : 10,
-      "min_std_confidence" : 0.1,
-      "min_pca_confidence" : 0.1
-    }
-  }
-
-]
-```
-
-This file contains a single configuration that runs link prediction using the rules contained in the file pointed by
-the attribute "rules_files". This TSV file is expected to contain rules as mined by AMIE or miniAMIE on the given dataset. 
+The argument ``<RULES_FILE>`` is the path to a TSV file expected to contain rules as mined by AMIE or miniAMIE on the given dataset. 
 An example of such a file is: 
 ``
 Rule	Head Coverage	Standard Confidence	Pca Confidence	Support	Body Size	Pca Body Size	Functional Variable
@@ -40,26 +21,21 @@ Rule	Head Coverage	Standard Confidence	Pca Confidence	Support	Body Size	Pca Body
 ?b  _also_see  ?a   => ?a  _also_see  ?b	0.637413	0.637413	0.883671	828	1299	937	-2
 ?b  _hypernym  ?a   => ?a  _also_see  ?b	0.029253	0.001092	0.130137	38	34796	292	-2
 ``
-It is crucial that those rules were mined from the dataset pointed by the ``dataset`` attribute. The directory pointed 
-there should contain at least two TSV files: train.tsv and test.tsv. The former is where the rules should have been mined. 
-The latter is the one used for the evaluation. These file correspond to two subsets of a knowledge graph stored as a 
-set of triples <subject, predicate, object>.
+It is crucial that those rules were mined from the dataset pointed by the ``<SOURCE_DATASET>`` attribute. The directory pointed 
+there should contain at least two TSV files: train.tsv and test.tsv. The former is where the rules should 
+have been mined. The latter is the one used for the evaluation. These file correspond to two subsets of a 
+knowledge graph stored as a set of triples <subject, predicate, object>.
 
-The attribute ``n_jobs`` determines the level of parallelism used to execute the evaluation. Set it discretionally knowing
-that each if n_jobs is 4, then the program will run four configuration items in parallel but each job will also spawn 
- ``max(CPU_COUNT / n_jobs, 1)`` on its own.
+The optional attribute ``[N_JOBS]`` determines the level of parallelism used to execute the evaluation. Set it discretionally knowing
+that by default it will use as many threads as supported by your system.
 
-The attributes `miner` and `mining_config` are purely indicative and tell the evaluator which mining routine, as well as
-its configuration, was used to compute the rules. They will be used to decide the name of the output file that contains
-the output of the evaluation.
-
-For every evaluation block in the configuration file, the program will create a file under the directory results/inference/
-The file's name follows this convention: link_prediction_{DATASET}_{MINER}_{MINING_CONFIG}, e.g., 
+The results of the evaluation will be stored in the file pointed by the argument ``<OUTPUT_FILE>``.
 
 ## Using the results
 
-Each output file contains a detailed description of the rules inference performance on the dataset. It is a JSON file that
-contains a single object with three main sections:
+As a result of a successful execution, the output file will contain a detailed description of the rules inference 
+performance on the test subset of the source dataset. It is a JSON file that contains a single object with 
+three main sections:
 ```
 {
 "headResults" : {"All" : {...}, "predicate1" : { "metric1" : value11, "metric2" : value12, ... }, "predicate2" : {...} }

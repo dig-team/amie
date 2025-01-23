@@ -87,6 +87,11 @@ AMIE is managed with [Maven](https://maven.apache.org/), therefore to deploy you
  * IDEs such as Eclipse offer the option to create a project from an existing Maven project. The IDE will call Maven to compile the code.
 3. Maven will generate an executable jar named amie[LATEST-VERSION].jar in a new "bin/" directory. 
 
+## Build  and test AMIE with docker 
+` docker build --no-cache -t  amie:latest -f  ./Dockerfile . `
+
+` docker run -it amie:latest mvn test `
+
 ## Publications 
 
 > Patrick Betz, Luis Galárraga, Simon Ott, Christian Meilicke, Fabian M. Suchanek: 

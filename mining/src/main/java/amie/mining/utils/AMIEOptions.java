@@ -2,7 +2,6 @@ package amie.mining.utils;
 
 import amie.data.remote.Caching;
 import amie.data.AbstractKB;
-import com.hp.hpl.jena.sparql.algebra.Op;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
@@ -99,11 +98,11 @@ public interface AMIEOptions {
     Option MAX_DEPTH = new Option("maxad", "max-depth", true,
             "Maximum number of atoms in the antecedent and succedent of rules. Default: 3");
 
-        Option MAX_DEPTH_CONST = new Option("maxadc", "max-depth-constants", true,
+    Option MAX_DEPTH_CONST = new Option("maxadc", "max-depth-constants", true,
                         "Maximum number of atoms in the antecedent and succedent of rules with constants (applicable to the anyburl rule biases)."
                                         + " Default: 3");
 
-        Option MIN_PCA_CONFIDENCE = new Option("minpca", "min-pca-confidence", true,
+    Option MIN_PCA_CONFIDENCE = new Option("minpca", "min-pca-confidence", true,
                         "Minimum PCA confidence threshold. This value is not used for pruning, only for filtering of the "
                                         +
                                         "results. Default: 0.0");
@@ -187,13 +186,13 @@ public interface AMIEOptions {
     Option VARIABLE_ORDER = new Option("vo", "variableOrder", true,
             "Define the order of the variable in counting query among: app, fun (default), ifun");
 
-        Option OUTPUT_FILE = new Option("ofile", "output-file", true,
+    Option OUTPUT_FILE = new Option("ofile", "output-file", true,
                         "Output file to store the rules");
 
-        Option ENABLE_STD_CONF = new Option("enstd", "enable-std-conf", false,
+    Option ENABLE_STD_CONF = new Option("enstd", "enable-std-conf", false,
                         "Calculate standard confidence");
 
-        Option OMMIT_PCA_CONF = new Option("ompca", "ommit-pca-conf", false,
+    Option OMMIT_PCA_CONF = new Option("ompca", "ommit-pca-conf", false,
                         "Do not calculate PCA confidence");
 
     Option ADAPTATIVE_INSTANTIATIONS = new Option("optimai", "adaptive-instantiations", false,

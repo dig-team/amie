@@ -12,3 +12,4 @@ query-logs/
 *cache/
 *.log
 *.xml
+*.csv

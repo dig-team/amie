@@ -6,13 +6,7 @@ package amie.mining;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -900,20 +894,30 @@ public class AMIE {
                 }
             }
             String miniAMIECompareToGroundTruthOption = AMIEOptions.MINI_AMIE_COMPARE_TO_GROUND_TRUTH.getOpt() ;
-            miniAMIE.Setup(
-                    dataSource,
-                    maxDepth,
-                    minSup,
-                    minHeadCover,
-                    cli.hasOption(AMIEOptions.MINI_AMIE_ENABLE_VARIABLE_SWITCH.getOpt()),
-                    cli.hasOption(AMIEOptions.ALLOW_CONSTANTS.getOpt()),
-                    cli.hasOption(AMIEOptions.MINI_AMIE_USE_DIRECTIONAL_SELECTIVITY.getOpt()),
-                    nThreads,
-                    cli.hasOption(AMIEOptions.MINI_AMIE_VERBOSE.getOpt()),
-                    cli.hasOption(miniAMIECompareToGroundTruthOption),
-                    miniAMIE.CompareToGroundTruth ?
-                            cli.getOptionValue(miniAMIECompareToGroundTruthOption) : null
-            );
+
+            miniAMIE.Kb = dataSource;
+            miniAMIE.PM = metric ;
+            miniAMIE.MaxRuleSize = maxDepth;
+            miniAMIE.MinSup = minSup;
+            miniAMIE.MinHC = minHeadCover;
+            miniAMIE.EnableVariableSwitch =  cli.hasOption(AMIEOptions.MINI_AMIE_ENABLE_VARIABLE_SWITCH.getOpt());
+            miniAMIE.EnableConstants = cli.hasOption(AMIEOptions.ALLOW_CONSTANTS.getOpt());
+            miniAMIE.UseDirectionalSelectivity = cli.hasOption(AMIEOptions.MINI_AMIE_USE_DIRECTIONAL_SELECTIVITY.getOpt());
+            miniAMIE.NThreads = nThreads;
+            miniAMIE.Verbose = cli.hasOption(AMIEOptions.MINI_AMIE_VERBOSE.getOpt());
+            miniAMIE.CompareToGroundTruth = cli.hasOption(miniAMIECompareToGroundTruthOption);
+            miniAMIE.PathToGroundTruthRules = miniAMIE.CompareToGroundTruth ?
+                    cli.getOptionValue(miniAMIECompareToGroundTruthOption) : null;
+
+            if (cli.hasOption(AMIEOptions.OUTPUT_FORMAT.getOpt()) )
+                miniAMIE.UseAnyBurlOutputFormat = Objects.equals(cli.getOptionValue(AMIEOptions.OUTPUT_FORMAT.getOpt()),
+                    "anyburl");
+
+            if (cli.hasOption(AMIEOptions.OUTPUT_FILE.getOpt()) ) {
+                miniAMIE.CustomRulesPath = true;
+                miniAMIE.OutputRulesPath = cli.getOptionValue(AMIEOptions.OUTPUT_FILE.getOpt());
+                System.out.println("Set custom output path: " + cli.getOptionValue(AMIEOptions.OUTPUT_FILE.getOpt()));
+            }
             miniAMIE.Run() ;
             return null ;
 

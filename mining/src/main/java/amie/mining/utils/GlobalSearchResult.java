@@ -21,7 +21,8 @@ public abstract class GlobalSearchResult {
                 + "MemoryPeak_kB" + utils.commaSep
                 + "SearchSpace" + "\n";
     public static String Timestamp = Instant.now().toString().replace(" ", "_") ;
-    public static String Suffix =   Timestamp + ".csv";
+    public static String CSVExtension = ".csv";
+    public static String Suffix =   Timestamp + CSVExtension;
     public static String OutputConfigurationCsvPath = "./run-" + Suffix;
     public static boolean OutputConfigurationToAlreadyExistingCSV = false;
 

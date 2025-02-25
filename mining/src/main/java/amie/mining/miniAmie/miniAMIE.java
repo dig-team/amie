@@ -7,16 +7,17 @@ import amie.mining.utils.GlobalSearchResult;
 import amie.rules.PruningMetric;
 import amie.rules.Rule;
 
+import java.sql.Time;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static amie.mining.miniAmie.output.OutputRules.*;
 import static amie.mining.miniAmie.output.comparisonToGroundTruth.CompareToGT.PrintComparisonCSV;
-import static amie.mining.utils.GlobalSearchResult.PrintGlobalSearchResultToCSV;
-import static amie.mining.miniAmie.output.OutputRules.PrintOutputCSV;
 import static amie.mining.miniAmie.utils.*;
+import static amie.mining.utils.GlobalSearchResult.*;
 
 
 public abstract class miniAMIE {
@@ -33,13 +34,14 @@ public abstract class miniAMIE {
     public static boolean Verbose = false;
     public static boolean CompareToGroundTruth = false;
     public static boolean OutputRules = true ;
+    public static boolean UseAnyBurlOutputFormat = false ;
     public static String RestrainedHead;
     public static String PathToGroundTruthRules;
 
-    public static String OutputUninstantiatedRulesCsvPath = "./rules-uninstantiated-" + GlobalSearchResult.Suffix;
-    public static String OutputInstantiatedRulesCsvPath = "./rules-instantiated-" + GlobalSearchResult.Suffix;
+    public static boolean CustomRulesPath = false ;
+    public static String OutputRulesPath ;
 
-    public static String OutputComparisonCsvPath = "./comparison-" + GlobalSearchResult.Suffix;
+    public static String OutputComparisonCsvPath = "./comparison-" + Suffix;
 
     public static final int CORRECTION_FACTOR_CLOSURE = 2;
     public static final int CORRECTION_FACTOR_OPENING = 4;
@@ -76,31 +78,6 @@ public abstract class miniAMIE {
         }
     }
 
-    public static void Setup(
-            AbstractKB Kb,
-            int MaxRuleSize,
-            int MinSup,
-            double MinHC,
-            boolean EnableVariableSwitch,
-            boolean EnableConstants,
-            boolean UseDirectionalSelectivity,
-            int NThreads,
-            boolean Verbose,
-            boolean CompareToGroundTruth,
-            String PathToGroundTruthRules
-    ) {
-        miniAMIE.Kb = Kb;
-        miniAMIE.MaxRuleSize = MaxRuleSize;
-        miniAMIE.MinSup = MinSup;
-        miniAMIE.MinHC = MinHC;
-        miniAMIE.EnableVariableSwitch = EnableVariableSwitch;
-        miniAMIE.EnableConstants = EnableConstants;
-        miniAMIE.UseDirectionalSelectivity = UseDirectionalSelectivity;
-        miniAMIE.NThreads = NThreads;
-        miniAMIE.Verbose = Verbose;
-        miniAMIE.CompareToGroundTruth = CompareToGroundTruth;
-        miniAMIE.PathToGroundTruthRules = PathToGroundTruthRules;
-    }
 
     private static void RunSearchTreeMonoCore(Collection<MiniAmieRule> initRules, List<MiniAmieClosedRule> finalRules) {
         for (MiniAmieRule rule : initRules) {
@@ -156,6 +133,17 @@ public abstract class miniAMIE {
 
     public static void Run() {
 
+        System.out.println(UseAnyBurlOutputFormat ? "Using AnyBurl output format." : "Using CSV output format.") ;
+        if (!CustomRulesPath) {
+            if (UseAnyBurlOutputFormat) {
+                OutputRulesPath = Timestamp + RulesExtension;
+                System.out.println("Using default output path for AnyBurl-style rules :" + OutputRulesPath);
+            } else {
+                OutputRulesPath = "./rules-" + Timestamp + CSVExtension ;
+                System.out.println("Using default CSV rules output path :" + OutputRulesPath);
+            }
+        }
+
         // Choosing selectivity method for support approximation
 
         ResetSelectivity();
@@ -201,13 +189,23 @@ public abstract class miniAMIE {
         searchSpace.addAndGet(initRulesInstantiatedParameter.size());
 
         if (OutputRules) {
-            System.out.println("");
+
             System.out.println("Mini-AMIE rules output: ");
-            PrintOutputCSV(finalRulesUninstantiated, OutputUninstantiatedRulesCsvPath) ;
+            List<MiniAmieClosedRule> closedRules ;
             if (EnableConstants){
-                System.out.println("/!\\ Acyclic instantiated mini-AMIE rules output: ");
-                PrintOutputCSV(finalRulesAcyclicInstantiatedVariables, OutputInstantiatedRulesCsvPath) ;
+                closedRules = new ArrayList<>() ;
+                closedRules.addAll(finalRulesUninstantiated) ;
+                closedRules.addAll(finalRulesAcyclicInstantiatedVariables) ;
+            } else {
+                closedRules = finalRulesUninstantiated ;
             }
+
+            if (UseAnyBurlOutputFormat) {
+                PrintOutputAnyBurlFormat(closedRules, OutputRulesPath);
+            } else {
+                PrintOutputCSV(closedRules, OutputRulesPath) ;
+            }
+
         }
 
         if (CompareToGroundTruth) {

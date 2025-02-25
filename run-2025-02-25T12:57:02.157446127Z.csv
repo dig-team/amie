@@ -1,2 +1,2 @@
 Timestamp,MaxRuleSize,PruningMetric,MinSup,MinHC,NThreads,SearchRuntime,MemoryPeak_kB,SearchSpace
-2024-12-10T10:33:45.840184877Z,3,ApproximateSupport,100.0,0.01,20,3498,8191060,28351
+2025-02-25T12:57:02.157446127Z,3,Support,1000.0,0.01,20,74700,8300876,1022

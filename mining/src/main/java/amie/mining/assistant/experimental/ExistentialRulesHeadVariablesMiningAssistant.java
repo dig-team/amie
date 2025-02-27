@@ -57,7 +57,7 @@ public class ExistentialRulesHeadVariablesMiningAssistant extends
 			}
 
 			// In this case, still report the PCA.
-			if (candidate.isClosed(true)) {
+			if (candidate.isClosedExcludeSpecialAtoms()) {
 				countVarPos = candidate.getFunctionalVariablePosition();
 				if (KB.numVariables(existentialTriple) == 1) {
 					freeVarPos = KB.firstVariablePos(existentialTriple) == 0 ? 2 : 0;
@@ -119,7 +119,7 @@ public class ExistentialRulesHeadVariablesMiningAssistant extends
 			// Now check the confidence with respect to its ancestors
 			Set<Rule> ancestors = candidate.getAncestors();
 			for (Rule ancestor : ancestors) {
-				if ((ancestor.getLength() > 1) && ancestor.isClosed(true)
+				if ((ancestor.getLength() > 1) && ancestor.isClosedExcludeSpecialAtoms()
 						&&
 						(candidate.getStdConfidence() <= ancestor.getStdConfidence()
 								|| candidate.getPcaConfidence() <= ancestor.getPcaConfidence())) {

@@ -159,7 +159,17 @@ public class Rule {
      */
     private double _confidenceRunningTime;
 
+    /**
+     * It means the rule is closed, i.e., each variable in the rule appears in
+     * at least two atoms.
+     */
+    private boolean closed = false;
 
+    /**
+     * Like 'closed' but it excludes hidden variables (those used for value constraints)
+     * from the definition.
+     */
+    private boolean closedExcludeSpecialAtoms = false;
 
 
     private boolean finalized = false;
@@ -300,6 +310,8 @@ public class Rule {
         this.ancestors = new HashSet<>();
         this.generation = -1;
         this.kb = kb;
+        this.closed = otherQuery.closed;
+        this.closedExcludeSpecialAtoms = otherQuery.closedExcludeSpecialAtoms;
     }
 
     public Rule(int[] head, List<int[]> body, double cardinality, AbstractKB kb) {
@@ -321,6 +333,8 @@ public class Rule {
         this.ancestors = new HashSet<>();
         this.generation = -1;
         this.kb = kb;
+        this.closed = this.isClosed(false);
+        this.closedExcludeSpecialAtoms = this.isClosed(true);
     }
 
     /**
@@ -914,14 +928,33 @@ public class Rule {
 
     /**
      *
+     * @return boolean True if the rule is closed, i.e., each variable in the
+     *         rule occurs at least in two atoms.
+     */
+    public boolean isClosed() {
+        return this.closed;
+    }
+
+    /**
+     *
+     * @return boolean True if the rule is closed, i.e., each variable in the
+     *         rule occurs at least in two atoms. Special atoms such as DIFFERENTFROM
+     *         are excluded
+     *
+     */
+    public boolean isClosedExcludeSpecialAtoms() {
+        return this.closedExcludeSpecialAtoms;
+    }
+
+    /**
+     *
      * @param ignoreSpecialAtoms If true, atoms special atoms such as DIFFERENTFROM
-     *                           are ignored
-     *                           in the count.
+     *                           are ignored in the count.
      * @return boolean True if the rule is closed, i.e., each variable in the
      *         rule occurs at least in two atoms.
      *
      */
-    public boolean isClosed(boolean ignoreSpecialAtoms) {
+    protected boolean isClosed(boolean ignoreSpecialAtoms) {
         if (triples.isEmpty()) {
             return false;
         }
@@ -1049,15 +1082,13 @@ public class Rule {
     public void addParent(Rule parent) {
         this.ancestors.add(parent);
     }
-    //
-    // public boolean containsParent(Rule parent) {
-    // return this.ancestors.contains(parent);
-    // }
 
     public Rule addAtoms(int[] atom1, int[] atom2, double cardinality) {
         Rule newQuery = new Rule(this, cardinality, kb);
         newQuery.triples.add(atom1.clone());
         newQuery.triples.add(atom2.clone());
+        newQuery.closed = newQuery.isClosed(false);
+        newQuery.closedExcludeSpecialAtoms = newQuery.isClosed(true);
         return newQuery;
     }
 
@@ -1065,6 +1096,8 @@ public class Rule {
         Rule newQuery = new Rule(this, cardinality, kb);
         int[] copyNewEdge = newAtom.clone();
         newQuery.triples.add(copyNewEdge);
+        newQuery.closed = newQuery.isClosed(false);
+        newQuery.closedExcludeSpecialAtoms = newQuery.isClosed(true);
         return newQuery;
     }
 
@@ -1079,6 +1112,8 @@ public class Rule {
         Rule newRule = new Rule(this, cardinality, kb);
         int ruleSize = newRule.getLength();
         newRule.getTriples().set(ruleSize - 1, newAtom.clone());
+        newRule.closed = newRule.isClosed(false);
+        newRule.closedExcludeSpecialAtoms = newRule.isClosed(true);
         return newRule;
     }
 
@@ -1096,6 +1131,8 @@ public class Rule {
         lastTriple[1] = kb.schema.typeRelationBS;
         lastTriple[2] = subtype;
         newRule.setFunctionalVariablePosition(functionalVariablePosition);
+        newRule.closed = newRule.isClosed(false);
+        newRule.closedExcludeSpecialAtoms = newRule.isClosed(true);
         return newRule;
     }
 
@@ -1400,6 +1437,8 @@ public class Rule {
         int[] lastNewPattern = newQuery.getLastTriplePattern();
         lastNewPattern[danglingPosition] = constant;
         newQuery.computeHeadKey();
+        newQuery.closed = newQuery.isClosed(false);
+        newQuery.closedExcludeSpecialAtoms = newQuery.isClosed(true);
         return newQuery;
     }
 
@@ -1418,6 +1457,8 @@ public class Rule {
         int[] targetEdge = newQuery.getTriples().get(triplePos);
         targetEdge[danglingPosition] = constant;
         newQuery.cleanInequalityConstraints();
+        newQuery.closed = newQuery.isClosed(false);
+        newQuery.closedExcludeSpecialAtoms = newQuery.isClosed(true);
         return newQuery;
     }
 
@@ -1769,6 +1810,8 @@ public class Rule {
         }
         Rule result = new Rule(getHead(), newBody, this.support, kb);
         result.setGeneration(generation);
+        result.closed = result.isClosed(false);
+        result.closedExcludeSpecialAtoms = result.isClosed(true);
         return result;
     }
 

@@ -38,7 +38,7 @@ public class AnyBurlMiningAssistant extends DefaultMiningAssistant {
 			return;
 		}
 
-		if (rule.isClosed(false) || this.enforceConstants) {
+		if (rule.isClosed() || this.enforceConstants) {
 			return;
 		}
 
@@ -91,7 +91,7 @@ public class AnyBurlMiningAssistant extends DefaultMiningAssistant {
 		IntList joinVariables = new IntArrayList();
 
 		// Then do it for all values
-		if (rule.isClosed(true)) {
+		if (rule.isClosedExcludeSpecialAtoms()) {
 			return;
 		}
 

@@ -36,7 +36,7 @@ public class ExistentialRulesMiningAssistant extends DefaultMiningAssistant {
 
 	@Override
 	public boolean shouldBeOutput(Rule candidate) {
-		return candidate.isClosed(false);
+		return candidate.isClosed();
 	}
 
 	@Override

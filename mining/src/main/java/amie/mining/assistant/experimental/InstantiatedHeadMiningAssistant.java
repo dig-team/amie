@@ -134,7 +134,7 @@ public class InstantiatedHeadMiningAssistant extends DefaultMiningAssistant {
 		IntList openVariables = rule.getOpenVariables();
 		
 		//Then do it for all values
-		if (rule.isClosed(true)) {
+		if (rule.isClosedExcludeSpecialAtoms()) {
 			joinVariables = rule.getOpenableVariables();
 		} else {
 			joinVariables = openVariables;

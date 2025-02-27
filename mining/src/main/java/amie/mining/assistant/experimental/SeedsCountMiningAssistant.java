@@ -84,7 +84,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 		IntList targetVariables = null;		
 		IntList openVariables = query.getOpenVariables();
 		
-		if(query.isClosed(true)){
+		if(query.isClosedExcludeSpecialAtoms()){
 			sourceVariables = allVariables;
 			targetVariables = allVariables;
 		}else{
@@ -218,7 +218,7 @@ public class SeedsCountMiningAssistant extends MiningAssistant {
 		IntList joinVariables = null;
 		
 		//Then do it for all values
-		if(query.isClosed(true)){
+		if(query.isClosedExcludeSpecialAtoms()){
 			joinVariables = query.getVariables();
 		}else{
 			joinVariables = query.getOpenVariables();

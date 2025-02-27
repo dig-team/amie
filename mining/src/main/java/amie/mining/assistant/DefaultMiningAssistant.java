@@ -118,7 +118,7 @@ public class DefaultMiningAssistant extends MiningAssistant {
 			return;
 		}
 
-		if (rule.isClosed(false)) {
+		if (rule.isClosed()) {
 			sourceVariables = allVariables;
 			targetVariables = allVariables;
 		} else {
@@ -276,7 +276,7 @@ public class DefaultMiningAssistant extends MiningAssistant {
 		IntList openVariables = rule.getOpenVariables();
 
 		// Then do it for all values
-		if (rule.isClosed(true)) {
+		if (rule.isClosedExcludeSpecialAtoms()) {
 			joinVariables = rule.getOpenableVariables();
 		} else {
 			joinVariables = openVariables;

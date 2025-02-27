@@ -2,7 +2,6 @@ package amie.mining.utils;
 
 import amie.data.remote.Caching;
 import amie.data.AbstractKB;
-import com.hp.hpl.jena.sparql.algebra.Op;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
@@ -19,18 +18,20 @@ public interface AMIEOptions {
     Option MINI_AMIE = new Option("mini", "Runs mini-AMIE.") ;
     Option MINI_AMIE_COMPARE_TO_GROUND_TRUTH = new Option("compareToGT", true ,
             "Compares mini-AMIE rule set to a list of rules (path as parameter).") ;
-    Option MINI_AMIE_GLOBAL_SEARCH_RESULT_PATH = new Option("globalSearchInfoPath", true,
-            "Sets the path to a CSV containing general information on the run (ex. search time, memory " +
-                    "peak value). Default ./run-<TIMESTAMP>.csv") ;
+
     Option MINI_AMIE_VERBOSE = new Option("miniVerbose", "Shows more information during the mining " +
             "process.") ;
 
-    Option MINI_AMIE_ENABLE_CONSTANTS = new Option("enableConstants", true,
-            "Enable AnyBurl-style constants in mini-AMIE.") ;
-
-    Option MINI_AMIE_ENABLE_VARIABLE_SWITCH = new Option("enableConstants", true,
+    Option MINI_AMIE_ENABLE_VARIABLE_SWITCH = new Option("enableVariableSwitch",
             "Enable AnyBurl-style variable switching within atoms in mini-AMIE. \n" +
                     "Ex. x <r1> a , b <r2> a , b <r3> y => x <rh> y") ;
+
+    Option MINI_AMIE_USE_DIRECTIONAL_SELECTIVITY = new Option("useDirectionalSelectivity",
+            "Enable directional selectivity.") ;
+
+    Option GLOBAL_SEARCH_RESULT_PATH = new Option("searchInfoOutputPath", true,
+            "Sets the path to a CSV containing general information on the run (ex. search time, memory " +
+                    "peak value). Default ./run-<TIMESTAMP>.csv") ;
 
     Option INVALIDATE_CACHE = new Option("invalidateCache", false, "Ignores previously saved cache.");
     Option CACHE = new Option("cache", false, "Enables query caching.");
@@ -94,16 +95,17 @@ public interface AMIEOptions {
                     "Provide a list of relation names separated by commas (incompatible with " +
                     "instantiation-excluded-relations). Example: <livesIn>,<bornIn>");
 
-    Option MAX_DEPTH_CONST = new Option("maxadc", "max-depth-constants", true,
-            "Maximum number of atoms in the antecedent and succedent of rules with constants (applicable to the anyburl rule biases)."
-                    + " Default: 3");
-
     Option MAX_DEPTH = new Option("maxad", "max-depth", true,
             "Maximum number of atoms in the antecedent and succedent of rules. Default: 3");
 
+    Option MAX_DEPTH_CONST = new Option("maxadc", "max-depth-constants", true,
+                        "Maximum number of atoms in the antecedent and succedent of rules with constants (applicable to the anyburl rule biases)."
+                                        + " Default: 3");
+
     Option MIN_PCA_CONFIDENCE = new Option("minpca", "min-pca-confidence", true,
-            "Minimum PCA confidence threshold. This value is not used for pruning, only for filtering of the " +
-                    "results. Default: 0.1");
+                        "Minimum PCA confidence threshold. This value is not used for pruning, only for filtering of the "
+                                        +
+                                        "results. Default: 0.0");
 
     Option ALLOW_CONSTANTS = new Option("const", "allow-constants", false,
             "Enable rules with constants. Default: false");
@@ -129,7 +131,6 @@ public interface AMIEOptions {
                     "higher value is provided.");
 
 
-    // TODO reference to static attribute in AMIE
     Option MIN_STD_CONFIDENCE = new Option("minc", "min-std-confidence", true,
             "Minimum standard confidence threshold. "
                     + "This value is not used for pruning, only for filtering of the results. Default: 0.1");
@@ -186,13 +187,13 @@ public interface AMIEOptions {
             "Define the order of the variable in counting query among: app, fun (default), ifun");
 
     Option OUTPUT_FILE = new Option("ofile", "output-file", true,
-            "Output file to store the rules");
+                        "Output file to store the rules");
 
-    Option OMMIT_STD_CONF = new Option("ostd", "ommit-std-conf", false,
-            "Do not calculate standard confidence");
+    Option ENABLE_STD_CONF = new Option("enstd", "enable-std-conf", false,
+                        "Calculate standard confidence");
 
     Option OMMIT_PCA_CONF = new Option("ompca", "ommit-pca-conf", false,
-            "Do not calculate PCA confidence");
+                        "Do not calculate PCA confidence");
 
     Option ADAPTATIVE_INSTANTIATIONS = new Option("optimai", "adaptive-instantiations", false,
             "Prune instantiated rules that decrease too much the support of their parent rule (ratio 0.2)");
@@ -203,38 +204,33 @@ public interface AMIEOptions {
     Option DELIMITER = new Option("d", "delimiter", true,
             "Separator in input files (default: TAB)");
 
-    Option DATALOG = new Option("datalog", "Enable datalog output.") ;
-
-    interface Bias {
-        String ONE_VAR = "oneVar" ;
-        String DEFAULT = "default" ;
-        String SIGNATURED = "signatured" ;
-        String LAZY = "lazy" ;
-        String LAZIT = "lazit"  ;
+        interface Bias {
+                String ONE_VAR = "oneVar";
+                String DEFAULT = "default";
+                String SIGNATURED = "signatured";
+                String LAZY = "lazy";
+                String LAZIT = "lazit";
 
     }
 
-    /**
-     * List of options that do not influence remote KB queries (used for cache saving)
-     */
-    List<Option> ignoredByCacheOptions = List.of(
-            MINI_AMIE_GLOBAL_SEARCH_RESULT_PATH,
-            INVALIDATE_CACHE,
-            CACHE,
-            CSIZE,
-            CPOL,
-            REMOTE_KB_MODE_CLIENT,
-            REMOTE_KB_MODE_SERVER,
-            SERVER_ADDRESS,
-            PORT,
-            LIVE_METRICS,
-            OUTPUT_FORMAT,
-            VERBOSE,
-            DISABLE_QUERY_REWRITING,
-            DELIMITER,
-            DATALOG,
-            OUTPUT_FILE
-    ) ;
+        /**
+         * List of options that do not influence remote KB queries (used for cache
+         * saving)
+         */
+        List<Option> ignoredByCacheOptions = List.of(
+                        INVALIDATE_CACHE,
+                        CACHE,
+                        CSIZE,
+                        CPOL,
+                        REMOTE_KB_MODE_CLIENT,
+                        REMOTE_KB_MODE_SERVER,
+                        SERVER_ADDRESS,
+                        PORT,
+                        LIVE_METRICS,
+                        OUTPUT_FORMAT,
+                        VERBOSE,
+                        DISABLE_QUERY_REWRITING,
+                        DELIMITER);
 
     static String FormatConfigIndentifier(CommandLine cli) {
         String result = "";
@@ -270,68 +266,69 @@ public interface AMIEOptions {
         // create the Options
         Options options = new Options();
 
-        options.addOption(MINI_AMIE) ;
-        options.addOption(MINI_AMIE_GLOBAL_SEARCH_RESULT_PATH) ;
-        options.addOption(MINI_AMIE_COMPARE_TO_GROUND_TRUTH) ;
-        options.addOption(MINI_AMIE_VERBOSE) ;
-        options.addOption(MIN_STD_CONFIDENCE);
-        options.addOption(MIN_SUPPORT);
-        options.addOption(MIN_INITIAL_SUPPORT);
-        options.addOption(MIN_HEAD_COVERAGE);
-        options.addOption(MINI_AMIE_ENABLE_CONSTANTS);
-        options.addOption(MINI_AMIE_ENABLE_VARIABLE_SWITCH);
-        options.addOption(PRUNING_METRIC);
-        options.addOption(OUTPUT_AT_END);
-        options.addOption(BODY_EXCLUDED);
-        options.addOption(HEAD_EXCLUDED);
-        options.addOption(INSTANTIATION_EXCLUDED);
-        options.addOption(MAX_DEPTH);
-        options.addOption(MAX_DEPTH_CONST);
-        options.addOption(MIN_PCA_CONFIDENCE);
-        options.addOption(HEAD_TARGET_RELATIONS);
-        options.addOption(BODY_TARGET_RELATIONS);
-        options.addOption(INSTANTIATION_TARGET_RELATIONS);
-        options.addOption(ALLOW_CONSTANTS);
-        options.addOption(ONLY_CONSTANTS);
-        options.addOption(COUNT_ALWAYS_ON_SUBJECT);
-        options.addOption(BIAS);
-        options.addOption(N_THREADS);
-        options.addOption(OPTIM_CONFIDENCE_BOUNDS);
-        options.addOption(VERBOSE);
-        options.addOption(OPTIM_FUNC_HEURISTIC);
-        options.addOption(RECURSIVITY_LIMIT);
-        options.addOption(AVOID_UNBOUND_TYPE_ATOMS);
-        options.addOption(DO_NOT_EXPLOIT_MAX_LENGTH);
-        options.addOption(DISABLE_QUERY_REWRITING);
-        options.addOption(DISABLE_PERFECT_RULES);
-        options.addOption(ONLY_OUTPUT);
-        options.addOption(FULL);
-        options.addOption(NO_HEURISTICS);
-        options.addOption(NO_KB_REWRITE);
-        options.addOption(NO_KB_EXISTS_DETECTION);
-        options.addOption(NO_SKYLINE);
-        options.addOption(VARIABLE_ORDER);
-        options.addOption(OUTPUT_FILE);
-        options.addOption(OUTPUT_FORMAT);
-        options.addOption(OMMIT_STD_CONF);
-        options.addOption(OMMIT_PCA_CONF);
-        options.addOption(ADAPTATIVE_INSTANTIATIONS);
-        options.addOption(MULTILINGUAL);
-        options.addOption(DELIMITER);
-        options.addOption(INVALIDATE_CACHE);
-        options.addOption(CACHE);
-        /** To enable custom cache policies using this option, uncomment the line below **/
-//        options.addOption(CPOL);
-        options.addOption(CSIZE);
-        options.addOption(REMOTE_KB_MODE_CLIENT);
-        options.addOption(REMOTE_KB_MODE_SERVER);
-        options.addOption(SERVER_ADDRESS);
-        options.addOption(CACHE);
-        options.addOption(PORT) ;
-        options.addOption(DATALOG) ;
-        options.addOption(LIVE_METRICS) ;
-        return options;
-    }
+                options.addOption(MINI_AMIE) ;
+                options.addOption(GLOBAL_SEARCH_RESULT_PATH) ;
+                options.addOption(MINI_AMIE_COMPARE_TO_GROUND_TRUTH) ;
+                options.addOption(MINI_AMIE_VERBOSE) ;
+                options.addOption(MIN_STD_CONFIDENCE);
+                options.addOption(MIN_SUPPORT);
+                options.addOption(MIN_INITIAL_SUPPORT);
+                options.addOption(MIN_HEAD_COVERAGE);
+                options.addOption(MINI_AMIE_ENABLE_VARIABLE_SWITCH);
+                options.addOption(MINI_AMIE_USE_DIRECTIONAL_SELECTIVITY);
+                options.addOption(PRUNING_METRIC);
+                options.addOption(OUTPUT_AT_END);
+                options.addOption(BODY_EXCLUDED);
+                options.addOption(HEAD_EXCLUDED);
+                options.addOption(INSTANTIATION_EXCLUDED);
+                options.addOption(MAX_DEPTH);
+                options.addOption(MAX_DEPTH_CONST);
+                options.addOption(MIN_PCA_CONFIDENCE);
+                options.addOption(HEAD_TARGET_RELATIONS);
+                options.addOption(BODY_TARGET_RELATIONS);
+                options.addOption(INSTANTIATION_TARGET_RELATIONS);
+                options.addOption(ALLOW_CONSTANTS);
+                options.addOption(ONLY_CONSTANTS);
+                options.addOption(COUNT_ALWAYS_ON_SUBJECT);
+                options.addOption(BIAS);
+                options.addOption(N_THREADS);
+                options.addOption(OPTIM_CONFIDENCE_BOUNDS);
+                options.addOption(VERBOSE);
+                options.addOption(OPTIM_FUNC_HEURISTIC);
+                options.addOption(RECURSIVITY_LIMIT);
+                options.addOption(AVOID_UNBOUND_TYPE_ATOMS);
+                options.addOption(DO_NOT_EXPLOIT_MAX_LENGTH);
+                options.addOption(DISABLE_QUERY_REWRITING);
+                options.addOption(DISABLE_PERFECT_RULES);
+                options.addOption(ONLY_OUTPUT);
+                options.addOption(FULL);
+                options.addOption(NO_HEURISTICS);
+                options.addOption(NO_KB_REWRITE);
+                options.addOption(NO_KB_EXISTS_DETECTION);
+                options.addOption(NO_SKYLINE);
+                options.addOption(VARIABLE_ORDER);
+                options.addOption(OUTPUT_FILE);
+                options.addOption(OUTPUT_FORMAT);
+                options.addOption(ENABLE_STD_CONF);
+                options.addOption(OMMIT_PCA_CONF);
+                options.addOption(ADAPTATIVE_INSTANTIATIONS);
+                options.addOption(MULTILINGUAL);
+                options.addOption(DELIMITER);
+                options.addOption(INVALIDATE_CACHE);
+                options.addOption(CACHE);
+                /**
+                 * To enable custom cache policies using this option, uncomment the line below
+                 **/
+                // options.addOption(CPOL);
+                options.addOption(CSIZE);
+                options.addOption(REMOTE_KB_MODE_CLIENT);
+                options.addOption(REMOTE_KB_MODE_SERVER);
+                options.addOption(SERVER_ADDRESS);
+                options.addOption(CACHE);
+                options.addOption(PORT);
+                options.addOption(LIVE_METRICS);
+                return options;
+        }
 
     String AMIE_CMD_LINE_SYNTAX = "AMIE [OPTIONS] <TSV FILES>" ;
     String AMIE_PLUS_CMD_LINE_SYNTAX = "AMIE+ [OPTIONS] <.tsv INPUT FILES>" ;

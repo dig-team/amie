@@ -6,6 +6,8 @@ import amie.mining.miniAmie.Unit.UnitTest;
 import amie.mining.miniAmie.utils;
 import amie.rules.Rule;
 
+import java.io.Console;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 

@@ -1,0 +1,8 @@
+directed(X,Y) <= actedIn(X,Y)
+created(X,Y) <= directed(X,Y)
+actedIn(X,Y) <= directed(X,Y)
+wasBornIn(X,Y) <= livesIn(X,Y)
+wasBornIn(X,Y) <= diedIn(X,Y)
+isAffiliatedTo(X,Y) <= playsFor(X,Y)
+playsFor(X,Y) <= isAffiliatedTo(X,Y)
+diedIn(X,Y) <= wasBornIn(X,Y)

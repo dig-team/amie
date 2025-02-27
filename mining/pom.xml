@@ -32,11 +32,6 @@
             <artifactId>log4j</artifactId>
             <version>1.2.17</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.slf4j</groupId>-->
-<!--            <artifactId>slf4j-nop</artifactId>-->
-<!--            <version>1.7.36</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>fr.enst.dbweb</groupId>
             <artifactId>rules</artifactId>
@@ -77,8 +72,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>15</source>
-                    <target>15</target>
+                    <source>16</source>
+                    <target>16</target>
                 </configuration>
             </plugin>
         </plugins>

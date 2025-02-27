@@ -440,7 +440,7 @@ public class Schema {
 				source.triple("?y", "rdfs:range", "?x"));
 
 		ranges = source.selectDistinct(map("?x"), query2);
-		if (!ranges.isEmpty()) {
+		if(!ranges.isEmpty()){
 			return ranges.iterator().nextInt();
 		}
 		System.err.println(relation);

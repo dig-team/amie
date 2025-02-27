@@ -34,7 +34,7 @@ import java.util.HashSet;
  * conjunction of binary atoms
  * of the form r(x, y). Each atom is represented as a triple [x, r, y] (subject,
  * relation, object).
- *
+ * 
  * @author lgalarra
  *
  */
@@ -195,7 +195,7 @@ public class Rule {
      * and an undefined property, i.e., ?s[n] ?p ?o[n]. n is optional and is always
      * greater
      * than 1.
-     *
+     * 
      * @return
      */
     public int[] fullyUnboundTriplePattern() {
@@ -262,7 +262,7 @@ public class Rule {
     /**
      * Instantiates a rule of the form [] =&gt; r(?a, ?b) with empty body
      * and the given pattern as rule.
-     *
+     * 
      * @param headAtom    The head atom as an array of the form [?a, r, ?b].
      * @param cardinality
      */
@@ -289,7 +289,7 @@ public class Rule {
     /**
      * Creates a new query as a clone of the query sent as argument with the given
      * support.
-     *
+     * 
      * @param otherQuery
      * @param support
      */
@@ -366,10 +366,10 @@ public class Rule {
 
     /**
      * It returns a new fresh variable for the rule.
-     *
+     * 
      * @return
      */
-    public int newVariable() {
+    private int newVariable() {
         return --this.highestVariable;
     }
 
@@ -389,7 +389,7 @@ public class Rule {
     /**
      * Return the list of triples of the query. Modifications to this
      * list alter the query.
-     *
+     * 
      * @return
      */
     public List<int[]> getTriples() {
@@ -405,7 +405,7 @@ public class Rule {
      * constraints. Modifications to this list do not alter the query. However,
      * modifications
      * to the atoms do alter the query.
-     *
+     * 
      * @return
      */
     public List<int[]> getTriplesWithoutSpecialRelations() {
@@ -421,7 +421,7 @@ public class Rule {
 
     /**
      * Returns the head of a query B =&gt; r(a, b) as a triple [?a, r, ?b].
-     *
+     * 
      * @return
      */
     public int[] getHead() {
@@ -430,7 +430,7 @@ public class Rule {
 
     /**
      * Returns the list of triples in the body of the rule.
-     *
+     * 
      * @return Non-modifiable list of atoms.
      */
     public List<int[]> getBody() {
@@ -440,7 +440,7 @@ public class Rule {
     /**
      * Returns the list of triples in the body of the rule. It is an alias
      * for the method getBody()
-     *
+     * 
      * @return Non-modifiable list of atoms.
      */
     public List<int[]> getAntecedent() {
@@ -630,7 +630,7 @@ public class Rule {
 
     /**
      * Checks whether the last atom in the query is redundant.
-     *
+     * 
      * @return
      */
     public List<int[]> getRedundantAtoms() {
@@ -873,7 +873,7 @@ public class Rule {
 
     /**
      * Returns a histogram with the number of different atoms variables occur in.
-     *
+     * 
      * @param ignoreSpecialAtoms discards pseudo-atoms containing the keyword
      *                           DIFFERENTFROM.
      * @return
@@ -1082,6 +1082,10 @@ public class Rule {
     public void addParent(Rule parent) {
         this.ancestors.add(parent);
     }
+    //
+    // public boolean containsParent(Rule parent) {
+    // return this.ancestors.contains(parent);
+    // }
 
     public Rule addAtoms(int[] atom1, int[] atom2, double cardinality) {
         Rule newQuery = new Rule(this, cardinality, kb);
@@ -1424,6 +1428,34 @@ public class Rule {
     }
 
     /**
+     * It returns a datalog-like representation of the rule of the form
+     * r(X, Y) <= r1(X, A1) .... rn(An, Y)
+     * @param includeSpecialAtoms
+     * @return
+     */
+    public String getDatalogPathString() {
+        if (!containsSinglePath()) {
+            return getDatalogString(false);
+        }
+
+        StringBuilder builder = new StringBuilder();
+        builder.append(toDatalog(getHead()));
+        builder.append(" <=");
+        List<int[]> atomsInBodyPath = getCanonicalPath(false);
+        for (int[] atom : atomsInBodyPath) {
+            builder.append(" ");
+            builder.append(toDatalog(atom));
+            builder.append(",");
+        }
+
+        if (builder.charAt(builder.length() - 1) == ',') {
+            builder.deleteCharAt(builder.length() - 1);
+        }
+
+        return builder.toString();
+    }
+
+    /**
      * Returns a new query where the variable at the dangling position of the
      * last atom has been unified to the provided constant.
      *
@@ -1540,7 +1572,6 @@ public class Rule {
     }
 
     public void setPcaConfidenceUpperBound(double pcaConfUpperBound) {
-        // TODO Auto-generated method stub
         this.pcaConfidenceUpperBound = pcaConfUpperBound;
     }
 
@@ -1664,11 +1695,11 @@ public class Rule {
     /**
      * Returns true if the given expression (variable or constant) occurs in
      * the rule's head.
-     *
+     * 
      * @param expression
      * @return
      */
-    private boolean occursInHead(int expression) {
+    protected boolean occursInHead(int expression) {
         int[] head = getHead();
         return (expression == head[0] || expression == head[2]);
     }
@@ -1677,13 +1708,24 @@ public class Rule {
      * Given a rule that contains a single variables path for the head variables
      * in the body (the method containsSinglePath returns true), it returns the
      * atoms sorted so that the path can be reproduced.
+     * Note: This function assumes the rule can be expressed as a path, hence
+     * its results with other types of rules, such as rules with constants, are unknown.
      *
-     * @return
+     * @param startFromFunctionalVariable
+     * @return The atoms of the rules sorted to form a parth
      */
-    public List<int[]> getCanonicalPath() {
+    public List<int[]> getCanonicalPath(boolean startFromFunctionalVariable) {
+        int funcVar = 0;
+        int nonFuncVar = 0;
         // First check the most functional variable
-        int funcVar = getFunctionalVariable();
-        int nonFuncVar = getNonFunctionalVariable();
+        if (startFromFunctionalVariable) {
+            funcVar = getFunctionalVariable();
+            nonFuncVar = getNonFunctionalVariable();
+        } else {
+            funcVar = getHead()[0];
+            nonFuncVar = getHead()[2];
+        }
+
         List<int[]> body = getBody();
         Int2ObjectMap<List<int[]>> variablesToAtom = new Int2ObjectOpenHashMap<>(triples.size(), 1.0f);
         List<int[]> path = new ArrayList<>();

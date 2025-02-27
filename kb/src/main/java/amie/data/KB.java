@@ -3,7 +3,6 @@ package amie.data;
 import static amie.data.U.decrease;
 import static amie.data.U.decreasingKeys;
 import static amie.data.U.increase;
-//import static com.hp.hpl.jena.sparql.engine.optimizer.reorder.ReorderTransformationBase.log;
 
 import amie.data.starpattern.SignedPredicate;
 import amie.data.tuple.IntArrays;
@@ -31,8 +30,6 @@ import amie.data.javatools.datatypes.IntHashMap;
 import amie.data.javatools.datatypes.Pair;
 import amie.data.javatools.filehandlers.FileLines;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.eclipse.rdf4j.rio.RDFParser;
-import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.helpers.AbstractRDFParser;
 import org.eclipse.rdf4j.rio.turtle.TurtleParser;
 import org.eclipse.rdf4j.rio.n3.N3Parser;
@@ -246,21 +243,16 @@ public class KB extends AbstractKB {
 					in.close();
 			}
 		} else {
-			for (String line : new FileLines(f, "UTF-8", message)) {
-				if (line.endsWith("."))
-					line = line.substring(0, line.length() - 1);
-				String[] split = line.trim().split(delimiter);
-				if (split.length == 3) {
-					add(split[0].trim(), split[1].trim(), split[2].trim());
-				} else if (split.length == 4)
-					add(split[1].trim(), split[2].trim(), split[3].trim());
-				/*
-				 * String[] split = line.trim().split(">" + delimiter);
-				 * if (split.length == 3) {
-				 * add(split[0].trim() +">", split[1].trim()+">", split[2].trim());
-				 * } else if (split.length == 4)
-				 * add(split[0].trim() +">", split[1].trim()+">", split[2].trim()+">");
-				 */
+			try (FileLines fl = new FileLines(f, "UTF-8", message)) {
+				for (String line : fl) {
+					if (line.endsWith("."))
+						line = line.substring(0, line.length() - 1);
+					String[] split = line.trim().split(delimiter);
+					if (split.length == 3) {
+						add(split[0].trim(), split[1].trim(), split[2].trim());
+					} else if (split.length == 4)
+						add(split[1].trim(), split[2].trim(), split[3].trim());
+				}
 			}
 		}
 
@@ -3786,16 +3778,23 @@ public class KB extends AbstractKB {
 	}
 
 	/**
-	 * It returns all the entities that occur as subjects or objects
-	 * in the KB.
+	 * Returns an iterator on the entities that appear
+	 * as subjects in the KB
 	 * 
 	 * @return
 	 */
-	public IntCollection getAllEntities() {
-		IntCollection result = new IntOpenHashSet();
-		result.addAll(subjectSize.keySet());
-		result.addAll(objectSize.keySet());
-		return result;
+	public IntCollection getSubjects() {
+		return subjectSize.keySet();
+	}
+
+	/**
+	 * Returns an iterator on the entities that appear
+	 * as subjects in the KB
+	 * 
+	 * @return
+	 */
+	public IntCollection getObjects() {
+		return objectSize.keySet();
 	}
 
 	/**
@@ -3848,15 +3847,6 @@ public class KB extends AbstractKB {
 		}
 
 		return relationsBiggerThan;
-	}
-
-	/**
-	 * Get a list of the relations of the KB.
-	 * 
-	 * @return
-	 */
-	public IntList getRelationsList() {
-		return decreasingKeys(relationSize);
 	}
 
 	@Override

@@ -24,6 +24,8 @@ public class ComparedMiniAmieClosedRule extends MiniAmieClosedRule {
     protected static final String ANSI_RED = "\u001B[31m";
     protected static final String ANSI_RESET = "\u001B[0m";
 
+    private String comparisonCharacter = "" ;
+    private RuleStateComparison comparisonState = RuleStateComparison.FALSE ;
 
     /**
      * Will instantiate a ComparedMiniAmieClosedRule as MiniAmieClosedRule with default values
@@ -37,10 +39,6 @@ public class ComparedMiniAmieClosedRule extends MiniAmieClosedRule {
     
     public String getComparisonCharacter() {
         return comparisonCharacter;
-    }
-
-    public void setComparisonCharacter(String comparisonCharacter) {
-        this.comparisonCharacter = comparisonCharacter;
     }
 
     public RuleStateComparison getComparisonState() {
@@ -59,8 +57,18 @@ public class ComparedMiniAmieClosedRule extends MiniAmieClosedRule {
         this.comparisonState = comparisonState;
     }
 
-    String comparisonCharacter = "" ;
-    RuleStateComparison comparisonState = RuleStateComparison.FALSE ;
+    public boolean IsFalse() {
+        return comparisonState == RuleStateComparison.FALSE;
+    }
+    public boolean IsCorrect() {
+        return comparisonState == RuleStateComparison.CORRECT;
+    }
+    public boolean IsMissingFailure() {
+        return comparisonState == RuleStateComparison.MISSING_FAILURE;
+    }
+    public boolean IsMissingOK() {
+        return comparisonState == RuleStateComparison.MISSING_OK;
+    }
 
 
 

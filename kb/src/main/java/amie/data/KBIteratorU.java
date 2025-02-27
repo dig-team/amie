@@ -19,22 +19,23 @@ import java.util.Iterator;
  * Closure semantic:
  *
  * Every iterator that is given an Instantiator at construction-time MUST:
- *  * close it when the iterator has no more element.
- *  * close it and close every sub-iterator (if applicable) 
- *    when the close() method is explicitly called.
+ * * close it when the iterator has no more element.
+ * * close it and close every sub-iterator (if applicable)
+ * when the close() method is explicitly called.
  * A closed iterator can no more be iterated upon.
+ * 
  * @author jlajus
  */
 public class KBIteratorU {
-    
+
     // Because the Closeable interface throws IOException.
     public static interface CloseableNoThrow extends Closeable {
         @Override
         public void close();
     }
-    
-    public static class addNotInIfExistsIterator extends SetU.addNotInIntIterator implements IntIterator, CloseableNoThrow {
-        
+
+    public static class addNotInIfExistsIterator extends SetU.addNotInIntIterator implements CloseableNoThrow {
+
         KB kb;
         KB.Instantiator insty;
 
@@ -46,10 +47,14 @@ public class KBIteratorU {
 
         @Override
         public boolean hasNext() {
-            if (next != 0) { return true; }
-            if (toIterate == null) { return false; }
-            while(toIterate.hasNext()) {
-                if (!addTo.contains(next = toIterate.nextInt()) && kb.existsBS1(insty.instantiate(next))) { 
+            if (next != 0) {
+                return true;
+            }
+            if (toIterate == null) {
+                return false;
+            }
+            while (toIterate.hasNext()) {
+                if (!addTo.contains(next = toIterate.nextInt()) && kb.existsBS1(insty.instantiate(next))) {
                     addTo.add(next);
                     return true;
                 }
@@ -65,23 +70,27 @@ public class KBIteratorU {
             insty.close();
         }
     }
-    
-        
-    public static class recursiveSelectForOneVarIterator extends addNotInIfExistsIterator implements IntIterator, CloseableNoThrow {
-        
+
+    public static class recursiveSelectForOneVarIterator extends addNotInIfExistsIterator {
+
         IntIterator subIterator;
         int variable;
-        
-        public recursiveSelectForOneVarIterator(KB kb, KB.Instantiator insty, int variable, IntSet toIterate, IntSet addTo) {
+
+        public recursiveSelectForOneVarIterator(KB kb, KB.Instantiator insty, int variable, IntSet toIterate,
+                IntSet addTo) {
             super(kb, insty, toIterate, addTo);
             this.variable = variable;
             this.subIterator = IntIterators.EMPTY_ITERATOR;
         }
-        
+
         @Override
         public boolean hasNext() {
-            if (next != 0) { return true; }
-            if (toIterate == null) { return false; }
+            if (next != 0) {
+                return true;
+            }
+            if (toIterate == null) {
+                return false;
+            }
             while (subIterator.hasNext() || toIterate.hasNext()) {
                 if (subIterator.hasNext()) {
                     next = subIterator.nextInt();
@@ -94,10 +103,10 @@ public class KBIteratorU {
             insty.close();
             return false;
         }
-        
+
         @Override
         public void close() {
-            if (subIterator instanceof CloseableNoThrow) { 
+            if (subIterator instanceof CloseableNoThrow) {
                 ((CloseableNoThrow) subIterator).close();
             }
             insty.close();
@@ -106,7 +115,7 @@ public class KBIteratorU {
     }
 
     public static class recursiveSelectForTwoVarIterator implements IntIterator, CloseableNoThrow {
-        
+
         Iterator<Int2ObjectMap.Entry<IntSet>> it1;
         IntIterator it2;
         KB kb;
@@ -114,8 +123,9 @@ public class KBIteratorU {
         IntIterator subIterator;
         int variable, next;
         IntSet addTo;
-        
-        public recursiveSelectForTwoVarIterator(KB kb, KB.Instantiator insty1, KB.Instantiator insty2, int variable, Int2ObjectMap<IntSet> toIterate, IntSet addTo) {
+
+        public recursiveSelectForTwoVarIterator(KB kb, KB.Instantiator insty1, KB.Instantiator insty2, int variable,
+                Int2ObjectMap<IntSet> toIterate, IntSet addTo) {
             this.kb = kb;
             this.insty1 = insty1;
             this.insty2 = insty2;
@@ -125,11 +135,15 @@ public class KBIteratorU {
             this.subIterator = IntIterators.EMPTY_ITERATOR;
             this.addTo = addTo;
         }
-        
+
         @Override
         public boolean hasNext() {
-            if (next != 0) { return true; }
-            if (it1 == null) { return false; }
+            if (next != 0) {
+                return true;
+            }
+            if (it1 == null) {
+                return false;
+            }
             while (subIterator.hasNext() || it2.hasNext() || it1.hasNext()) {
                 if (subIterator.hasNext()) {
                     next = subIterator.nextInt();
@@ -151,13 +165,16 @@ public class KBIteratorU {
         @Override
         public int nextInt() {
             int r = 0;
-            if (next != 0 || hasNext()) { r = next; next = 0; }
+            if (next != 0 || hasNext()) {
+                r = next;
+                next = 0;
+            }
             return r;
         }
 
         @Override
         public void close() {
-            if (subIterator instanceof CloseableNoThrow) { 
+            if (subIterator instanceof CloseableNoThrow) {
                 ((CloseableNoThrow) subIterator).close();
             }
             insty1.close();
@@ -165,9 +182,9 @@ public class KBIteratorU {
             it1 = null;
         }
     }
-    
+
     public static class recursiveSelectForThreeVarIterator implements IntIterator, CloseableNoThrow {
-        
+
         Iterator<Int2ObjectMap.Entry<Int2ObjectMap<IntSet>>> it1;
         Iterator<Int2ObjectMap.Entry<IntSet>> it2;
         IntIterator it3;
@@ -176,8 +193,9 @@ public class KBIteratorU {
         IntIterator subIterator;
         int variable, next;
         IntSet addTo;
-        
-        public recursiveSelectForThreeVarIterator(KB kb, KB.Instantiator insty1, KB.Instantiator insty2, KB.Instantiator insty3, int variable, Int2ObjectMap<Int2ObjectMap<IntSet>> toIterate, IntSet addTo) {
+
+        public recursiveSelectForThreeVarIterator(KB kb, KB.Instantiator insty1, KB.Instantiator insty2,
+                KB.Instantiator insty3, int variable, Int2ObjectMap<Int2ObjectMap<IntSet>> toIterate, IntSet addTo) {
             this.kb = kb;
             this.insty1 = insty1;
             this.insty2 = insty2;
@@ -189,11 +207,15 @@ public class KBIteratorU {
             this.subIterator = IntIterators.EMPTY_ITERATOR;
             this.addTo = addTo;
         }
-        
+
         @Override
         public boolean hasNext() {
-            if (next != 0) { return true; }
-            if (it1 == null) { return false; }
+            if (next != 0) {
+                return true;
+            }
+            if (it1 == null) {
+                return false;
+            }
             while (subIterator.hasNext() || it3.hasNext() || it2.hasNext() || it1.hasNext()) {
                 if (subIterator.hasNext()) {
                     next = subIterator.nextInt();
@@ -220,7 +242,10 @@ public class KBIteratorU {
         @Override
         public int nextInt() {
             int r = 0;
-            if (next != 0 || hasNext()) { r = next; next = 0; }
+            if (next != 0 || hasNext()) {
+                r = next;
+                next = 0;
+            }
             return r;
         }
 

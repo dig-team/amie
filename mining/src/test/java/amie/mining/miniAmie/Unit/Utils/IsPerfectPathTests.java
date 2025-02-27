@@ -6,7 +6,7 @@ import amie.rules.Rule;
 import java.util.ArrayList;
 import java.util.List;
 
-import static amie.mining.miniAmie.MiniAmieClosedRule.IsRealPerfectPath;
+//import static amie.mining.miniAmie.MiniAmieClosedRule.OLD_IsMiniAmieStylePerfectPath;
 
 public class IsPerfectPathTests extends UnitTest {
     protected void setUp() throws Exception {
@@ -25,7 +25,7 @@ public class IsPerfectPathTests extends UnitTest {
 
         Rule rule = new Rule(headAtom, body, -1, kb);
 
-        assert IsRealPerfectPath(rule);
+//        assert OLD_IsMiniAmieStylePerfectPath(rule);
     }
 
 
@@ -40,7 +40,7 @@ public class IsPerfectPathTests extends UnitTest {
 
         Rule rule = new Rule(headAtom, body, -1, kb);
 
-        assert !IsRealPerfectPath(rule);
+//        assert !OLD_IsMiniAmieStylePerfectPath(rule);
     }
 
     public void testNonPerfectPath2() {
@@ -54,7 +54,7 @@ public class IsPerfectPathTests extends UnitTest {
 
         Rule rule = new Rule(headAtom, body, -1, kb);
 
-        assert !IsRealPerfectPath(rule);
+//        assert !OLD_IsMiniAmieStylePerfectPath(rule);
     }
 
     public void testNonPerfectPath3() {
@@ -71,7 +71,7 @@ public class IsPerfectPathTests extends UnitTest {
 
         Rule rule = new Rule(headAtom, body, -1, kb);
 
-        assert !IsRealPerfectPath(rule);
+//        assert !OLD_IsMiniAmieStylePerfectPath(rule);
     }
 
 

@@ -409,6 +409,7 @@ public class Evaluator {
 		}
 		String datasetPath = args[0];
 		String rulesPath = args[1];
+		System.err.println("Rules file: " + rulesPath);
 		int nc = 1;
 		if (args.length > 2) {
 			nc = Integer.parseInt(args[2]);
@@ -431,7 +432,7 @@ public class Evaluator {
 		Instant inst2 = Instant.now();
 		Gson gson = new Gson();
 		String json = gson.toJson(eresult);
-		try(FileWriter jsonOutFile = new FileWriter(rulesPath.replace(".rules", ".rules.inference"))){
+		try(FileWriter jsonOutFile = new FileWriter(rulesPath+ ".inference")){
 			jsonOutFile.write(json);
 		} catch (IOException ex) {
             throw new RuntimeException(ex);

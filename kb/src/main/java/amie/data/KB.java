@@ -3857,11 +3857,11 @@ public class KB extends AbstractKB {
 			Int2ObjectMap<IntSet> tail = subject2relation2object.get(v1);
 			for (int v2 : tail.keySet()) {
 				for (int v3 : tail.get(v2)) {
-					strBuilder.append(v1);
+					strBuilder.append(unmap(v1));
 					strBuilder.append(delimiter);
-					strBuilder.append(v2);
+					strBuilder.append(unmap(v2));
 					strBuilder.append(delimiter);
-					strBuilder.append(v3);
+					strBuilder.append(unmap(v3));
 					strBuilder.append("\n");
 					if (maxCount >= 30)
 						break;

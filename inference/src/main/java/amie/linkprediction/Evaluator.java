@@ -4,6 +4,7 @@
 package amie.linkprediction;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
@@ -36,9 +37,9 @@ public class Evaluator {
 		return new Evaluator(d, rules, 1);
 	}
 
-	public static Evaluator getEvaluator(String dataFolder, String rulesFile, int nCores) throws IOException {
+	public static Evaluator getEvaluator(String dataFolder, String rulesFile, int nCores, boolean amieRules) throws IOException {
 		Dataset d = new Dataset(dataFolder);
-		List<Rule> rules = AMIEParser.parseRules(new File(rulesFile), d.training);
+		List<Rule> rules = amieRules? AMIEParser.parseRules(new File(rulesFile), d.training) : AMIEParser.parseAnyBurlFormattedRules(new File(rulesFile), d.training);
 		return new Evaluator(d, rules, nCores);
 	}
 
@@ -146,9 +147,11 @@ public class Evaluator {
 		// To limit memory consumption we have to focus on one type of evaluation
 		evaluateRelationOnOneFocus(batch, EvaluationFocus.Head, resultMetrics);
 		evaluateRelationOnOneFocus(batch, EvaluationFocus.Tail, resultMetrics);
-		resultMetrics.computeCount(EvaluationFocus.Both, this.dataset.training.unmap(batch.get(0)[1]));
-		resultMetrics.computeMRR(EvaluationFocus.Both, this.dataset.training.unmap(batch.get(0)[1]));
-		resultMetrics.computeHits(EvaluationFocus.Both, this.dataset.training.unmap(batch.get(0)[1]));
+		if (!batch.isEmpty()) {
+			resultMetrics.computeCount(EvaluationFocus.Both, this.dataset.training.unmap(batch.get(0)[1]));
+			resultMetrics.computeMRR(EvaluationFocus.Both, this.dataset.training.unmap(batch.get(0)[1]));
+			resultMetrics.computeHits(EvaluationFocus.Both, this.dataset.training.unmap(batch.get(0)[1]));
+		}
 	}
 
 	private void evaluateRelationOnOneFocus(List<int[]> batch, EvaluationFocus focus, EvaluationResult resultMetrics) {
@@ -182,10 +185,12 @@ public class Evaluator {
 			updateBatchEvaluationMetrics(rankings, focus, resultMetrics);
 		}
 
-		String relation = this.dataset.training.unmap(batch.get(0)[1]);
-		resultMetrics.computeMRR(focus, relation);
-		resultMetrics.computeCount(focus, relation);
-		resultMetrics.computeHits(focus, relation);
+		if (!batch.isEmpty()) {
+			String relation = this.dataset.training.unmap(batch.get(0)[1]);
+			resultMetrics.computeMRR(focus, relation);
+			resultMetrics.computeCount(focus, relation);
+			resultMetrics.computeHits(focus, relation);
+		}
 	}
 
 	private void updateBatchEvaluationMetrics(List<Pair<Integer, Ranking>> rankings, EvaluationFocus focus,
@@ -409,10 +414,15 @@ public class Evaluator {
 			nc = Integer.parseInt(args[2]);
 			System.err.println("Using " + nc + " cores");
 		}
+		boolean amieRules = true;
+		if (args.length > 3) {
+			amieRules = Boolean.parseBoolean(args[3]);
+			System.err.println("Assuming AMIE's format: " + amieRules);
+		}
 		Instant inst1 = Instant.now();
 		Evaluator e = null;
         try {
-            e = Evaluator.getEvaluator(datasetPath, rulesPath, nc);
+            e = Evaluator.getEvaluator(datasetPath, rulesPath, nc, amieRules);
         } catch (IOException ex) {
             System.err.println(ex);
 			System.exit(2);
@@ -421,7 +431,12 @@ public class Evaluator {
 		Instant inst2 = Instant.now();
 		Gson gson = new Gson();
 		String json = gson.toJson(eresult);
-		System.out.println(json);
+		try(FileWriter jsonOutFile = new FileWriter(rulesPath.replace(".rules", ".rules.inference"))){
+			jsonOutFile.write(json);
+		} catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        System.out.println(json);
 		System.err.println("Elapsed Time: "+ Duration.between(inst1, inst2).toString());
 		System.exit(0);
 	}

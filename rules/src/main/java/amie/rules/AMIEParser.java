@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import amie.data.AbstractKB;
 import amie.data.KB;
@@ -67,6 +69,51 @@ public class AMIEParser {
             }
         }
         return result;
+    }
+
+    public static List<Rule> parseAnyBurlFormattedRules(File f, AbstractKB kb) throws IOException {
+        List<Rule> result = new ArrayList<>();
+        try (TSVFile fileObj = new TSVFile(f)) {
+            for (List<String> record : fileObj) {
+                Rule rule = anyburlRule(record.get(3), kb);
+                rule.setSupport(Double.parseDouble(record.get(1)));
+                rule.setBodySize(Long.parseLong(record.get(0)));
+                rule.setPcaBodySize(Long.parseLong(record.get(0)));
+                if (rule != null)
+                    result.add(rule);
+            }
+        }
+        return result;
+    }
+
+    private static Rule anyburlRule(String s, AbstractKB kb) {
+        String[] rulePair = s.split(" <= ");
+        if (rulePair.length != 2)
+            return null;
+        String triplePatternRegex = "([-\\w<>_.:\\&\\/]+)\\(([-\\w<>_.:\\&\\/]+)\\s*,\\s*([-\\w<>_.:\\&\\/]+)\\)";
+        Matcher headAtomMatcher = Pattern.compile(triplePatternRegex).matcher(rulePair[0]);
+        if (!headAtomMatcher.find())
+            return null;
+        String predicate = headAtomMatcher.group(1);
+        String subject = headAtomMatcher.group(2);
+        String object = headAtomMatcher.group(3);
+
+        int headAtom[] = new int[]{kb.map(subject), kb.map(predicate), kb.map(object)};
+        Matcher bodyAtomMatcher = Pattern.compile(triplePatternRegex).matcher(rulePair[1]);
+
+        List<int[]> bodyAtoms = new ArrayList<>();
+        while(bodyAtomMatcher.find()) {
+            predicate = bodyAtomMatcher.group(1);
+            subject = bodyAtomMatcher.group(2);
+            object = bodyAtomMatcher.group(3);
+            if (predicate == null || subject == null || object == null)
+                return null;
+
+            bodyAtoms.add(new int[]{kb.map(subject), kb.map(predicate), kb.map(object)});
+        }
+
+        Rule resultRule = new Rule(headAtom, bodyAtoms, 0, kb);
+        return resultRule;
     }
 
     public static void main(String[] args) {

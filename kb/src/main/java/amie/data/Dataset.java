@@ -32,11 +32,11 @@ public class Dataset {
 		String valid = basePath + "valid.tsv";
 		this.training = new KB();
 		this.training.load(new File[] { new File(train), new File(valid) });
-
 		String test = basePath + "test.tsv";
 		this.testing = new LinkedHashMap<>();
-		for (int r : this.training.getRelations())
+		for (int r : this.training.getRelations()) {
 			this.testing.put(r, new ArrayList<>());
+		}
 		this.loadTestTriples(new File(test));
 	}
 

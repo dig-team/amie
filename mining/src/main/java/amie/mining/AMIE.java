@@ -1180,7 +1180,7 @@ public class AMIE {
 
         AMIE miner = AMIE.getInstance(initElements);
         if (miner == null)
-            return;
+            System.exit(0);
 
         long loadingTime = System.currentTimeMillis() - loadingStartTime;
 

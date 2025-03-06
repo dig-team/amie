@@ -230,6 +230,13 @@ public class MiningAssistant {
 	protected int maxDepthConst;
 
 	/**
+	 * It determines the maximum number of constants that will be considered
+	 * for the instantiation of atoms. Mining operators will then take the top
+	 * 'maxConstantsInExploration' constants sorted by support when refining rules.
+	 */
+	protected int maxConstantsInExploration;
+
+	/**
 	 * @param dataSource
 	 */
 	public MiningAssistant(AbstractKB dataSource) {
@@ -262,6 +269,7 @@ public class MiningAssistant {
 		this.miningOperators = new LinkedList<>();
 		computeOperatorHierarchy();
 		this.formatter = RuleFormatterFactory.getDefaultFormatter(false);
+		this.maxConstantsInExploration = 5;
 	}
 
 	/**

@@ -494,8 +494,12 @@ public class DefaultMiningAssistant extends MiningAssistant {
 		}
 
 		int joinPosition = (danglingPosition == 0 ? 2 : 0);
-		for (int constant : constants.keySet()) {
+		IntList promisingConstants = decreasingKeys(constants);
+		int nConsts = 0;
+		for (int constant : promisingConstants) {
 			int cardinality = constants.get(constant);
+			if (nConsts++ > this.maxConstantsInExploration) break;
+			nConsts++;
 			if (cardinality >= minSupportThreshold) {
 				int[] targetEdge = danglingEdge.clone();
 				targetEdge[danglingPosition] = constant;
@@ -516,6 +520,8 @@ public class DefaultMiningAssistant extends MiningAssistant {
 					candidate.addParent(parentQuery);
 					output.add(candidate);
 				}
+			} else {
+				break;
 			}
 		}
 	}

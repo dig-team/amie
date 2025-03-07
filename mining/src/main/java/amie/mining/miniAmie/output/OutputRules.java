@@ -76,17 +76,17 @@ public abstract class OutputRules {
                 System.out.println("Created rules output: " + outputFilePath);
             } else {
                 System.err.println("Could not create output: " + outputFilePath +
-                        ". Maybe name already exists?");
+                        ". Maybe name already exists?. The file will be overwritten");
             }
 
-            FileWriter outputWriter = new FileWriter(outputFilePath);
+            FileWriter outputWriter = new FileWriter(outputFilePath, false);
 
-            // Computing real support using available cores
+            // Computing all metrics using available cores
             List<MiniAmieClosedRule> rules = ComputeRuleListMetrics(finalRules);
 
             AnyBurlFormatter anyBurlFormatter = new AnyBurlFormatter(false);
             for (MiniAmieClosedRule rule : rules) {
-                String line = anyBurlFormatter.format(rule) + "\n";
+                String line = anyBurlFormatter.fullFormat(rule) + "\n";
                 outputWriter.write(line);
                 System.out.print(line);
             }

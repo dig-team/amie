@@ -30,6 +30,7 @@ public abstract class miniAMIE {
     public static boolean EnableVariableSwitch = false ;
     public static boolean EnableConstants = false ;
     public static boolean UseDirectionalSelectivity = false ;
+    public static boolean ComputeActualMetrics = false;
     public static int NThreads = 1;
     public static boolean Verbose = false;
     public static boolean CompareToGroundTruth = false;

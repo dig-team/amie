@@ -219,17 +219,26 @@ public class MiniAmieClosedRule extends MiniAmieRule {
     }
 
 
-    public void ComputeClosedRuleMetrics() {
-        long start = System.nanoTime();
-        long support = utils.RealSupport(this);
-        long time = System.nanoTime() - start;
-        this.setSupport(support);
-        this.setSupportNano(time);
+    public void ComputeClosedRuleMetrics(boolean computeRealMetrics) {
+        long support = -1;
+        long time = -1;
+        long start = -1;
+        if (computeRealMetrics) {
+            start = System.nanoTime();
+            support = utils.RealSupport(this);
+            time = System.nanoTime() - start;
+            this.setSupport(support);
+            this.setSupportNano(time);
+        }
+
 
         start = System.nanoTime();
         double appSupport = this.SupportApproximation();
         time = System.nanoTime() - start;
         this.setApproximateSupport(appSupport);
+        if (!computeRealMetrics) {
+            this.setSupport(appSupport);
+        }
 
         setSelectivity(new JacquardSelectivity());
         this.setJacquardBasedAppSupport(this.SupportApproximation());
@@ -249,6 +258,10 @@ public class MiniAmieClosedRule extends MiniAmieRule {
         this.setFactorsOfApproximateSupport(
                 new Attributes(this)
         );
+        // Now let us calculate PCA confidence
+        if (computeRealMetrics) {
+            utils.RealPCADenominator(this);
+        }
     }
 
     public double getSurvivalRateBasedAppSupport() {

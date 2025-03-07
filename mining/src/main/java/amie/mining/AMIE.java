@@ -895,11 +895,16 @@ public class AMIE {
             }
             String miniAMIECompareToGroundTruthOption = AMIEOptions.MINI_AMIE_COMPARE_TO_GROUND_TRUTH.getOpt() ;
 
+            if (cli.hasOption(AMIEOptions.MINI_AMIE_COMPUTE_ACTUAL_METRICS.getOpt())) {
+                System.out.println("Mini-AMIE will compute the actual support and PCA confidence of the rules - besides the approximations");
+            }
+
             miniAMIE.Kb = dataSource;
             miniAMIE.PM = metric ;
             miniAMIE.MaxRuleSize = maxDepth;
             miniAMIE.MinSup = minSup;
             miniAMIE.MinHC = minHeadCover;
+            miniAMIE.ComputeActualMetrics = cli.hasOption(AMIEOptions.MINI_AMIE_COMPUTE_ACTUAL_METRICS.getOpt());
             miniAMIE.EnableVariableSwitch =  cli.hasOption(AMIEOptions.MINI_AMIE_ENABLE_VARIABLE_SWITCH.getOpt());
             miniAMIE.EnableConstants = cli.hasOption(AMIEOptions.ALLOW_CONSTANTS.getOpt());
             miniAMIE.UseDirectionalSelectivity = cli.hasOption(AMIEOptions.MINI_AMIE_USE_DIRECTIONAL_SELECTIVITY.getOpt());

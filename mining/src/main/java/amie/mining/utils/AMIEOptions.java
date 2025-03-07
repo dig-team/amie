@@ -29,6 +29,9 @@ public interface AMIEOptions {
     Option MINI_AMIE_USE_DIRECTIONAL_SELECTIVITY = new Option("useDirectionalSelectivity",
             "Enable directional selectivity.") ;
 
+    Option MINI_AMIE_COMPUTE_ACTUAL_METRICS = new Option("computeActualMetrics", false,
+            "Applicable only to mini-AMIE: compute real support and PCA confidence for the mined rules. False by default");
+
     Option GLOBAL_SEARCH_RESULT_PATH = new Option("searchInfoOutputPath", true,
             "Sets the path to a CSV containing general information on the run (ex. search time, memory " +
                     "peak value). Default ./run-<TIMESTAMP>.csv") ;
@@ -204,7 +207,8 @@ public interface AMIEOptions {
     Option DELIMITER = new Option("d", "delimiter", true,
             "Separator in input files (default: TAB)");
 
-        interface Bias {
+
+    interface Bias {
                 String ONE_VAR = "oneVar";
                 String DEFAULT = "default";
                 String SIGNATURED = "signatured";
@@ -276,6 +280,7 @@ public interface AMIEOptions {
                 options.addOption(MIN_HEAD_COVERAGE);
                 options.addOption(MINI_AMIE_ENABLE_VARIABLE_SWITCH);
                 options.addOption(MINI_AMIE_USE_DIRECTIONAL_SELECTIVITY);
+                options.addOption(MINI_AMIE_COMPUTE_ACTUAL_METRICS);
                 options.addOption(PRUNING_METRIC);
                 options.addOption(OUTPUT_AT_END);
                 options.addOption(BODY_EXCLUDED);

@@ -31,6 +31,48 @@ public abstract class utils {
     public static String atomSep = " ";
 
     /**
+     * It computes the PCA denominator of the provided rule
+     * @param rule
+     */
+    public static void RealPCADenominator(MiniAmieClosedRule rule) {
+        if (rule.isEmpty()) {
+            return;
+        }
+
+        List<int[]> antecedent = new ArrayList<int[]>();
+        antecedent.addAll(rule.getTriples().subList(1, rule.getTriples().size()));
+        int[] succedent = rule.getTriples().get(0);
+        double pcaDenominator = 0.0;
+        int[] existentialTriple = succedent.clone();
+        int freeVarPos = 0;
+        int noOfHeadVars = KB.numVariables(succedent);
+
+        if (noOfHeadVars == 1) {
+            freeVarPos = KB.firstVariablePos(succedent) == 0 ? 2 : 0;
+        } else {
+            if (existentialTriple[0] == rule.getFunctionalVariable())
+                freeVarPos = 2;
+            else
+                freeVarPos = 0;
+        }
+
+        existentialTriple[freeVarPos] = rule.kb.map("?x9");
+        if (!antecedent.isEmpty()) {
+            antecedent.add(existentialTriple);
+            try {
+                if (noOfHeadVars == 1) {
+                    pcaDenominator = (double) rule.kb.countDistinct(rule.getFunctionalVariable(), antecedent);
+                } else {
+                    pcaDenominator = (double) rule.kb.countDistinctPairs(succedent[0], succedent[2], antecedent);
+                }
+                rule.setPcaBodySize(pcaDenominator);
+            } catch (UnsupportedOperationException e) {
+
+            }
+        }
+    }
+
+    /**
      * ExplorationResult is instantiated to return the result of an exploration.
      * - sumExploredRules is the approximate number of rules to be explored in the subtree
      * - finalRules is the list of rules to be kept as a result of the mining process
@@ -372,11 +414,13 @@ public abstract class utils {
             throws InterruptedException, ExecutionException {
 
         List<MiniAmieClosedRule> miniAmieClosedRules = new ArrayList<>();
-        System.out.println("Computing real support ...");
+        if (miniAMIE.ComputeActualMetrics) {
+            System.out.println("Computing real support and PCA confidence ...");
+        }
 
         if (NThreads == 1) {
             for (MiniAmieClosedRule rule : rules) {
-                rule.ComputeClosedRuleMetrics() ;
+                rule.ComputeClosedRuleMetrics(ComputeActualMetrics) ;
                 miniAmieClosedRules.add(rule);
             }
         } else {
@@ -385,7 +429,7 @@ public abstract class utils {
             for (MiniAmieClosedRule rule : rules) {
                 miniAmieClosedRulesFutures.add(
                         executor.submit(() -> {
-                            rule.ComputeClosedRuleMetrics() ;
+                            rule.ComputeClosedRuleMetrics(ComputeActualMetrics) ;
                             totalRulesLatch.countDown();
                             return rule;
                         })

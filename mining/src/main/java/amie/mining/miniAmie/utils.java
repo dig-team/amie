@@ -12,6 +12,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static amie.data.U.decreasingKeys;
 import static amie.mining.miniAmie.miniAMIE.*;
 
 public abstract class utils {
@@ -29,6 +30,7 @@ public abstract class utils {
     public static final String commaSep = ",";
     public static String bodySep = ";";
     public static String atomSep = " ";
+    public static final int MaxConstantsInExploration = 5;
 
     /**
      * It computes the PCA denominator of the provided rule
@@ -135,15 +137,19 @@ public abstract class utils {
         int[] head = initRule.getHead();
         Int2IntMap variableInstantiations =
                 Kb.countProjectionBindings(head, new ArrayList<>(), head[constantPosition]);
-        IntSet objectConstants = variableInstantiations.keySet();
-
+        IntList objectConstants = decreasingKeys(variableInstantiations);
+        int nConstants = 0;
         for (int constant : objectConstants) {
+            if (nConstants > MaxConstantsInExploration) break;
+            nConstants++;
             if (variableInstantiations.get(constant) >= MinSup){
                 int[] headClone = head.clone();
                 headClone[constantPosition] = constant;
                 instantiatedParameterInitRule.add(
                         new MiniAmieRule(headClone, constantPosition)
                 );
+            } else {
+                break;
             }
         }
     }

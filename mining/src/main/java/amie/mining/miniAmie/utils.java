@@ -419,38 +419,38 @@ public abstract class utils {
     public static List<MiniAmieClosedRule> ComputeRuleListMetrics(List<MiniAmieClosedRule> rules)
             throws InterruptedException, ExecutionException {
 
-        List<MiniAmieClosedRule> miniAmieClosedRules = new ArrayList<>();
+        //List<MiniAmieClosedRule> miniAmieClosedRules = new ArrayList<>();
         if (miniAMIE.ComputeActualMetrics) {
             System.out.println("Computing real support and PCA confidence ...");
         }
 
         if (NThreads == 1) {
-            while (!rules.isEmpty()) {
-                MiniAmieClosedRule rule = rules.remove(rules.size()-1);
+            for (MiniAmieClosedRule rule : rules) {
                 rule.ComputeClosedRuleMetrics(ComputeActualMetrics) ;
-                miniAmieClosedRules.add(rule);
             }
         } else {
-            List<Future<MiniAmieClosedRule>> miniAmieClosedRulesFutures = new ArrayList<>();
+            //List<Future<MiniAmieClosedRule>> miniAmieClosedRulesFutures = new ArrayList<>();
             CountDownLatch totalRulesLatch = new CountDownLatch(rules.size());
             while (!rules.isEmpty()) {
                 MiniAmieClosedRule rule = rules.remove(rules.size()-1);
-                miniAmieClosedRulesFutures.add(
+                //miniAmieClosedRulesFutures.add(
                         executor.submit(() -> {
                             rule.ComputeClosedRuleMetrics(ComputeActualMetrics) ;
                             totalRulesLatch.countDown();
                             return rule;
-                        })
-                );
+                        });
+                //);
             }
 
             totalRulesLatch.await();
-            for (Future<MiniAmieClosedRule> future : miniAmieClosedRulesFutures) {
-                miniAmieClosedRules.add(future.get());
-            }
+            //for (Future<MiniAmieClosedRule> future : miniAmieClosedRulesFutures) {
+                //future.get();
+                //miniAmieClosedRules.add(future.get());
+            //}
         }
 
-        return miniAmieClosedRules;
+        //return miniAmieClosedRules;
+        return rules;
     }
 
     public interface selectivityMethod {

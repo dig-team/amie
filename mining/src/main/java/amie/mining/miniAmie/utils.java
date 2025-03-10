@@ -425,14 +425,16 @@ public abstract class utils {
         }
 
         if (NThreads == 1) {
-            for (MiniAmieClosedRule rule : rules) {
+            while (!rules.isEmpty()) {
+                MiniAmieClosedRule rule = rules.remove(rules.size()-1);
                 rule.ComputeClosedRuleMetrics(ComputeActualMetrics) ;
                 miniAmieClosedRules.add(rule);
             }
         } else {
             List<Future<MiniAmieClosedRule>> miniAmieClosedRulesFutures = new ArrayList<>();
             CountDownLatch totalRulesLatch = new CountDownLatch(rules.size());
-            for (MiniAmieClosedRule rule : rules) {
+            while (!rules.isEmpty()) {
+                MiniAmieClosedRule rule = rules.remove(rules.size()-1);
                 miniAmieClosedRulesFutures.add(
                         executor.submit(() -> {
                             rule.ComputeClosedRuleMetrics(ComputeActualMetrics) ;
@@ -441,6 +443,7 @@ public abstract class utils {
                         })
                 );
             }
+
             totalRulesLatch.await();
             for (Future<MiniAmieClosedRule> future : miniAmieClosedRulesFutures) {
                 miniAmieClosedRules.add(future.get());

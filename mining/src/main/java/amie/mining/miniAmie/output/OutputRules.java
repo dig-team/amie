@@ -49,6 +49,7 @@ public abstract class OutputRules {
             System.out.print(OUTPUT_CSV_HEADER);
 
             // Computing real support using available cores
+            // Attention: finalRules could be emptied
             List<MiniAmieClosedRule> miniAmieRules = ComputeRuleListMetrics(finalRules);
 
             for (MiniAmieClosedRule rule : miniAmieRules) {

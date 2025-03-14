@@ -3,6 +3,7 @@ package amie.mining.miniAmie;
 import amie.data.KB;
 import amie.data.javatools.datatypes.Pair;
 import amie.mining.assistant.MiningAssistant;
+import amie.rules.PruningMetric;
 import amie.rules.Rule;
 import it.unimi.dsi.fastutil.ints.*;
 
@@ -416,26 +417,27 @@ public abstract class utils {
         return rule.getSupport() / getSizeOfHead(rule);
     }
 
+
     public static List<MiniAmieClosedRule> ComputeRuleListMetrics(List<MiniAmieClosedRule> rules)
-            throws InterruptedException, ExecutionException {
+            throws InterruptedException //, ExecutionException
+    {
 
         //List<MiniAmieClosedRule> miniAmieClosedRules = new ArrayList<>();
-        if (miniAMIE.ComputeActualMetrics) {
+        if (miniAMIE.shouldComputeRealMetricsAfterMining()) {
             System.out.println("Computing real support and PCA confidence ...");
         }
 
         if (NThreads == 1) {
             for (MiniAmieClosedRule rule : rules) {
-                rule.ComputeClosedRuleMetrics(ComputeActualMetrics) ;
+                rule.ComputeClosedRuleMetrics(miniAMIE.shouldComputeRealMetricsAfterMining()) ;
             }
         } else {
             //List<Future<MiniAmieClosedRule>> miniAmieClosedRulesFutures = new ArrayList<>();
             CountDownLatch totalRulesLatch = new CountDownLatch(rules.size());
-            while (!rules.isEmpty()) {
-                MiniAmieClosedRule rule = rules.remove(rules.size()-1);
+            for (MiniAmieClosedRule rule: rules) {
                 //miniAmieClosedRulesFutures.add(
                         executor.submit(() -> {
-                            rule.ComputeClosedRuleMetrics(ComputeActualMetrics) ;
+                            rule.ComputeClosedRuleMetrics(miniAMIE.shouldComputeRealMetricsAfterMining()) ;
                             totalRulesLatch.countDown();
                             return rule;
                         });

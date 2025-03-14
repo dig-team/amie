@@ -261,6 +261,9 @@ public class MiniAmieClosedRule extends MiniAmieRule {
         // Now let us calculate PCA confidence
         if (computeRealMetrics) {
             utils.RealPCADenominator(this);
+        } else {
+            // In such case we penalize longer rules
+            this.setPcaBodySize(getLength());
         }
     }
 

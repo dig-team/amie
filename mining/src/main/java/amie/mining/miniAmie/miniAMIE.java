@@ -124,6 +124,11 @@ public abstract class miniAMIE {
         }
     }
 
+    static boolean shouldComputeRealMetricsAfterMining() {
+        return (PM == PruningMetric.ApproximateSupport || PM == PruningMetric.ApproximateHeadCoverage) &&
+                ComputeActualMetrics;
+    }
+
     public static void ResetSelectivity() {
         if (UseDirectionalSelectivity) {
             MiniAmieRule.setSelectivity(new utils.SurvivalRateSelectivity()) ;

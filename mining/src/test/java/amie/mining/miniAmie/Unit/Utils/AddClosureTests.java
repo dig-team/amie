@@ -23,7 +23,7 @@ public class AddClosureTests extends UnitTest {
     public void testClosureDifferentFromHead() {
         List<MiniAmieClosedRule> closedRules = new ArrayList<>();
         for(MiniAmieRule rule : openRules) {
-            closedRules.addAll(rule.AddClosure()) ;
+            closedRules.addAll(rule.AddClosure(Integer.MAX_VALUE)) ;
         }
 
         // Testing

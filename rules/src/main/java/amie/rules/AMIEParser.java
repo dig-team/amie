@@ -76,11 +76,12 @@ public class AMIEParser {
         try (TSVFile fileObj = new TSVFile(f)) {
             for (List<String> record : fileObj) {
                 Rule rule = anyburlRule(record.get(3), kb);
-                rule.setSupport(Double.parseDouble(record.get(1)));
-                rule.setBodySize(Long.parseLong(record.get(0)));
-                rule.setPcaBodySize(Long.parseLong(record.get(0)));
-                if (rule != null)
+                if (rule != null) {
+                    rule.setSupport(Double.parseDouble(record.get(1)));
+                    rule.setBodySize(Long.parseLong(record.get(0)));
+                    rule.setPcaBodySize(Long.parseLong(record.get(0)));
                     result.add(rule);
+                }
             }
         }
         return result;

@@ -33,7 +33,7 @@ public class AddClosureToAcyclicWithConstantsTests extends UnitTest {
     public void testClosureSingle() {
         for (MiniAmieRule rule : initRulesInstantiatedParameter) {
             System.out.println(rule.toString());
-            List<MiniAmieClosedRule> instantiatedAtomsBody = rule.AddClosureToAcyclicWithConstants() ;
+            List<MiniAmieClosedRule> instantiatedAtomsBody = rule.AddClosureToAcyclicWithConstants(Integer.MAX_VALUE) ;
 
             for (MiniAmieClosedRule rule1 : instantiatedAtomsBody) {
                     System.out.println(rule1.toString());
@@ -47,7 +47,7 @@ public class AddClosureToAcyclicWithConstantsTests extends UnitTest {
     public void testClosure() {
         for (MiniAmieRule rule : initRulesInstantiatedParameter) {
             System.out.println(rule.toString());
-            List<MiniAmieClosedRule> instantiatedAtomsBody = rule.AddClosureToAcyclicWithConstants() ;
+            List<MiniAmieClosedRule> instantiatedAtomsBody = rule.AddClosureToAcyclicWithConstants(Integer.MAX_VALUE) ;
 
             for (MiniAmieClosedRule rule1 : instantiatedAtomsBody) {
                 System.out.println(rule1.toString());

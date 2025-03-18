@@ -2,11 +2,14 @@ package amie.mining.miniAmie;
 
 import amie.data.AbstractKB;
 import amie.rules.Rule;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import static amie.data.U.decreasingKeys;
 import static amie.mining.miniAmie.miniAMIE.*;
 import static amie.mining.miniAmie.utils.*;
 
@@ -175,17 +178,9 @@ public class MiniAmieRule extends Rule {
      * Note: only useful for rules of size two.
      * @return
      */
-    public ArrayList<MiniAmieClosedRule> AddClosureToAcyclicWithConstants() {
+    public ArrayList<MiniAmieClosedRule> AddClosureToAcyclicWithConstants(int maxConstants) {
         int[] headAtom = this.getHead();
         int unboundParameter = this.getLastOpenParameter();
-
-//        switch(instantiatedParameterPositionInHead) {
-//            case SUBJECT_POSITION -> unboundParameter = headAtom[OBJECT_POSITION];
-//            case OBJECT_POSITION -> unboundParameter = headAtom[SUBJECT_POSITION];
-//            default -> throw new IllegalArgumentException("Bad instantiated parameter position in head "
-//                    + instantiatedParameterPositionInHead + " for rule "
-//                    + utils.RawBodyHeadToString(getBody(), headAtom));
-//        }
 
         ArrayList<MiniAmieClosedRule> closedRules = new ArrayList<>();
         List<Integer> relations = this.promisingRelations();
@@ -200,8 +195,12 @@ public class MiniAmieRule extends Rule {
             int[] newAtom = new int[]{unboundParameter, relation, lastOpenParameter} ;
             newAtomQuery.add(newAtom);
             // TODO reuse previously instantiated heads if possible
-            IntSet objectConstants = Kb.selectDistinct(lastOpenParameter, newAtomQuery);
+            IntList objectConstants = decreasingKeys(kb.countProjectionBindings(newAtom, Collections.EMPTY_LIST, lastOpenParameter));
+            //IntSet objectConstants = Kb.selectDistinct(lastOpenParameter, newAtomQuery);
+            int k = 0;
             for (int constant : objectConstants) {
+                if (k >= maxConstants) break;
+                k++;
                 MiniAmieClosedRule closedRule = new MiniAmieClosedRule(this,
                         unboundParameter, relation, constant);
                 closedRules.add(closedRule);
@@ -224,9 +223,9 @@ public class MiniAmieRule extends Rule {
     }
 
 
-    public ArrayList<MiniAmieClosedRule> AddClosure() {
+    public ArrayList<MiniAmieClosedRule> AddClosure(int maxConstantsInExploration) {
         if (hasAcyclicInstantiatedParameterInHead) {
-            return AddClosureToAcyclicWithConstants();
+            return AddClosureToAcyclicWithConstants(maxConstantsInExploration);
         }
         int[] headAtom = this.getHead();
 

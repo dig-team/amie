@@ -269,7 +269,7 @@ public abstract class miniAMIE {
         int searchSpaceEstimatedSize = 0;
         int searchSpaceEstimatedAdjustedWithBidirectionalitySize = 0;
 
-        ArrayList<MiniAmieClosedRule> closedChildren = rule.AddClosure();
+        ArrayList<MiniAmieClosedRule> closedChildren = rule.AddClosure(utils.MaxConstantsInExploration);
 
         if (closedChildren != null) {
             searchSpaceEstimatedSize += closedChildren.size() * CORRECTION_FACTOR_CLOSURE;

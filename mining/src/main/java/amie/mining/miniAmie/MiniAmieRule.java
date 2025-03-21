@@ -1,9 +1,13 @@
 package amie.mining.miniAmie;
 
 import amie.data.AbstractKB;
+import amie.data.KB;
+import amie.rules.PruningMetric;
 import amie.rules.Rule;
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import org.apache.commons.lang.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,12 +23,17 @@ public class MiniAmieRule extends Rule {
 
     private int lastOpenParameter;
     private int correctingFactor;
+    private double approximateSupport = -1;
+    private long supportNano;
+    private long appSupportNano;
+
 
 
     boolean hasAcyclicInstantiatedParameterInHead = false;
     int instantiatedParameterPositionInHead = UNDEFINED_POSITION;
 
     private List<int[]> sortedBody ;
+    private double approximateHC = -1;
 
 
     public MiniAmieRule(Rule rule) {
@@ -107,83 +116,130 @@ public class MiniAmieRule extends Rule {
         this.correctingFactor = correctingFactor;
     }
 
-//    public ArrayList<MiniAmieRule> AddDanglingToAcyclicWithConstants() {
-//        ArrayList<MiniAmieRule> openRules = new ArrayList<>();
-//        List<Integer> relations = this.promisingRelations();
-//        int unboundParameter = this.newVariable();
-//        if (relations.isEmpty()) {
-//            return null;
-//        }
-//
-//        for (int relation : relations) {
-//            // Instantiated rule
-//            List<int[]> newAtomQuery = new ArrayList<>();
-//            int[] newAtom = new int[]{unboundParameter, relation, lastOpenParameter} ;
-//            newAtomQuery.add(newAtom);
-//            // TODO reuse previously instantiated heads if possible
-//            IntSet objectConstants = Kb.selectDistinct(lastOpenParameter, newAtomQuery);
-//            for (int constant : objectConstants) {
-//                int[] head = newAtom.clone();
-//                head[OBJECT_POSITION] = constant;
-//                MiniAmieRule openRuleWithConstant = new MiniAmieRule(this,
-//                        unboundParameter, relation, constant, unboundParameter);
-//                openRuleWithConstant.setAcyclicInstantiatedTrue();
-//                openRules.add(openRuleWithConstant);
-//            }
-//
-//            // Reversing unbound parameter and join object
-//            List<int[]> newAtomQueryAlt = new ArrayList<>();
-//            int[] newAtomAlt = new int[]{lastOpenParameter, relation, unboundParameter} ;
-//            newAtomQueryAlt.add(newAtomAlt);
-//            IntSet objectConstantsAlt = Kb.selectDistinct(lastOpenParameter, newAtomQueryAlt);
-//            for (int constant : objectConstantsAlt) {
-//                int[] head = newAtom.clone();
-//                head[SUBJECT_POSITION] = constant;
-//                MiniAmieRule openRuleWithConstant = new MiniAmieRule(this,
-//                        constant, relation, unboundParameter, unboundParameter);
-//                openRuleWithConstant.setAcyclicInstantiatedTrue();
-//                openRules.add(openRuleWithConstant);
-//            }
-//        }
-//
-//        return openRules ;
-//    }
-
     public ArrayList<MiniAmieRule> AddDangling() {
-//        if (hasAcyclicInstantiatedParameterInHead) {
-//            return AddDanglingToAcyclicWithConstants();
-//        }
-
         ArrayList<MiniAmieRule> openRules = new ArrayList<>();
-        List<Integer> relations = this.promisingRelations();
+        int[] lastTriplePattern = this.getLastTriplePattern();
+        int joinPositionInRule = lastTriplePattern[0] == lastOpenParameter? SUBJECT_POSITION : OBJECT_POSITION;
+        List<Integer> relations = this.getRealLength() <= 1 ?  this.promisingRelations() :
+                this.promisingRelationsFromOverlapTables(lastTriplePattern[0], joinPositionInRule, OBJECT_POSITION);
         int unboundParameter = this.newVariable();
 
         if (relations.isEmpty()) {
             return null;
         }
-            for (int relation : relations) {
-                MiniAmieRule openRule = new MiniAmieRule(this,
-                        unboundParameter, relation, lastOpenParameter, unboundParameter);
-                openRules.add(openRule);
+        for (int relation : relations) {
+            MiniAmieRule openRule = new MiniAmieRule(this,
+                    unboundParameter, relation, lastOpenParameter, unboundParameter);
 
-                // Reversing unbound parameter and join object
-                MiniAmieRule openRuleAlt = new MiniAmieRule(this,
-                        lastOpenParameter, relation, unboundParameter, unboundParameter);
-                openRules.add(openRuleAlt);
+            long start = System.nanoTime();
+            openRule.setApproximateSupport(openRule.ComputeSupportApproximation());
+            long time = System.nanoTime() - start;
+            openRule.setAppSupportNano(time);
+
+            if (miniAMIE.PM == PruningMetric.Support || miniAMIE.PM == PruningMetric.HeadCoverage) {
+                start = System.nanoTime();
+                openRule.setSupport(RealSupport(this));
+                openRule.setHeadCoverage(RealHeadCoverage(this));
+                time = System.nanoTime() - start;
+                openRule.setSupportNano(time);
             }
+
+            if (openRule.IsNotPruned())
+                openRules.add(openRule);
+        }
+
+        relations = this.getRealLength() <= 1 ?  this.promisingRelations() :
+                    this.promisingRelationsFromOverlapTables(lastTriplePattern[0], joinPositionInRule, SUBJECT_POSITION);
+        for (int relation : relations) {
+                // Reversing unbound parameter and join object
+            MiniAmieRule openRuleAlt = new MiniAmieRule(this,
+                    lastOpenParameter, relation, unboundParameter, unboundParameter);
+            long start = System.nanoTime();
+            openRuleAlt.setApproximateSupport(openRuleAlt.ComputeSupportApproximation());
+            long time = System.nanoTime() - start;
+            openRuleAlt.setAppSupportNano(time);
+
+            if (miniAMIE.PM == PruningMetric.Support || miniAMIE.PM == PruningMetric.HeadCoverage) {
+                start = System.nanoTime();
+                openRuleAlt.setSupport(RealSupport(this));
+                openRuleAlt.setHeadCoverage(RealHeadCoverage(this));
+                time = System.nanoTime() - start;
+                openRuleAlt.setSupportNano(time);
+            }
+
+            if (openRuleAlt.IsNotPruned())
+                openRules.add(openRuleAlt);
+        }
         return openRules;
     }
+
+    private List<Integer> promisingRelationsFromOverlapTables(int predId, int position1, int position2) {
+        List<Integer> promisingPredicates = new ArrayList<>();
+        if (position1 == SUBJECT_POSITION) { // The subject is variable
+            if (position2 == SUBJECT_POSITION)
+                promisingPredicates.addAll(((KB)(this.kb)).subject2subjectOverlap.get(predId).keySet());
+            else
+                promisingPredicates.addAll(((KB)(this.kb)).subject2objectOverlap.get(predId).keySet());
+        } else {
+            if (position2 == SUBJECT_POSITION)
+                // Here we have a problem
+                return this.promisingRelations();
+            else
+                promisingPredicates.addAll(((KB)(this.kb)).object2objectOverlap.get(predId).keySet());
+        }
+
+        return promisingPredicates;
+    }
+
+
+
+
+    public double getApproximateHC() {
+        return approximateHC;
+    }
+
+    public void setApproximateHC(double approximateHC) {
+        this.approximateHC = approximateHC;
+    }
+
+    public double getApproximateSupport() {
+        return approximateSupport;
+    }
+
+    public void setApproximateSupport(double approximateSupport) {
+        this.approximateSupport = approximateSupport;
+    }
+
+
+    public long getSupportNano() {
+        return supportNano;
+    }
+
+    public void setSupportNano(long supportNano) {
+        this.supportNano = supportNano;
+    }
+
+    public long getAppSupportNano() {
+        return appSupportNano;
+    }
+
+    public void setAppSupportNano(long appSupportNano) {
+        this.appSupportNano = appSupportNano;
+    }
+
 
     /**
      * Note: only useful for rules of size two.
      * @return
      */
     public ArrayList<MiniAmieClosedRule> AddClosureToAcyclicWithConstants(int maxConstants) {
-        int[] headAtom = this.getHead();
         int unboundParameter = this.getLastOpenParameter();
+        int[] lastTriplePattern = this.getLastTriplePattern();
+        int joinPositionInRule = lastTriplePattern[0] == lastOpenParameter? SUBJECT_POSITION : OBJECT_POSITION;
 
         ArrayList<MiniAmieClosedRule> closedRules = new ArrayList<>();
-        List<Integer> relations = this.promisingRelations();
+        List<Integer> relations = this.getRealLength() <= 1 ?  this.promisingRelations() :
+                this.promisingRelationsFromOverlapTables(lastTriplePattern[1], joinPositionInRule, OBJECT_POSITION);
 
         if (relations.isEmpty()) {
             return null;
@@ -192,7 +248,7 @@ public class MiniAmieRule extends Rule {
         for (int relation : relations) {
             // Instantiated rule
             List<int[]> newAtomQuery = new ArrayList<>();
-            int[] newAtom = new int[]{unboundParameter, relation, lastOpenParameter} ;
+            int[] newAtom = new int[]{unboundParameter, relation, lastOpenParameter};
             newAtomQuery.add(newAtom);
             // TODO reuse previously instantiated heads if possible
             IntList objectConstants = decreasingKeys(kb.countProjectionBindings(newAtom, Collections.EMPTY_LIST, lastOpenParameter));
@@ -203,19 +259,52 @@ public class MiniAmieRule extends Rule {
                 k++;
                 MiniAmieClosedRule closedRule = new MiniAmieClosedRule(this,
                         unboundParameter, relation, constant);
-                closedRules.add(closedRule);
-            }
+                long start = System.nanoTime();
+                closedRule.setApproximateSupport(closedRule.ComputeSupportApproximation());
+                long time = System.nanoTime() - start;
+                closedRule.setAppSupportNano(time);
 
+                if (miniAMIE.PM == PruningMetric.Support || miniAMIE.PM == PruningMetric.HeadCoverage) {
+                    start = System.nanoTime();
+                    closedRule.setSupport(RealSupport(this));
+                    closedRule.setHeadCoverage(RealHeadCoverage(this));
+                    time = System.nanoTime() - start;
+                    closedRule.setSupportNano(time);
+                }
+
+                if (closedRule.IsNotPruned())
+                    closedRules.add(closedRule);
+            }
+        }
+        relations = this.getRealLength() <= 1 ?  this.promisingRelations() :
+                this.promisingRelationsFromOverlapTables(lastTriplePattern[1], joinPositionInRule, SUBJECT_POSITION);
+
+        for (int relation: relations){
             // Reversing join subject and constant order
             List<int[]> newAtomQueryAlt = new ArrayList<>();
             int[] newAtomAlt = new int[]{lastOpenParameter, relation, unboundParameter} ;
             newAtomQueryAlt.add(newAtomAlt);
             // TODO reuse previously instantiated heads if possible
-            IntSet objectConstantsAlt = Kb.selectDistinct(lastOpenParameter, newAtomQueryAlt);
+            IntList objectConstantsAlt = decreasingKeys(kb.countProjectionBindings(newAtomAlt, Collections.EMPTY_LIST, lastOpenParameter));
+            //IntSet objectConstantsAlt = Kb.selectDistinct(lastOpenParameter, newAtomQueryAlt);
             for (int constant : objectConstantsAlt) {
                 MiniAmieClosedRule closedRule = new MiniAmieClosedRule(this,
                         constant, relation, unboundParameter);
-                closedRules.add(closedRule);
+                long start = System.nanoTime();
+                closedRule.setApproximateSupport(closedRule.ComputeSupportApproximation());
+                long time = System.nanoTime() - start;
+                closedRule.setAppSupportNano(time);
+
+                if (miniAMIE.PM == PruningMetric.Support || miniAMIE.PM == PruningMetric.HeadCoverage) {
+                    start = System.nanoTime();
+                    closedRule.setSupport(RealSupport(this));
+                    closedRule.setHeadCoverage(RealHeadCoverage(this));
+                    time = System.nanoTime() - start;
+                    closedRule.setSupportNano(time);
+                }
+
+                if (closedRule.IsNotPruned())
+                    closedRules.add(closedRule);
             }
         }
 
@@ -242,12 +331,40 @@ public class MiniAmieRule extends Rule {
         for (int relation : relations) {
             MiniAmieClosedRule closedRule = new MiniAmieClosedRule(this,
                     joinSubject, relation, joinObject);
-            closedRules.add(closedRule);
+            long start = System.nanoTime();
+            closedRule.setApproximateSupport(closedRule.ComputeSupportApproximation());
+            long time = System.nanoTime() - start;
+            closedRule.setAppSupportNano(time);
+
+            if (miniAMIE.PM == PruningMetric.Support || miniAMIE.PM == PruningMetric.HeadCoverage) {
+                start = System.nanoTime();
+                closedRule.setSupport(RealSupport(this));
+                closedRule.setHeadCoverage(RealHeadCoverage(this));
+                time = System.nanoTime() - start;
+                closedRule.setSupportNano(time);
+            }
+
+            if (closedRule.IsNotPruned())
+                closedRules.add(closedRule);
 
             // Reversing joinSubject et joinObject
             MiniAmieClosedRule closedRuleAlt = new MiniAmieClosedRule(this,
                     joinObject, relation, joinSubject);
-            closedRules.add(closedRuleAlt);
+            start = System.nanoTime();
+            closedRuleAlt.setApproximateSupport(closedRuleAlt.ComputeSupportApproximation());
+            time = System.nanoTime() - start;
+            closedRuleAlt.setAppSupportNano(time);
+
+            if (miniAMIE.PM == PruningMetric.Support || miniAMIE.PM == PruningMetric.HeadCoverage) {
+                start = System.nanoTime();
+                closedRuleAlt.setSupport(RealSupport(this));
+                closedRuleAlt.setHeadCoverage(RealHeadCoverage(this));
+                time = System.nanoTime() - start;
+                closedRuleAlt.setSupportNano(time);
+            }
+
+            if (closedRuleAlt.IsNotPruned())
+                closedRules.add(closedRuleAlt);
         }
 
         return closedRules;
@@ -266,16 +383,16 @@ public class MiniAmieRule extends Rule {
     public boolean IsNotPruned() {
             switch (PM) {
                 case ApproximateSupport -> {
-                    return this.SupportApproximation() >= MinSup;
+                    return this.approximateSupport >= MinSup;
                 }
                 case ApproximateHeadCoverage -> {
                     return this.HeadCoverageApproximation() >= MinHC;
                 }
                 case Support -> {
-                    return RealSupport(this) >= MinSup;
+                    return this.getSupport() >= MinSup;
                 }
                 case HeadCoverage -> {
-                    return RealHeadCoverage(this) >= MinHC;
+                    return this.getHeadCoverage() >= MinHC;
                 }
                 default -> {
                     return false;
@@ -410,7 +527,7 @@ public class MiniAmieRule extends Rule {
          *
          * @return
          */
-    public double SupportApproximation() {
+    public double ComputeSupportApproximation() {
 
         if (this.getBody().isEmpty())
             return this.HeadSize() ;
@@ -419,7 +536,7 @@ public class MiniAmieRule extends Rule {
     }
 
     public double HeadCoverageApproximation() {
-        return this.SupportApproximation() / this.HeadSize() ;
+        return this.ComputeSupportApproximation() / this.HeadSize() ;
     }
 
 

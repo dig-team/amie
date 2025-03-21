@@ -277,10 +277,7 @@ public abstract class miniAMIE {
             for (MiniAmieClosedRule closedChild : closedChildren) {
                 searchSpaceEstimatedAdjustedWithBidirectionalitySize +=
                         closedChild.getCorrectingFactor();
-
-                if (closedChild.IsNotPruned()) {
-                    keptRules.add(closedChild);
-                }
+                keptRules.add(closedChild);
             }
         }
 
@@ -303,13 +300,11 @@ public abstract class miniAMIE {
                 explorationResult.sumExploredRulesAdjustedWithBidirectionality +=
                         openChild.getCorrectingFactor();
 
-                if (openChild.IsNotPruned()) {
-                    ExplorationResult exploreOpenChildResult = ExploreChildren(openChild);
-                    explorationResult.finalRules.addAll(exploreOpenChildResult.finalRules);
-                    explorationResult.sumExploredRules += exploreOpenChildResult.sumExploredRules;
-                    explorationResult.sumExploredRulesAdjustedWithBidirectionality +=
-                            exploreOpenChildResult.sumExploredRulesAdjustedWithBidirectionality;
-                }
+                ExplorationResult exploreOpenChildResult = ExploreChildren(openChild);
+                explorationResult.finalRules.addAll(exploreOpenChildResult.finalRules);
+                explorationResult.sumExploredRules += exploreOpenChildResult.sumExploredRules;
+                explorationResult.sumExploredRulesAdjustedWithBidirectionality +=
+                        exploreOpenChildResult.sumExploredRulesAdjustedWithBidirectionality;
             }
         }
 

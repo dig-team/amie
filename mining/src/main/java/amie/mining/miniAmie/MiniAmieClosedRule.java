@@ -16,14 +16,6 @@ public class MiniAmieClosedRule extends MiniAmieRule {
 
     static final int CLOSED_RULE_OPEN_VALUE = 0;
 
-    private double approximateHC = -1;
-
-    private double approximateSupport = -1;
-
-    private long supportNano;
-
-    private long appSupportNano;
-
     private Attributes factorsOfApproximateSupport;
 
     private double jacquardBasedAppSupport = -1;
@@ -150,39 +142,6 @@ public class MiniAmieClosedRule extends MiniAmieRule {
         return HasNoRedundancies(this) && this.containsSinglePath();
     }
 
-
-    public double getApproximateHC() {
-        return approximateHC;
-    }
-
-    public void setApproximateHC(double approximateHC) {
-        this.approximateHC = approximateHC;
-    }
-
-    public double getApproximateSupport() {
-        return approximateSupport;
-    }
-
-    public void setApproximateSupport(double approximateSupport) {
-        this.approximateSupport = approximateSupport;
-    }
-
-    public long getSupportNano() {
-        return supportNano;
-    }
-
-    public void setSupportNano(long supportNano) {
-        this.supportNano = supportNano;
-    }
-
-    public long getAppSupportNano() {
-        return appSupportNano;
-    }
-
-    public void setAppSupportNano(long appSupportNano) {
-        this.appSupportNano = appSupportNano;
-    }
-
     public Attributes getFactorsOfApproximateSupport() {
         return factorsOfApproximateSupport;
     }
@@ -214,8 +173,8 @@ public class MiniAmieClosedRule extends MiniAmieRule {
     }
 
     @Override
-    public double SupportApproximation() {
-        return super.SupportApproximation() * this.ClosureFactor();
+    public double ComputeSupportApproximation() {
+        return super.ComputeSupportApproximation() * this.ClosureFactor();
     }
 
 
@@ -229,28 +188,18 @@ public class MiniAmieClosedRule extends MiniAmieRule {
             time = System.nanoTime() - start;
             this.setSupport(support);
             this.setSupportNano(time);
-        }
-
-
-        start = System.nanoTime();
-        double appSupport = this.SupportApproximation();
-        time = System.nanoTime() - start;
-        this.setApproximateSupport(appSupport);
-        if (!computeRealMetrics) {
-            this.setSupport(appSupport);
+        } else {
+            this.setSupport(this.getApproximateSupport());
         }
 
         setSelectivity(new JacquardSelectivity());
-        this.setJacquardBasedAppSupport(this.SupportApproximation());
+        this.setJacquardBasedAppSupport(this.ComputeSupportApproximation());
         setSelectivity(new AvgSelectivity());
-        this.setAvgBasedAppSupport(this.SupportApproximation());
+        this.setAvgBasedAppSupport(this.ComputeSupportApproximation());
         setSelectivity(new SurvivalRateSelectivity());
-        this.setSurvivalRateBasedAppSupport(this.SupportApproximation());
+        this.setSurvivalRateBasedAppSupport(this.ComputeSupportApproximation());
 
         miniAMIE.ResetSelectivity();
-
-
-        this.setAppSupportNano(time);
 
         this.setHeadCoverage(utils.RealHeadCoverage(this));
         this.setApproximateHC(this.HeadCoverageApproximation());

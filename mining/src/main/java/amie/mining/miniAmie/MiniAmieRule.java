@@ -322,7 +322,11 @@ public class MiniAmieRule extends Rule {
         int joinObject = this.lastOpenParameter;
 
         ArrayList<MiniAmieClosedRule> closedRules = new ArrayList<>();
-        List<Integer> relations = this.promisingRelations();
+        // Technically here we could do some optimization by choosing the predicate that reports
+        // fewer overlaps -- for the time being we always join with the last atom. We could
+        // also compute the intersection by ourselves
+        List<Integer> relations = this.getRealLength() <= 1 ?  this.promisingRelations() :
+                this.promisingRelationsFromOverlapTables(headAtom[1], SUBJECT_POSITION, SUBJECT_POSITION);
 
         if (relations.isEmpty()) {
             return null;
@@ -346,13 +350,18 @@ public class MiniAmieRule extends Rule {
 
             if (closedRule.IsNotPruned())
                 closedRules.add(closedRule);
+        }
 
+        relations = this.getRealLength() <= 1 ?  this.promisingRelations() :
+                this.promisingRelationsFromOverlapTables(headAtom[1], SUBJECT_POSITION, OBJECT_POSITION);
+
+        for (int relation : relations){
             // Reversing joinSubject et joinObject
             MiniAmieClosedRule closedRuleAlt = new MiniAmieClosedRule(this,
                     joinObject, relation, joinSubject);
-            start = System.nanoTime();
+            long start = System.nanoTime();
             closedRuleAlt.setApproximateSupport(closedRuleAlt.ComputeSupportApproximation());
-            time = System.nanoTime() - start;
+            long time = System.nanoTime() - start;
             closedRuleAlt.setAppSupportNano(time);
 
             if (miniAMIE.PM == PruningMetric.Support || miniAMIE.PM == PruningMetric.HeadCoverage) {

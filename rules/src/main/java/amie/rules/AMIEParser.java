@@ -2,8 +2,7 @@ package amie.rules;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -87,6 +86,8 @@ public class AMIEParser {
         return result;
     }
 
+    private static Set<String> ANYBURL_VARIABLES = new HashSet<>(List.of("X", "Y", "A", "B", "C", "D", "E", "F"));
+
     private static Rule anyburlRule(String s, AbstractKB kb) {
         String[] rulePair = s.split(" <= ");
         if (rulePair.length != 2)
@@ -98,6 +99,10 @@ public class AMIEParser {
         String predicate = headAtomMatcher.group(1);
         String subject = headAtomMatcher.group(2);
         String object = headAtomMatcher.group(3);
+        if (ANYBURL_VARIABLES.contains(subject))
+            subject = "?" + subject.toLowerCase();
+        if (ANYBURL_VARIABLES.contains(object))
+            object = "?" + object.toLowerCase();
 
         int headAtom[] = new int[]{kb.map(subject), kb.map(predicate), kb.map(object)};
         Matcher bodyAtomMatcher = Pattern.compile(triplePatternRegex).matcher(rulePair[1]);
@@ -109,6 +114,11 @@ public class AMIEParser {
             object = bodyAtomMatcher.group(3);
             if (predicate == null || subject == null || object == null)
                 return null;
+
+            if (ANYBURL_VARIABLES.contains(subject))
+                subject = "?" + subject.toLowerCase();
+            if (ANYBURL_VARIABLES.contains(object))
+                object = "?" + object.toLowerCase();
 
             bodyAtoms.add(new int[]{kb.map(subject), kb.map(predicate), kb.map(object)});
         }

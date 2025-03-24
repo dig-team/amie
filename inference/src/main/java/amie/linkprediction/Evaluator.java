@@ -431,14 +431,16 @@ public class Evaluator {
 		EvaluationResult eresult = e.evaluate();
 		Instant inst2 = Instant.now();
 		Gson gson = new Gson();
+		gson = gson.newBuilder().serializeSpecialFloatingPointValues().create();
 		String json = gson.toJson(eresult);
 		try(FileWriter jsonOutFile = new FileWriter(rulesPath+ ".inference")){
 			jsonOutFile.write(json);
+			System.out.println(json);
+			System.err.println("Elapsed Time: "+ Duration.between(inst1, inst2).toString());
 		} catch (IOException ex) {
             throw new RuntimeException(ex);
-        }
-        System.out.println(json);
-		System.err.println("Elapsed Time: "+ Duration.between(inst1, inst2).toString());
-		System.exit(0);
+        } finally {
+			System.exit(0);
+		}
 	}
 }

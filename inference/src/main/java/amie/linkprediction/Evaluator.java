@@ -18,6 +18,7 @@ import amie.data.AbstractKB;
 import amie.data.Dataset;
 import amie.data.KB;
 import amie.data.javatools.datatypes.Pair;
+import amie.data.javatools.datatypes.Triple;
 import amie.rules.Rule;
 import com.google.gson.Gson;
 import it.unimi.dsi.fastutil.ints.IntLinkedOpenHashSet;
@@ -28,8 +29,9 @@ public class Evaluator {
 	private Dataset dataset;
 	private Map<Integer, Collection<Rule>> rules;
 	private int nCores;
+	private int batchSize;
 
-	public static int BATCH_SIZE = 100;
+	public static int DEFAULT_BATCH_SIZE = 100;
 
 	public static Evaluator getEvaluator(String dataFolder, String rulesFile) throws IOException {
 		Dataset d = new Dataset(dataFolder);
@@ -47,7 +49,12 @@ public class Evaluator {
 		this.dataset = d;
 		this.rules = new HashMap<>();
 		this.nCores = nCores;
+		this.batchSize = DEFAULT_BATCH_SIZE;
 		this.indexRules(inputRules);
+	}
+
+	private void setBatchSize(int batchSize) {
+		this.batchSize = batchSize;
 	}
 
 	/**
@@ -157,20 +164,25 @@ public class Evaluator {
 	private void evaluateRelationOnOneFocus(List<int[]> batch, EvaluationFocus focus, EvaluationResult resultMetrics) {
 		IntLinkedOpenHashSet candidatesSet = null;
 		// We have to carry out the evaluation per sub-batches, otherwise it consumes too much memory
-		for (List<int[]> subBatch : ListUtils.partition(batch, BATCH_SIZE)) {
+		for (List<int[]> subBatch : ListUtils.partition(batch, this.batchSize)) {
 			List<Pair<Integer, Ranking>> rankings = new ArrayList<>();
 			if (focus == EvaluationFocus.Head) {
 				for (int[] triple : subBatch) {
-					rankings.add(new Pair<>(triple[0], new Ranking(new Query(this.dataset.training, -1, triple[1], triple[2]))));
+					Ranking ranking = new Ranking(new Query(this.dataset.training, -1, triple[1], triple[2]));
+					updateRanking(triple[0], ranking);
+					rankings.add(new Pair<>(triple[0], ranking));
 				}
 			} else if (focus == EvaluationFocus.Tail) {
 				for (int[] triple : subBatch) {
-					rankings.add(new Pair<>(triple[2], new Ranking(new Query(this.dataset.training, triple[0], triple[1], -1))));
+					Ranking ranking = new Ranking(new Query(this.dataset.training, triple[0], triple[1], -1));
+					updateRanking(triple[2], ranking);
+					rankings.add(new Pair<>(triple[2], ranking));
 				}
 			} else {
 				// This focus does not have sense here
 				continue;
 			}
+
 			if (candidatesSet == null) {
 				candidatesSet = new IntLinkedOpenHashSet();
 				IntLinkedOpenHashSet finalCandidatesSet = candidatesSet;
@@ -184,6 +196,7 @@ public class Evaluator {
 			}
 			updateBatchEvaluationMetrics(rankings, focus, resultMetrics);
 		}
+
 
 		if (!batch.isEmpty()) {
 			String relation = this.dataset.training.unmap(batch.get(0)[1]);
@@ -249,12 +262,16 @@ public class Evaluator {
 		}
 	}
 
+	private void updateRanking(int entity, Ranking r) {
+		Query q = r.getQuery();
+		Rank entityRank = getEntityScoresForQuery(entity, q);
+		r.addSolution(entityRank);
+	}
+
 	private void updateRankings(int entity, List<Pair<Integer, Ranking>> rankings) {
 		for (Pair<Integer, Ranking> entityAndRanking : rankings) {
 			Ranking r = entityAndRanking.second;
-			Query q = r.getQuery();
-			Rank entityRank = getEntityScoresForQuery(entity, q);
-			r.addSolution(entityRank);
+			updateRanking(entity, r);
 		}
 	}
 
@@ -359,6 +376,7 @@ public class Evaluator {
 			}
 			return returnStream;
 		} else {
+			System.err.println("No rules for relation " + relation);
 			// Return all subjects
 			returnIterator = this.dataset.training.getSubjects().iterator();
 			return StreamSupport.stream(
@@ -368,9 +386,20 @@ public class Evaluator {
 
 	}
 
+	private int[] normalizeAtom(int[] atom) {
+		int[] newAtom = atom.clone();
+
+		if (atom[0] < 0)
+			newAtom[0] = -1;
+		if (atom[2] < 0)
+			newAtom[2] = -2;
+
+		return newAtom;
+	}
+
 	private Collection<int[]> getAllCommonDomainTriplePatterns(Collection<Rule> rules, int headAtomVarPos) {
 		ArrayList<int[]> triplePatterns = new ArrayList<>();
-		LinkedHashSet<Pair<Integer, Integer>> seenPredicates = new LinkedHashSet<>();
+		LinkedHashSet<Triple<Integer, Integer, Integer>> seenPredicates = new LinkedHashSet<>();
 		for (Rule rule : rules) {
 			int[] headAtom = rule.getHead();
 			int variableOfInterest = headAtom[headAtomVarPos];
@@ -381,9 +410,11 @@ public class Evaluator {
 				if (atom[2] == variableOfInterest)
 					varPos = 2;
 				if (varPos != -1) {
-					if (!seenPredicates.contains(new Pair<>(atom[1], varPos))) {
-						triplePatterns.add(atom.clone());
-						seenPredicates.add(new Pair<>(atom[1], varPos));
+					int[] newAtom = normalizeAtom(atom);
+					Triple<Integer, Integer, Integer> triple = new Triple<>(newAtom[0], newAtom[1], newAtom[2]);
+ 					if (!seenPredicates.contains(triple)) {
+						triplePatterns.add(newAtom);
+						seenPredicates.add(triple);
 					}
 				}
 			}
@@ -407,6 +438,7 @@ public class Evaluator {
 			System.err.println(helpText("Insufficient number of arguments"));
 			System.exit(1);
 		}
+		int batchSize = Evaluator.DEFAULT_BATCH_SIZE;
 		String datasetPath = args[0];
 		String rulesPath = args[1];
 		System.err.println("Rules file: " + rulesPath);
@@ -420,6 +452,16 @@ public class Evaluator {
 			amieRules = Boolean.parseBoolean(args[3]);
 			System.err.println("Assuming AMIE's format: " + amieRules);
 		}
+
+		if (args.length > 4) {
+			try {
+				batchSize = Integer.parseInt(args[4]);
+			} catch (NumberFormatException e) {
+				System.err.println(e);
+				System.err.println("Using the default batch size: " + DEFAULT_BATCH_SIZE);
+			}
+		}
+
 		Instant inst1 = Instant.now();
 		Evaluator e = null;
         try {
@@ -428,6 +470,7 @@ public class Evaluator {
             System.err.println(ex);
 			System.exit(2);
         }
+		e.setBatchSize(batchSize);
 		EvaluationResult eresult = e.evaluate();
 		Instant inst2 = Instant.now();
 		Gson gson = new Gson();
@@ -443,4 +486,5 @@ public class Evaluator {
 			System.exit(0);
 		}
 	}
+
 }

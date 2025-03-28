@@ -4,9 +4,7 @@ import amie.data.AbstractKB;
 import amie.data.KB;
 import amie.rules.PruningMetric;
 import amie.rules.Rule;
-import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.*;
 import org.apache.commons.lang.NotImplementedException;
 
 import java.util.ArrayList;
@@ -175,20 +173,28 @@ public class MiniAmieRule extends Rule {
 
     private List<Integer> promisingRelationsFromOverlapTables(int predId, int position1, int position2) {
         List<Integer> promisingPredicates = new ArrayList<>();
+        Int2ObjectMap<Int2IntMap> overlapIndex = null;
         if (position1 == SUBJECT_POSITION) { // The subject is variable
             if (position2 == SUBJECT_POSITION)
-                promisingPredicates.addAll(((KB)(this.kb)).subject2subjectOverlap.get(predId).keySet());
+                overlapIndex = ((KB)(this.kb)).subject2subjectOverlap;
             else
-                promisingPredicates.addAll(((KB)(this.kb)).subject2objectOverlap.get(predId).keySet());
+                overlapIndex = ((KB)(this.kb)).subject2objectOverlap;
         } else {
             if (position2 == SUBJECT_POSITION)
                 // Here we have a problem
                 return this.promisingRelations();
             else
-                promisingPredicates.addAll(((KB)(this.kb)).object2objectOverlap.get(predId).keySet());
+                overlapIndex = ((KB)(this.kb)).object2objectOverlap;
         }
 
-        return promisingPredicates;
+        if (overlapIndex.containsKey(predId)) {
+            IntSet predicates = overlapIndex.get(predId).keySet();
+            promisingPredicates.addAll(predicates);
+            return promisingPredicates;
+        } else {
+            return this.promisingRelations();
+        }
+
     }
 
 
@@ -233,7 +239,7 @@ public class MiniAmieRule extends Rule {
      * @return
      */
     public ArrayList<MiniAmieClosedRule> AddClosureToAcyclicWithConstants(int maxConstants) {
-        int unboundParameter = this.getLastOpenParameter();
+        int unboundParameter = this.newVariable();
         int[] lastTriplePattern = this.getLastTriplePattern();
         int joinPositionInRule = lastTriplePattern[0] == lastOpenParameter? SUBJECT_POSITION : OBJECT_POSITION;
 
@@ -251,14 +257,14 @@ public class MiniAmieRule extends Rule {
             int[] newAtom = new int[]{unboundParameter, relation, lastOpenParameter};
             newAtomQuery.add(newAtom);
             // TODO reuse previously instantiated heads if possible
-            IntList objectConstants = decreasingKeys(kb.countProjectionBindings(newAtom, Collections.EMPTY_LIST, lastOpenParameter));
+            IntList objectConstants = decreasingKeys(kb.countProjectionBindings(newAtom, Collections.EMPTY_LIST, unboundParameter));
             //IntSet objectConstants = Kb.selectDistinct(lastOpenParameter, newAtomQuery);
             int k = 0;
             for (int constant : objectConstants) {
                 if (k >= maxConstants) break;
                 k++;
                 MiniAmieClosedRule closedRule = new MiniAmieClosedRule(this,
-                        unboundParameter, relation, constant);
+                        constant, relation, lastOpenParameter);
                 long start = System.nanoTime();
                 closedRule.setApproximateSupport(closedRule.ComputeSupportApproximation());
                 long time = System.nanoTime() - start;
@@ -289,7 +295,7 @@ public class MiniAmieRule extends Rule {
             //IntSet objectConstantsAlt = Kb.selectDistinct(lastOpenParameter, newAtomQueryAlt);
             for (int constant : objectConstantsAlt) {
                 MiniAmieClosedRule closedRule = new MiniAmieClosedRule(this,
-                        constant, relation, unboundParameter);
+                        lastOpenParameter, relation, constant);
                 long start = System.nanoTime();
                 closedRule.setApproximateSupport(closedRule.ComputeSupportApproximation());
                 long time = System.nanoTime() - start;
@@ -540,7 +546,6 @@ public class MiniAmieRule extends Rule {
 
         if (this.getBody().isEmpty())
             return this.HeadSize() ;
-
         return this.HeadSize() * this.HeadToBodySelectivity() * this.BodySelectivity() ;
     }
 

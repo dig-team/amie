@@ -1107,7 +1107,7 @@ public class MiningAssistant {
 	 * @param r2
 	 * @return
 	 */
-	private double computeOverlap(int[] jinfo, int r1, int r2) {
+    public double computeOverlap(int[] jinfo, int r1, int r2) {
 		if (jinfo[0] == 0 && jinfo[1] == 0) {
 			return this.kb.overlap(r1, r2, KB.SUBJECT2SUBJECT);
 		} else if (jinfo[0] == 2 && jinfo[1] == 2) {

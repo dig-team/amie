@@ -1582,6 +1582,10 @@ public class Rule {
         this.pcaConfidenceEstimation = pcaEstimation;
     }
 
+    public double getPcaEstimation() {
+        return this.pcaConfidenceEstimation;
+    }
+
     /**
      * For rules with an even number of atoms (n &gt; 2), it checks if it contains
      * level 2 redundant subgraphs, that is, each relation occurs exactly twice

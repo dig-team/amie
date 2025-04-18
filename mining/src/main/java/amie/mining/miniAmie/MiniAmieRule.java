@@ -538,10 +538,7 @@ public class MiniAmieRule extends Rule {
         return bodySelectivity;
     }
 
-        /**
-         *
-         * @return
-         */
+
     public double ComputeSupportApproximation() {
 
         if (this.getBody().isEmpty())

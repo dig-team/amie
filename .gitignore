@@ -13,3 +13,6 @@ query-logs/
 *.log
 *.xml
 *.csv
+/mining/mining.iml
+/rules/rules.iml
+/inference/inference.iml

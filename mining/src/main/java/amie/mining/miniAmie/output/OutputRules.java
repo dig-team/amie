@@ -24,7 +24,7 @@ public abstract class OutputRules {
             + "appSurvivalRateSupport" + commaSep
             + "appAvgSupport" + commaSep
             + "appJacquardSupport" + commaSep // APP SUPPORT
-//            + "altAppSupport" + commaSep // APP SUPPORT
+            + "appPCAConfidence" + commaSep // APP SUPPORT
             + "realSupport" + commaSep
             + "appHeadCoverage" + commaSep
             + "realHeadCoverage" + commaSep
@@ -108,6 +108,7 @@ public abstract class OutputRules {
                 + rule.getSurvivalRateBasedAppSupport() + commaSep
                 + rule.getAvgBasedAppSupport() + commaSep
                 + rule.getJacquardBasedAppSupport() + commaSep
+                + rule.getPcaEstimation() + commaSep
                 + rule.getSupport() + commaSep
                 + rule.getApproximateHC() + commaSep
                 + rule.getHeadCoverage() + commaSep

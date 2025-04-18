@@ -1,6 +1,7 @@
 package amie.mining.miniAmie;
 
 import amie.data.AbstractKB;
+import amie.data.KB;
 import amie.mining.assistant.DefaultMiningAssistant;
 import amie.mining.miniAmie.output.comparisonToGroundTruth.CompareToGT;
 import amie.mining.utils.GlobalSearchResult;
@@ -277,6 +278,8 @@ public abstract class miniAMIE {
             for (MiniAmieClosedRule closedChild : closedChildren) {
                 searchSpaceEstimatedAdjustedWithBidirectionalitySize +=
                         closedChild.getCorrectingFactor();
+                // Let us calculate its approximate PCA confidence
+                calculateConfidenceApproximationForGeneralCase(closedChild);
                 keptRules.add(closedChild);
             }
         }
@@ -287,6 +290,30 @@ public abstract class miniAMIE {
                 keptRules
         ) ;
 
+    }
+
+    /**
+     * Given a rule with more than 3 atoms and a single path connecting the head
+     * variables,
+     * it computes a confidence approximation. It corresponds to the last formula of
+     * page 15 in http://luisgalarraga.de/docs/amie-plus.pdf
+     *
+     * @param candidate
+     * @return boolean True if the approximation is not applicable or produces a
+     *         value
+     *         above the confidence thresholds, i.e., there is not enough evidence
+     *         to drop the rule.
+     */
+    protected static void calculateConfidenceApproximationForGeneralCase(MiniAmieClosedRule candidate) {
+
+        //super.ComputeSupportApproximation() * this.ClosureFactor();
+        //return this.HeadSize() * this.HeadToBodySelectivity() * this.BodySelectivity() ;
+        int headR = candidate.getHeadRelationBS();
+        if (Kb.isFunctional(headR)) {
+            candidate.setPcaEstimation(candidate.HeadToBodySelectivity());
+        } else {
+            candidate.setPcaEstimation(candidate.ClosureFactor());
+        }
     }
 
     private static ExplorationResult ExploreOpenChildren(MiniAmieRule rule,

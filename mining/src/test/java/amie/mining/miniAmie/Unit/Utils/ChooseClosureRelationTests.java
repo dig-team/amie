@@ -3,7 +3,8 @@ package amie.mining.miniAmie.Unit.Utils;
 import amie.mining.miniAmie.Unit.UnitTest;
 
 public class ChooseClosureRelationTests extends UnitTest {
-    public void setUp () {
+    public void setUp () throws Exception {
+        super.setUp();
 //        int[] unboundPattern = rule.fullyUnboundTriplePattern();
 //        unboundPattern[OBJECT_POSITION] = openVariable;
 //        unboundPattern[SUBJECT_POSITION] = closureVariable;

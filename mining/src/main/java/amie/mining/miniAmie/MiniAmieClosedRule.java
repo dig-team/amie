@@ -21,6 +21,7 @@ public class MiniAmieClosedRule extends MiniAmieRule {
     private double jacquardBasedAppSupport = -1;
     private double avgBasedAppSupport = -1;
     private double survivalRateBasedAppSupport = -1;
+    private double approxPcaDenominator = -1;
 
     public MiniAmieClosedRule(Rule rule) {
         super(rule);
@@ -240,4 +241,11 @@ public class MiniAmieClosedRule extends MiniAmieRule {
         this.jacquardBasedAppSupport = jacquardBasedAppSupport;
     }
 
+    public double getApproxPcaDenominator() {
+        return approxPcaDenominator;
+    }
+
+    public void setApproxPcaDenominator(double approxPcaDenominator) {
+        this.approxPcaDenominator = approxPcaDenominator;
+    }
 }

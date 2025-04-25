@@ -16,3 +16,5 @@ query-logs/
 /mining/mining.iml
 /rules/rules.iml
 /inference/inference.iml
+venv/*
+*.rules

@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -32,6 +33,8 @@ public class Evaluator {
 	private int batchSize;
 
 	public static int DEFAULT_BATCH_SIZE = 100;
+
+	public static int MAX_RANKING_SIZE = 1000;
 
 	public static Evaluator getEvaluator(String dataFolder, String rulesFile) throws IOException {
 		Dataset d = new Dataset(dataFolder);
@@ -184,15 +187,16 @@ public class Evaluator {
 			}
 
 			if (candidatesSet == null) {
+				// This routine initializes the candidates from those computed for the first batch
 				candidatesSet = new IntLinkedOpenHashSet();
 				IntLinkedOpenHashSet finalCandidatesSet = candidatesSet;
-				getQueryCandidatesStream(batch.get(0)[1], focus == EvaluationFocus.Head ? 0 : 2).forEach(
+				getQueryCandidatesStream(batch.get(0)[1], focus == EvaluationFocus.Head ? 0 : 2).limit(MAX_RANKING_SIZE).forEach(
 						e -> {
 							this.updateRankings(e, rankings);
 							finalCandidatesSet.add(e);
 						});
 			} else {
-				candidatesSet.stream().forEach(e -> this.updateRankings(e, rankings));
+				candidatesSet.forEach((IntConsumer) e -> this.updateRankings(e, rankings));
 			}
 			updateBatchEvaluationMetrics(rankings, focus, resultMetrics);
 		}

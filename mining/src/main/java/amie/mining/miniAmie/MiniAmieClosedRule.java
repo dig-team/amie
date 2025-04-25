@@ -212,8 +212,9 @@ public class MiniAmieClosedRule extends MiniAmieRule {
         if (computeRealMetrics) {
             utils.RealPCADenominator(this);
         } else {
-            // In such case we penalize longer rules
-            this.setPcaBodySize(getLength());
+            // This is redundant because this.getPcaEstimation gives us the confidence itself
+            // but we have to convert it into a denominator to comply with the rule interface :/
+            this.setPcaBodySize(this.getApproximateSupport() / this.getPcaEstimation());
         }
     }
 

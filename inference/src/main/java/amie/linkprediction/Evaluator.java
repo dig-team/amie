@@ -190,7 +190,7 @@ public class Evaluator {
 				// This routine initializes the candidates from those computed for the first batch
 				candidatesSet = new IntLinkedOpenHashSet();
 				IntLinkedOpenHashSet finalCandidatesSet = candidatesSet;
-				getQueryCandidatesMoreRestrictedStream(batch.get(0)[1], focus == EvaluationFocus.Head ? 0 : 2).limit(MAX_RANKING_SIZE).forEach(
+				getQueryCandidatesStream(batch.get(0)[1], focus == EvaluationFocus.Head ? 0 : 2).limit(MAX_RANKING_SIZE).forEach(
 						e -> {
 							this.updateRankings(e, rankings);
 							finalCandidatesSet.add(e);

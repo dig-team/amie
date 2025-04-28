@@ -190,7 +190,7 @@ public class Evaluator {
 				// This routine initializes the candidates from those computed for the first batch
 				candidatesSet = new IntLinkedOpenHashSet();
 				IntLinkedOpenHashSet finalCandidatesSet = candidatesSet;
-				getQueryCandidatesStream(batch.get(0)[1], focus == EvaluationFocus.Head ? 0 : 2).limit(MAX_RANKING_SIZE).forEach(
+				getQueryCandidatesMoreRestrictedStream(batch.get(0)[1], focus == EvaluationFocus.Head ? 0 : 2).limit(MAX_RANKING_SIZE).forEach(
 						e -> {
 							this.updateRankings(e, rankings);
 							finalCandidatesSet.add(e);
@@ -387,7 +387,35 @@ public class Evaluator {
 					Spliterators.spliteratorUnknownSize(returnIterator, Spliterator.ORDERED),
 					false);
 		}
+	}
 
+	public Stream<Integer> getQueryCandidatesMoreRestrictedStream(int relation, int varPos) {
+		Iterator<Integer> returnIterator = null;
+		Stream<Integer> returnStream = Stream.empty();
+		if (this.rules.containsKey(relation)) {
+			for (Rule rule : this.rules.get(relation)) {
+				int variable = varPos == 0 ? -1 : -2;
+				int[] headAtom = rule.getHead();
+				Stream<Integer> currentStream = null;
+				if (headAtom[varPos] < 0) {
+					// This is a constant
+					currentStream =  Stream.of(headAtom[varPos]);
+				} else {
+					returnIterator = this.dataset.training.selectDistinctIterator(
+							new IntLinkedOpenHashSet(), variable, rule.getBody());
+					currentStream = this.iteratorToStream(returnIterator);
+				}
+				returnStream = Stream.concat(returnStream, currentStream);
+			}
+			return returnStream;
+		} else {
+			System.err.println("No rules for relation " + relation);
+			// Return all subjects
+			returnIterator = this.dataset.training.getSubjects().iterator();
+			return StreamSupport.stream(
+					Spliterators.spliteratorUnknownSize(returnIterator, Spliterator.ORDERED),
+					false);
+		}
 	}
 
 	private int[] normalizeAtom(int[] atom) {

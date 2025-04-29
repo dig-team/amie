@@ -498,7 +498,7 @@ public class DefaultMiningAssistant extends MiningAssistant {
 		int nConsts = 0;
 		for (int constant : promisingConstants) {
 			int cardinality = constants.get(constant);
-			if (nConsts++ > this.maxConstantsInExploration) break;
+			if (nConsts++ > this.maxConstantsInExploration && parentQuery != null) break;
 			nConsts++;
 			if (cardinality >= minSupportThreshold) {
 				int[] targetEdge = danglingEdge.clone();

@@ -21,7 +21,8 @@ public abstract class Benchmarking {
         while ((line = reader.readLine()) != null) {
             if (line.contains("VmHWM")) {
 //                System.err.println(Arrays.toString(line.split("[ ]+")));
-                strVmHWM = line.split("[ ]+")[1];
+                line = line.replace("VmHWM:", "").strip();
+                strVmHWM = line.split("[ ]+")[0];
             }
         }
         reader.close();

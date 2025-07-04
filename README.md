@@ -14,17 +14,17 @@ AMIE takes as input a file that contains a knowledge base. The knowledge base ca
  1. `subject DELIM predicate DELIM object [whitespace/tabulation .] NEWLINE`
  2. `factid DELIM subject DELIM predicate DELIM object [whitespace/tabulation .] NEWLINE`
 
-The default delimiter `DELIM` is the tabulation (.tsv files) but can be changed using the `-d` option. Any trailing whitespaces followed by a point are ignored.
+The default delimiter `DELIM` is the tabulation (as in .tsv files) but can be changed using the `-d` option. Any trailing whitespaces followed by a point are ignored.
 
 ## Running AMIE
 
 Make sure that you have the latest version of [Java](https://java.com/en/download/) installed. Download an AMIE executable jar file [AMIE-JAR], and type:
 
-```java -jar [AMIE-JAR] [TSV file]```
+```java -jar [AMIE-JAR] [Input file]```
 
 In case of memory issues, try to increase the virtual machine's memory resources using the arguments `-XX:-UseGCOverheadLimit -Xmx [MAX_HEAP_SPACE]`, e.g:
 
-```java -XX:-UseGCOverheadLimit -Xmx2G -jar [AMIE-JAR] [TSV file]```
+```java -XX:-UseGCOverheadLimit -Xmx2G -jar [AMIE-JAR] [Input file]```
 
 `MAX_HEAP_SPACE` depends on your input size and the system's available memory. The package also contains the utilities to generate and evaluate predictions from the rules mined by AMIE. Without additional arguments AMIE thresholds with PCA confidence 0.1 and head coverage 0.01. You can change these default settings. Run `java -jar [AMIE-JAR] -h` (without an input file) to see a detailed description of the available options.
 
@@ -44,7 +44,7 @@ Below is a basic setup example to use AMIE with a remote knowledge base.
 
 #### Server-side
 
-```java -jar [AMIE-JAR] -server [TSVFile] -port <Server Port (default: 9092)>```
+```java -jar [AMIE-JAR] -server [Input file] -port <Server Port (default: 9092)>```
 
 This will load the data into the memory of the server. 
 
